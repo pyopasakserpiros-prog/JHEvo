@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '3.5.0c',
-    SUPPORTED_PATCHES: ['3.0.0', '3.1.0', '3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
-    SAVE_SCHEMA_VERSION: '3.5.0c-release-polish',
+    PATCH_VERSION: '3.8.2',
+    SUPPORTED_PATCHES: ['3.0.0', '3.1.0', '3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0a', '3.6.0b', '3.6.0c', '3.7.0', '3.7.0a', '3.7.0b', '3.7.0c', '3.8.0', '3.8.1', '3.8.2', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
+    SAVE_SCHEMA_VERSION: '3.8.2-chaos-era-lore-archive',
     DAY_FACTOR: 1.5,
     CALENDAR_MINS_PER_DAY: 1440,
     WORK_STEPS_PER_DAY: 2160,
@@ -68,9 +68,75 @@
   });
 
   const SEASON_TH = ['ฤดูใบไม้ผลิ', 'ฤดูร้อน', 'ฤดูใบไม้ร่วง', 'ฤดูหนาว'];
+  const MONTH_NAMES_TH = Object.freeze([
+    'เดือนอ้ายวสันต์', 'เดือนยี่บุปผา', 'เดือนสามวสันต์ปลาย',
+    'เดือนสี่คิมหันต์แรก', 'เดือนห้าสุริยัน', 'เดือนหกพิรุณร้อน',
+    'เดือนเจ็ดสารทแรก', 'เดือนแปดใบไม้ร่วง', 'เดือนเก้าสารทปลาย',
+    'เดือนสิบเหมันต์แรก', 'เดือนสิบเอ็ดน้ำค้างแข็ง', 'เดือนสิบสองเหมันต์ลึก'
+  ]);
   SIM.SEASON_TH = SEASON_TH;
-  SIM.calendar = t => { const day = Math.floor(t / 1440), yd = ((day % 360) + 360) % 360; return { day, year: Math.floor(day / 360) + 1, month: Math.floor(yd / 30) + 1, dom: (yd % 30) + 1, season: Math.floor(yd / 90), hour: Math.floor((t % 1440) / 60), minute: t % 60 }; };
-  SIM.dateText = t => { const c = SIM.calendar(t); return 'ปี ' + c.year + ' เดือน ' + c.month + ' วัน ' + c.dom + ' · ' + U.pad2(c.hour) + ':' + U.pad2(c.minute) + ' · ' + SEASON_TH[c.season]; };
+  SIM.CALENDAR = Object.freeze({
+    ERA_CODE_TH: 'ศ.ท.',
+    ERA_NAME_TH: 'ศักราชหลังเทียนกู่ล่มสลาย (Post-Tiangu Era)',
+    PREHISTORY_CODE_TH: 'ก่อน ศ.ท.',
+    PREHISTORY_NAME_TH: 'มหายุคก่อนประวัติศาสตร์ (ก่อนมหาจักรวรรดิเทียนกู่ล่มสลาย)',
+    EPOCH_ZERO_EVENT_TH: 'คืนประตูมิติหลวงแตกและวันล่มสลายของมหาจักรวรรดิเทียนกู่ (ยุคที่ 0 ปีที่ 0)',
+    YEARS_PER_EPOCH: 1000,
+    START_EPOCH: 101,
+    START_YEAR_IN_EPOCH: 1,
+    START_WORLD_YEAR: 100001,
+    DAYS_PER_MONTH: 30,
+    MONTHS_PER_YEAR: 12,
+    DAYS_PER_YEAR: 360,
+    MONTH_NAMES_TH,
+    SEASON_NAMES_TH: Object.freeze(SEASON_TH.slice())
+  });
+  SIM.splitWorldYear = y => {
+    const n = Math.trunc(Number(y) || 0);
+    if (n <= 0) return { worldYear: n, isPrehistory: n < 0, epoch: 0, yearInEpoch: n };
+    const ype = SIM.CALENDAR.YEARS_PER_EPOCH;
+    return {
+      worldYear: n,
+      isPrehistory: false,
+      epoch: Math.floor((n - 1) / ype) + 1,
+      yearInEpoch: ((n - 1) % ype) + 1
+    };
+  };
+  SIM.worldYearFromEpoch = (epoch, yearInEpoch) => {
+    const ep = Math.trunc(Number(epoch) || 1);
+    const yr = Math.trunc(Number(yearInEpoch) || 1);
+    return (ep - 1) * SIM.CALENDAR.YEARS_PER_EPOCH + yr;
+  };
+  SIM.formatWorldYear = (y, compact) => {
+    const n = Math.trunc(Number(y) || 0);
+    if (n === 0) return compact ? 'ยุค 0 ปี 0' : 'ยุคที่ 0 ปีที่ 0 (คืนประตูมิติหลวงแตก)';
+    if (n < 0) return compact ? ('ก่อนยุค ' + Math.abs(n) + ' ปี') : ('มหายุคก่อนประวัติศาสตร์ (ก่อน ศ.ท. ' + Math.abs(n).toLocaleString('en-US') + ' ปี)');
+    const p = SIM.splitWorldYear(n);
+    return compact ? ('ยุค ' + p.epoch + ' ปี ' + p.yearInEpoch) : ('ยุคที่ ' + p.epoch + ' ปีที่ ' + p.yearInEpoch);
+  };
+  SIM.worldYearFromYearsAgo = (yearsAgo, refYear) => (refYear != null ? refYear : SIM.CALENDAR.START_WORLD_YEAR) - Math.trunc(Number(yearsAgo) || 0);
+  SIM.yearsAgoFromWorldYear = (worldYear, refYear) => (refYear != null ? refYear : SIM.CALENDAR.START_WORLD_YEAR) - Math.trunc(Number(worldYear) || 0);
+  SIM.calendar = t => {
+    const day = Math.floor(t / 1440), yd = ((day % 360) + 360) % 360;
+    const year = Math.floor(day / 360) + 1;
+    const month = Math.floor(yd / 30) + 1;
+    const dom = (yd % 30) + 1;
+    const season = Math.floor(yd / 90);
+    const hour = Math.floor((t % 1440) / 60);
+    const minute = t % 60;
+    const worldYear = (SIM.CALENDAR.START_WORLD_YEAR - 1) + year;
+    const ep = SIM.splitWorldYear(worldYear);
+    const monthNameTh = MONTH_NAMES_TH[month - 1] || ('เดือน ' + month);
+    return {
+      day, year, sectYear: year, worldYear, epoch: ep.epoch, yearInEpoch: ep.yearInEpoch,
+      eraCodeTh: SIM.CALENDAR.ERA_CODE_TH,
+      month, monthNameTh, dom, season, seasonNameTh: SEASON_TH[season], hour, minute
+    };
+  };
+  SIM.dateText = t => {
+    const c = SIM.calendar(t);
+    return 'ยุคที่ ' + c.epoch + ' ปีที่ ' + c.yearInEpoch + ' เดือน ' + c.month + ' (' + c.monthNameTh + ') วันที่ ' + c.dom + ' · ' + U.pad2(c.hour) + ':' + U.pad2(c.minute) + ' · ' + SEASON_TH[c.season];
+  };
 
   /* ---------- สร้างตัวละคร ---------- */
   SIM.buildNpc = (W, rng, o) => {
@@ -869,6 +935,13 @@
       if (g.EXPED && g.EXPED.EXTERNAL_WORLD_EVENTS && g.EXPED.EXTERNAL_WORLD_EVENTS.tickDaily) {
         g.EXPED.EXTERNAL_WORLD_EVENTS.tickDaily(W);
       }
+      if (g.EXPED && g.EXPED.LIVING_SECTS && g.EXPED.LIVING_SECTS.tickMonthly) {
+        g.EXPED.LIVING_SECTS.tickMonthly(W);
+      }
+      if (g.EXPED && g.EXPED.LIVING_POLITIES && g.EXPED.LIVING_POLITIES.tickMonthly) {
+        g.EXPED.LIVING_POLITIES.tickMonthly(W);
+      if (typeof CULT !== 'undefined' && CULT.LEGENDARY_DAO && CULT.LEGENDARY_DAO.tickMonthlyDiscoveryAndRipples) CULT.LEGENDARY_DAO.tickMonthlyDiscoveryAndRipples(W);
+      }
     }
     if (_simHr % 72 === 0 && ECO && ECO.maintainUpkeepGear) {
       for (const n of W.npcs) {
@@ -1252,6 +1325,16 @@
     if (s.hc && s.hc !== HC.FINGERPRINT) throw new Error('เซฟนี้สร้างจากแกนมนุษย์คนละเวอร์ชัน (' + s.hc + ' ≠ ' + HC.FINGERPRINT + ')');
     const SUPPORTED_SAVE_SCHEMAS = new Set([
       SIM.SAVE_SCHEMA_VERSION,
+      '3.8.1-world-calendar-epoch',
+      '3.8.0-master-lore-compendium',
+      '3.7.0c-final-polish',
+      '3.7.0b-p1-realism-polish',
+      '3.7.0a-p0-audit-fixes',
+      '3.7.0-legendary-dao',
+      '3.6.0c-living-world-audit',
+      '3.6.0b-living-polities',
+      '3.6.0a-living-sects',
+      '3.5.0c-release-polish',
       '3.5.0b-p1-hardening',
       '3.5.0a-p0-hardening',
       '3.4.0-world-events',

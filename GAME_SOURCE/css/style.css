@@ -26,7 +26,7 @@ button[disabled]{opacity:.48;cursor:not-allowed;filter:none}
 }
 #resRow{display:flex;gap:5px;flex-wrap:wrap}
 #hudBottom{z-index:12;position:absolute;left:0;right:0;bottom:0;padding:6px 4px calc(8px + var(--safe-b));display:flex;gap:4px;background:linear-gradient(0deg,#0f221ee8 0%,#12282499 70%,#12282400 100%);justify-content:space-between}
-#hudBottom button{flex:1 1 0;min-width:48px;min-height:46px;background:linear-gradient(180deg,#234239f2,#19312af5);border:1px solid #5a7260;padding:6px 2px;font-size:11.5px;line-height:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;white-space:nowrap}
+#hudBottom button{flex:1 1 0;min-width:0;min-height:46px;background:linear-gradient(180deg,#234239f2,#19312af5);border:1px solid #5a7260;padding:6px 2px;font-size:11.5px;line-height:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;white-space:nowrap}
 #hudBottom button span{font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center}
 #hudBottom button.on{border-color:var(--gold);color:var(--gold);background:linear-gradient(180deg,#345b4a,#244336)}
 #toasts{position:absolute;left:8px;right:106px;top:calc(112px + var(--safe-t));display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:40}

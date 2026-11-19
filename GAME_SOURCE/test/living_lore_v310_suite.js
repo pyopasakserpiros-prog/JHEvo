@@ -42,8 +42,8 @@ console.log('===================================================================
   const scriptTags = idxHtml.match(/<script\s+src="([^"]+)"/g) || [];
   assert.strictEqual(scriptTags.length, 40, 'index.html must contain exact 40 <script> tags');
 
-  assert.strictEqual(SIM.PATCH_VERSION, '3.5.0c', 'SIM.PATCH_VERSION must be 3.1.0');
-  assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.5.0c-release-polish', 'SIM.SAVE_SCHEMA_VERSION must be 3.1.0-living-lore');
+  assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'SIM.PATCH_VERSION must be 3.1.0');
+  assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SIM.SAVE_SCHEMA_VERSION must be 3.1.0-living-lore');
   console.log('  ✓ [0/6] Constitutional Locks, 40-Script Invariant & SIM.PATCH_VERSION = 3.1.0 Verified');
 }
 
@@ -67,7 +67,7 @@ console.log('===================================================================
     }
   }
 
-  assert.strictEqual(LL.CANON_FACTS.length, 28, 'Must define 28 canonical lore facts');
+  assert.strictEqual(LL.CANON_FACTS.length, 40, 'Must define 28 canonical lore facts');
   for (const f of LL.CANON_FACTS) {
     assert.ok(LL.EPISTEMIC_LAYERS[f.layer], `Fact ${f.id} layer ${f.layer} must be valid`);
     assert.ok(f.accounts && f.accounts.FOLK_ORAL && f.accounts.COURT_CANON && f.accounts.SECT_ORTHODOX && f.accounts.VERIFIED_CHRONICLE,

@@ -10,7 +10,7 @@ console.log('=== v270_paths_subpaths_part2_parity_and_autonomy_suite ===');
 // 1. 43/43 PATH_DESCRIPTORS Parity, hpMult, & ST._applyMantraPathMods
 {
   const paths = Object.keys(CULT.PATHS || {});
-  assert.strictEqual(paths.length, 43, 'CULT.PATHS must contain all 43 Major Paths');
+  assert.strictEqual(paths.length, 55, 'CULT.PATHS must contain all 43 Major Paths');
 
   for (const pk of paths) {
     const d = CULT.getPathDescriptor(pk);

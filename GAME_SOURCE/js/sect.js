@@ -773,7 +773,19 @@
     STRATEGY_GOVERNANCE: { commander: 18, steward: 15, quartermaster: 15, envoy: 14 },
     ARENA_GLORY: { martial: 16, vanguard: 16, commander: 12 },
     WANDERING_DAO: { mission: 16, envoy: 14, wildwarden: 12 },
-    TIDE_VOYAGER: { mission: 14, quartermaster: 12, vanguard: 10 }
+    TIDE_VOYAGER: { mission: 14, quartermaster: 12, vanguard: 10 },
+    LEG_READ_FORM_BLADE: {"martial": 18, "vanguard": 16, "commander": 12},
+    LEG_TRIAGE_MERIDIAN: {"medicine": 20, "alchemy": 14, "quartermaster": 10},
+    LEG_STORM_CALLER_TEMPEST: {"wildwarden": 16, "mission": 14, "array": 12},
+    LEG_JADE_CARAVAN_VOYAGER: {"quartermaster": 20, "mission": 18, "envoy": 14},
+    LEG_OATH_JUDGE_WARDEN: {"diplomacy": 20, "discipline": 18, "envoy": 16},
+    LEG_ASHEN_KILN_ALCHEMY: {"alchemy": 18, "forging": 18, "quartermaster": 16},
+    TRANS_CONSTELLATION_RELAY: {"medicine": 20, "array": 18, "commander": 14},
+    TRANS_FIELD_CLAUSE_SOVEREIGN: {"commander": 22, "martial": 16, "diplomacy": 14},
+    TRANS_TEMPO_SOVEREIGN: {"commander": 18, "vanguard": 16, "mission": 14},
+    TRANS_SEALKEEPER_FORBIDDEN_KEY: {"array": 20, "discipline": 18, "alchemy": 12},
+    TRANS_PRIMAL_VORTEX_MIRROR: {"martial": 16, "array": 16, "diplomacy": 14},
+    TRANS_DYNASTIC_MANDATE_WEAVER: {"diplomacy": 22, "commander": 20, "envoy": 18}
   };
   SECT.relevance = (post, n, W) => {
     const base = _origRelevance(post, n);
@@ -11769,7 +11781,7 @@
       shortTh: 'ยอดเขากระบี่เมฆา',
       icon: '🗡️',
       isSoloPath: true,
-      paths: ['XIAN', 'CELESTIAL_WEATHER', 'CHRONO_EPOCH', 'SHADOW_SAMURAI', 'TIDE_VOYAGER'],
+      paths: ['XIAN', 'CELESTIAL_WEATHER', 'CHRONO_EPOCH', 'SHADOW_SAMURAI', 'TIDE_VOYAGER', 'LEG_READ_FORM_BLADE', 'LEG_STORM_CALLER_TEMPEST', 'TRANS_TEMPO_SOVEREIGN'],
       auraBonus: { cultRate: 0.14, swordPower: 0.10, p: { atk: 0.10, matk: 0.10 } },
       descTh: 'ยอดเขาเอกแห่งวิถีเซียนปราณและกระบี่เหินเมฆา โบนัสดาเมจอาวุธกระบี่ +10%'
     },
@@ -11780,7 +11792,7 @@
       shortTh: 'ยอดผากายาวัชระ',
       icon: '⛰️',
       isSoloPath: true,
-      paths: ['BODY', 'GRAVITY_DAO', 'PRIMORDIAL_SHIFTER', 'DEVOURING_FLESH', 'ARENA_GLORY'],
+      paths: ['BODY', 'GRAVITY_DAO', 'PRIMORDIAL_SHIFTER', 'DEVOURING_FLESH', 'ARENA_GLORY', 'LEG_JADE_CARAVAN_VOYAGER', 'TRANS_FIELD_CLAUSE_SOVEREIGN'],
       auraBonus: { cultRate: 0.14, hpMaxMult: 0.12, p: { hp: 0.12 } },
       descTh: 'หน้าผาหินเหล็กไหลสำหรับผู้ฝึกตนวิถีหลอมกายา เพิ่มพลังชีวิตสูงสุด +12%'
     },
@@ -11791,7 +11803,7 @@
       shortTh: 'หุบเขาเงาโลหิต',
       icon: '🩸',
       isSoloPath: true,
-      paths: ['DEMON', 'VENOM_GU', 'SOUL_PUPPETRY', 'NINPO_SHADOW', 'VOID_HERETIC_PACT', 'NETHER_GRAVE'],
+      paths: ['DEMON', 'VENOM_GU', 'SOUL_PUPPETRY', 'NINPO_SHADOW', 'VOID_HERETIC_PACT', 'NETHER_GRAVE', 'TRANS_SEALKEEPER_FORBIDDEN_KEY'],
       auraBonus: { cultRate: 0.15, combatFerocity: 0.12, critBonus: 10, btBonus: 0.10, p: { atk: 0.10 }, f: { crit: 10 } },
       descTh: 'หุบเขาลี้ลับและแดนอัสนีโลหิต เพิ่มอัตราคริติคอล +10% และโอกาสทะลวงด่าน +10%'
     },
@@ -11802,7 +11814,7 @@
       shortTh: 'ยอดเขาเตาหลอม',
       icon: '⚗️',
       isSoloPath: true,
-      paths: ['CRAFT_CREATION', 'DRAGON_VEIN_GEOMANCY', 'MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'SPIRIT_HUSBANDRY'],
+      paths: ['CRAFT_CREATION', 'DRAGON_VEIN_GEOMANCY', 'MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'SPIRIT_HUSBANDRY', 'LEG_TRIAGE_MERIDIAN', 'LEG_ASHEN_KILN_ALCHEMY'],
       auraBonus: { cultRate: 0.13, craftQuality: 0.15, alchemySuccess: 0.15 },
       descTh: 'ยอดเขาแห่งไฟปฐพีและทั่งตีเหล็กสวรรค์ เพิ่มอัตราความสำเร็จและคุณภาพโอสถ/ศาสตรา +15%'
     },
@@ -11835,7 +11847,7 @@
       shortTh: 'หุบเขาปราชญ์พิชัย',
       icon: '📜',
       isSoloPath: false,
-      paths: ['SAGE_SUPPORT', 'STRATEGY_GOVERNANCE', 'SONIC_HARMONY', 'WANDERING_DAO', 'LORE_ARCHIVIST'],
+      paths: ['SAGE_SUPPORT', 'STRATEGY_GOVERNANCE', 'SONIC_HARMONY', 'WANDERING_DAO', 'LORE_ARCHIVIST', 'LEG_OATH_JUDGE_WARDEN', 'TRANS_CONSTELLATION_RELAY', 'TRANS_PRIMAL_VORTEX_MIRROR', 'TRANS_DYNASTIC_MANDATE_WEAVER'],
       auraBonus: { cultRate: 0.14, supportGovernance: 0.15, cpGainBonus: 0.15, studySpeedBonus: 0.15, f: { cast: 10 } },
       descTh: 'หุบเขาปราชญ์พิชัย เพิ่มอัตราการได้รับแต้มคุณูปการ (CP) และความเร็วฝึกสกิล +15%'
     },
@@ -13784,7 +13796,19 @@
     LORE_ARCHIVIST: { path: 'LORE_ARCHIVIST', combatMechanic: 'Lore Index Analysis & Technique Mirroring', elementalSpecialty: ['ASTRAL', 'LIGHT_YANG'], facilityRole: 'Grand Scripture Archive (+Manual Registration & Study)', explorationRole: 'Decode Ancient Rubbings & Copy Lost Arts' },
     FORTUNE_GAMBLER: { path: 'FORTUNE_GAMBLER', combatMechanic: 'Destiny Stake High-Roller & Fate Reversal', elementalSpecialty: ['ASTRAL', 'FIRE'], facilityRole: 'Pavilion of Fortune (+Caravan Jackpot & Crit)', explorationRole: 'Turn High-Risk Ruin Events Into Rare Jackpots' },
     SPIRIT_HUSBANDRY: { path: 'SPIRIT_HUSBANDRY', combatMechanic: 'Growth Cycle World-Tree & Shennong Herb Canopy', elementalSpecialty: ['WOOD_LIFE', 'WATER_ICE'], facilityRole: 'Immortal Herb & Spirit Grain Fields (+Crop Yield)', explorationRole: 'Cultivate Wild Spirit Seeds in Untamed Lands' },
-    ARENA_GLORY: { path: 'ARENA_GLORY', combatMechanic: 'Renown Flame Duelist & Crowd Roar Momentum', elementalSpecialty: ['FIRE', 'EARTH_METAL'], facilityRole: 'Grand Martial Colosseum (+Tournament Fame)', explorationRole: 'Challenge Regional Champions for Prestigious Trophies' }
+    ARENA_GLORY: { path: 'ARENA_GLORY', combatMechanic: 'Renown Flame Duelist & Crowd Roar Momentum', elementalSpecialty: ['FIRE', 'EARTH_METAL'], facilityRole: 'Grand Martial Colosseum (+Tournament Fame)', explorationRole: 'Challenge Regional Champions for Prestigious Trophies' },
+    LEG_READ_FORM_BLADE: { path: 'LEG_READ_FORM_BLADE', combatMechanic: 'KW_DAO_READ_FORM', elementalSpecialty: ['EARTH_METAL'], facilityRole: 'High-Grade Dao Hall (กระบี่อ่านช่องฟ้า)', explorationRole: 'Seek กระบี่อ่านช่องฟ้า Provenance & Living Lore' },
+    LEG_TRIAGE_MERIDIAN: { path: 'LEG_TRIAGE_MERIDIAN', combatMechanic: 'KW_DAO_TRIAGE_PULSE', elementalSpecialty: ['WOOD_LIFE'], facilityRole: 'High-Grade Dao Hall (ชีพจรประคองสหาย)', explorationRole: 'Seek ชีพจรประคองสหาย Provenance & Living Lore' },
+    LEG_STORM_CALLER_TEMPEST: { path: 'LEG_STORM_CALLER_TEMPEST', combatMechanic: 'KW_DAO_FRONT_SHIFT', elementalSpecialty: ['LIGHTNING'], facilityRole: 'High-Grade Dao Hall (จอมพายุบัญชาฟ้า)', explorationRole: 'Seek จอมพายุบัญชาฟ้า Provenance & Living Lore' },
+    LEG_JADE_CARAVAN_VOYAGER: { path: 'LEG_JADE_CARAVAN_VOYAGER', combatMechanic: 'KW_DAO_PROVISION_SHARE', elementalSpecialty: ['EARTH_METAL'], facilityRole: 'High-Grade Dao Hall (คาราวานหยก)', explorationRole: 'Seek คาราวานหยก Provenance & Living Lore' },
+    LEG_OATH_JUDGE_WARDEN: { path: 'LEG_OATH_JUDGE_WARDEN', combatMechanic: 'KW_DAO_VERDICT_MARK', elementalSpecialty: ['LIGHT_YANG'], facilityRole: 'High-Grade Dao Hall (ผู้คุมสัตย์สาบาน)', explorationRole: 'Seek ผู้คุมสัตย์สาบาน Provenance & Living Lore' },
+    LEG_ASHEN_KILN_ALCHEMY: { path: 'LEG_ASHEN_KILN_ALCHEMY', combatMechanic: 'KW_DAO_ASHEN_GLAZE', elementalSpecialty: ['FIRE'], facilityRole: 'High-Grade Dao Hall (เตาเถ้าคืนชีวิต)', explorationRole: 'Seek เตาเถ้าคืนชีวิต Provenance & Living Lore' },
+    TRANS_CONSTELLATION_RELAY: { path: 'TRANS_CONSTELLATION_RELAY', combatMechanic: 'KW_DAO_STAR_RELAY', elementalSpecialty: ['ASTRAL'], facilityRole: 'High-Grade Dao Hall (ประสานปราณหมู่ดาว)', explorationRole: 'Seek ประสานปราณหมู่ดาว Provenance & Living Lore' },
+    TRANS_FIELD_CLAUSE_SOVEREIGN: { path: 'TRANS_FIELD_CLAUSE_SOVEREIGN', combatMechanic: 'KW_DAO_FIELD_CLAUSE', elementalSpecialty: ['EARTH_METAL'], facilityRole: 'High-Grade Dao Hall (ธรรมนูญฟ้าขีดเขต)', explorationRole: 'Seek ธรรมนูญฟ้าขีดเขต Provenance & Living Lore' },
+    TRANS_TEMPO_SOVEREIGN: { path: 'TRANS_TEMPO_SOVEREIGN', combatMechanic: 'KW_DAO_TEMPO_BANK', elementalSpecialty: ['WIND'], facilityRole: 'High-Grade Dao Hall (ปรมาจารย์จังหวะกาล)', explorationRole: 'Seek ปรมาจารย์จังหวะกาล Provenance & Living Lore' },
+    TRANS_SEALKEEPER_FORBIDDEN_KEY: { path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', combatMechanic: 'KW_DAO_SEAL_KNOT', elementalSpecialty: ['YIN_SHADOW'], facilityRole: 'High-Grade Dao Hall (ผู้ถือกุญแจผนึก)', explorationRole: 'Seek ผู้ถือกุญแจผนึก Provenance & Living Lore' },
+    TRANS_PRIMAL_VORTEX_MIRROR: { path: 'TRANS_PRIMAL_VORTEX_MIRROR', combatMechanic: 'KW_DAO_MIRROR_ECHO', elementalSpecialty: ['ASTRAL'], facilityRole: 'High-Grade Dao Hall (กระจกสะท้อนหมื่นวิชา)', explorationRole: 'Seek กระจกสะท้อนหมื่นวิชา Provenance & Living Lore' },
+    TRANS_DYNASTIC_MANDATE_WEAVER: { path: 'TRANS_DYNASTIC_MANDATE_WEAVER', combatMechanic: 'KW_DAO_MANDATE_THREAD', elementalSpecialty: ['LIGHT_YANG'], facilityRole: 'High-Grade Dao Hall (ทอชะตาแผ่นดิน)', explorationRole: 'Seek ทอชะตาแผ่นดิน Provenance & Living Lore' }
   });
 
   SECT.EXPERT_SYNTHESIS_V235 = Object.freeze({
@@ -17174,7 +17198,19 @@
       { id: 'archivist', path: 'LORE_ARCHIVIST', nameTh: 'หออาลักษณ์สารานุกรมสวรรค์', titleTh: 'วิถีถอดรหัสอักขระและคัดลอกวิชา', wFamily: 'BRUSH', wSkill: 'BRUSH', w1: 'EQ_WPN_BRUSH_T1', w2: 'EQ_WPN_BRUSH_T2' },
       { id: 'gambler', path: 'FORTUNE_GAMBLER', nameTh: 'หอเดิมพันชะตาลูกเต๋าหยก', titleTh: 'วิถีเสี่ยงทายพลิกผันวาสนา', wFamily: 'FAN', wSkill: 'FAN', w1: 'EQ_V200_WPN_FAN_T1', w2: 'EQ_V200_WPN_FAN_T2' },
       { id: 'husbandry', path: 'SPIRIT_HUSBANDRY', nameTh: 'หุบเขาเกษตรวิญญาณเสิ่นหนง', titleTh: 'วิถีพฤกษาโอสถและรวงข้าวสวรรค์', wFamily: 'STAFF', wSkill: 'STAFF', w1: 'MP_STAFF_1', w2: 'MP_STAFF_2' },
-      { id: 'arena', path: 'ARENA_GLORY', nameTh: 'สังเวียนเกียรติยุทธ์เจ้ายุทธจักร', titleTh: 'วิถีแชมเปี้ยนลานประลองไร้พ่าย', wFamily: 'SPEAR', wSkill: 'SPEAR', w1: 'MP_SPEAR_1', w2: 'MP_SPEAR_2' }
+      { id: 'arena', path: 'ARENA_GLORY', nameTh: 'สังเวียนเกียรติยุทธ์เจ้ายุทธจักร', titleTh: 'วิถีแชมเปี้ยนลานประลองไร้พ่าย', wFamily: 'SPEAR', wSkill: 'SPEAR', w1: 'MP_SPEAR_1', w2: 'MP_SPEAR_2' },
+      { id: 'leg_read_form_blade', path: 'LEG_READ_FORM_BLADE', nameTh: 'วิถีกระบี่อ่านช่องฟ้า', titleTh: 'กระบี่อ่านช่องฟ้า', wFamily: 'SWORD', wSkill: 'SWORD', w1: 'MP_SWORD_1', w2: 'MP_SWORD_2' },
+      { id: 'leg_triage_meridian', path: 'LEG_TRIAGE_MERIDIAN', nameTh: 'วิถีชีพจรประคองสหาย', titleTh: 'ชีพจรประคองสหาย', wFamily: 'NEEDLE', wSkill: 'MEDICINE', w1: 'MP_NEEDLE_1', w2: 'MP_NEEDLE_2' },
+      { id: 'leg_storm_caller_tempest', path: 'LEG_STORM_CALLER_TEMPEST', nameTh: 'วิถีจอมพายุบัญชาฟ้า', titleTh: 'จอมพายุบัญชาฟ้า', wFamily: 'FAN', wSkill: 'FAN', w1: 'MP_FAN_1', w2: 'MP_FAN_2' },
+      { id: 'leg_jade_caravan_voyager', path: 'LEG_JADE_CARAVAN_VOYAGER', nameTh: 'วิถีจอมคาราวานหยก', titleTh: 'คาราวานหยก', wFamily: 'ABACUS', wSkill: 'BLADE', w1: 'MP_ABACUS_1', w2: 'MP_ABACUS_2' },
+      { id: 'leg_oath_judge_warden', path: 'LEG_OATH_JUDGE_WARDEN', nameTh: 'วิถีผู้คุมสัตย์สาบาน', titleTh: 'ผู้คุมสัตย์สาบาน', wFamily: 'SWORD', wSkill: 'SCRIPTURE', w1: 'MP_SWORD_1', w2: 'MP_SWORD_2' },
+      { id: 'leg_ashen_kiln_alchemy', path: 'LEG_ASHEN_KILN_ALCHEMY', nameTh: 'วิถีเตาเถ้าคืนชีวิต', titleTh: 'เตาเถ้าคืนชีวิต', wFamily: 'STAFF', wSkill: 'ALCHEMY', w1: 'MP_STAFF_1', w2: 'MP_STAFF_2' },
+      { id: 'trans_constellation_relay', path: 'TRANS_CONSTELLATION_RELAY', nameTh: 'วิถีประสานปราณหมู่ดาว', titleTh: 'ประสานปราณหมู่ดาว', wFamily: 'ASTROLABE', wSkill: 'ARRAY', w1: 'MP_ASTROLABE_1', w2: 'MP_ASTROLABE_2' },
+      { id: 'trans_field_clause_sovereign', path: 'TRANS_FIELD_CLAUSE_SOVEREIGN', nameTh: 'วิถีธรรมนูญฟ้าขีดเขต', titleTh: 'ธรรมนูญฟ้าขีดเขต', wFamily: 'SPEAR', wSkill: 'SPEAR', w1: 'MP_SPEAR_1', w2: 'MP_SPEAR_2' },
+      { id: 'trans_tempo_sovereign', path: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'วิถีปรมาจารย์จังหวะกาล', titleTh: 'ปรมาจารย์จังหวะกาล', wFamily: 'FAN', wSkill: 'ARRAY', w1: 'MP_FAN_1', w2: 'MP_FAN_2' },
+      { id: 'trans_sealkeeper_forbidden_key', path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'วิถีผู้ถือกุญแจผนึก', titleTh: 'ผู้ถือกุญแจผนึก', wFamily: 'ABACUS', wSkill: 'TALISMAN', w1: 'MP_ABACUS_1', w2: 'MP_ABACUS_2' },
+      { id: 'trans_primal_vortex_mirror', path: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'วิถีกระจกสะท้อนหมื่นวิชา', titleTh: 'กระจกสะท้อนหมื่นวิชา', wFamily: 'FAN', wSkill: 'SCRIPTURE', w1: 'MP_FAN_1', w2: 'MP_FAN_2' },
+      { id: 'trans_dynastic_mandate_weaver', path: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'วิถีทอชะตาแผ่นดิน', titleTh: 'ทอชะตาแผ่นดิน', wFamily: 'BRUSH', wSkill: 'SCRIPTURE', w1: 'MP_BRUSH_1', w2: 'MP_BRUSH_2' }
     ];
 
     const allTechs = (JD && JD.TECH && Array.isArray(JD.TECH.techniques)) ? JD.TECH.techniques : [];
@@ -17279,7 +17315,7 @@
         ? W.world.sects[(dayNow + st.seq) % W.world.sects.length]
         : { id: 'RIVAL_DAO_ACADEMY', name: 'สำนักปราชญ์เทียนจี' };
       const allPaths = Object.keys((CULT && CULT.PATHS) || {});
-      const lockedPaths = SECT.PATH_LIBRARY ? SECT.PATH_LIBRARY.getSummary(W).lockedPaths : [];
+      const lockedPaths = SECT.PATH_LIBRARY ? SECT.PATH_LIBRARY.getSummary(W).lockedPaths.filter(pid => !g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY') : [];
       const debatePath = opts.targetPath || (lockedPaths.length ? lockedPaths[(dayNow + st.seq) % lockedPaths.length] : allPaths[st.seq % allPaths.length]) || 'XIAN';
       const rivalDifficulty = opts.difficulty || 115;
       const victory = opts.forceWin || speakerScore >= rivalDifficulty;

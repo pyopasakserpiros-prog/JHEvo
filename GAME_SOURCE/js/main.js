@@ -119,7 +119,7 @@
       c.strokeStyle = '#ff3b30'; c.lineWidth = 1.2;
       W.fights.forEach(fg => {
         if (!fg || fg.over) return;
-        const u0 = (fg.A && W.byId && W.byId[fg.A[0]]) || (fg.B && W.foeById && W.foeById[fg.B[0]]);
+        const _wl = (W.wildlife && Array.isArray(W.wildlife.beasts)) ? W.wildlife.beasts : []; const u0 = (fg.A && W.byId && W.byId[fg.A[0]]) || (fg.B && W.foeById && W.foeById[fg.B[0]]) || (fg.B && _wl.find(x => x && x.id === fg.B[0]));
         if (u0 && Number.isFinite(u0.x) && Number.isFinite(u0.y)) {
           c.strokeRect(u0.x * sx - 3.5, u0.y * sy - 3.5, 7, 7);
         }

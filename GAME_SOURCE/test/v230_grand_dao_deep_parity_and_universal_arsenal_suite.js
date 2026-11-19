@@ -28,19 +28,20 @@ function check(cond, msg) {
   const sha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   check(sha === 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js SHA-256 must match');
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must be 155:2f9c9dd7');
-  check((SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || (SIM.PATCH_VERSION === '2.6.0' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.5.0c'))))), `SIM.PATCH_VERSION must be '2.3.0' (got ${SIM.PATCH_VERSION})`);
-  check((SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || (SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting' || (SIM.SAVE_SCHEMA_VERSION === '3.0.0-living-continent' || SIM.SAVE_SCHEMA_VERSION === '3.5.0c-release-polish')))), `SIM.SAVE_SCHEMA_VERSION must be '2.3.0-grand-dao-deep-parity-release'`);
+  check((SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || (SIM.PATCH_VERSION === '2.6.0' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.8.2'))))), `SIM.PATCH_VERSION must be '2.3.0' (got ${SIM.PATCH_VERSION})`);
+  check((SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || (SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting' || (SIM.SAVE_SCHEMA_VERSION === '3.0.0-living-continent' || SIM.SAVE_SCHEMA_VERSION === '3.8.2-chaos-era-lore-archive')))), `SIM.SAVE_SCHEMA_VERSION must be '2.3.0-grand-dao-deep-parity-release'`);
   console.log('  ✓ [0/6] Core Lock & v2.3.0 Schema Invariants Verified');
 }
 
 // 1. Pillar 1: 43-Path Technique Parity, 31 New Legendary Apex Arts, 64 Era-5 Arts & 30 Universal/Multi-Path Arts
 {
   const allPaths = Object.keys(CULT.PATHS);
-  check(allPaths.length === 43, `Expected 43 Grand Dao Paths, got ${allPaths.length}`);
+  check(allPaths.length === 55, `Expected 43 Grand Dao Paths, got ${allPaths.length}`);
 
   // Verify every single one of the 31 newer Grand Dao paths has its Tier-7 Legendary Technique (LEG_V230_<PATH>)
   const newer31Paths = allPaths.slice(12);
   for (const pid of newer31Paths) {
+    if (CULT.LEGENDARY_DAO && CULT.LEGENDARY_DAO.gradeOf(pid) !== 'ORDINARY') continue;
     const legTech = CULT.tech('LEG_V230_' + pid);
     check(legTech && legTech.legendary === true && legTech.tier === 7 && legTech.signatureVfx,
       `Path ${pid} must have Tier-7 Legendary Apex Technique LEG_V230_${pid} with signatureVfx`);
@@ -93,7 +94,7 @@ function check(cond, msg) {
       `Material ${mid} must exist with materialMods and multi-source obtainSources`);
   }
 
-  const newer31Paths = Object.keys(CULT.PATHS).slice(12);
+  const newer31Paths = Object.keys(CULT.PATHS).slice(12, 43);
   for (const pid of newer31Paths) {
     const rel = ECO.itemById['REL_V230_' + pid];
     const rec = ECO.recipeById['REC_REL_V230_' + pid];
@@ -138,7 +139,7 @@ function check(cond, msg) {
 // 4. Pillar 4: SECT.PEAKS Sub-Sanctuaries, 16 Armament Wills, Duet Catalog & Pagoda Floor Drops
 {
   const W = SIM.create('v230-peaks-duets');
-  check(SECT.PEAKS.PATH_SANCTUARY_BLESSINGS && Object.keys(SECT.PEAKS.PATH_SANCTUARY_BLESSINGS).length === 43,
+  check(SECT.PEAKS.PATH_SANCTUARY_BLESSINGS && Object.keys(SECT.PEAKS.PATH_SANCTUARY_BLESSINGS).length === 55,
     'SECT.PEAKS.PATH_SANCTUARY_BLESSINGS must cover all 43 Grand Dao Paths');
   check(Object.keys(SECT.SOUL_FORGE.ARMAMENT_WILLS).length >= 16,
     'SECT.SOUL_FORGE.ARMAMENT_WILLS must cover all 16 weapon classes');
@@ -166,6 +167,7 @@ function check(cond, msg) {
   const npc = W.npcs[0];
   for (const pid of Object.keys(CULT.PATHS).slice(12)) {
     const pObj = CULT.PATHS[pid];
+    if (CULT.LEGENDARY_DAO && CULT.LEGENDARY_DAO.gradeOf(pid) !== 'ORDINARY') continue;
     npc.cult = { path: pid, sub: pObj.subPaths[0].id, stage: 7, prog: 0, techs: ['LEG_V230_' + pid] };
     const rel = ECO.itemById['REL_V230_' + pid];
     const suit = MARTIAL.gearSuitability(npc, rel, 0);

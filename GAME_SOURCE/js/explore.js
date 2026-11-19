@@ -8043,7 +8043,19 @@
       { floor: 40, path: 'LORE_ARCHIVIST', nameTh: 'ชั้นสารานุกรมสวรรค์และกระจกคัดลอกวิชา', guardianNameTh: 'มหาอาลักษณ์หอคัมภีร์โบราณ', basePower: 3060, stones: 935 },
       { floor: 41, path: 'FORTUNE_GAMBLER', nameTh: 'ชั้นลูกเต๋าหยกและวงล้อเดิมพันชะตา', guardianNameTh: 'จอมราชันนักเดิมพันฟ้าดิน', basePower: 3140, stones: 960 },
       { floor: 42, path: 'SPIRIT_HUSBANDRY', nameTh: 'ชั้นสวนพฤกษาอมตะและรวงข้าวเสิ่นหนง', guardianNameTh: 'เซียนเกษตรต้นไม้โลก', basePower: 3220, stones: 985 },
-      { floor: 43, path: 'ARENA_GLORY', nameTh: 'ชั้นสังเวียนเกียรติยุทธ์เจ้ายุทธจักร', guardianNameTh: 'แชมเปี้ยนร้อยศึกไร้พ่าย', basePower: 3300, stones: 1020 }
+      { floor: 43, path: 'ARENA_GLORY', nameTh: 'ชั้นสังเวียนเกียรติยุทธ์เจ้ายุทธจักร', guardianNameTh: 'แชมเปี้ยนร้อยศึกไร้พ่าย', basePower: 3300, stones: 1020 },
+      { floor: 44, path: 'LEG_READ_FORM_BLADE', nameTh: 'ชั้นทดสอบสัจธรรม · กระบี่อ่านช่องฟ้า', guardianNameTh: 'ผู้พิทักษ์มรรคากระบี่อ่านช่องฟ้า', basePower: 11240, stones: 360 },
+      { floor: 45, path: 'LEG_TRIAGE_MERIDIAN', nameTh: 'ชั้นทดสอบสัจธรรม · ชีพจรประคองสหาย', guardianNameTh: 'ผู้พิทักษ์มรรคาชีพจรประคองสหาย', basePower: 11400, stones: 365 },
+      { floor: 46, path: 'LEG_STORM_CALLER_TEMPEST', nameTh: 'ชั้นทดสอบสัจธรรม · จอมพายุบัญชาฟ้า', guardianNameTh: 'ผู้พิทักษ์มรรคาจอมพายุบัญชาฟ้า', basePower: 11560, stones: 370 },
+      { floor: 47, path: 'LEG_JADE_CARAVAN_VOYAGER', nameTh: 'ชั้นทดสอบสัจธรรม · คาราวานหยก', guardianNameTh: 'ผู้พิทักษ์มรรคาคาราวานหยก', basePower: 11720, stones: 375 },
+      { floor: 48, path: 'LEG_OATH_JUDGE_WARDEN', nameTh: 'ชั้นทดสอบสัจธรรม · ผู้คุมสัตย์สาบาน', guardianNameTh: 'ผู้พิทักษ์มรรคาผู้คุมสัตย์สาบาน', basePower: 11880, stones: 380 },
+      { floor: 49, path: 'LEG_ASHEN_KILN_ALCHEMY', nameTh: 'ชั้นทดสอบสัจธรรม · เตาเถ้าคืนชีวิต', guardianNameTh: 'ผู้พิทักษ์มรรคาเตาเถ้าคืนชีวิต', basePower: 12040, stones: 385 },
+      { floor: 50, path: 'TRANS_CONSTELLATION_RELAY', nameTh: 'ชั้นทดสอบสัจธรรม · ประสานปราณหมู่ดาว', guardianNameTh: 'ผู้พิทักษ์มรรคาประสานปราณหมู่ดาว', basePower: 12200, stones: 390 },
+      { floor: 51, path: 'TRANS_FIELD_CLAUSE_SOVEREIGN', nameTh: 'ชั้นทดสอบสัจธรรม · ธรรมนูญฟ้าขีดเขต', guardianNameTh: 'ผู้พิทักษ์มรรคาธรรมนูญฟ้าขีดเขต', basePower: 12360, stones: 395 },
+      { floor: 52, path: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'ชั้นทดสอบสัจธรรม · ปรมาจารย์จังหวะกาล', guardianNameTh: 'ผู้พิทักษ์มรรคาปรมาจารย์จังหวะกาล', basePower: 12520, stones: 400 },
+      { floor: 53, path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'ชั้นทดสอบสัจธรรม · ผู้ถือกุญแจผนึก', guardianNameTh: 'ผู้พิทักษ์มรรคาผู้ถือกุญแจผนึก', basePower: 12680, stones: 405 },
+      { floor: 54, path: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'ชั้นทดสอบสัจธรรม · กระจกสะท้อนหมื่นวิชา', guardianNameTh: 'ผู้พิทักษ์มรรคากระจกสะท้อนหมื่นวิชา', basePower: 12840, stones: 410 },
+      { floor: 55, path: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'ชั้นทดสอบสัจธรรม · ทอชะตาแผ่นดิน', guardianNameTh: 'ผู้พิทักษ์มรรคาทอชะตาแผ่นดิน', basePower: 13000, stones: 415 }
     ])
   });
   // EARTH_METAL is the engine's canonical shared Earth/Metal root element.

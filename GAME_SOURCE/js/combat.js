@@ -1014,7 +1014,7 @@
         const df = CULT.DEFENSIVE_ARTS.resolveNpcDefense(W, d);
         if (df && df.qiSufficient) {
           const dSt = d.defensiveArtState;
-          const rawBefore = dmg;
+          const rawBefore = Math.round(dmg);
           dmg = Math.max(1, Math.round(dmg * (1 - df.effDmgRedPct)));
           const mitigated = Math.max(0, rawBefore - dmg);
           dSt.totalDamageMitigated = (dSt.totalDamageMitigated || 0) + mitigated;
@@ -2050,6 +2050,17 @@
       isAoeMultiTarget: !!o.isAoeMultiTarget,
       sovereignIncoming: !o.noProc && (o.M >= 1.8 || o.arch === 'burst') ? o : null
     });
+    if (!o.noProc && f && C.runLegendaryDaoProc && g.CULT && g.CULT.LEGENDARY_DAO) {
+      const sideA = (f.A || []).includes(a.id);
+      const alliesA = (sideA ? f.A : f.B || []).map(id => C.unit(W, id)).filter(Boolean);
+      const foesA = (sideA ? f.B : f.A || []).map(id => C.unit(W, id)).filter(Boolean);
+      if (a && a.cult && g.CULT.LEGENDARY_DAO.PROVENANCE[a.cult.path]) {
+        C.runLegendaryDaoProc(W, f, a, d, alliesA, foesA, 'hit', dmg || 0);
+      }
+      if (!killed && d && C.alive(d) && d.cult && g.CULT.LEGENDARY_DAO.PROVENANCE[d.cult.path]) {
+        C.runLegendaryDaoProc(W, f, d, a, foesA, alliesA, 'struck', dmg || 0);
+      }
+    }
     if (!d.foe && !d.dead && d.cult && d.cult.path === 'BODY' && dmg > 0) {
       CULT.gain(d, Math.min(2.1, 0.22 * (1 + (d.cult.stage || 1) * 0.2)), W, 'body_temper_hit');
       HC.trainBody(d, 'toughness', 0.18);
@@ -2311,7 +2322,7 @@
     const list = SK && SK.list ? SK.list(u) : (u.skl || []);
     let role = "FIGHTER";
     const hasHeal = list.some(p => p && (p.arch === 'heal' || p.arch === 'harmonize' || p.heal > 0));
-    if (hasHeal || (u.cult && u.cult.path === 'SAGE_SUPPORT')) {
+    if (hasHeal || (u.cult && ['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(u.cult.path))) {
       role = 'HEALER';
     } else {
       const wp = SK && SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u) : null;
@@ -2969,7 +2980,7 @@
       const inRangeAllies = C.alliesOf(W, f, a.id).filter(u => C.alive(u) && (!Number.isFinite(a.x) || !Number.isFinite(u.x) || C.unitDist(a, u) <= maxHealR));
       const healTargets = p.aoe ? (inRangeAllies.length ? inRangeAllies : [a]) : [(() => { const ally = lowestAlly(W, f, a, maxHealR); return (ally && hpFrac(ally) < hpFrac(a) - 0.05) ? ally : a; })()];
       snapshotCastTargets(healTargets);
-      const sageBonus = ((!a.foe && a.cult && a.cult.path === 'SAGE_SUPPORT') ? 1.18 : 1.0) * stanceHealMult;
+      const sageBonus = ((!a.foe && a.cult && ['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(a.cult.path)) ? 1.18 : 1.0) * stanceHealMult;
       healTargets.forEach((tgt, idx) => {
         if (!tgt || !C.alive(tgt)) return;
         if (idx === 0) { a.castFx.x = tgt.x; a.castFx.y = tgt.y; }
@@ -2995,7 +3006,7 @@
         if (cleansedCount > 0 && p.cleanseToPower) {
           ST.addStatus(tgt, 'shield', 12, { amt: Math.round(thm * 0.10 * cleansedCount) }, W.t);
         }
-        const bKind = p.grantBuff || ((!a.foe && a.cult && a.cult.path === 'SAGE_SUPPORT') ? 'vitalRegen' : null);
+        const bKind = p.grantBuff || ((!a.foe && a.cult && ['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(a.cult.path)) ? 'vitalRegen' : null);
         if (bKind && ST.applyNamedBuff) ST.applyNamedBuff(tgt, bKind, buffDur, W.t, { casterId: a.id });
         const effectiveLandHeal = Math.min(healAmt, Math.max(0, thm * (1-beforeFrac)));
         if (f && f.kind === 'wild' && !a.foe && effectiveLandHeal > 0 && f.A.includes(a.id)) {
@@ -3062,7 +3073,7 @@
     if (p.arch === 'harmonize') {
       const allies = C.alliesOf(W, f, a.id);
       snapshotCastTargets(allies);
-      const sageBonus = (!a.foe && a.cult && a.cult.path === 'SAGE_SUPPORT') ? 1.20 : 1.0;
+      const sageBonus = (!a.foe && a.cult && ['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(a.cult.path)) ? 1.20 : 1.0;
       const bKind = p.grantBuff || 'vitalRegen';
       allies.forEach(ally => {
         if (!C.alive(ally)) return;
@@ -5604,7 +5615,7 @@
           if (!isBoss) ST.addStatus(t, 'gravityCrush', 10, null, tNow);
           else ST.addStatus(t, 'slow', 8, null, tNow);
           const sa = ST.get(a);
-          const mDmg = Math.max(8, Math.round(Math.max(sa.atk || 40, sa.def || 40) * 0.30));
+          const mDmg = Math.min(Math.max(8, Math.round(Math.max(sa.atk || 40, sa.def || 40) * 0.30)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, mDmg, 'ดูดกลืนแรงกระแทกสะท้อนมวล');
           bonusDmg += mDmg;
         }
@@ -5624,7 +5635,7 @@
             C.interruptChannel(W, f, t, 'คลื่นเสียงสลายจังหวะร่าย', a);
           }
           const sa = ST.get(a);
-          const sDmg = Math.max(8, Math.round((sa.matk || 45) * 0.32));
+          const sDmg = Math.min(Math.max(8, Math.round((sa.matk || 45) * 0.32)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, sDmg, 'คลื่นเสียงสลายคูลดาวน์');
           bonusDmg += sDmg;
         }
@@ -5640,7 +5651,7 @@
             t.h.state.qi = Math.max(0, (t.h.state.qi || 0) - Math.round(qm * 0.18));
           }
           const sa = ST.get(a);
-          const nDmg = Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * 0.32));
+          const nDmg = Math.min(Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * 0.32)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, nDmg, 'เข็มปิดชีพจรสะกดลมปราณ');
           bonusDmg += nDmg;
           t.fx = { t: tNow, text: '🪡 ผนึกชีพจรปราณ!' };
@@ -5655,7 +5666,7 @@
         if (t && C.alive(t)) {
           ST.addStatus(t, 'voidRiftTear', 12, { per: 0.018, src: a.id }, tNow);
           const sa = ST.get(a);
-          const vDmg = Math.max(8, Math.round((sa.matk || 45) * 0.35));
+          const vDmg = Math.min(Math.max(8, Math.round((sa.matk || 45) * 0.35)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, vDmg, 'ม่านมิติสะท้อนรอยแยกสุญญากาศ');
           bonusDmg += vDmg;
         }
@@ -5667,7 +5678,7 @@
           ST.addStatus(t, 'guLeech', 14, { per: 0.022, src: a.id }, tNow);
           COMPOSABLE_ENGINE.applyMark(W, f, a, t, 'venomSeed', 1, 14);
           const sa = ST.get(a);
-          const gDmg = Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 45) * 0.34));
+          const gDmg = Math.min(Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 45) * 0.34)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, gDmg, 'หนอนกู่สูบวิญญาณ');
           bonusDmg += gDmg;
           const heal = Math.max(4, Math.round(gDmg * 0.45));
@@ -5687,7 +5698,7 @@
         if (t && C.alive(t)) {
           COMPOSABLE_ENGINE.applyMark(W, f, a, t, 'starSeal', 2, 16);
           const sa = ST.get(a);
-          const stDmg = Math.max(8, Math.round((sa.matk || 45) * 0.34));
+          const stDmg = Math.min(Math.max(8, Math.round((sa.matk || 45) * 0.34)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, stDmg, 'พลิกชะตาดาราพยากรณ์');
           bonusDmg += stDmg;
         }
@@ -5704,7 +5715,7 @@
         });
         if (t && C.alive(t)) {
           const sa = ST.get(a);
-          const bDmg = Math.max(8, Math.round((sa.matk || 45) * 0.30));
+          const bDmg = Math.min(Math.max(8, Math.round((sa.matk || 45) * 0.30)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, bDmg, 'เกราะบัวทองสะท้อนวิบาก');
           bonusDmg += bDmg;
         }
@@ -5717,7 +5728,7 @@
         const wBonus = ['storm', 'thunder_tempest', 'rain', 'snow'].includes(wKind) ? 1.35 : 1.12;
         if (t && C.alive(t)) {
           const sa = ST.get(a);
-          const wDmg = Math.max(10, Math.round((sa.matk || 45) * 0.38 * wBonus));
+          const wDmg = Math.min(Math.max(10, Math.round((sa.matk || 45) * 0.38 * wBonus)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, wDmg, 'อัญเชิญสายฟ้าสวรรค์ผสานดินฟ้า');
           ST.addStatus(t, 'paralyze', 8, null, tNow);
           bonusDmg += wDmg;
@@ -5730,7 +5741,7 @@
           ST.addStatus(t, 'contractDefault', 14, null, tNow);
           ST.addStatus(t, 'exposed', 12, null, tNow);
           const sa = ST.get(a);
-          const cDmg = Math.max(10, Math.round(Math.max(sa.atk || 40, sa.matk || 45) * 0.38));
+          const cDmg = Math.min(Math.max(10, Math.round(Math.max(sa.atk || 40, sa.matk || 45) * 0.38)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, cDmg, 'บังคับคดีริบปราณผิดสัญญา');
           bonusDmg += cDmg;
         }
@@ -5743,7 +5754,7 @@
           ST.addStatus(t, 'armorbreak', 12, null, tNow);
           ST.addStatus(t, 'slow', 10, null, tNow);
           const sa = ST.get(a);
-          const lDmg = Math.max(10, Math.round(Math.max(sa.atk || 40, sa.matk || 45) * 0.36));
+          const lDmg = Math.min(Math.max(10, Math.round(Math.max(sa.atk || 40, sa.matk || 45) * 0.36)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, lDmg, 'หนามปฐพีชีพจรมังกร');
           bonusDmg += lDmg;
         }
@@ -5756,7 +5767,7 @@
         if (t && C.alive(t)) {
           ST.addStatus(t, 'bleed', 12, { per: 0.020, src: a.id }, tNow);
           const sa = ST.get(a);
-          const bDmg = Math.max(10, Math.round((sa.atk || 45) * 0.40));
+          const bDmg = Math.min(Math.max(10, Math.round((sa.atk || 45) * 0.40)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, bDmg, 'เขี้ยวเทพอสูรบรรพกาลขย้ำ');
           bonusDmg += bDmg;
           C.setHp(a, Math.min(C.hpMax(a), C.hp(a) + Math.max(4, Math.round(bDmg * 0.30))));
@@ -5779,7 +5790,7 @@
         }
         if (t && C.alive(t)) {
           const sa = ST.get(a);
-          const tmDmg = Math.max(8, Math.round((sa.matk || 45) * 0.32));
+          const tmDmg = Math.min(Math.max(8, Math.round((sa.matk || 45) * 0.32)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, tmDmg, 'ย้อนทรายกาลเวลาสะบั้น');
           bonusDmg += tmDmg;
         }
@@ -5792,7 +5803,7 @@
           ST.addStatus(t, 'silence', 8, null, tNow);
           ST.addStatus(t, 'mdefbreak', 12, null, tNow);
           const sa = ST.get(a);
-          const iDmg = Math.max(8, Math.round((sa.matk || 45) * 0.35));
+          const iDmg = Math.min(Math.max(8, Math.round((sa.matk || 45) * 0.35)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, iDmg, 'อักษรราชโองการสวรรค์สะกด');
           bonusDmg += iDmg;
         }
@@ -5811,7 +5822,7 @@
           }
           ST.addStatus(t, 'weaken', 12, null, tNow);
           const sa = ST.get(a);
-          const mDmg = Math.max(8, Math.round((sa.matk || 45) * 0.34));
+          const mDmg = Math.min(Math.max(8, Math.round((sa.matk || 45) * 0.34)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, mDmg, 'เชิดหุ่นสลับวิญญาณ');
           bonusDmg += mDmg;
         }
@@ -5824,9 +5835,9 @@
           ST.addStatus(t, 'entropyDecay', 14, { per: 0.022, src: a.id }, tNow);
           ST.clearStatus(t, x => SKs().STATUS[x.k] && SKs().STATUS[x.k].isBuff);
           const sa = ST.get(a);
-          const chDmg = Math.max(10, Math.round(Math.max(sa.atk || 45, sa.matk || 45) * 0.38));
-          C.setHp(t, Math.max(1, C.hp(t) - Math.round(chDmg * 0.45)));
-          C.applyDamage(W, f, a, t, Math.round(chDmg * 0.55), 'ปราณโกลาหลทลายเบญจธาตุ');
+          const rawCh = Math.min(Math.max(10, Math.round(Math.max(sa.atk || 45, sa.matk || 45) * 0.38)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
+          const chDmg = Math.min(rawCh, Math.max(12, Math.round(C.stageRefHp(t) * 0.22)));
+          C.applyProcDamage(W, f, a, t, chDmg, 'ปราณโกลาหลทลายเบญจธาตุ');
           bonusDmg += chDmg;
         }
         a.lastChaosElementShatter = { t: tNow, bonusDmg };
@@ -5839,9 +5850,9 @@
           ST.clearStatus(t, x => x.k === 'shield');
           ST.addStatus(t, 'bleed', 12, { per: 0.020, src: a.id }, tNow);
           const sa = ST.get(a);
-          const iaiDmg = Math.max(14, Math.round((sa.atk || 55) * 0.46));
-          C.setHp(t, Math.max(1, C.hp(t) - Math.round(iaiDmg * 0.50)));
-          C.applyDamage(W, f, a, t, Math.round(iaiDmg * 0.50), 'เพลงดาบอิไอไร้เงาผ่าเกราะ');
+          const rawIai = Math.min(Math.max(14, Math.round((sa.atk || 55) * 0.46)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
+          const iaiDmg = Math.min(rawIai, Math.max(14, Math.round(C.stageRefHp(t) * 0.22)));
+          C.applyProcDamage(W, f, a, t, iaiDmg, 'เพลงดาบอิไอไร้เงาผ่าเกราะ');
           bonusDmg += iaiDmg;
         }
         a.lastIaiZeroQiSlash = { t: tNow, bonusDmg };
@@ -5854,7 +5865,7 @@
         if (t && C.alive(t)) {
           ST.addStatus(t, 'blind', 8, null, tNow);
           const sa = ST.get(a);
-          const shDmg = Math.max(8, Math.round((sa.atk || 45) * 0.28));
+          const shDmg = Math.min(Math.max(8, Math.round((sa.atk || 45) * 0.28)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, shDmg, 'ร่างแยกเงาลอบสังหาร');
           bonusDmg += shDmg;
         }
@@ -5902,7 +5913,7 @@
         C.setHp(a, Math.min(hm, C.hp(a) + hAmt));
         if (t && C.alive(t)) {
           const sa = ST.get(a);
-          const avDmg = Math.max(12, Math.round(Math.max(sa.atk || 50, sa.matk || 50) * 0.36 * scaleMult));
+          const avDmg = Math.min(Math.max(12, Math.round(Math.max(sa.atk || 50, sa.matk || 50) * 0.36 * scaleMult)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, avDmg, 'เทวะประทับร่างจำแลงอวตาร');
           bonusDmg += avDmg;
         }
@@ -5917,7 +5928,7 @@
         if (t && C.alive(t)) {
           ST.addStatus(t, 'meridianSeal', 10, null, tNow);
           const sa = ST.get(a);
-          const bwDmg = Math.max(11, Math.round(Math.max(sa.atk || 48, sa.matk || 48) * 0.35));
+          const bwDmg = Math.min(Math.max(11, Math.round(Math.max(sa.atk || 48, sa.matk || 48) * 0.35)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, bwDmg, 'ยืมกฎฟ้าพิพากษาชีพจร');
           bonusDmg += bwDmg;
         }
@@ -5930,8 +5941,8 @@
           ST.addStatus(t, 'fear', 8, null, tNow);
           ST.addStatus(t, 'voidRiftTear', 12, { per: 0.020, src: a.id }, tNow);
           const sa = ST.get(a);
-          const elDmg = Math.max(12, Math.round((sa.matk || 52) * 0.42));
-          C.setHp(t, Math.max(1, C.hp(t) - Math.round(elDmg * 0.50)));
+          const elDmg = Math.min(Math.max(12, Math.round((sa.matk || 52) * 0.42)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
+          /* JS2 v3.7.0a: removed direct C.setHp bypass in favor of C.applyProcDamage */
           C.applyDamage(W, f, a, t, Math.round(elDmg * 0.50), 'คลื่นวิปลาสนอกมิติทะลุเกราะ');
           bonusDmg += elDmg;
         }
@@ -5959,7 +5970,7 @@
         if (t && C.alive(t)) {
           ST.addStatus(t, 'armorbreak', 12, null, tNow);
           const sa = ST.get(a);
-          const dvDmg = Math.max(11, Math.round((sa.atk || 50) * 0.36));
+          const dvDmg = Math.min(Math.max(11, Math.round((sa.atk || 50) * 0.36)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, dvDmg, 'กลืนกินสรีระหลอมอวัยวะเร้นลับ');
           bonusDmg += dvDmg;
           const dvHeal = Math.max(5, Math.round(dvDmg * 0.45));
@@ -5980,7 +5991,8 @@
         if (t && C.alive(t)) {
           ST.addStatus(t, 'fear', 8, null, tNow);
           const sa = ST.get(a);
-          const grDmg = Math.max(11, Math.round((sa.matk || 48) * (0.35 + graveBonus)));
+          const grCap = Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * (0.14 + usedCorpses * 0.04)));
+          const grDmg = Math.min(Math.max(11, Math.round((sa.matk || 48) * (0.35 + graveBonus))), grCap);
           C.applyDamage(W, f, a, t, grDmg, 'ระเบิดซากศพเพลิงวิญญาณสุสาน');
           bonusDmg += grDmg;
         }
@@ -5991,7 +6003,7 @@
         if (t && C.alive(t)) {
           const sa = ST.get(a);
           const pierceMult = (params.bonusStats && params.bonusStats.atkPct) ? (0.28 + params.bonusStats.atkPct) : (params.trueDmgMult || 0.32);
-          const pDmg = Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * pierceMult));
+          const pDmg = Math.min(Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * pierceMult)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, pDmg, 'ปราณเจาะเกราะแท้จริง');
           bonusDmg += pDmg;
           a.lastTruePierceDmg = { t: tNow, targetId: t.id, bonusDmg: pDmg };
@@ -6017,7 +6029,7 @@
         mult = params.followupMult || 1.18;
         if (t && C.alive(t)) {
           const sa = ST.get(a);
-          const fDmg = Math.max(6, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * 0.26));
+          const fDmg = Math.min(Math.max(6, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * 0.26)), Math.max(14, Math.round((t ? C.stageRefHp(t) : 200) * 0.22)));
           C.applyDamage(W, f, a, t, fDmg, 'กระบวนท่าต่อเนื่อง');
           bonusDmg += fDmg;
           a.lastChainFollowup = { t: tNow, targetId: t.id, bonusDmg: fDmg, mult };
@@ -8569,6 +8581,12 @@
       const recipient = units.find(n => n && C.alive(n) && anchors.some(p => p.team === heal && p.x === n.x && p.y === n.y));
       C.processTranscendentAccessoryCast(W, f, a, recipient || (heal ? a : null), profile);
     }
+    if (f && C.runLegendaryDaoProc && a && a.cult && g.CULT && g.CULT.LEGENDARY_DAO && g.CULT.LEGENDARY_DAO.PROVENANCE[a.cult.path]) {
+      const sideA = (f.A || []).includes(a.id);
+      const allies = (sideA ? f.A : f.B || []).map(id => C.unit(W, id)).filter(Boolean);
+      const foes = (sideA ? f.B : f.A || []).map(id => C.unit(W, id)).filter(Boolean);
+      C.runLegendaryDaoProc(W, f, a, target, allies, foes, 'cast', 0);
+    }
     return result;
   };
 
@@ -8584,6 +8602,17 @@
       if ((cds.coffinEscort || 0) <= W.t) {
         cds.coffinEscort = W.t + 14;
         C.processTranscendentWeaponStrike(W, f, a, receiver);
+      }
+    }
+    if (C.runLegendaryDaoProc && g.CULT && g.CULT.LEGENDARY_DAO) {
+      const sideA = (f.A || []).includes(a.id);
+      const alliesA = (sideA ? f.A : f.B || []).map(id => C.unit(W, id)).filter(Boolean);
+      const foesA = (sideA ? f.B : f.A || []).map(id => C.unit(W, id)).filter(Boolean);
+      if (a && a.cult && g.CULT.LEGENDARY_DAO.PROVENANCE[a.cult.path]) {
+        C.runLegendaryDaoProc(W, f, a, receiver, alliesA, foesA, 'hit', result.dmg || 0);
+      }
+      if (receiver && C.alive(receiver) && receiver.cult && g.CULT.LEGENDARY_DAO.PROVENANCE[receiver.cult.path]) {
+        C.runLegendaryDaoProc(W, f, receiver, a, foesA, alliesA, 'struck', result.dmg || 0);
       }
     }
     return result;
@@ -8604,4 +8633,171 @@
       return _origTickCarbon.apply(this, arguments);
     };
   }
+
+  /* JS2 v3.7.0a — Bounded Legendary & Transcendent Dao Combat Hooks (All 12 KW_DAO_* keywords)
+   * Supports both live combat (W, f, actor, target, allies, foes, phase, dmgDealt)
+   * and legacy 7-arg unit-test signature (W, actor, target, allies, foes, phase, dmgDealt). */
+  C.runLegendaryDaoProc = function(W, fOrActor, actorOrTarget, targetOrAllies, alliesOrFoes, foesOrPhase, phaseOrDmg, dmgMaybe) {
+    let f, actor, target, allies, foes, phase, dmgDealt;
+    if (typeof foesOrPhase === 'string') {
+      // Legacy 7-arg signature: (W, actor, target, allies, foes, phase, dmgDealt)
+      f = null; actor = fOrActor; target = actorOrTarget; allies = targetOrAllies; foes = alliesOrFoes; phase = foesOrPhase; dmgDealt = phaseOrDmg || 0;
+    } else {
+      // Live 8-arg signature: (W, f, actor, target, allies, foes, phase, dmgDealt)
+      f = fOrActor; actor = actorOrTarget; target = targetOrAllies; allies = alliesOrFoes; foes = foesOrPhase; phase = phaseOrDmg; dmgDealt = dmgMaybe || 0;
+    }
+    if (!actor || actor.dead || !actor.cult || !actor.cult.path) return 0;
+    const p = actor.cult.path;
+    if (!g.CULT || !g.CULT.LEGENDARY_DAO || !g.CULT.LEGENDARY_DAO.PROVENANCE[p]) return 0;
+    const tNow = (W && Number.isFinite(W.t)) ? W.t : ((ST && Number.isFinite(ST.now)) ? ST.now : 0);
+    if (!actor._daoIcd) actor._daoIcd = {};
+    const ready = (key, icd) => {
+      if ((actor._daoIcd[key] || -999) + icd > tNow) return false;
+      actor._daoIcd[key] = tNow;
+      return true;
+    };
+
+    const getHp = u => (u && u.h && u.h.state && Number.isFinite(u.h.state.hp)) ? u.h.state.hp : ((u && Number.isFinite(u.hp)) ? u.hp : 0);
+    const getHpMax = u => (u && u.h && C.hpMax) ? C.hpMax(u) : ((u && Number.isFinite(u.hpMax)) ? u.hpMax : 300);
+    const addHp = (u, amt) => {
+      if (!u || !(amt > 0)) return 0;
+      const mx = getHpMax(u), cur = getHp(u), next = Math.min(mx, cur + amt);
+      if (u.h && u.h.state && Number.isFinite(u.h.state.hp)) u.h.state.hp = next;
+      else u.hp = next;
+      u.fx = { t: tNow, text: '+' + Math.round(next - cur) };
+      return Math.round(next - cur);
+    };
+    const getQi = u => (u && u.h && u.h.state && Number.isFinite(u.h.state.qi)) ? u.h.state.qi : ((u && Number.isFinite(u.qi)) ? u.qi : 0);
+    const spendQi = (u, cost) => {
+      if (!u || getQi(u) < cost) return false;
+      if (u.h && u.h.state && Number.isFinite(u.h.state.qi)) u.h.state.qi = Math.max(0, u.h.state.qi - cost);
+      else u.qi = Math.max(0, (u.qi || 0) - cost);
+      return true;
+    };
+    const refHp = u => (u && u.h && C.stageRefHp) ? C.stageRefHp(u) : getHpMax(u);
+    const dealScaled = (tgt, frac, labelTh) => {
+      if (!tgt || tgt.dead) return 0;
+      const dmg = Math.max(8, Math.round(refHp(tgt) * frac));
+      if (f && C.applyProcDamage) {
+        C.applyProcDamage(W, f, actor, tgt, dmg, labelTh);
+      } else {
+        const cur = getHp(tgt);
+        const nxt = Math.max(1, cur - dmg);
+        if (tgt.h && tgt.h.state) tgt.h.state.hp = nxt; else tgt.hp = nxt;
+      }
+      tgt.fx = { t: tNow, text: '-' + dmg + ' ' + labelTh };
+      return dmg;
+    };
+    const buffUnit = (u, buffId, dur) => {
+      if (!u) return;
+      if (ST && typeof ST.applyNamedBuff === 'function') ST.applyNamedBuff(u, buffId, dur, tNow, { casterId: actor.id });
+    };
+    const statusUnit = (u, sxKey, dur) => {
+      if (!u) return;
+      if (ST && typeof ST.addStatus === 'function') ST.addStatus(u, sxKey, dur, { src: actor.id }, tNow);
+    };
+    const isUnitSilenced = u => !!(u && ST && typeof ST.has === 'function' && ST.has(u, 'silence', tNow));
+
+    let bonusDmg = 0;
+
+    // 1. LEG_READ_FORM_BLADE (KW_DAO_READ_FORM): record repeated foe signatures & counter (ICD 6)
+    if (p === 'LEG_READ_FORM_BLADE' && phase === 'hit' && target && !target.dead) {
+      actor._formStacks = Math.min(3, (actor._formStacks || 0) + 1);
+      if (actor._formStacks >= 2 && ready('read_form', 6)) {
+        actor._formStacks = 0;
+        bonusDmg = dealScaled(target, 0.14, 'อ่านช่องฟ้า');
+        statusUnit(target, 'exposed', 6);
+      }
+    }
+    // 2. LEG_TRIAGE_MERIDIAN (KW_DAO_TRIAGE_PULSE — Dedicated Legendary Support): targeted triage heal with per-target ICD 8 & qi cost
+    else if (p === 'LEG_TRIAGE_MERIDIAN' && (phase === 'cast' || phase === 'hit') && Array.isArray(allies)) {
+      const injured = allies.filter(a => a && !a.dead && getHp(a) < getHpMax(a) * 0.88)
+        .sort((a, b) => (getHp(a) / getHpMax(a)) - (getHp(b) / getHpMax(b)))[0];
+      if (injured && getQi(actor) >= 12 && ready('triage:' + injured.id, 8)) {
+        spendQi(actor, 12);
+        const healAmt = Math.max(12, Math.round(getHpMax(injured) * 0.14));
+        addHp(injured, healAmt);
+        buffUnit(injured, 'bodhiGrace', 6);
+      }
+    }
+    // 3. LEG_STORM_CALLER_TEMPEST (KW_DAO_FRONT_SHIFT): weather-synced chain bolt (cap 3 targets, ICD 10)
+    else if (p === 'LEG_STORM_CALLER_TEMPEST' && phase === 'hit' && Array.isArray(foes) && ready('storm', 10)) {
+      const weatherBonus = (W && W.weather && /rain|storm|snow/i.test(String(W.weather))) ? 1.20 : 1.0;
+      const targets = foes.filter(fo => fo && !fo.dead).slice(0, 3);
+      for (const fo of targets) {
+        bonusDmg += dealScaled(fo, 0.08 * weatherBonus, 'พายุอสนี');
+      }
+    }
+    // 4. LEG_JADE_CARAVAN_VOYAGER (KW_DAO_PROVISION_SHARE): bounded supply-backed team sustain & mobility ward (ICD 12)
+    else if (p === 'LEG_JADE_CARAVAN_VOYAGER' && (phase === 'cast' || phase === 'hit') && Array.isArray(allies) && ready('provision_share', 12)) {
+      if (spendQi(actor, 10)) {
+        const recipients = allies.filter(a => a && !a.dead).slice(0, 3);
+        for (const a of recipients) {
+          addHp(a, Math.max(8, Math.round(getHpMax(a) * 0.06)));
+          buffUnit(a, 'tacticalCommand', 6);
+        }
+      }
+    }
+    // 5. LEG_OATH_JUDGE_WARDEN (KW_DAO_VERDICT_MARK): expose oathbreaker/high-aggression target & deal bounded verdict damage (ICD 10)
+    else if (p === 'LEG_OATH_JUDGE_WARDEN' && phase === 'hit' && target && !target.dead && ready('verdict_mark', 10)) {
+      const agg = (target.h && g.HC && g.HC.eff) ? g.HC.eff(target, 'personality.aggression') : 55;
+      const mult = agg >= 60 ? 0.15 : 0.10;
+      bonusDmg = dealScaled(target, mult, 'ตราตัดสินสัตย์');
+      statusUnit(target, 'exposed', 8);
+    }
+    // 6. LEG_ASHEN_KILN_ALCHEMY (KW_DAO_ASHEN_GLAZE — Custom Dao #1): Ashen Glaze shatter counter-shrapnel on heavy hit (ICD 10)
+    else if (p === 'LEG_ASHEN_KILN_ALCHEMY' && phase === 'struck' && target && !target.dead && (dmgDealt || 0) >= getHpMax(actor) * 0.08 && ready('ashen_glaze', 10)) {
+      bonusDmg = dealScaled(target, 0.12, 'แตกเคลือบเถ้า');
+      buffUnit(actor, 'aegisWard', 6);
+    }
+    // 7. TRANS_CONSTELLATION_RELAY (KW_DAO_STAR_RELAY — Dedicated Transcendent Support): shared relay heal/ward across 2-3 allies (breaks if silenced, ICD 12)
+    else if (p === 'TRANS_CONSTELLATION_RELAY' && (phase === 'cast' || phase === 'hit') && Array.isArray(allies)) {
+      const linked = allies.filter(a => a && !a.dead).slice(0, 3);
+      if (!isUnitSilenced(actor) && linked.length >= 2 && getQi(actor) >= 16 && ready('star_relay', 12)) {
+        spendQi(actor, 16);
+        const totalFrac = 0.24 / linked.length;
+        for (const a of linked) {
+          addHp(a, Math.max(10, Math.round(getHpMax(a) * totalFrac)));
+          buffUnit(a, 'clarityLotus', 6);
+        }
+      }
+    }
+    // 8. TRANS_FIELD_CLAUSE_SOVEREIGN (KW_DAO_FIELD_CLAUSE): symmetric local field clause (ICD 14)
+    else if (p === 'TRANS_FIELD_CLAUSE_SOVEREIGN' && phase === 'cast' && target && !target.dead && ready('field_clause', 14)) {
+      statusUnit(target, 'weaken', 8);
+      buffUnit(actor, 'leylineBastion', 8);
+    }
+    // 9. TRANS_TEMPO_SOVEREIGN (KW_DAO_TEMPO_BANK): tempo bank up to 3 -> haste & slow (ICD 10)
+    else if (p === 'TRANS_TEMPO_SOVEREIGN' && phase === 'hit' && target && !target.dead) {
+      actor._tempoBank = Math.min(3, (actor._tempoBank || 0) + 1);
+      if (actor._tempoBank >= 2 && ready('tempo_bank', 10)) {
+        actor._tempoBank -= 2;
+        buffUnit(actor, 'temporalHaste', 6);
+        statusUnit(target, 'slow', 6);
+      }
+    }
+    // 10. TRANS_SEALKEEPER_FORBIDDEN_KEY (KW_DAO_SEAL_KNOT): bounded single-target seal (ICD 14)
+    else if (p === 'TRANS_SEALKEEPER_FORBIDDEN_KEY' && phase === 'hit' && target && !target.dead && ready('seal_knot', 14)) {
+      statusUnit(target, 'meridianSeal', 8);
+    }
+    // 11. TRANS_PRIMAL_VORTEX_MIRROR (KW_DAO_MIRROR_ECHO): bounded 25% reflection capped by 0.14 * stageRefHp (ICD 12)
+    else if (p === 'TRANS_PRIMAL_VORTEX_MIRROR' && phase === 'struck' && target && !target.dead && (dmgDealt || 0) > 0 && ready('mirror_echo', 12)) {
+      const cap = Math.max(10, Math.round(refHp(target) * 0.14));
+      const refl = Math.min(Math.round((dmgDealt || 0) * 0.25), cap);
+      if (refl > 0) {
+        if (f && C.applyProcDamage) C.applyProcDamage(W, f, actor, target, refl, 'สะท้อนกระจก');
+        else { const cur = getHp(target); const nxt = Math.max(1, cur - refl); if (target.h && target.h.state) target.h.state.hp = nxt; else target.hp = nxt; }
+        target.fx = { t: tNow, text: '-' + refl + ' สะท้อน' };
+        bonusDmg = refl;
+      }
+    }
+    // 12. TRANS_DYNASTIC_MANDATE_WEAVER (KW_DAO_MANDATE_THREAD — Custom Dao #2): reads live livingPolities era to shape combat buff (ICD 12)
+    else if (p === 'TRANS_DYNASTIC_MANDATE_WEAVER' && (phase === 'cast' || phase === 'hit') && ready('mandate_thread', 12)) {
+      const homeLp = W && W.world && W.world.continent && W.world.continent.courts && W.world.continent.courts.POL_YUNHE && W.world.continent.courts.POL_YUNHE.livingPolity;
+      const era = homeLp ? homeLp.era : 'STABLE';
+      buffUnit(actor, (era === 'TURMOIL' || era === 'DECLINING') ? 'aegisWard' : 'tacticalCommand', 8);
+    }
+    return bonusDmg;
+  };
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

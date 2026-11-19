@@ -1,6 +1,6 @@
 # JS2 v3.1.0 Living Lore — source and integration map
 
-Read with the [archived v3.1.0 assignment](../historical_prompts/ACTIVE_PATCH_PROMPT_V3_1_0.md) and [Codex proposals](JS2_V3_1_0_LIVING_LORE_DESIGN_FOR_GEMINI.md). This index is grounded in the Living Continent baseline at `f063841`. The PDF notes identify questions and design opportunities. Audit their claims against the running branch before promoting them to canon.
+Read with the [active assignment](../../ACTIVE_PATCH_PROMPT_V3_1_0.md) and [Codex proposals](JS2_V3_1_0_LIVING_LORE_DESIGN_FOR_GEMINI.md). This index is grounded in the Living Continent baseline at `f063841`. The PDF notes identify questions and design opportunities. Audit their claims against the running branch before promoting them to canon.
 
 ## Canon and runtime baseline
 

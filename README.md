@@ -1,10 +1,8 @@
-> **Latest Stable Release: JianghuSect 2 (`JS2 v3.5.0c`)** — เล่นได้ทันทีผ่าน `GAME_SOURCE/JianghuSect_single.html` (ไฟล์เดี่ยว) หรือ `GAME_SOURCE/index.html` · ดูสรุปการอัปเดตทั้งหมดตั้งแต่ `v3.1.0` → `v3.5.0c` ได้ใน [`CHANGELOG_JS2_V310_TO_V350C.md`](CHANGELOG_JS2_V310_TO_V350C.md) และรายละเอียดทุกแพทในโฟลเดอร์ [`PATCH_REPORTS/`](PATCH_REPORTS/)
+> **Latest Stable Release: JianghuSect 2 (`JS2 v3.8.2` — Era 0–1 Chaos Lore Archive, World Calendar & Legendary Dao Epoch)** — เล่นได้ทันทีผ่าน `GAME_SOURCE/JianghuSect_single.html` (ไฟล์เดี่ยว) หรือ `GAME_SOURCE/index.html` · ดูสรุปการอัปเดตทั้งหมดตั้งแต่ `v3.1.0` → `v3.8.2` ได้ใน [`CHANGELOG_JS2_V310_TO_V382.md`](CHANGELOG_JS2_V310_TO_V382.md) และรายละเอียดทุกแพตช์ในโฟลเดอร์ [`PATCH_REPORTS/`](PATCH_REPORTS/)
 
-> **Current Version:** JS2 v3.4.0 External World Events (`3.4.0-world-events`) · See `PATCH_REPORTS/WORLD_EVENTS_JS2_V3_4_0.md` & `docs/handovers/JS2_V3_5_0_NEXT_PATCH_HANDOFF.md`
+> **Current Version:** `JS2 v3.8.2` (`3.8.2-chaos-era-lore-archive`) · See [`PATCH_REPORTS/PATCH_JS2_V382_CHAOS_ERA_LORE_REPORT.md`](PATCH_REPORTS/PATCH_JS2_V382_CHAOS_ERA_LORE_REPORT.md), [`PATCH_JS2_V381_WORLD_CALENDAR_REPORT.md`](PATCH_REPORTS/PATCH_JS2_V381_WORLD_CALENDAR_REPORT.md), [`PATCH_JS2_V380_MASTER_LORE_COMPENDIUM_REPORT.md`](PATCH_REPORTS/PATCH_JS2_V380_MASTER_LORE_COMPENDIUM_REPORT.md), และ [`PATCH_JS2_V370_LEGENDARY_DAO_REPORT.md`](PATCH_REPORTS/PATCH_JS2_V370_LEGENDARY_DAO_REPORT.md)
 
-> **Current Version:** JS2 v3.3.0 Tactical Combat & Six-Path Mastery (`3.3.0-tactical-sixpaths`) · See `PATCH_REPORTS/TACTICAL_SIXPATHS_JS2_V3_3_0.md`
-
-> **Current Version:** JS2 v3.2.0 Equipment Expansion (`3.2.0-equipment-expansion`) · See `PATCH_REPORTS/EQUIPMENT_EXPANSION_JS2_V3_2_0.md` & `docs/handovers/JS2_V3_3_0_NEXT_PATCH_HANDOFF.md`
+> **Prior Series (`v3.2.0 – v3.6.0c`):** `3.2.0` Equipment Expansion (`PATCH_REPORTS/EQUIPMENT_EXPANSION_JS2_V3_2_0.md`) · `3.3.0` Tactical Combat & Six-Path Mastery (`PATCH_REPORTS/TACTICAL_SIXPATHS_JS2_V3_3_0.md`) · `3.4.0` External World Events (`PATCH_REPORTS/WORLD_EVENTS_JS2_V3_4_0.md`) · `3.5.0a–c` Hardening & Polish · `3.6.0a–c` Living Sects & Continental Polities (`PATCH_REPORTS/PATCH_JS2_V360C_LIVING_WORLD_AUDIT_REPORT.md`)
 
 # JianghuSect 2 (ภาค 2) — JS2-v3.1.0 Living Lore
 
@@ -43,7 +41,7 @@
 
 > 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**
 > - **ภาค 1 (JianghuSect 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)
-> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (รุ่นเสถียรปัจจุบันคือ **`JS2-v3.5.0c`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
+> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 55 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (รุ่นเสถียรปัจจุบันคือ **`JS2-v3.8.2`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
 
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 

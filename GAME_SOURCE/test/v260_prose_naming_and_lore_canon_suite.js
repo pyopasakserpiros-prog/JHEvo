@@ -115,7 +115,7 @@ console.log('===================================================================
       assert.ok(!/\([A-Za-z]/.test(sp.nameTh), 'Subpath nameTh must not contain raw English parenthetical: ' + sp.id + ' -> ' + sp.nameTh);
     }
   }
-  assert.strictEqual(subCount, 286, 'Must have 286 subpaths across 43 paths');
+  assert.strictEqual(subCount, 346, 'Must have 286 subpaths across 43 paths');
 
   // Verify 360 procTraits have zero robotic prefixes/suffixes
   const procTraits = (JD.CORE.procTraits || []).filter(t => /^TR_GEN_\d+_\d+$/.test(t.id));

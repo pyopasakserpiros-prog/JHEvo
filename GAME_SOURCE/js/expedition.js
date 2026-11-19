@@ -1042,7 +1042,7 @@
     // Patch v2.0.0: Caravan rare Grand Dao Path Manual & Path Crystal offering
     if (S.stones >= 1600 && g.SECT && g.SECT.PATH_LIBRARY && W.rng && W.rng.chance(0.35)) {
       const summary = g.SECT.PATH_LIBRARY.getSummary(W);
-      if (summary && summary.lockedPaths && summary.lockedPaths.length) {
+      if (summary && summary.lockedPaths.filter(pid => !g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY') && summary.lockedPaths.filter(pid => !g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY').length) {
         const pickPath = W.rng.pick(summary.lockedPaths);
         const manualId = 'MANUAL_PATH_' + pickPath;
         const mPrice = (ECO.itemById && ECO.itemById[manualId] && ECO.itemById[manualId].price) || 1200;
@@ -2099,7 +2099,7 @@
       ? 'สายผสมผสานไร้กรอบ (เปิดรับทุกวิถี/ศาสตราตามวาสนาเหมือนผู้เล่น)'
       : ('สายเอกลักษณ์เฉพาะทาง (' + canon.majorPath + ' · ' + (canon.signatureWeaponTypes || ['SWORD']).join('/') + ')');
     s.sectTier = effTierSpec.id;
-    s.tierLevel = effTierSpec.tierLevel;
+    if (!s.livingRoster) s.tierLevel = effTierSpec.tierLevel;
     s.tierNameTh = effTierSpec.nameTh;
     s.tierBadgeTh = effTierSpec.badgeTh;
     s.alignment = alignSpec.id;
@@ -4505,7 +4505,7 @@
   function courtEvent(W, seat, text) {
     const city = settlementById[seat.stationId];
     W.log('appoint','🏛️ ' + text + ' ณ ' + city.nameTh, [], {
-      location:stampPlace(city), storyThreadId:'court:' + city.polityId
+      location:stampPlace(city), storyThreadId:'court:' + ((W.world && W.world.continent && W.world.continent.cityOwners && W.world.continent.cityOwners[city.id]) || city.polityId)
     });
   }
   X.tickContinentalCourts = W => {
@@ -4554,7 +4554,8 @@
       const coordination = holder('minister') ? (figTrait(holder('minister'),'personality.rationality') - 25) / 10 : 0;
       const budgetSkill = holder('revenue') ? (figTrait(holder('revenue'),'aptitudes.socialCommerce') - 25) / 11 : 0;
       const inspection = holder('censor') ? figTrait(holder('censor'),'personality.integrity') / 20 : 0;
-      const towns = Object.values(settlementById).filter(city => city.polityId === p.id);
+      const towns = Object.values(settlementById).filter(city => ((state.cityOwners && state.cityOwners[city.id]) || city.polityId) === p.id);
+      if (!towns.length) continue;
       const distress = towns.reduce((v,city) => v + Math.max(0, 65 - state.cities[city.id].safety),0) / towns.length;
       const policies = [
         ['guard', .8 + distress / 8 + (figTrait(ruler,'personality.caution') - 25) / 66],
@@ -4580,14 +4581,17 @@
     for (const id of retired) delete state.figures[id];
 
     const pairs = new Map();
+    const dynOwner = c => (state.cityOwners && state.cityOwners[c.id]) || c.polityId;
     for (const [i,j] of continent.roads) {
       const a = settlementById[settlementIds[i]], b = settlementById[settlementIds[j]];
-      if (!a?.polityId || !b?.polityId || a.polityId === b.polityId) continue;
-      const key = borderKey(a.polityId,b.polityId);
-      if (!pairs.has(key)) pairs.set(key,[a,b]);
+      const oA = a && dynOwner(a), oB = b && dynOwner(b);
+      if (!oA || !oB || oA === oB) continue;
+      const key = borderKey(oA, oB);
+      if (!pairs.has(key)) pairs.set(key,[a,b,oA,oB]);
     }
-    for (const [key,[a,b]] of pairs) {
-      const stateA = state.courts[a.polityId], stateB = state.courts[b.polityId];
+    for (const [key,[a,b,oA,oB]] of pairs) {
+      const stateA = state.courts[oA], stateB = state.courts[oB];
+      if (!stateA || !stateB) continue;
       const envoys = [stateA,stateB].map(c => state.figures[Object.values(c.seats).find(s => s.role === 'envoy')?.holderId]);
       const base = state.relations[key] || 0;
       const safety = (state.cities[a.id].safety + state.cities[b.id].safety) / 2;
@@ -4595,7 +4599,7 @@
       const delta = dialogue ? rng.int(1,5) : safety < 63 ? -rng.int(1,5) : rng.int(-3,1);
       const next = state.relations[key] = clamp(base * .98 + delta, -85, 75);
       if ((base < -24) !== (next < -24)) {
-        W.log('diplomacy', '🏛️ ' + polityById[a.polityId].nameTh + ' กับ ' + polityById[b.polityId].nameTh +
+        W.log('diplomacy', '🏛️ ' + polityById[oA].nameTh + ' กับ ' + polityById[oB].nameTh +
           (next < -24 ? ' ตึงเครียดเรื่องชายแดน' : ' ลดความตึงเครียดชายแดน') + ' ที่ ' + a.nameTh, [], {location:stampPlace(a)});
       }
     }
@@ -6439,7 +6443,7 @@
       }
       if (s.figures.master) {
         hideFigCaches(s.figures.master, W);
-        s.leaderNameTh = s.figures.master.titleAndNameTh;
+        if (!s.livingRoster || !s.livingRoster.leader) s.leaderNameTh = s.figures.master.titleAndNameTh;
         s.masterDoctrineId = s.figures.master.doctrineId;
         s.masterDoctrineNameTh = s.figures.master.doctrineNameTh;
         W.world.figuresById[s.figures.master.id] = s.figures.master;
@@ -9859,6 +9863,18 @@
   });
 
   const CANON_FACTS = Object.freeze([
+    {"id": "FACT_V370_01_LEG_READ_FORM_BLADE", "titleTh": "ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "era": "ปลายกลียุคหลังสงครามใหญ่", "polityId": "POL_BEIMING", "regionId": "NORTHERN_PEAKS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_READ_FORM_BLADE", "summaryTh": "ครูฝึกด่านซานเจียงผู้รอดชีวิตจากทัพม้าเหล็ก — ด่านซานเจียงถือว่าเป็นวิชารักษาด่านท้องถิ่น ขณะที่หอคัมภีร์บางแห่งเข้าใจผิดว่าเป็นเศษคัมภีร์สำนักกระบี่โบราณ", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_BM_HANYU_CAPITAL"], "relatedPaths": ["LEG_READ_FORM_BLADE"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "ครูฝึกด่านซานเจียงผู้รอดชีวิตจากทัพม้าเหล็ก — ด่านซานเจียงถือว่าเป็นวิชารักษาด่านท้องถิ่น ขณะที่หอคัมภีร์บางแห่งเข้าใจผิดว่าเป็นเศษคัมภีร์สำนักกระบี่โบราณ"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_02_LEG_TRIAGE_MERIDIAN", "titleTh": "ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "era": "ต้นยุคดุลยภาพสามมหาอำนาจ", "polityId": "POL_YUNHE", "regionId": "CENTRAL_HEARTLAND", "originType": "LOWLY_UPPER_WORLD", "pathId": "LEG_TRIAGE_MERIDIAN", "summaryTh": "แผ่นฝึกหายใจชั้นผู้น้อยที่ถูกคัดทิ้งจากหอพักโลกเบื้องบน — สำนักแพทย์บางแห่งยกย่องว่าเป็นตำราเซียนโอสถ แต่บันทึกหอรักษาเก่าชี้ชัดว่าเริ่มต้นจากแผ่นฝึกหายใจคนรับใช้ที่ถูกดัดแปลงจนใช้งานได้จริงในโลกเบื้องล่าง", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_YH_SHUANGJIANG"], "relatedPaths": ["LEG_TRIAGE_MERIDIAN"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีชีพจรประคองสหาย (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีชีพจรประคองสหาย (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "แผ่นฝึกหายใจชั้นผู้น้อยที่ถูกคัดทิ้งจากหอพักโลกเบื้องบน — สำนักแพทย์บางแห่งยกย่องว่าเป็นตำราเซียนโอสถ แต่บันทึกหอรักษาเก่าชี้ชัดว่าเริ่มต้นจากแผ่นฝึกหายใจคนรับใช้ที่ถูกดัดแปลงจนใช้งานได้จริงในโลกเบื้องล่าง"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีชีพจรประคองสหาย (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_03_LEG_STORM_CALLER_TEMPEST", "titleTh": "ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "era": "ยุคภัยแล้งและมรสุมเจ็ดปี", "polityId": "POL_SUVARNABODHI", "regionId": "SOUTHERN_WATERS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_STORM_CALLER_TEMPEST", "summaryTh": "กัปตันเรือเดินสมุทรและพรานยอดเขาที่ร่วมกันจดทิศลม — ชาวประมงถือว่าเป็นวิชาพยากรณ์คลื่นลม ขณะที่นักค่ายกลมองว่าเป็นการชักนำประจุฟ้าในวงแคบ", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_SB_JINYA_SANGHA"], "relatedPaths": ["LEG_STORM_CALLER_TEMPEST"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "กัปตันเรือเดินสมุทรและพรานยอดเขาที่ร่วมกันจดทิศลม — ชาวประมงถือว่าเป็นวิชาพยากรณ์คลื่นลม ขณะที่นักค่ายกลมองว่าเป็นการชักนำประจุฟ้าในวงแคบ"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_04_LEG_JADE_CARAVAN_VOYAGER", "titleTh": "ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "era": "ยุคน้ำหลากใหญ่ลุ่มน้ำหยุนเหอ", "polityId": "POL_DONGHUANG", "regionId": "EASTERN_PLAINS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_JADE_CARAVAN_VOYAGER", "summaryTh": "นายท่าเรือข้ามฟากและกองคาราวานจากตำนานเรือข้าวสามหนี้ — พงศาวดารเมืองหลวงอ้างว่าขุนนางผู้ตรวจการเป็นผู้คิดค้น แต่สมุดบัญชีด่านเก็บภาษีเก่าชี้ว่าเป็นผลงานของนายท่าสามัญชนสามคน", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_DH_JIUKU_CAPITAL"], "relatedPaths": ["LEG_JADE_CARAVAN_VOYAGER"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีจอมคาราวานหยก (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีจอมคาราวานหยก (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "นายท่าเรือข้ามฟากและกองคาราวานจากตำนานเรือข้าวสามหนี้ — พงศาวดารเมืองหลวงอ้างว่าขุนนางผู้ตรวจการเป็นผู้คิดค้น แต่สมุดบัญชีด่านเก็บภาษีเก่าชี้ว่าเป็นผลงานของนายท่าสามัญชนสามคน"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีจอมคาราวานหยก (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_05_LEG_OATH_JUDGE_WARDEN", "titleTh": "ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "era": "ยุคก่อตั้งพันธมิตรสำนักหลังกลียุค", "polityId": "POL_YUNHE", "regionId": "CENTRAL_HEARTLAND", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_OATH_JUDGE_WARDEN", "summaryTh": "กลุ่มผู้เฒ่าและตุลาการพเนจรที่แยกตัวจากความขัดแย้งนองเลือด — ฝ่ายธรรมะมองว่าเป็นศาลยุทธภพเที่ยงธรรม ขณะที่สำนักอิสระบางแห่งเกรงว่าถูกใช้เป็นเครื่องมือการเมือง", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_YH_SHUANGJIANG"], "relatedPaths": ["LEG_OATH_JUDGE_WARDEN"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "กลุ่มผู้เฒ่าและตุลาการพเนจรที่แยกตัวจากความขัดแย้งนองเลือด — ฝ่ายธรรมะมองว่าเป็นศาลยุทธภพเที่ยงธรรม ขณะที่สำนักอิสระบางแห่งเกรงว่าถูกใช้เป็นเครื่องมือการเมือง"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_06_LEG_ASHEN_KILN_ALCHEMY", "titleTh": "ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "era": "ศึกปิดล้อมเมืองเตาเผาสามฤดู", "polityId": "POL_XIRONG", "regionId": "WESTERN_BADLANDS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_ASHEN_KILN_ALCHEMY", "summaryTh": "ช่างปั้นเครื่องเคลือบและศิษย์หลอมโอสถที่ถูกขับออกจากสำนักใหญ่ — สำนักหลอมโอสถชั้นสูงดูแคลนว่าเป็นวิชาเก็บกากของเหลือ แต่เมืองชายแดนที่รอดพ้นการปิดล้อมต่างยกย่องว่าเป็นวิถีแห่งการเอาชีวิตรอด", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_XR_CHIYAN_CAPITAL"], "relatedPaths": ["LEG_ASHEN_KILN_ALCHEMY"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "ช่างปั้นเครื่องเคลือบและศิษย์หลอมโอสถที่ถูกขับออกจากสำนักใหญ่ — สำนักหลอมโอสถชั้นสูงดูแคลนว่าเป็นวิชาเก็บกากของเหลือ แต่เมืองชายแดนที่รอดพ้นการปิดล้อมต่างยกย่องว่าเป็นวิถีแห่งการเอาชีวิตรอด"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_07_TRANS_CONSTELLATION_RELAY", "titleTh": "ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "era": "ปลายยุคสามมหาอำนาจตอนต้น", "polityId": "POL_BEIMING", "regionId": "NORTHERN_PEAKS", "originType": "ASCENDED_LOWER_MASTER", "pathId": "TRANS_CONSTELLATION_RELAY", "summaryTh": "ปรมาจารย์หมอทัพผู้บรรลุจุดสูงสุดโลกเบื้องล่างและข้ามม่านฟ้าไปแล้ว — บันทึกสองสำนักขัดแย้งกันว่าแผนภาพไตรดาราหรือสายพิณประสานใจกันแน่ที่ช่วยศิษย์รอดจากฟ้าทัณฑ์ในวันนั้น", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_BM_HANYU_CAPITAL"], "relatedPaths": ["TRANS_CONSTELLATION_RELAY"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "ปรมาจารย์หมอทัพผู้บรรลุจุดสูงสุดโลกเบื้องล่างและข้ามม่านฟ้าไปแล้ว — บันทึกสองสำนักขัดแย้งกันว่าแผนภาพไตรดาราหรือสายพิณประสานใจกันแน่ที่ช่วยศิษย์รอดจากฟ้าทัณฑ์ในวันนั้น"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_08_TRANS_FIELD_CLAUSE_SOVEREIGN", "titleTh": "ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "era": "ปลายสมัยมหาอาณาจักรเทียนกู่ก่อนล่มสลาย", "polityId": "POL_DONGHUANG", "regionId": "EASTERN_PLAINS", "originType": "ASCENDED_LOWER_MASTER", "pathId": "TRANS_FIELD_CLAUSE_SOVEREIGN", "summaryTh": "แม่ทัพนักกฎหมายยุคเทียนกู่ผู้ฝึกตนจนข้ามม่านฟ้าก่อนอาณาจักรแตก — ราชสำนักตงหวงอ้างสิทธิ์สืบทอดสายตรง แต่นักค่ายกลอิสระพบหลักฐานเดียวกันสลักไว้บนศิลาด่านสองแห่งที่ไม่อยู่ในอำนาจราชสำนัก", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_DH_JIUKU_CAPITAL"], "relatedPaths": ["TRANS_FIELD_CLAUSE_SOVEREIGN"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "แม่ทัพนักกฎหมายยุคเทียนกู่ผู้ฝึกตนจนข้ามม่านฟ้าก่อนอาณาจักรแตก — ราชสำนักตงหวงอ้างสิทธิ์สืบทอดสายตรง แต่นักค่ายกลอิสระพบหลักฐานเดียวกันสลักไว้บนศิลาด่านสองแห่งที่ไม่อยู่ในอำนาจราชสำนัก"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_09_TRANS_TEMPO_SOVEREIGN", "titleTh": "ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "era": "ยุคหอกลองริมแม่น้ำและกองเรือลำเลียง", "polityId": "POL_SUVARNABODHI", "regionId": "SOUTHERN_WATERS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "TRANS_TEMPO_SOVEREIGN", "summaryTh": "นายกลองเรือรบและช่างนาฬิกาน้ำริมแม่น้ำใหญ่ — บางคนนึกว่าเป็นวิถีกาลเวลาจากแดนลับ แต่จารึกหอกลองเก่าพิสูจน์ว่าเกิดจากการจับจังหวะฝีพายและสายน้ำจริงในโลกเบื้องล่าง", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_SB_JINYA_SANGHA"], "relatedPaths": ["TRANS_TEMPO_SOVEREIGN"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "นายกลองเรือรบและช่างนาฬิกาน้ำริมแม่น้ำใหญ่ — บางคนนึกว่าเป็นวิถีกาลเวลาจากแดนลับ แต่จารึกหอกลองเก่าพิสูจน์ว่าเกิดจากการจับจังหวะฝีพายและสายน้ำจริงในโลกเบื้องล่าง"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_10_TRANS_SEALKEEPER_FORBIDDEN_KEY", "titleTh": "ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "era": "ยุคสำรวจซากคลังโบราณหลังสงครามใหญ่", "polityId": "POL_XIRONG", "regionId": "WESTERN_BADLANDS", "originType": "LOWLY_UPPER_WORLD", "pathId": "TRANS_SEALKEEPER_FORBIDDEN_KEY", "summaryTh": "ปมเชือกผูกหีบสินค้าแตกหักง่ายของพนักงานคลังชั้นผู้น้อยในโลกเบื้องบน — สองสำนักยันต์ถกเถียงกันไม่จบว่าควรถ่ายระบายไออันตรายในปมผนึกทิ้งกลางทางหรือถือไปส่งผู้เชี่ยวชาญ", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_XR_CHIYAN_CAPITAL"], "relatedPaths": ["TRANS_SEALKEEPER_FORBIDDEN_KEY"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "ปมเชือกผูกหีบสินค้าแตกหักง่ายของพนักงานคลังชั้นผู้น้อยในโลกเบื้องบน — สองสำนักยันต์ถกเถียงกันไม่จบว่าควรถ่ายระบายไออันตรายในปมผนึกทิ้งกลางทางหรือถือไปส่งผู้เชี่ยวชาญ"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_11_TRANS_PRIMAL_VORTEX_MIRROR", "titleTh": "ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "era": "ยุคชุมนุมหอคัมภีร์ห้าสำนัก", "polityId": "POL_DONGHUANG", "regionId": "EASTERN_PLAINS", "originType": "ASCENDED_LOWER_MASTER", "pathId": "TRANS_PRIMAL_VORTEX_MIRROR", "summaryTh": "อาลักษณ์พเนจรที่รวบรวมบันทึกวิชาต่างสำนักข้ามสามชั่วคนก่อนบรรลุและข้ามม่านฟ้า — หอคัมภีร์หลายแห่งต่างถือเศษสำเนาคนละบทและโต้เถียงกันว่าบทใดคือต้นฉบับก่อนอาจารย์ขึ้นสู่เบื้องบน", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_DH_JIUKU_CAPITAL"], "relatedPaths": ["TRANS_PRIMAL_VORTEX_MIRROR"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "อาลักษณ์พเนจรที่รวบรวมบันทึกวิชาต่างสำนักข้ามสามชั่วคนก่อนบรรลุและข้ามม่านฟ้า — หอคัมภีร์หลายแห่งต่างถือเศษสำเนาคนละบทและโต้เถียงกันว่าบทใดคือต้นฉบับก่อนอาจารย์ขึ้นสู่เบื้องบน"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_12_TRANS_DYNASTIC_MANDATE_WEAVER", "titleTh": "ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "era": "ยุควัฏจักรผลัดแผ่นดินสามราชวงศ์", "polityId": "POL_YUNHE", "regionId": "CENTRAL_HEARTLAND", "originType": "LOCAL_LOWER_HISTORY", "pathId": "TRANS_DYNASTIC_MANDATE_WEAVER", "summaryTh": "บัณฑิตสันโดษผู้รอดชีวิตจากการล่มสลายของสามอาณาจักรยุคหลังเทียนกู่ — ราชสำนักบางแห่งเกรงว่าผู้ฝึกวิถีนี้จะแทรกแซงการเมือง แต่บันทึกเดิมย้ำชัดว่าวิถีนี้เป็นเพียงการอ่านกระแสโลกและประคองผู้คนมิใช่การยึดครองบัลลังก์", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_YH_SHUANGJIANG"], "relatedPaths": ["TRANS_DYNASTIC_MANDATE_WEAVER"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "บัณฑิตสันโดษผู้รอดชีวิตจากการล่มสลายของสามอาณาจักรยุคหลังเทียนกู่ — ราชสำนักบางแห่งเกรงว่าผู้ฝึกวิถีนี้จะแทรกแซงการเมือง แต่บันทึกเดิมย้ำชัดว่าวิถีนี้เป็นเพียงการอ่านกระแสโลกและประคองผู้คนมิใช่การยึดครองบัลลังก์"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
     {
       id: 'FACT_01_SHUANGJIANG_BACKFLOW',
       storyId: 'STORY_01_SHUANGJIANG_FLOOD_LEDGER',
@@ -13422,4 +13438,899 @@
     }
   };
 
+  /* ============================================================================
+   * JS2 v3.6.0a — Phase 1: Living Jianghu Sects (EXPED.LIVING_SECTS)
+   * 100% NPC-driven rise, fall, succession, schism, collapse, and rebirth.
+   * Pure deterministic detHash360 (ZERO W.rng consumption).
+   * ============================================================================ */
+  function detHash360(str) {
+    let h = 2166136261 >>> 0;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function detUnit360(key) {
+    return (detHash360(key) % 10000) / 10000;
+  }
+
+  const LS_SURNAMES = ['หลิน', 'เย่', 'กู้', 'มู่หรง', 'ซ่างกวน', 'โอวหยาง', 'เซียว', 'จ้าว', 'เฟิง', 'หลง', 'หนานกง', 'เป่ยถัง', 'สวี', 'เจียง', 'หวงฝู่', 'ตงฟาง', 'ชิว', 'ซือหม่า', 'หลิง', 'เหอ'];
+  const LS_GIVEN = ['อวิ๋น', 'เทียน', 'ชิง', 'เหยียน', 'เจี้ยน', 'หาน', 'หลิง', 'เฟิง', 'เยว่', 'ซาน', 'เสวี่ย', 'อวี้', 'หมิง', 'หยาง', 'อวิ๋นซี', 'จื่อหาน', 'ชางหลาน', 'อู๋จี๋', 'เสวียน', 'เจ๋อ'];
+  const LS_PATHS = ['XIAN', 'BODY', 'DEMON', 'HEART_SOUL', 'ARRAY_TALISMAN', 'CRAFT_CREATION', 'BEAST_SOVEREIGN', 'STRATEGY_GOVERNANCE', 'SHADOW_SAMURAI', 'BUDDHA_DHARMA', 'ASTRO_DIVINATION', 'SONIC_HARMONY', 'TIDE_VOYAGER', 'LORE_ARCHIVIST', 'ARENA_GLORY'];
+  const LS_REBORN_PREFIX = ['สำนัก', 'หอ', 'ศาลา', 'ตระกูล', 'นิกาย', 'คฤหาสน์'];
+  const LS_REBORN_CORE = ['เมฆาคราม', 'ดาราพิสุทธิ์', 'เพลิงสุริยัน', 'เหมันต์นิรันดร์', 'กระบี่ไร้เงา', 'วายุทมิฬ', 'หยกสวรรค์', 'มังกรเร้นเมฆ', 'จันทราโลหิต', 'โพธิ์ทอง', 'ศิลาบรรพกาล', 'สายฟ้าคราม'];
+  const LS_TRAJECTORY_TH = Object.freeze({
+    HEGEMON: 'จ้าวยุทธภพ',
+    RISING: 'กำลังผงาด',
+    STEADY: 'มั่นคง',
+    DECLINING: 'เสื่อมถอย',
+    CRISIS: 'วิกฤตสืบทอด',
+    COLLAPSED: 'ล่มสลาย',
+    REBORN: 'ก่อตั้งใหม่'
+  });
+
+  function lsMakeNpc(seedKey, role, baseStage, pathHint, dayNow) {
+    const h1 = detHash360(seedKey + ':nm1');
+    const h2 = detHash360(seedKey + ':nm2');
+    const nameTh = LS_SURNAMES[h1 % LS_SURNAMES.length] + LS_GIVEN[h2 % LS_GIVEN.length];
+    const pathId = pathHint || LS_PATHS[detHash360(seedKey + ':path') % LS_PATHS.length];
+    const stage = clamp(Math.round(baseStage), 1, 9);
+    const talent = clamp(36 + Math.round(detUnit360(seedKey + ':tal') * 62), 32, 98);
+    const ambition = clamp(24 + Math.round(detUnit360(seedKey + ':amb') * 72), 20, 96);
+    const integrity = clamp(22 + Math.round(detUnit360(seedKey + ':int') * 74), 20, 96);
+    const wisdom = clamp(28 + Math.round(detUnit360(seedKey + ':wis') * 68), 25, 96);
+    const martial = clamp(30 + Math.round(detUnit360(seedKey + ':mar') * 66), 25, 96);
+    const lifespanMax = 65 + stage * 24 + Math.round(talent * 0.25);
+    const baseAge = role === 'LEADER' ? Math.round(lifespanMax * (0.38 + detUnit360(seedKey + ':age') * 0.58))
+      : role === 'ELDER' ? Math.round(lifespanMax * (0.42 + detUnit360(seedKey + ':age') * 0.52))
+      : (15 + Math.round(detUnit360(seedKey + ':age') * 12));
+    return {
+      id: 'ls_' + (detHash360(seedKey + ':id').toString(36)),
+      nameTh,
+      role,
+      path: pathId,
+      stage,
+      prog: Math.round(detUnit360(seedKey + ':prog') * 55),
+      ageYears: Math.min(lifespanMax - 2, baseAge),
+      lifespanMax,
+      talent,
+      ambition,
+      integrity,
+      wisdom,
+      martial,
+      wounds: 0,
+      bornDay: (dayNow || 0) - Math.round(baseAge * 360)
+    };
+  }
+
+  function lsRecomputeSectMetrics(s) {
+    if (!s || !s.livingRoster) return;
+    const r = s.livingRoster;
+    if (r.collapsed) {
+      s.power = 0.20;
+      s.influence = Math.max(5, Math.round((s.influence || 20) * 0.5));
+      s.tierLevel = 1;
+      r.trajectory = 'COLLAPSED';
+      r.trajectoryTh = LS_TRAJECTORY_TH.COLLAPSED;
+      return;
+    }
+    const ldr = r.leader;
+    const elders = Array.isArray(r.elders) ? r.elders : [];
+    const prodigies = Array.isArray(r.prodigies) ? r.prodigies : [];
+    const ldrScore = ldr ? (ldr.stage * 22 + ldr.martial * 0.45 + ldr.wisdom * 0.30 + (ldr.integrity - 50) * 0.22 - (ldr.wounds || 0) * 0.6) : 12;
+    const elderScore = elders.reduce((sum, e) => sum + (e ? (e.stage * 11 + e.martial * 0.22 + e.wisdom * 0.18) : 0), 0);
+    const prodScore = prodigies.reduce((sum, p) => sum + (p ? (p.stage * 9 + (p.talent >= 80 ? 18 : 6)) : 0), 0);
+    const moraleFactor = clamp(0.65 + (r.morale || 60) / 140, 0.55, 1.35);
+    const treasuryFactor = clamp(0.75 + (r.treasury || 55) / 180, 0.70, 1.30);
+    const rawScore = Math.max(20, (ldrScore + elderScore * 0.55 + prodScore * 0.45 + (r.wins || 0) * 6 - (r.losses || 0) * 5) * moraleFactor * treasuryFactor);
+    r.powerScore = Math.round(rawScore * 10) / 10;
+    const prevPower = Number.isFinite(s.power) ? s.power : 1.0;
+    const nextPower = Math.round(clamp(rawScore / 205, 0.25, 6.00) * 100) / 100;
+    s.power = nextPower;
+    s.influence = clamp(Math.round(rawScore * 0.45), 15, 500);
+    s.tierLevel = nextPower >= 2.35 ? 6 : nextPower >= 1.85 ? 5 : nextPower >= 1.45 ? 4 : nextPower >= 1.08 ? 3 : nextPower >= 0.72 ? 2 : 1;
+    if (ldr) s.leaderNameTh = ldr.nameTh;
+    r.peakPower = Math.max(r.peakPower || nextPower, nextPower);
+    const delta = nextPower - prevPower;
+    r.momentum = Math.round(((r.momentum || 0) * 0.65 + delta * 100) * 10) / 10;
+    if (r.rebornUntilDay && r.rebornUntilDay > (r.lastTickDay || 0)) {
+      r.trajectory = 'REBORN';
+    } else if (r.inCrisis) {
+      r.trajectory = 'CRISIS';
+    } else if (r.momentum >= 3.5 || (prodigies.some(p => p && p.talent >= 86 && p.stage >= 4) && delta >= 0)) {
+      r.trajectory = 'RISING';
+    } else if (r.momentum <= -3.5 || (r.morale || 60) < 38 || !ldr) {
+      r.trajectory = 'DECLINING';
+    } else {
+      r.trajectory = 'STEADY';
+    }
+    r.trajectoryTh = LS_TRAJECTORY_TH[r.trajectory] || LS_TRAJECTORY_TH.STEADY;
+  }
+
+  X.LIVING_SECTS = {
+    VERSION: '3.6.0a-living-sects',
+    TRAJECTORY_TH: LS_TRAJECTORY_TH,
+
+    ensureWorldState(W) {
+      if (!W || !W.world) return null;
+      if (typeof X.ensureWorldTopology === 'function') X.ensureWorldTopology(W);
+      if (!W.world.livingSects || typeof W.world.livingSects !== 'object') {
+        W.world.livingSects = {
+          lastMonthTick: -1,
+          hegemonSectId: null,
+          hegemonNameTh: '',
+          hegemonChanges: 0,
+          events: [],
+          fallenHistory: [],
+          rebornCount: 0,
+          schismCount: 0
+        };
+      }
+      const ls = W.world.livingSects;
+      if (!Array.isArray(ls.events)) ls.events = [];
+      if (!Array.isArray(ls.fallenHistory)) ls.fallenHistory = [];
+      if (Array.isArray(W.world.sects) && Array.isArray(W.world.allSects)) {
+        for (let si = 0; si < W.world.sects.length; si++) {
+          const ws = W.world.sects[si];
+          if (!ws) continue;
+          const ai = W.world.allSects.findIndex(x => x && (x.id === ws.id || (ws.canonicalId && x.canonicalId === ws.canonicalId)));
+          if (ai >= 0 && W.world.allSects[ai] !== ws) {
+            W.world.sects[si] = W.world.allSects[ai];
+          }
+        }
+      }
+      const orgs = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      const seed = String(W.seed || 'seed');
+      const dayNow = W.day || 0;
+      for (let i = 0; i < orgs.length; i++) {
+        const s = orgs[i];
+        if (!s || s.livingRoster) continue;
+        const baseTier = clamp(s.tierLevel || Math.round((s.power || 1) * 2.5), 1, 6);
+        const pathHint = s.majorPath || LS_PATHS[detHash360(seed + ':sp:' + (s.id || i)) % LS_PATHS.length];
+        const leaderStage = clamp(baseTier + 1 + (detHash360(seed + ':lstg:' + (s.id || i)) % 2), 2, 7);
+        const leader = lsMakeNpc(seed + ':ldr:' + (s.id || i), 'LEADER', leaderStage, pathHint, dayNow);
+        if (s.leaderNameTh) leader.nameTh = s.leaderNameTh;
+        const elders = [
+          lsMakeNpc(seed + ':eld0:' + (s.id || i), 'ELDER', Math.max(1, leaderStage - 1), pathHint, dayNow),
+          lsMakeNpc(seed + ':eld1:' + (s.id || i), 'ELDER', Math.max(1, leaderStage - 2), pathHint, dayNow)
+        ];
+        const prodigies = [
+          lsMakeNpc(seed + ':prd0:' + (s.id || i), 'PRODIGY', Math.max(1, Math.min(4, baseTier - 1)), pathHint, dayNow)
+        ];
+        s.livingRoster = {
+          leader,
+          elders,
+          prodigies,
+          morale: clamp(52 + Math.round(detUnit360(seed + ':mor:' + (s.id || i)) * 28), 35, 85),
+          treasury: clamp(48 + baseTier * 6 + Math.round(detUnit360(seed + ':trs:' + (s.id || i)) * 18), 35, 90),
+          dynastyGen: 1,
+          wins: 0,
+          losses: 0,
+          collapsed: false,
+          collapsedDay: null,
+          rebornUntilDay: 0,
+          inCrisis: false,
+          momentum: 0,
+          peakPower: s.power || 1,
+          lastTickDay: dayNow,
+          trajectory: 'STEADY',
+          trajectoryTh: LS_TRAJECTORY_TH.STEADY
+        };
+        lsRecomputeSectMetrics(s);
+      }
+      return ls;
+    },
+
+    recordEvent(W, textTh, kind, sectId) {
+      const ls = W && W.world && W.world.livingSects;
+      if (!ls || !textTh) return;
+      ls.events.push({ day: W.day || 0, kind: kind || 'sect', sectId: sectId || null, textTh });
+      if (ls.events.length > 50) ls.events.shift();
+      if (W.log) W.log('world', textTh, []);
+    },
+
+    tickMonthly(W, opts) {
+      opts = opts || {};
+      const day = (W && W.day) || 0;
+      if (!opts.force && day < 30) return (W && W.world && W.world.livingSects) || null;
+      const ls = X.LIVING_SECTS.ensureWorldState(W);
+      if (!ls) return null;
+      const monthIdx = Math.floor(day / 30);
+      if (!opts.force && monthIdx <= ls.lastMonthTick) return ls;
+      ls.lastMonthTick = monthIdx;
+      const seed = String(W.seed || 'seed');
+      const orgs = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+
+      // 1. Per-sect NPC lifecycle: age, cultivate, breakthrough, die, succeed, prodigy, collapse/rebirth
+      for (let i = 0; i < orgs.length; i++) {
+        const s = orgs[i];
+        if (!s || !s.livingRoster) continue;
+        const r = s.livingRoster;
+        r.lastTickDay = day;
+        const sk = seed + ':m' + monthIdx + ':' + (s.id || i);
+
+        // Handle collapsed sect -> organic rebirth after 60-120 days
+        if (r.collapsed) {
+          const waitDays = 60 + (detHash360(sk + ':rebwait') % 61);
+          if (r.collapsedDay != null && (day - r.collapsedDay) >= waitDays && detUnit360(sk + ':reb') < 0.35) {
+            const pfx = LS_REBORN_PREFIX[detHash360(sk + ':rpfx') % LS_REBORN_PREFIX.length];
+            const core = LS_REBORN_CORE[detHash360(sk + ':rcore') % LS_REBORN_CORE.length];
+            const newName = pfx + core;
+            const newPath = LS_PATHS[detHash360(sk + ':rpath') % LS_PATHS.length];
+            const founderStage = 3 + (detHash360(sk + ':rfstg') % 3);
+            const founder = lsMakeNpc(sk + ':rfounder', 'LEADER', founderStage, newPath, day);
+            founder.talent = clamp(founder.talent + 14, 60, 98);
+            s.nameTh = newName;
+            s.majorPath = newPath;
+            s.style = ['เป็นธรรม', 'ทะนง', 'ใฝ่สงบ', 'ก้าวร้าว', 'โลภ'][detHash360(sk + ':rstyle') % 5];
+            r.collapsed = false;
+            r.collapsedDay = null;
+            r.inCrisis = false;
+            r.rebornUntilDay = day + 90;
+            r.dynastyGen = (r.dynastyGen || 1) + 1;
+            r.leader = founder;
+            r.elders = [lsMakeNpc(sk + ':reld', 'ELDER', Math.max(2, founderStage - 1), newPath, day)];
+            r.prodigies = [lsMakeNpc(sk + ':rprd', 'PRODIGY', 2, newPath, day)];
+            r.prodigies[0].talent = clamp(r.prodigies[0].talent + 12, 68, 98);
+            r.morale = 74;
+            r.treasury = 52;
+            r.momentum = 8;
+            ls.rebornCount = (ls.rebornCount || 0) + 1;
+            lsRecomputeSectMetrics(s);
+            X.LIVING_SECTS.recordEvent(W, '🌱 สำนักใหม่「' + newName + '」ถือกำเนิดในยุทธภพ นำโดย ' + founder.nameTh + ' (ขั้น ' + founder.stage + ')', 'rebirth', s.id);
+          }
+          continue;
+        }
+
+        const allMembers = [];
+        if (r.leader) allMembers.push(r.leader);
+        for (const e of (r.elders || [])) if (e) allMembers.push(e);
+        for (const p of (r.prodigies || [])) if (p) allMembers.push(p);
+
+        // Age, heal wounds, cultivate, breakthrough
+        for (let mi = 0; mi < allMembers.length; mi++) {
+          const m = allMembers[mi];
+          m.ageYears = Math.round((m.ageYears + 1 / 12) * 100) / 100;
+          if (m.wounds > 0) m.wounds = Math.max(0, m.wounds - 4);
+          const stageDiv = 1 + Math.max(0, m.stage - 1) * 0.75;
+          const gain = ((1.4 + m.talent * 0.048 + m.wisdom * 0.022) / stageDiv) * (0.75 + (r.treasury || 55) / 180) * (m.role === 'PRODIGY' ? 1.55 : 1.0);
+          m.prog = (m.prog || 0) + gain;
+          if (m.prog >= 100 && m.stage < 9) {
+            const btChance = clamp(0.40 + (m.talent + m.wisdom) / 310 - m.stage * 0.062, 0.04, 0.78);
+            const roll = detUnit360(sk + ':bt:' + m.id + ':' + m.stage + ':' + Math.floor(m.ageYears));
+            if (roll < btChance) {
+              m.stage++;
+              m.prog = 5;
+              m.lifespanMax += 18;
+              m.martial = Math.min(99, m.martial + 3);
+              if (m.stage >= 6) {
+                r.morale = clamp((r.morale || 60) + 7, 10, 100);
+                X.LIVING_SECTS.recordEvent(W, '⚡ ' + m.nameTh + ' แห่ง「' + s.nameTh + '」ทะลวงสู่ขั้น ' + m.stage + ' สะท้านยุทธภพ!', 'breakthrough', s.id);
+              }
+            } else {
+              m.prog = 35;
+              m.wounds = Math.min(45, (m.wounds || 0) + (m.stage >= 6 ? 18 : 10));
+            }
+          }
+        }
+
+        // Treasury & morale drift driven by LIVING leader's integrity, wisdom, and ambition
+        if (r.leader) {
+          const bloatDrag = (r.elders.length * 0.45) + (r.leader.stage * 0.22);
+          const govDelta = (r.leader.wisdom - 55) * 0.08 + (r.leader.integrity - 52) * 0.09 - bloatDrag;
+          r.treasury = clamp((r.treasury || 55) + govDelta, 10, 100);
+          r.morale = clamp((r.morale || 60) + (r.leader.integrity - 50) * 0.08 - (r.leader.wounds > 20 ? 2.5 : 0) - (r.treasury < 30 ? 1.5 : 0), 8, 100);
+          // Corrupt / tyrannical leader can trigger decay & internal resentment
+          if (r.leader.integrity < 34 && detUnit360(sk + ':corrupt') < 0.16) {
+            r.morale = clamp(r.morale - 11, 8, 100);
+            r.treasury = clamp(r.treasury - 8, 12, 100);
+            r.inCrisis = true;
+          }
+        }
+
+        // Natural deaths (old age or severe wounds)
+        const isDeadNpc = (m, tag) => {
+          if (!m) return true;
+          if (m.ageYears >= m.lifespanMax) return true;
+          if (m.ageYears >= m.lifespanMax * 0.86 && detUnit360(sk + ':old:' + tag) < 0.09) return true;
+          if (m.ageYears >= m.lifespanMax - 6 && detUnit360(sk + ':old2:' + tag) < 0.25) return true;
+          if ((m.wounds || 0) >= 30 && detUnit360(sk + ':wnd:' + tag) < 0.24) return true;
+          return false;
+        };
+
+        r.elders = (r.elders || []).filter((e, idx) => !isDeadNpc(e, 'e' + idx));
+        r.prodigies = (r.prodigies || []).filter((p, idx) => !isDeadNpc(p, 'p' + idx));
+
+        // Promote matured high-stage prodigies to elders
+        for (let pi = r.prodigies.length - 1; pi >= 0; pi--) {
+          const pr = r.prodigies[pi];
+          if (pr.ageYears >= 32 || pr.stage >= 5) {
+            pr.role = 'ELDER';
+            r.elders.push(pr);
+            r.prodigies.splice(pi, 1);
+          }
+        }
+
+        // Leader death -> organic succession or succession crisis / schism
+        if (!r.leader || isDeadNpc(r.leader, 'ldr')) {
+          const oldLdr = r.leader;
+          const oldStage = oldLdr ? oldLdr.stage : 3;
+          const pool = r.elders.concat(r.prodigies);
+          if (pool.length > 0) {
+            pool.sort((a, b) => (b.stage * 18 + b.martial * 0.4 + b.ambition * 0.35 + b.wisdom * 0.25) - (a.stage * 18 + a.martial * 0.4 + a.ambition * 0.35 + a.wisdom * 0.25));
+            const heir = pool[0];
+            r.elders = r.elders.filter(x => x.id !== heir.id);
+            r.prodigies = r.prodigies.filter(x => x.id !== heir.id);
+            heir.role = 'LEADER';
+            r.leader = heir;
+            r.dynastyGen = (r.dynastyGen || 1) + 1;
+            const stageDrop = oldStage - heir.stage;
+            if (stageDrop >= 2 || (pool.length >= 2 && pool[1].ambition >= 72 && detUnit360(sk + ':schism') < 0.45)) {
+              r.inCrisis = true;
+              r.morale = clamp(r.morale - 18, 8, 100);
+              r.treasury = clamp(r.treasury - 12, 10, 100);
+              ls.schismCount = (ls.schismCount || 0) + 1;
+              X.LIVING_SECTS.recordEvent(W, '⚖️ วิกฤตสืบทอดใน「' + s.nameTh + '」หลัง ' + (oldLdr ? oldLdr.nameTh : 'ประมุขเดิม') + ' สิ้นชีพ — ' + heir.nameTh + ' (ขั้น ' + heir.stage + ') ขึ้นครองตำแหน่งท่ามกลางความแตกแยก!', 'schism', s.id);
+            } else {
+              r.inCrisis = false;
+              X.LIVING_SECTS.recordEvent(W, '🏯 ' + heir.nameTh + ' (ขั้น ' + heir.stage + ') สืบทอดตำแหน่งเจ้าสำนัก「' + s.nameTh + '」รุ่นที่ ' + r.dynastyGen, 'succession', s.id);
+            }
+          } else {
+            r.leader = null;
+            r.inCrisis = true;
+            r.morale = clamp(r.morale - 25, 5, 100);
+          }
+        } else if (r.inCrisis && r.morale >= 55 && r.leader.integrity >= 45) {
+          r.inCrisis = false;
+        }
+
+        // Organic Prodigy Emergence (gives small/underdog sects real chance to skyrocket!)
+        const prodChance = (s.tierLevel <= 3 ? 0.14 : 0.08) + ((r.morale || 50) > 65 ? 0.04 : 0);
+        if (r.prodigies.length < 3 && detUnit360(sk + ':newprod') < prodChance) {
+          const isMiracle = detUnit360(sk + ':miracle') < 0.24;
+          const np = lsMakeNpc(sk + ':prd_' + r.prodigies.length, 'PRODIGY', isMiracle ? 3 : 2, s.majorPath, day);
+          if (isMiracle) {
+            np.talent = clamp(86 + (detHash360(sk + ':mtal') % 13), 86, 98);
+            np.martial = Math.max(np.martial, 78);
+            r.morale = clamp((r.morale || 60) + 10, 10, 100);
+            X.LIVING_SECTS.recordEvent(W, '🌟 อัจฉริยะฟ้าประทาน「' + np.nameTh + '」(พรสวรรค์ ' + np.talent + ') ปรากฏกายใน「' + s.nameTh + '」!', 'prodigy', s.id);
+          }
+          r.prodigies.push(np);
+        }
+
+        // Ensure at least 1 elder if sect is healthy
+        if (r.elders.length < 2 && r.leader && r.morale >= 45 && detUnit360(sk + ':receld') < 0.18) {
+          r.elders.push(lsMakeNpc(sk + ':eld_rec', 'ELDER', Math.max(1, r.leader.stage - 2), s.majorPath, day));
+        }
+
+        lsRecomputeSectMetrics(s);
+
+        // Collapse condition when living roster & morale crumble
+        if ((!r.leader && r.elders.length === 0) || (s.power <= 0.42 && r.morale <= 22 && detUnit360(sk + ':col') < 0.35)) {
+          r.collapsed = true;
+          r.collapsedDay = day;
+          ls.fallenHistory.push({ id: s.id, nameTh: s.nameTh, day, dynastyGen: r.dynastyGen || 1, peakPower: r.peakPower || s.power });
+          if (ls.fallenHistory.length > 30) ls.fallenHistory.shift();
+          lsRecomputeSectMetrics(s);
+          X.LIVING_SECTS.recordEvent(W, '💀「' + s.nameTh + '」เสื่อมถอยจนล่มสลาย ปิดตำนานรุ่นที่ ' + (r.dynastyGen || 1), 'collapse', s.id);
+        }
+      }
+
+      // 2. Autonomous Inter-Sect Clash (power driven by living NPCs, never fixed!)
+      const activeOrgs = orgs.filter(s => s && s.livingRoster && !s.livingRoster.collapsed && s.livingRoster.leader);
+      if (activeOrgs.length >= 2 && detUnit360(seed + ':clash_trig:' + monthIdx) < 0.42) {
+        const aggPool = activeOrgs.filter(s => s.style === 'ก้าวร้าว' || s.livingRoster.leader.ambition >= 62);
+        const atk = (aggPool.length ? aggPool : activeOrgs)[detHash360(seed + ':clash_a:' + monthIdx) % (aggPool.length ? aggPool.length : activeOrgs.length)];
+        const defPool = activeOrgs.filter(s => s.id !== atk.id);
+        const def = defPool[detHash360(seed + ':clash_b:' + monthIdx) % defPool.length];
+        if (atk && def) {
+          const scoreSide = (s, tag) => {
+            const r = s.livingRoster;
+            const topElder = (r.elders || []).slice().sort((a, b) => b.stage - a.stage)[0];
+            const luck = 0.85 + detUnit360(seed + ':clash_luck:' + monthIdx + ':' + tag) * 0.30;
+            return (r.leader.stage * 24 + r.leader.martial * 0.65 + (topElder ? topElder.stage * 10 : 0) - (r.leader.wounds || 0) * 0.8) * luck;
+          };
+          const sA = scoreSide(atk, 'a'), sB = scoreSide(def, 'b');
+          const win = sA >= sB ? atk : def;
+          const lose = sA >= sB ? def : atk;
+          win.livingRoster.wins = (win.livingRoster.wins || 0) + 1;
+          win.livingRoster.morale = clamp(win.livingRoster.morale + 10, 10, 100);
+          win.livingRoster.treasury = clamp(win.livingRoster.treasury + 9, 10, 100);
+          lose.livingRoster.losses = (lose.livingRoster.losses || 0) + 1;
+          lose.livingRoster.morale = clamp(lose.livingRoster.morale - 14, 5, 100);
+          lose.livingRoster.treasury = clamp(lose.livingRoster.treasury - 10, 8, 100);
+          if (lose.livingRoster.leader) lose.livingRoster.leader.wounds = Math.min(40, (lose.livingRoster.leader.wounds || 0) + 14);
+          lsRecomputeSectMetrics(win);
+          lsRecomputeSectMetrics(lose);
+          X.LIVING_SECTS.recordEvent(W, '⚔️ ศึกชิงความเป็นใหญ่:「' + win.nameTh + '」(' + win.livingRoster.leader.nameTh + ') เอาชนะ「' + lose.nameTh + '」เขย่าสมดุลยุทธภพ!', 'clash', win.id);
+        }
+      }
+
+      // 3. Dynamic Hegemon Crown (highest current living power — can change hands anytime!)
+      const ranked = activeOrgs.slice().sort((a, b) => ((b.livingRoster.powerScore || 0) - (a.livingRoster.powerScore || 0)) || (b.power - a.power));
+      if (ranked.length > 0) {
+        const top = ranked[0];
+        top.livingRoster.trajectory = 'HEGEMON';
+        top.livingRoster.trajectoryTh = LS_TRAJECTORY_TH.HEGEMON;
+        if (ls.hegemonSectId && ls.hegemonSectId !== top.id) {
+          ls.hegemonChanges = (ls.hegemonChanges || 0) + 1;
+          X.LIVING_SECTS.recordEvent(W, '👑 ผลัดแผ่นดินจ้าวยุทธภพ!「' + top.nameTh + '」นำโดย ' + top.livingRoster.leader.nameTh + ' (ขั้น ' + top.livingRoster.leader.stage + ') ผงาดขึ้นครองอันดับ 1 แทนที่「' + (ls.hegemonNameTh || 'จ้าวเดิม') + '」!', 'hegemon', top.id);
+        }
+        ls.hegemonSectId = top.id;
+        ls.hegemonNameTh = top.nameTh;
+      }
+      return ls;
+    },
+
+    peekSummary(W) {
+      const ls = W && W.world && W.world.livingSects;
+      const orgs = (W && W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W && W.world && W.world.sects) || []);
+      const rising = orgs.filter(s => s && s.livingRoster && !s.livingRoster.collapsed && (s.livingRoster.trajectory === 'RISING' || s.livingRoster.trajectory === 'REBORN')).map(s => s.nameTh);
+      const declining = orgs.filter(s => s && s.livingRoster && (s.livingRoster.trajectory === 'DECLINING' || s.livingRoster.trajectory === 'CRISIS')).map(s => s.nameTh);
+      const collapsed = orgs.filter(s => s && s.livingRoster && s.livingRoster.collapsed).map(s => s.nameTh);
+      const heg = ls && ls.hegemonSectId ? orgs.find(s => s && s.id === ls.hegemonSectId) : null;
+      const lastEvt = ls && ls.events && ls.events.length ? ls.events[ls.events.length - 1] : null;
+      return {
+        hegemonNameTh: heg ? heg.nameTh : ((ls && ls.hegemonNameTh) || ''),
+        hegemonLeaderTh: (heg && heg.livingRoster && heg.livingRoster.leader) ? (heg.livingRoster.leader.nameTh + ' ขั้น ' + heg.livingRoster.leader.stage) : '',
+        hegemonChanges: (ls && ls.hegemonChanges) || 0,
+        risingNamesTh: rising.slice(0, 4),
+        decliningNamesTh: declining.slice(0, 4),
+        collapsedCount: collapsed.length,
+        rebornCount: (ls && ls.rebornCount) || 0,
+        recentTh: lastEvt ? lastEvt.textTh : ''
+      };
+    }
+  };
+
+  /* ============================================================================
+   * JS2 v3.6.0b — Phase 2: Living Continental Polities (EXPED.LIVING_POLITIES)
+   * 100% NPC-driven rise, fall, golden ages, dynastic coups, border city conquests,
+   * and bidirectional Sect <-> Polity influence. Zero W.rng consumption.
+   * ============================================================================ */
+  const LP_ERA_TH = Object.freeze({
+    IMPERIAL_HEGEMON: 'มหาอำนาจอันดับ 1',
+    GOLDEN_AGE: 'ยุคทองรุ่งเรือง',
+    STABLE: 'มั่นคง',
+    DECLINING: 'เสื่อมถอย',
+    TURMOIL: 'ยุคกลียุค'
+  });
+
+  function lpPolities() {
+    return Object.values(X.POLITY_DEFS || {});
+  }
+
+  function lpSettlements() {
+    return Object.values(X.SETTLEMENTS || {});
+  }
+
+  function lpBorderKey(a, b) {
+    return a < b ? (a + ':' + b) : (b + ':' + a);
+  }
+
+  function lpFigTrait(fig, pathStr) {
+    if (!fig || !fig.h) return 50;
+    const hc = (typeof globalThis !== 'undefined' && globalThis.HC) || null;
+    if (hc && typeof hc.eff === 'function') {
+      const v = hc.eff(fig, pathStr);
+      if (Number.isFinite(v)) return v;
+    }
+    const parts = String(pathStr).split('.');
+    let cur = fig.h;
+    for (const k of parts) {
+      if (!cur || typeof cur !== 'object') return 50;
+      cur = cur[k];
+    }
+    return Number.isFinite(cur) ? cur : 50;
+  }
+
+  function lpFigFullName(fig) {
+    if (fig && fig.h && fig.h.name) {
+      return fig.h.name.full || ((fig.h.name.family || fig.h.name.sur || '') + (fig.h.name.given || '')) || 'ผู้นำใหม่';
+    }
+    return 'ผู้นำใหม่';
+  }
+
+  function lpCapitalCityId(polity) {
+    if (!polity) return null;
+    const all = lpSettlements();
+    const byOrder = all.find(s => s && s.order === polity.capital);
+    if (byOrder) return byOrder.id;
+    const byTier = all.find(s => s && s.polityId === polity.id && s.tier === 4);
+    return byTier ? byTier.id : null;
+  }
+
+  function lpCourtTrait(state, seats, role, path, fallback) {
+    const matching = seats.filter(s => s && s.role === role && s.holderId && state.figures[s.holderId]);
+    if (!matching.length) return fallback;
+    let sum = 0;
+    for (const s of matching) sum += lpFigTrait(state.figures[s.holderId], path);
+    return sum / matching.length;
+  }
+
+  function lpEnsureCityOwners(state) {
+    if (!state.cityOwners || typeof state.cityOwners !== 'object') {
+      state.cityOwners = {};
+    }
+    for (const city of lpSettlements()) {
+      if (!state.cityOwners[city.id]) state.cityOwners[city.id] = city.polityId;
+    }
+    return state.cityOwners;
+  }
+
+  function lpRecomputePolity(W, state, p, sectBonusMap) {
+    const court = state.courts[p.id];
+    if (!court || !court.livingPolity) return;
+    const lp = court.livingPolity;
+    const seats = Object.values(court.seats || {});
+    const owners = lpEnsureCityOwners(state);
+    const ownedCities = lpSettlements().filter(c => owners[c.id] === p.id);
+    const cityCount = Math.max(1, ownedCities.length);
+
+    const avgSafety = ownedCities.reduce((s, c) => s + ((state.cities[c.id] && state.cities[c.id].safety) || 55), 0) / cityCount;
+    const avgProsp = ownedCities.reduce((s, c) => s + ((state.cities[c.id] && state.cities[c.id].prosperity) || 50), 0) / cityCount;
+
+    const rulerLead = lpCourtTrait(state, seats, 'ruler', 'social.leadership', 38);
+    const rulerInt = lpCourtTrait(state, seats, 'ruler', 'personality.integrity', 42);
+    const minRat = lpCourtTrait(state, seats, 'minister', 'personality.rationality', 45);
+    const revCom = lpCourtTrait(state, seats, 'revenue', 'aptitudes.socialCommerce', 45);
+    const marCour = lpCourtTrait(state, seats, 'marshal', 'personality.courage', 45);
+    const cenInt = lpCourtTrait(state, seats, 'censor', 'personality.integrity', 45);
+
+    const sectBonus = (sectBonusMap && sectBonusMap[p.macroRegion]) || 0;
+    lp.sectSupportBonus = Math.round(sectBonus * 10) / 10;
+
+    // NPC-driven power score (NOT locked to initial city.tier!)
+    const courtQuality = rulerLead * 0.42 + minRat * 0.25 + revCom * 0.22 + marCour * 0.30 + cenInt * 0.18 + (rulerInt - 50) * 0.20;
+    const rawScore = Math.max(25,
+      courtQuality * 1.35 +
+      lp.military * 0.85 +
+      lp.treasury * 0.70 +
+      lp.legitimacy * 0.55 +
+      cityCount * 11 +
+      (avgProsp + avgSafety) * 0.40 +
+      sectBonus * 1.4 +
+      (lp.warsWon || 0) * 8 -
+      (lp.warsLost || 0) * 7
+    );
+    const prevPower = Number.isFinite(lp.power) ? lp.power : 1.0;
+    lp.powerScore = Math.round(rawScore * 10) / 10;
+    lp.power = Math.round(clamp(rawScore / 155, 0.30, 6.00) * 100) / 100;
+    lp.cityCount = cityCount;
+    lp.momentum = Math.round(((lp.momentum || 0) * 0.65 + (lp.power - prevPower) * 100) * 10) / 10;
+
+    if (lp.legitimacy < 32 || court.stability < 36) {
+      lp.era = 'TURMOIL';
+    } else if (lp.momentum <= -3.0 || lp.legitimacy < 46 || lp.treasury < 32) {
+      lp.era = 'DECLINING';
+    } else if ((lp.treasury >= 68 && lp.legitimacy >= 64 && lp.military >= 60) || lp.momentum >= 3.5) {
+      lp.era = 'GOLDEN_AGE';
+    } else {
+      lp.era = 'STABLE';
+    }
+    lp.eraTh = LP_ERA_TH[lp.era] || LP_ERA_TH.STABLE;
+  }
+
+  X.LIVING_POLITIES = {
+    VERSION: '3.6.0c-living-world-audit',
+    ERA_TH: LP_ERA_TH,
+
+    ownerOf(W, cityId) {
+      const st = W && W.world && W.world.continent;
+      if (st && st.cityOwners && st.cityOwners[cityId]) return st.cityOwners[cityId];
+      const def = X.SETTLEMENTS && X.SETTLEMENTS[cityId];
+      return def ? def.polityId : null;
+    },
+
+    ensureWorldState(W) {
+      if (!W || !W.world) return null;
+      if (!W.world.continent && typeof X.initContinent === 'function') X.initContinent(W);
+      const state = W.world.continent;
+      if (!state) return null;
+      lpEnsureCityOwners(state);
+      if (!W.world.livingPolities || typeof W.world.livingPolities !== 'object') {
+        W.world.livingPolities = {
+          lastMonthTick: -1,
+          hegemonPolityId: null,
+          hegemonNameTh: '',
+          hegemonChanges: 0,
+          coupsCount: 0,
+          borderShiftsCount: 0,
+          events: []
+        };
+      }
+      const root = W.world.livingPolities;
+      if (!Array.isArray(root.events)) root.events = [];
+      const seed = String(W.seed || 'seed');
+      const allPols = lpPolities();
+      const allCities = lpSettlements();
+      for (const p of allPols) {
+        const court = state.courts[p.id];
+        if (!court || court.livingPolity) continue;
+        const pk = seed + ':lp_init:' + p.id;
+        court.livingPolity = {
+          dynastyGen: 1,
+          lastCoupDay: -9999,
+          military: clamp(46 + Math.round(detUnit360(pk + ':mil') * 32), 35, 82),
+          treasury: clamp(46 + Math.round(detUnit360(pk + ':trs') * 30), 35, 82),
+          legitimacy: clamp(54 + Math.round(detUnit360(pk + ':leg') * 28), 40, 86),
+          powerScore: 155,
+          power: 1.0,
+          cityCount: allCities.filter(c => state.cityOwners[c.id] === p.id).length,
+          momentum: 0,
+          warsWon: 0,
+          warsLost: 0,
+          citiesGained: 0,
+          citiesLost: 0,
+          sectSupportBonus: 0,
+          era: 'STABLE',
+          eraTh: LP_ERA_TH.STABLE
+        };
+        lpRecomputePolity(W, state, p, null);
+      }
+      return root;
+    },
+
+    recordEvent(W, textTh, kind, polityId) {
+      const root = W && W.world && W.world.livingPolities;
+      if (!root || !textTh) return;
+      root.events.push({ day: W.day || 0, kind: kind || 'polity', polityId: polityId || null, textTh });
+      if (root.events.length > 50) root.events.shift();
+      if (W.log) W.log('world', textTh, [], polityId ? { storyThreadId: 'court:' + polityId } : undefined);
+    },
+
+    tickMonthly(W, opts) {
+      opts = opts || {};
+      const day = (W && W.day) || 0;
+      if (!opts.force && day < 30) return (W && W.world && W.world.livingPolities) || null;
+      const root = X.LIVING_POLITIES.ensureWorldState(W);
+      const state = W && W.world && W.world.continent;
+      if (!root || !state) return null;
+      const monthIdx = Math.floor(day / 30);
+      if (!opts.force && monthIdx <= root.lastMonthTick) return root;
+      root.lastMonthTick = monthIdx;
+      const seed = String(W.seed || 'seed');
+      const owners = lpEnsureCityOwners(state);
+      const allPols = lpPolities();
+      const allCities = lpSettlements();
+
+      // 0. Compute Sect -> Polity regional support map from EXPED.LIVING_SECTS
+      const sectBonusMap = {};
+      const allSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      for (const s of allSects) {
+        if (!s || !s.macroRegion || !s.livingRoster) continue;
+        const tr = s.livingRoster.trajectory;
+        const delta = tr === 'HEGEMON' ? 9 : tr === 'RISING' || tr === 'REBORN' ? 4 : tr === 'COLLAPSED' ? -5 : tr === 'CRISIS' || tr === 'DECLINING' ? -2 : 1;
+        sectBonusMap[s.macroRegion] = clamp((sectBonusMap[s.macroRegion] || 0) + delta, -12, 18);
+      }
+
+      // 1. Per-polity NPC-driven drift, imperial overextension drag, and dynastic coups/rebellions
+      for (const p of allPols) {
+        const court = state.courts[p.id];
+        if (!court || !court.livingPolity) continue;
+        const lp = court.livingPolity;
+        const seats = Object.values(court.seats || {});
+        const pk = seed + ':lp:m' + monthIdx + ':' + p.id;
+        const ownedCities = allCities.filter(c => owners[c.id] === p.id);
+        const cityCount = Math.max(1, ownedCities.length);
+
+        const rulerSeat = seats.find(s => s.role === 'ruler');
+        const ruler = rulerSeat && state.figures[rulerSeat.holderId];
+        const rulerLead = ruler ? lpFigTrait(ruler, 'social.leadership') : 35;
+        const rulerInt = ruler ? lpFigTrait(ruler, 'personality.integrity') : 38;
+        const minRat = lpCourtTrait(state, seats, 'minister', 'personality.rationality', 45);
+        const revCom = lpCourtTrait(state, seats, 'revenue', 'aptitudes.socialCommerce', 45);
+        const marCour = lpCourtTrait(state, seats, 'marshal', 'personality.courage', 45);
+        const cenInt = lpCourtTrait(state, seats, 'censor', 'personality.integrity', 45);
+
+        // Calibrated overextension drag: large empires face real administrative strain without perpetual coup storms
+        const overext = Math.min(2.4, Math.max(0, cityCount - 7) * 0.22);
+        const treasDelta = (revCom - 50) * 0.10 + (minRat - 50) * 0.06 + (court.policy === 'market' ? 1.2 : 0) - overext + (detUnit360(pk + ':td') - 0.5) * 2.8;
+        const milDelta = (marCour - 50) * 0.11 + (rulerLead - 50) * 0.06 + (court.policy === 'guard' ? 1.4 : 0) + (lp.treasury < 30 ? -1.6 : 0) + (detUnit360(pk + ':md') - 0.5) * 2.8;
+        const legDelta = (rulerInt - 50) * 0.11 + (cenInt - 50) * 0.08 + (rulerLead - 50) * 0.05 - overext * 0.65 + (lp.treasury < 26 ? -1.8 : 0) - (ruler ? 0 : 3.0);
+
+        lp.treasury = clamp(Math.round((lp.treasury + treasDelta) * 10) / 10, 10, 100);
+        lp.military = clamp(Math.round((lp.military + milDelta) * 10) / 10, 10, 100);
+        lp.legitimacy = clamp(Math.round((lp.legitimacy + legDelta) * 10) / 10, 8, 100);
+
+        // Sync city safety/prosperity slightly with living polity era (unlocked from rigid mean-reversion!)
+        const eraCityShift = lp.era === 'GOLDEN_AGE' || lp.era === 'IMPERIAL_HEGEMON' ? 1.4 : lp.era === 'TURMOIL' ? -2.2 : lp.era === 'DECLINING' ? -0.9 : 0;
+        if (eraCityShift !== 0) {
+          for (const city of ownedCities) {
+            const cs = state.cities[city.id];
+            if (cs) {
+              cs.prosperity = clamp(cs.prosperity + eraCityShift, 12, 98);
+              cs.safety = clamp(cs.safety + eraCityShift * 0.8, 12, 98);
+            }
+          }
+          court.stability = Math.round(ownedCities.reduce((v, c) => v + (((state.cities[c.id] && state.cities[c.id].safety) || 50) + ((state.cities[c.id] && state.cities[c.id].prosperity) || 50)) / 2, 0) / cityCount);
+        }
+
+        // Polity -> Local Sects feedback loop
+        for (const s of allSects) {
+          if (!s || s.macroRegion !== p.macroRegion || !s.livingRoster || s.livingRoster.collapsed) continue;
+          if (lp.era === 'GOLDEN_AGE' || lp.era === 'IMPERIAL_HEGEMON') {
+            s.livingRoster.treasury = clamp((s.livingRoster.treasury || 55) + 1.0, 10, 100);
+          } else if (lp.era === 'TURMOIL') {
+            s.livingRoster.treasury = clamp((s.livingRoster.treasury || 55) - 1.4, 10, 100);
+            s.livingRoster.morale = clamp((s.livingRoster.morale || 55) - 1.0, 8, 100);
+          }
+        }
+
+        // Dynastic Coup / Rebellion when legitimacy collapses (with 2-year cooldown & clean ruler handover)
+        const coupReady = (day - (Number.isFinite(lp.lastCoupDay) ? lp.lastCoupDay : -9999)) >= 720;
+        if (coupReady && lp.legitimacy <= 22 && detUnit360(pk + ':coup') < 0.16) {
+          lp.dynastyGen = (lp.dynastyGen || 1) + 1;
+          lp.lastCoupDay = day;
+          lp.legitimacy = 64;
+          lp.military = clamp(lp.military - 8, 18, 100);
+          lp.treasury = clamp(lp.treasury - 7, 18, 100);
+          root.coupsCount = (root.coupsCount || 0) + 1;
+          let newRulerName = 'ผู้นำคณะปฏิรูป';
+          if (rulerSeat && Array.isArray(court.reserveIds) && court.reserveIds.length > 0) {
+            const oldHolderId = rulerSeat.holderId;
+            const pickIdx = detHash360(pk + ':newr') % court.reserveIds.length;
+            const newId = court.reserveIds.splice(pickIdx, 1)[0];
+            if (state.figures[newId]) {
+              rulerSeat.holderId = newId;
+              state.figures[newId].officeSince = day;
+              state.figures[newId].residenceId = rulerSeat.stationId;
+              newRulerName = lpFigFullName(state.figures[newId]);
+              if (oldHolderId && oldHolderId !== newId && state.figures[oldHolderId]) {
+                delete state.figures[oldHolderId];
+              }
+            }
+          }
+          X.LIVING_POLITIES.recordEvent(W, '🔥 ผลัดแผ่นดินใน「' + p.nameTh + '」! ราชสำนักเดิมเสื่อมศรัทธา ' + newRulerName + ' ก่อการยึดอำนาจสถาปนาราชวงศ์รุ่นที่ ' + lp.dynastyGen + '!', 'coup', p.id);
+        }
+
+        lpRecomputePolity(W, state, p, sectBonusMap);
+      }
+
+      // 2. Border Wars & Dynamic Border City Conquests (calibrated cadence, city cooldown, anti-snowball & ancestral reclamation)
+      if (!state.cityLastShiftDay || typeof state.cityLastShiftDay !== 'object') state.cityLastShiftDay = {};
+      if (detUnit360(seed + ':lp_war_trig:' + monthIdx) < 0.18) {
+        const capByPolity = {};
+        for (const p of allPols) capByPolity[p.id] = lpCapitalCityId(p);
+        const borderLinks = [];
+        const seenPairs = new Set();
+        for (let i = 0; i < allCities.length; i++) {
+          const cA = allCities[i];
+          const oA = owners[cA.id];
+          if (!oA || !state.courts[oA] || !state.courts[oA].livingPolity) continue;
+          let bestDist = Infinity;
+          let bestTarget = null;
+          for (let j = 0; j < allCities.length; j++) {
+            if (i === j) continue;
+            const cB = allCities[j];
+            const oB = owners[cB.id];
+            if (!oB || oB === oA || !state.courts[oB] || !state.courts[oB].livingPolity) continue;
+            if (cB.id === capByPolity[oB]) continue; // Protect capitals from total annexation
+            if (day - (state.cityLastShiftDay[cB.id] || -9999) < 540) continue; // 1.5-year city conquest cooldown
+            const dist = Math.hypot((cA.x || 0) - (cB.x || 0), (cA.y || 0) - (cB.y || 0));
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestTarget = cB;
+            }
+          }
+          if (bestTarget && bestDist <= 220) {
+            const pairKey = oA + '>' + bestTarget.id;
+            if (!seenPairs.has(pairKey)) {
+              seenPairs.add(pairKey);
+              borderLinks.push({ atkId: oA, defId: owners[bestTarget.id], targetCity: bestTarget });
+            }
+          }
+        }
+        if (borderLinks.length > 0) {
+          borderLinks.sort((x, y) => {
+            const relX = (state.relations && state.relations[lpBorderKey(x.atkId, x.defId)]) || 0;
+            const relY = (state.relations && state.relations[lpBorderKey(y.atkId, y.defId)]) || 0;
+            const reclaimX = x.targetCity.polityId === x.atkId ? 14 : 0;
+            const reclaimY = y.targetCity.polityId === y.atkId ? 14 : 0;
+            const cAtkX = state.courts[x.atkId].livingPolity.cityCount || 4, cDefX = state.courts[x.defId].livingPolity.cityCount || 4;
+            const cAtkY = state.courts[y.atkId].livingPolity.cityCount || 4, cDefY = state.courts[y.defId].livingPolity.cityCount || 4;
+            const advX = (state.courts[x.atkId].livingPolity.military - state.courts[x.defId].livingPolity.military) - relX * 0.3 + reclaimX - Math.max(0, cAtkX - 9) * 5.0 + Math.max(0, cDefX - 11) * 4.0;
+            const advY = (state.courts[y.atkId].livingPolity.military - state.courts[y.defId].livingPolity.military) - relY * 0.3 + reclaimY - Math.max(0, cAtkY - 9) * 5.0 + Math.max(0, cDefY - 11) * 4.0;
+            return advY - advX;
+          });
+          const pick = borderLinks[detHash360(seed + ':lp_war_pick:' + monthIdx) % Math.min(4, borderLinks.length)];
+          const pAtk = allPols.find(x => x.id === pick.atkId);
+          const pDef = allPols.find(x => x.id === pick.defId);
+          const lpA = state.courts[pick.atkId].livingPolity;
+          const lpD = state.courts[pick.defId].livingPolity;
+          const atkCities = lpA.cityCount || 4;
+          const defCities = lpD.cityCount || 4;
+          const overstretchAtk = Math.max(0, atkCities - 8) * 5.5;
+          const overstretchDef = Math.max(0, defCities - 10) * 4.5;
+          const homelandDef = defCities <= 3 ? 14 : 0;
+          const reclaimBonus = pick.targetCity.polityId === pick.atkId ? 10 : 0;
+          const luckA = 0.85 + detUnit360(seed + ':lp_wa:' + monthIdx) * 0.30;
+          const luckD = 0.85 + detUnit360(seed + ':lp_wd:' + monthIdx) * 0.30;
+          const strA = Math.max(10, lpA.military * 1.15 + lpA.power * 20 + (lpA.sectSupportBonus || 0) * 1.2 + reclaimBonus - overstretchAtk) * luckA;
+          const strD = Math.max(10, lpD.military * 1.10 + lpD.power * 19 + (lpD.sectSupportBonus || 0) * 1.2 + 8 + homelandDef - overstretchDef) * luckD;
+          if (strA > strD) {
+            owners[pick.targetCity.id] = pick.atkId;
+            state.cityLastShiftDay[pick.targetCity.id] = day;
+            lpA.warsWon = (lpA.warsWon || 0) + 1;
+            lpA.citiesGained = (lpA.citiesGained || 0) + 1;
+            lpA.legitimacy = clamp(lpA.legitimacy + 7, 10, 100);
+            lpA.treasury = clamp(lpA.treasury + 6, 10, 100);
+            lpD.warsLost = (lpD.warsLost || 0) + 1;
+            lpD.citiesLost = (lpD.citiesLost || 0) + 1;
+            lpD.legitimacy = clamp(lpD.legitimacy - 10, 8, 100);
+            lpD.military = clamp(lpD.military - 8, 10, 100);
+            root.borderShiftsCount = (root.borderShiftsCount || 0) + 1;
+            const rk = lpBorderKey(pick.atkId, pick.defId);
+            if (state.relations) state.relations[rk] = clamp((state.relations[rk] || 0) - 18, -95, 95);
+            lpRecomputePolity(W, state, pAtk, sectBonusMap);
+            lpRecomputePolity(W, state, pDef, sectBonusMap);
+            X.LIVING_POLITIES.recordEvent(W, '⚔️ ศึกชายแดน:「' + pAtk.nameTh + '」กรีฑาทัพยึด「' + pick.targetCity.nameTh + '」จาก「' + pDef.nameTh + '」สำเร็จ!', 'border_war', pick.atkId);
+          } else {
+            lpD.warsWon = (lpD.warsWon || 0) + 1;
+            lpD.legitimacy = clamp(lpD.legitimacy + 5, 10, 100);
+            lpA.warsLost = (lpA.warsLost || 0) + 1;
+            lpA.military = clamp(lpA.military - 7, 10, 100);
+            lpRecomputePolity(W, state, pAtk, sectBonusMap);
+            lpRecomputePolity(W, state, pDef, sectBonusMap);
+          }
+        }
+      }
+
+      // 3. Dynamic Imperial Hegemon (highest living powerScore across all 9 polities — never fixed!)
+      const ranked = allPols.slice().sort((a, b) => {
+        const sA = (state.courts[a.id] && state.courts[a.id].livingPolity && state.courts[a.id].livingPolity.powerScore) || 0;
+        const sB = (state.courts[b.id] && state.courts[b.id].livingPolity && state.courts[b.id].livingPolity.powerScore) || 0;
+        return sB - sA;
+      });
+      if (ranked.length > 0) {
+        const top = ranked[0];
+        const topLp = state.courts[top.id] && state.courts[top.id].livingPolity;
+        if (topLp) {
+          topLp.era = 'IMPERIAL_HEGEMON';
+          topLp.eraTh = LP_ERA_TH.IMPERIAL_HEGEMON;
+          if (root.hegemonPolityId && root.hegemonPolityId !== top.id) {
+            root.hegemonChanges = (root.hegemonChanges || 0) + 1;
+            X.LIVING_POLITIES.recordEvent(W, '👑 ผลัดขั้วมหาอำนาจทวีป!「' + top.nameTh + '」ผงาดขึ้นเป็นอาณาจักรอันดับ 1 แทนที่「' + (root.hegemonNameTh || 'มหาอำนาจเดิม') + '」!', 'hegemon', top.id);
+          }
+          root.hegemonPolityId = top.id;
+          root.hegemonNameTh = top.nameTh;
+        }
+      }
+      return root;
+    },
+
+    peekSummary(W) {
+      const root = W && W.world && W.world.livingPolities;
+      const state = W && W.world && W.world.continent;
+      if (!root || !state) return { hegemonNameTh: '', hegemonChanges: 0, goldenNamesTh: [], turmoilNamesTh: [], coupsCount: 0, borderShiftsCount: 0, recentTh: '' };
+      const golden = [], turmoil = [];
+      for (const p of lpPolities()) {
+        const lp = state.courts[p.id] && state.courts[p.id].livingPolity;
+        if (!lp) continue;
+        if (lp.era === 'GOLDEN_AGE') golden.push(p.nameTh);
+        else if (lp.era === 'TURMOIL' || lp.era === 'DECLINING') turmoil.push(p.nameTh);
+      }
+      const last = root.events && root.events.length ? root.events[root.events.length - 1] : null;
+      return {
+        hegemonNameTh: root.hegemonNameTh || '',
+        hegemonChanges: root.hegemonChanges || 0,
+        goldenNamesTh: golden.slice(0, 3),
+        turmoilNamesTh: turmoil.slice(0, 3),
+        coupsCount: root.coupsCount || 0,
+        borderShiftsCount: root.borderShiftsCount || 0,
+        recentTh: last ? last.textTh : ''
+      };
+    }
+  };
+
+
+  /* === JS2_V380_MASTER_LORE_COMPENDIUM === */
+  X.LORE_COMPENDIUM = Object.freeze({"VERSION": "3.8.1-world-calendar-epoch", "EPIGRAPH_TH": "“ผู้คนในยุคนี้ต่างเรียกผืนแผ่นดินตั้งแต่เทือกเขาหิมะอุดรจรดทะเลสาบมังกรหลับว่า ‘มหาทวีป’... โดยหารู้ไม่ว่า เมื่อหลายแสนปีก่อน แผ่นดินทั้งหมดที่เราเหยียบยืนอยู่นี้ แท้จริงแล้วเป็นเพียงเศษเสี้ยวของ ‘หนึ่งมหาจักรวรรดิ’ ที่พ่ายแพ้ในมหาสงครามจนแตกสลายลงกลางทะเลหมอกเท่านั้น”", "ERAS": [{"id": "ERA_0_ANTEDILUVIAN", "order": 0, "codeTh": "ยุคที่ 0", "nameTh": "ปฐมกาลก่อนเทียนกู่ที่ถูกลบเลือน (Antediluvian Epochs & Beyond the Fog Sea)", "spanTh": "มหายุคก่อนประวัติศาสตร์ · ก่อนการสถาปนาเทียนกู่ (ถูกลบจากตำราหลวง)", "icon": "🌑", "color": "#9b87f5", "quoteTh": "“ตำราเรียนทุกแคว้นสอนตรงกันว่าก่อนเทียนกู่มีเพียงป่ารกร้าง... ทว่าเสาศิลาที่จมใต้รากเขาและซากกระดูกยักษ์ในทะเลทรายกลับเล่าเรื่องที่เก่าแก่กว่านั้นนับหมื่นปี”", "chapters": [{"titleTh": "สามยุคบรรพกาลที่ถูกกรมพิธีการลบชื่อ (LORE_06A)", "bodyTh": "ก่อนการสถาปนามหาจักรวรรดิเทียนกู่ ผืนแผ่นดินนี้เคยผ่านอารยธรรมโบราณมาแล้วถึงสามยุค — ยุคอสูรศิลาและมังกรฟ้าที่สัตว์เทพเดินดิน, ยุคผู้สลักอักษรปฐมภูมิที่จารึกค่ายกลลงบนสันเขาและชีพจรมังกร, และยุคสมาพันธ์นครศิลาที่ล่มสลายลงก่อนราชวงศ์กู่โบราณจะรวบรวมแผ่นดิน กรมพิธีการของสามมหาอำนาจรุ่นหลังจงใจตัดตอนประวัติศาสตร์ส่วนนี้ออก เพื่อให้ราชวงศ์ของตนดูเหมือนเป็นจุดเริ่มต้นแห่งอารยธรรมทั้งหมด"}, {"titleTh": "ภาพลวงตาแห่งอนุทวีปหลุมอุกกาบาต 1,000 × 1,000 ลี้ (LORE_06B)", "bodyTh": "สิ่งที่ชาวโลกเบื้องล่างเรียกว่า \"มหาทวีป\" แท้จริงเป็นเพียงอนุทวีปขนาดราว 1,000 × 1,000 ลี้ ที่ถูกล้อมรอบด้วยทะเลหมอกพิษและกระแสปราณปั่นป่วนอันเกิดจากแรงระเบิดในมหาสงคราม พ้นขอบทะเลหมอกออกไปยังมีมหาจักรวรรดิและทวีปอื่นอีกถึง 6 ฟากฟ้าที่ยังคงดำรงอยู่โดยแยกขาดจากแผ่นดินนี้"}], "isPrehistory": true, "startYear": null, "endYear": -10000}, {"id": "ERA_1_TIANGU_WAR", "order": 1, "codeTh": "ยุคที่ 1", "nameTh": "มหาจักรวรรดิเทียนกู่ มหาสงครามข้ามทะเลหมอก และคืนประตูมิติแตก", "spanTh": "มหายุคก่อนประวัติศาสตร์ → ยุคที่ 0 ปีที่ 0 (คืนประตูมิติหลวงแตก)", "icon": "👑", "color": "#f59e0b", "quoteTh": "“เมื่อประตูมิติหลวงถูกจุดชนวนระเบิดด้วยพระชนม์ชีพของจักรพรรดิองค์สุดท้าย แผ่นดินก็ฉีกขาด ทัพศัตรูพินาศครึ่งกอง และอาณาจักรเดียวที่เคยรุ่งเรืองที่สุดก็แตกสลายเป็นเถ้าถ่าน”", "chapters": [{"titleTh": "มหาจักรวรรดิเทียนกู่ (天古皇朝) — แผ่นดินที่เป็นหนึ่งเดียว", "bodyTh": "ผืนแผ่นดินทั้งหมดในแผนที่ปัจจุบันครั้งหนึ่งเคยปกครองโดยมหาอาณาจักรเพียงหนึ่งเดียวคือ \"มหาจักรวรรดิเทียนกู่\" ภายใต้ราชวงศ์กู่โบราณ มีศูนย์กลาง ณ นครหลวงเทียนกู่ ค้ำจุนด้วยสามเสาหลัก (เชื้อพระวงศ์สกุลกู่, ทำเนียบมหาเสนาบดีสกุลซือหม่า, กองทัพแม่ทัพใหญ่สกุลทัวป๋า) พร้อมกรมคลังมืด กรมกลไก หอโอสถหลวง และหอดูดาวหลวงที่รุ่งเรืองถึงขีดสุด"}, {"titleTh": "มหาสงครามกับอาณาจักรศัตรูพ้นทะเลหมอก และศึกกำแพงหลวง 7 วัน 7 คืน", "bodyTh": "มหาสงครามอุบัติขึ้นระหว่างเทียนกู่กับมหาจักรวรรดิผู้รุกรานจากอีกฟากหนึ่งของโลก กองทัพนาวาฟ้าและค่ายกลตัดชีพจรของศัตรูบดขยี้แนวป้องกันจนล่วงเข้าสู่นครหลวง เหล่าวีรชนแห่งยุคต่างสละชีพตรึงสมรภูมิ — ขุนพลเกาทัณฑ์ เย่ฉิงชาง (#8) สละดวงตายิงนาวาธงศัตรูร่วงหล่น, แม่ทัพหญิงมู่หรงเสวี่ย (#7) เผาชีพสังเวยบัวโลหิต, จ้าวพยัคฆ์เหลยเจิ้น (#9) ตายทั้งยืนค้ำถ้ำ, และหัวหน้าองครักษ์ หลี่เจี้ยนซิน (#6) ถือกระบี่เหล็กนิลยืนขวางประตูเมืองหลวง 7 วัน 7 คืน เพื่อเปิดทางให้เชื้อพระวงศ์ ขุนนาง และราษฎรหนีรอด"}, {"titleTh": "คืนประตูมิติหลวงแตก — พ่ายแพ้แต่ไม่ยอมจำนน", "bodyTh": "ในวันสุดท้ายที่เมืองหลวงไม่อาจต้านทานได้ จักรพรรดิองค์สุดท้าย กู่เซวียนหยวน (#1) ทรงตัดสินพระทัยระเบิด \"ประตูมิติหลวง\" พร้อมพระชนม์ชีพ แรงระเบิดฉีกผืนแผ่นดินจนเกิดทะเลหมอกตัดขาดเส้นทางกับอาณาจักรผู้ชนะอย่างสิ้นเชิง ทิ้งไว้เพียงซากปรักหักพัง ดินแดนเศษเสี้ยวมิติ 12 แห่ง (Rift-Shard Worlds) และแดนลับที่กระจายอยู่ทั่วแผ่นดินจนถึงปัจจุบัน"}], "isPrehistory": true, "startYear": -10000, "endYear": 0}, {"id": "ERA_2_POST_TIANGU_CHAOS", "order": 2, "codeTh": "ยุคที่ 2", "nameTh": "กลียุคแรกเริ่ม แปดก๊กหลังสงคราม และวัฏจักรหมื่นราชวงศ์", "spanTh": "ยุคที่ 1 ปีที่ 1 – ยุคที่ 50 ปีที่ 1000 (กลียุค 8 ก๊ก & วัฏจักรหมื่นราชวงศ์)", "icon": "🔥", "color": "#ef4444", "quoteTh": "“วันที่บัลลังก์เทียนกู่พังทลาย แผ่นดินไม่ได้มีเพียงสามมหาอำนาจตั้งแต่วันแรก... ขุนนาง ขันที ราชครู และขุนศึกทุกสายต่างฉวยมรดกหลวงไปตั้งตนเป็นราชันย์ ก่อนจะห้ำหั่นกันจนเลือดนองแผ่นดิน”", "chapters": [{"titleTh": "แปดก๊กแรกเริ่มหลังวันล่มสลาย (LORE_05A)", "bodyTh": "ทันทีที่ศูนย์กลางอำนาจเทียนกู่ดับสูญ ขั้วอำนาจที่รอดชีวิตต่างตั้งอาณาจักรของตนขึ้นพร้อมกัน — นอกจาก 3 เสาหลัก (เชื้อพระวงศ์เป่ยหมิง, มหาเสนาบดีตงหวง, แม่ทัพใหญ่ซีหรง) ยังมีอีก 5 อาณาจักรใหญ่จากหน่วยงานเก่า คือ อาณาจักรคลังมืดจินเยี่ยนของเสนาบดีฝ่ายขวา เหยียนกวง (#26), นครทมิฬจิ่วอิ๋งของมหาขันทีเก้าเงา เฉาเจิ้งฉุน (#27), เทวรัฐเสินจีของมหาปุโรหิต เสิ่นเทียนจุน (#28), ทัพโลหิตจิ่วจวินของอ๋องกบฏ ทัวป๋าเซียว (#29), และนครกลไกม่อจี๋ (#30) กับอาณาจักรหมื่นอสูรโซ่วหวง (#31)"}, {"titleTh": "จุดจบของก๊กผู้ทะเยอทะยาน และวัฏจักรเกิด-ดับนับหมื่นราชวงศ์", "bodyTh": "อาณาจักรที่ขาดรากฐานต่างพินาศลงทีละแห่งด้วยความโลภและคำสาปของตนเอง — คลังมืดถูกถล่มฝังใต้กองทองคำ, นครขันทีถูกเป่ยหมิงและซีหรงล้อมเผา, เทวรัฐราชครูถูกแรงสะท้อนม่านฟ้าถล่มจมดิน, ทัพกบฏเก้าทัพถูกซีหรงบดขยี้, และนครกลไก-อสูรดับลงเมื่อศิลาปราณหมดและฝูงอสูรคลุ้มคลั่ง จากนั้นแผ่นดินเข้าสู่สงครามคัดกรองนับหมื่นราชวงศ์ จนเหลือเพียง 3 มหาอำนาจที่ไม่เคยล่มสลายเลยตั้งแต่วันแรก"}], "isPrehistory": false, "startYear": 1, "endYear": 50000}, {"id": "ERA_3_MIDDLE_EPOCHS", "order": 3, "codeTh": "ยุคที่ 3", "nameTh": "ยุคกลางเจ็ดธงศึกและสิบสองอาณาจักรล่มสลาย", "spanTh": "ยุคที่ 51 – ยุคที่ 100 ปีที่ 760 (เจ็ดธงศึก ยุคที่ 100 ปีที่ 251 · 12 อาณาจักรยุคกลาง)", "icon": "⚔️", "color": "#d97706", "quoteTh": "“ขุนพลเกาเซิ่งแบกธงศึกที่ขาดวิ่นทั้งเจ็ดผืนไว้บนหลัง เป็นพยานว่าแม้วีรชนจะเก่งกล้าเพียงใด ก็ไม่อาจต้านทานกระดานหมากของสามมหาอำนาจได้”", "chapters": [{"titleTh": "โศกนาฏกรรมเจ็ดธงศึกและจักรพรรดิร้อยวัน (LORE_05B)", "bodyTh": "ในยุคกลาง แผ่นดินตอนกลางและชายขอบเคยมีวีรบุรุษสามัญชนและแคว้นอิสระพยายามรวมแผ่นดินหลายครั้ง เช่น \"จักรพรรดิร้อยวัน หลินเทียน\" (#32) ที่เกือบตั้งราชวงศ์ใหม่สำเร็จจน 3 มหาอำนาจแอบจับมือส่งยอดฝีมือมารุมสังหารในวันที่ครองราชย์ครบ 100 วัน, \"พันธมิตรเจ็ดธงศึกต้าเซี่ย\" ที่ทิ้งตำนานของขุนพลเกาเซิ่ง (#34), และ \"ราชินีเถ้าถ่าน ฉู่เยียน\" (#33) ผู้เดินเก็บป้ายวิญญาณของแคว้นที่ถูกลบชื่อ"}, {"titleTh": "สิบสองอาณาจักรยุคกลางที่รุ่งเรืองแล้วดับสูญ", "bodyTh": "ตลอดหลายร้อยปีของยุคกลาง เกิดอาณาจักรเฉพาะทางที่งดงามและแปลกประหลาดขึ้นมากมายถึง 12 แห่ง เช่น แคว้นสัตย์กิเลนฉีหลิน, ราชสำนักคีตยุทธ์หลิงอิน, ปราการเต่าดำเสวียนอู่, สาธารณรัฐต้าเหรินที่ยกเลิกชนชั้น, สหพันธ์โอเอซิสซาโจว, นครโอสถซิ่งหลิน, นครหยกพันพุทธะเฉียนฝอ และแคว้นหมอกชางหลาน — ทุกแห่งล้วนทิ้งร่องรอยไว้ในตำรา ศาสตรา และเส้นทางค้าขายยุคปัจจุบัน"}], "isPrehistory": false, "startYear": 50001, "endYear": 99760}, {"id": "ERA_4_THREE_EMPIRES_BALANCE", "order": 4, "codeTh": "ยุคที่ 4", "nameTh": "มหาดุลยภาพสามเสาหลัก สนธิสัญญาหยุนเหอ และหกแคว้นที่เพิ่งล่มสลาย", "spanTh": "ยุคที่ 100 ปีที่ 181 – 1000 (สนธิสัญญาหยุนเหอ ยุค 100 ปี 181 · 6 แคว้นล่มสลาย ยุค 100 ปี 821–911)", "icon": "⚖️", "color": "#38bdf8", "quoteTh": "“เมื่อสองมหาอำนาจทุ่มกำลังห้ำหั่นกัน มหาอำนาจที่สามจะตลบหลังกลืนกินทั้งคู่ — กฎเหล็กสามเส้านี้เองที่บังคับให้สงครามหลวงเปลี่ยนรูปเป็นสงครามตัวแทนของ 19 สำนักยุทธภพ”", "chapters": [{"titleTh": "ภาวะยันกันสามเส้าและสนธิสัญญาหยุนเหอ 820 ปี (LORE_03A)", "bodyTh": "หลังจากเป่ยหมิง ตงหวง และซีหรงพิสูจน์แล้วว่าไม่อาจกลืนกินอีกสองฝ่ายได้ ยอดนักการทูต ซูฉิน (#37) จึงผลักดัน \"สนธิสัญญาหยุนเหอ\" เมื่อราว 820 ปีก่อน กำหนดให้หุบเขาหยุนเหอใจกลางแผ่นดิน (ที่ตั้งซากประตูมิติโบราณ) เป็น \"แคว้นอิสระปลอดทัพหลวง\" เพื่อใช้เป็นตลาดกลางและเขตกันชน ขณะเดียวกัน 3 มหาอำนาจหันมาทำสงครามตัวแทนผ่านการอุปถัมภ์ 19 สำนักยุทธภพ และปล่อยให้ 5 อาณาจักรขนาดกลาง (โยวหมิง, หยุนเซียว, ฉื่อเยี่ยน, สุวรรณโพธิ์, กู่เจียว) เติบโตเป็นรัฐกันชนรอบนอก"}, {"titleTh": "หกแคว้นที่เพิ่งล่มสลายก่อนยุคปัจจุบัน (180 ปีก่อน → ปีที่ 0 · LORE_05C)", "bodyTh": "แม้จะมีดุลยภาพใหญ่ แต่ในศตวรรษล่าสุดยังมีแคว้นภูมิภาคถึง 6 แห่งที่เพิ่งถูกกลืนกินหรือพังทลายลง — ได้แก่ แคว้นปราการเจิ้นหยาง (~110 ปีก่อน), ราชวงศ์ชิงหลานไป๋ยวี่ (~90 ปีก่อน), แคว้นเหมันต์ไป๋เหมย, สันนิบาตไข่มุกหนานจู (~180 ปีก่อน), นครเหล็กฉื่อซาน, และป้อมด่านอวี้กวาน ทิ้งทายาทพลัดถิ่น ตราภาษีซ้อน และความแค้นที่ยังคงคุกรุ่นในยุคปัจจุบัน"}], "isPrehistory": false, "startYear": 99181, "endYear": 100000}, {"id": "ERA_5_PRESENT_CONVERGENCE", "order": 5, "codeTh": "ยุคที่ 5", "nameTh": "ปัจจุบันกาล ทายาทรุ่นที่ 7 และรอยร้าวประตูมิติ", "spanTh": "ยุคที่ 101 ปีที่ 1 เป็นต้นไป (วันเริ่มเกม · ปีสำนักที่ 1)", "icon": "✨", "color": "#34d399", "quoteTh": "“สำนักเล็ก ๆ ในหุบเขาอิสระหยุนเหอถือครองเพียงตราหินเทาไร้ลักษณ์และกระบี่ไม้ท้อธรรมดา... โดยไม่มีใครรู้ว่าปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 แท้จริงคือผู้เฝ้ามองจากฟากพ้นม่านฟ้า”", "chapters": [{"titleTh": "ความลับของสำนักผู้เล่น: ปรมาจารย์รุ่นที่ 1 (#45) และเจ้าสำนักรุ่นที่ 7", "bodyTh": "สำนักของเราถือกำเนิดในแคว้นอิสระหยุนเหอและสืบทอดมาจนถึงรุ่นที่ 7 โดยไม่ผูกขาดวิถี อาวุธ หรือธาตุใด ๆ มรดกชิ้นสำคัญคือ \"ตราหินเทาไร้ลักษณ์\" และ \"กระบี่ไม้ท้อ\" เบื้องหลังความเรียบง่ายนี้ซ่อนความลับว่า ปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 (#45) เป็นผู้ตื่นรู้จากโลกเบื้องบนที่เลือกเฝ้ามองรอยร้าวประตูมิติใต้หุบเขาอย่างเงียบงัน"}, {"titleTh": "คลื่นใต้น้ำแห่งสามมหาอำนาจและการตื่นขึ้นของมรดกเก่า", "bodyTh": "ในยุคปัจจุบัน เป่ยหมิงภายใต้จักรพรรดิเหมันต์ กู่เทียนเฉิน (#46) และองค์หญิง กู่ชิงเสวี่ย (#47) กำลังเผชิญคำสาปสายเลือด, ตงหวงภายใต้ ซือหม่าอี้เซวียน (#51) มีคุณชายสาม ซือหม่าชิง (#52) ที่ตื่นรู้ความทรงจำโบราณ, และซีหรงภายใต้ จอมทัพ ทัวป๋าเจิ้นเทียน (#56) กำลังสะสมทัพรอวันรวมแผ่นดิน ขณะที่ 12 วิถีตำนานและเหนือตำนานเริ่มถูกค้นพบอีกครั้งทั่วทุกภูมิภาค"}], "isPrehistory": false, "startYear": 100001, "endYear": null}], "EMPIRES_AND_REALMS": [{"id": "EMP_BEIMING", "group": "ETERNAL_3", "groupTh": "👑 3 มหาอำนาจผู้ไม่เคยล่มสลาย", "eraId": "ERA_1_TIANGU_WAR", "status": "ACTIVE", "nameTh": "มหาอาณาจักรเป่ยหมิง (Beiming Eternal Empire)", "founderTh": "องค์หญิงกู่หลิงเฟย (#2) — สายเลือดเชื้อพระวงศ์เทียนกู่", "summaryTh": "ถอยร่นขึ้นสู่เทือกเขาหิมะและพระราชวังฤดูหนาวทางเหนือในวันที่เทียนกู่แตก ใช้ความชอบธรรมของสายเลือดจักรพรรดิและค่ายกลดาราป้องกันปราการน้ำแข็งจนไม่มีผู้ใดตีแตกได้มานับแสนปี"}, {"id": "EMP_DONGHUANG", "group": "ETERNAL_3", "groupTh": "👑 3 มหาอำนาจผู้ไม่เคยล่มสลาย", "eraId": "ERA_1_TIANGU_WAR", "status": "ACTIVE", "nameTh": "มหาอาณาจักรตงหวง (Donghuang Golden Dynasty)", "founderTh": "อัครมหาเสนาบดี ซือหม่าชุน (#4) — ตระกูลมหาเสนาบดีฝ่ายบุ๋น", "summaryTh": "นำขุนนาง ปราชญ์ ช่างฝีมือ ระบบกฎหมาย และคลังเสบียงอพยพสู่ที่ราบลุ่มตะวันออก ใช้สงครามเศรษฐกิจ การค้า และหอคัมภีร์หลวงกลืนกินก๊กคู่แข่งจนยืนหยัดเป็นศูนย์กลางความมั่งคั่งของแผ่นดิน"}, {"id": "EMP_XIRONG", "group": "ETERNAL_3", "groupTh": "👑 3 มหาอำนาจผู้ไม่เคยล่มสลาย", "eraId": "ERA_1_TIANGU_WAR", "status": "ACTIVE", "nameTh": "มหาอาณาจักรซีหรง (Xirong Iron-Blood Empire)", "founderTh": "แม่ทัพใหญ่ ทัวป๋าเลี่ย (#5) — ตระกูลแม่ทัพใหญ่กองทัพหน้า", "summaryTh": "รวบรวมทหารผ่านศึก ตราพยัคฆ์สั่งทัพ และคลังแสงถอยสู่ปราการทะเลทรายและหุบเขาหินแดงทางตะวันตก บดขยี้ก๊กขุนศึกกบฏทั้งหมดจนกลายเป็นรัฐทหารที่แข็งแกร่งและดุดันที่สุด"}, {"id": "OUTER_EMP_JINYANG_SPLINTERS", "group": "OUTER_6", "groupTh": "🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)", "eraId": "ERA_0_ANTEDILUVIAN", "status": "BEYOND_FOG", "nameTh": "มหาจักรวรรดิจินหยางเศษสุริยัน (Jinyang Sun-Splinter Empire)", "founderTh": "พ้นขอบทะเลหมอกตะวันออก-ใต้", "summaryTh": "จักรวรรดิสุริยันโบราณที่แยกขาดจากแผ่นดินเทียนกู่นับแต่วันประตูมิติระเบิด มีตำนานเกี่ยวกับเศษสุริยันและกองเรือเวหาที่เคยปะทะกับแนวป้องกันของเทียนกู่"}, {"id": "OUTER_EMP_QINGMU_WORLD_TREES", "group": "OUTER_6", "groupTh": "🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)", "eraId": "ERA_0_ANTEDILUVIAN", "status": "BEYOND_FOG", "nameTh": "อาณาจักรพฤกษาโลกชิงมู่ (Qingmu World-Tree Realm)", "founderTh": "พ้นขอบทะเลหมอกทักษิณ", "summaryTh": "อารยธรรมแห่งมหาพฤกษาพันปีและรากวิญญาณข้ามสมุทร เป็นต้นธารของเมล็ดพันธุ์ศักดิ์สิทธิ์และเศษไม้ทิพย์ที่ลอยมาเกยฝั่งทะเลใต้เป็นครั้งคราว"}, {"id": "OUTER_EMP_XINGLUO_SKY_ARCHIPELAGO", "group": "OUTER_6", "groupTh": "🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)", "eraId": "ERA_0_ANTEDILUVIAN", "status": "BEYOND_FOG", "nameTh": "หมู่เกาะเวหาซิงหลัว (Xingluo Sky Archipelago)", "founderTh": "พ้นขอบฟ้าดาราจักร", "summaryTh": "ดินแดนเกาะลอยฟ้าและหอคอยดาราที่เชี่ยวชาญค่ายกลข่ายฟ้าและนาวาเวหา เชื่อมโยงกับเศษกลไกและจานดาราที่ตกค้างในแดนลับ"}, {"id": "OUTER_EMP_TIEMING_UNDERDARK", "group": "OUTER_6", "groupTh": "🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)", "eraId": "ERA_0_ANTEDILUVIAN", "status": "BEYOND_FOG", "nameTh": "จักรวรรดิใต้พิภพเถี่ยหมิง (Tieming Underdark Empire)", "founderTh": "พ้นกำแพงน้ำแข็งอุดรและโพรงพิภพ", "summaryTh": "อารยธรรมใต้ชั้นหินและธารลาวาลึกใต้กำแพงน้ำแข็ง เชี่ยวชาญการหลอมโลหะทมิฬและเส้นทางเหมืองโบราณ"}, {"id": "OUTER_EMP_YUANHUANG_TITAN_STEPPE", "group": "OUTER_6", "groupTh": "🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)", "eraId": "ERA_0_ANTEDILUVIAN", "status": "BEYOND_FOG", "nameTh": "ทุ่งยักษ์บรรพกาลหยวนหวง (Yuanhuang Titan Steppe)", "founderTh": "พ้นทุ่งร้างประจิม", "summaryTh": "ทุ่งราบกว้างใหญ่ที่ผู้ฝึกตนเน้นกายามือเปล่าและการหลอมสายเลือดอสูรยักษ์บรรพกาล ไม่พึ่งพาศาสตราวิเศษ"}, {"id": "OUTER_EMP_BLEACHED_SILENCE", "group": "OUTER_6", "groupTh": "🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)", "eraId": "ERA_0_ANTEDILUVIAN", "status": "BEYOND_FOG", "nameTh": "ดินแดนความเงียบสีขาว (The Bleached Silence)", "founderTh": "เขตต้องห้ามสุดขอบทะเลหมอก", "summaryTh": "ซากมหาอารยธรรมที่ถูกฟอกสีจนขาวโพลนไร้เสียงและไร้ปราณ เป็นปริศนาที่แม้แต่นักเดินเรือผู้กล้าที่สุดก็ไม่กล้าเข้าใกล้"}, {"id": "DYN_ERA1_JINYAN_VAULT", "group": "FIRST_WAVE_FALLEN", "groupTh": "🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "status": "FALLEN", "nameTh": "อาณาจักรคลังมืดจินเยี่ยน (Jinyan Dark-Vault Kingdom)", "founderTh": "ราชันย์คลังมืด เหยียนกวง (#26 · เสนาบดีฝ่ายขวา)", "summaryTh": "ยึดคลังทองคำและเหมืองรอบซากเมืองหลวงเก่า แต่โลภขุดคุ้ยใต้พระราชวังจนปลุกค่ายกลพิษและถูกตงหวงถล่มอุโมงค์ปิดตายฝังทั้งเป็น"}, {"id": "DYN_ERA1_JIUYING_SHADOW", "group": "FIRST_WAVE_FALLEN", "groupTh": "🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "status": "FALLEN", "nameTh": "นครทมิฬจิ่วอิ๋ง (Jiuying Shadow Eunuch State)", "founderTh": "มหาขันทีเก้าเงา เฉาเจิ้งฉุน (#27)", "summaryTh": "ขโมยคัมภีร์หยินต้องห้ามและเครือข่ายสายลับไปตั้งอาณาจักรมืด คอยลอบสังหารยุยงทุกฝ่าย จนเป่ยหมิงและซีหรงจับมือกันล้อมเผาจนสิ้นซาก"}, {"id": "DYN_ERA1_SHENJI_THEOCRACY", "group": "FIRST_WAVE_FALLEN", "groupTh": "🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "status": "FALLEN", "nameTh": "เทวรัฐเสินจี (Shenji High Theocracy)", "founderTh": "มหาปุโรหิต เสิ่นเทียนจุน (#28 · ตระกูลราชครู)", "summaryTh": "เกณฑ์ผู้คนนับแสนทำพิธีสังเวยเพื่ออัญเชิญพลังจากโลกเบื้องบน แต่เกิดแรงสะท้อนม่านฟ้าถล่มเมืองหลวงจมลงกลายเป็นแดนลับต้องห้าม"}, {"id": "DYN_ERA1_JIUJUN_BLOOD_HORDE", "group": "FIRST_WAVE_FALLEN", "groupTh": "🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "status": "FALLEN", "nameTh": "ทัพโลหิตจิ่วจวิน / อ๋องเก้าทัพ (Jiujun Blood Horde)", "founderTh": "อ๋องคลั่งปราบอุดร ทัวป๋าเซียว (#29)", "summaryTh": "กลุ่มรองแม่ทัพกบฏที่แยกตัวจากสกุลทัวป๋า แต่ขาดวินัยและฆ่าฟันกันเองจนถูกทัพหลักซีหรงเข้าบดขยี้และตัดศีรษะผู้นำหน้าด่านหินแดง"}, {"id": "DYN_ERA1_MOJI_AUTOMATON", "group": "FIRST_WAVE_FALLEN", "groupTh": "🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "status": "FALLEN", "nameTh": "นครจักรกลม่อจี๋ (Automaton Empire of Mo Ji)", "founderTh": "จักรพรรดิกลไก ม่อจี๋ (#30 · กรมช่างกลไก)", "summaryTh": "ดัดแปลงกองทัพและชาวเมืองเป็นหุ่นกลไก เมื่อถูกปิดล้อมจนศิลาปราณหมดลง อาณาจักรทั้งเมืองจึงหยุดนิ่งกลายเป็นหอศิลากลไกใต้ดิน"}, {"id": "DYN_ERA1_SHOUHUANG_BEAST", "group": "FIRST_WAVE_FALLEN", "groupTh": "🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "status": "FALLEN", "nameTh": "อาณาจักรหมื่นอสูรโซ่วหวง (Shouhuang Beast-Tyrant Realm)", "founderTh": "พญาอสูรคลั่ง โซ่วหวง (#31 · กรมฝึกอสูรสงคราม)", "summaryTh": "ใช้ตราโลหิตบังคับฝูงอสูรเป็นทาสสงคราม จนในคืนจันทร์สีเลือดฝูงอสูรคลุ้มคลั่งก่อกบฏย้อนกลับมาขย้ำทำลายอาณาจักรจนพินาศ"}, {"id": "DYN_MID_QILIN_OATH", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "แคว้นสัตย์กิเลนฉีหลิน (Qilin Oath Kingdom)", "founderTh": "สายอัศวินผู้ถือทวนมังกรหักสัตย์", "summaryTh": "แคว้นขุนศึกผู้ยึดถือคำสัตย์สาบานและเกราะกิเลนเงา ล่มสลายหลังพันธมิตรหักหลังกลางศึกชิงด่านชายแดน"}, {"id": "DYN_MID_LINGYIN_COURT", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "ราชสำนักคีตยุทธ์หลิงอิน (Lingyin Harmonic Court)", "founderTh": "สภาจอมพิณและบัณฑิตอักษรปราชญ์", "summaryTh": "อาณาจักรแห่งดนตรีและอักษรศิลป์ที่ปกครองด้วยวิถีคีตยุทธ์และอักษรปราชญ์ ก่อนถูกกลืนกินในสงครามรวมแคว้นตะวันออก"}, {"id": "DYN_MID_XUANWU_BASTION", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "ปราการเต่าดำเสวียนอู่ (Xuanwu Tortoise Bastion)", "founderTh": "ขุนพลเกราะเต่าอมตะ", "summaryTh": "นครป้อมปราการที่ไม่เคยแตกจากการบุกตรงหน้า แต่ล่มสลายเพราะเสบียงขาดและรอยร้าวจากแผ่นดินไหวใหญ่"}, {"id": "DYN_MID_HANMEI_DUCHY", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "แคว้นเหมยเหมันต์หานเหมย (Hanmei Frost Duchy)", "founderTh": "ตระกูลขุนนางสายเหมันต์แดนเหนือ", "summaryTh": "แคว้นเล็กบนเทือกเขาหิมะที่เชี่ยวชาญวิถีวารีน้ำแข็ง ก่อนถูกผนวกกลับเข้าสู่วงโคจรของมหาอาณาจักรเป่ยหมิง"}, {"id": "DYN_MID_DAREN_COMMONWEALTH", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "สาธารณรัฐต้าเหริน (Daren Commonwealth)", "founderTh": "สภาสามัญชนผู้ล้มล้างชนชั้น", "summaryTh": "ความพยายามครั้งประวัติศาสตร์ในการสร้างรัฐไร้กษัตริย์และยกเลิกอภิสิทธิ์ตระกูลเซียน ก่อนถูกแทรกแซงจนแตกสลาย เหลือชื่อไว้ที่จัตุรัสต้าเหรินเก่าในหยุนเหอ"}, {"id": "DYN_MID_CANGZHOU_LEAGUE", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "สันนิบาตชางโจว (Cangzhou River League)", "founderTh": "สมาพันธ์เมืองท่าลุ่มน้ำ", "summaryTh": "พันธมิตรเมืองท่าและกองเรือแม่น้ำที่รุ่งเรืองจากการคุมด่านน้ำ ก่อนล่มสลายในสงครามภาษีแม่น้ำ"}, {"id": "DYN_MID_SHAZHOU_OASIS", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "สมาพันธ์โอเอซิสซาโจว (Shazhou Oasis Confederacy)", "founderTh": "กองคาราวานวาณิชย์ทะเลทราย", "summaryTh": "เครือข่ายเมืองโอเอซิสกลางทะเลทรายตะวันตกที่รุ่งเรืองด้วยวิถีวาณิชย์ ก่อนถูกกองทัพซีหรงผนวกเส้นทางคาราวาน"}, {"id": "DYN_MID_XINGLIN_APOTHECARY", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "นครโอสถซิ่งหลิน (Xinglin Apothecary State)", "founderTh": "ผู้สืบทอดเข็มเจ็ดดาราและหอโอสถ", "summaryTh": "นครแห่งหมอและนักปรุงโอสถที่เป็นกลางในศึกใหญ่ ก่อนถูกปล้นทำลายในช่วงโรคระบาดและกลียุคแย่งชิงยา"}, {"id": "DYN_MID_QIANFO_JADE", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "อาณาจักรหยกพันพุทธะเฉียนฝอ (Qianfo Jade Realm)", "founderTh": "สายพุทธธรรมและช่างแกะสลักศิลา", "summaryTh": "ดินแดนอารามหยกและศิลาจารึกโบราณ รากฐานทางจิตวิญญาณที่ส่งอิทธิพลต่อสหพันธรัฐสุวรรณโพธิ์ในยุคหลัง"}, {"id": "DYN_MID_WANHUA_MATRIARCHY", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "ราชรัฐหมื่นบุปผาว่านฮวา (Wanhua Matriarchy)", "founderTh": "สภาสตรีจ้าวสมุนไพรและพิษบุปผา", "summaryTh": "อาณาจักรที่ปกครองโดยสตรีผู้เชี่ยวชาญสมุนไพรและพิษกู่ ก่อนแตกแยกเป็นตระกูลย่อยในแดนใต้"}, {"id": "DYN_MID_FENGLEI_NOMADS", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "ชนเผ่าพายุอสนีเฟิงเหลย (Fenglei Storm Nomads)", "founderTh": "ผู้ถือพัดขนนกวายุอสนี", "summaryTh": "กองทัพเร่ร่อนผู้บัญชาลมฝนและสายฟ้า เคยท้าทายชายแดนมหาอำนาจก่อนสลายตัวไปหลังภัยแล้งเจ็ดปี"}, {"id": "DYN_MID_DAXIA_SEVEN_BANNERS", "group": "MIDDLE_12", "groupTh": "⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)", "eraId": "ERA_3_MIDDLE_EPOCHS", "status": "FALLEN", "nameTh": "พันธมิตรเจ็ดธงศึกต้าเซี่ย (Seven Banners of Daxia)", "founderTh": "เจ็ดขุนพลพันธมิตรและขุนพลเกาเซิ่ง (#34)", "summaryTh": "พันธมิตรเจ็ดแคว้นที่พยายามคานอำนาจสามมหาจักรวรรดิเมื่อ ~750 ปีก่อน แต่แตกสลายทีละธงจนเหลือเพียงตำนานธงขาดเจ็ดผืน"}, {"id": "DYN_RECENT_ZHENYANG_HEGEMONY", "group": "RECENT_6", "groupTh": "⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "status": "RECENTLY_FALLEN", "nameTh": "แคว้นปราการเจิ้นหยาง (Zhenyang Hegemony)", "founderTh": "ตระกูลขุนศึกปฏิรูปที่ดิน (~110 ปีก่อน)", "summaryTh": "เคยเติบโตเร็วเกินไปจากการปฏิรูปกฎหมายที่ดินและพิชัยยุทธ์ จนถูกสามมหาอำนาจและสำนักตัวแทนรุมบดขยี้ ทิ้งซากเมืองเจิ้นหยางและทายาทลี้ภัยไว้ในปัจจุบัน"}, {"id": "DYN_RECENT_QINGLAN_BAIYU", "group": "RECENT_6", "groupTh": "⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "status": "RECENTLY_FALLEN", "nameTh": "ราชวงศ์ชิงหลานไป๋ยวี่ (Qinglan Baiyu Dynasty)", "founderTh": "ราชวงศ์สายน้ำคราม (~90 ปีก่อน)", "summaryTh": "เพิ่งถูกตงหวงผนวกเข้าเป็นหัวเมืองเมื่อ 90 ปีก่อน ตราคลื่นคู่และธรรมเนียมด่านภาษีซ้อนยังคงหลงเหลืออยู่ในเส้นทางค้าขายตะวันออก"}, {"id": "DYN_RECENT_BAIMEI_FROST", "group": "RECENT_6", "groupTh": "⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "status": "RECENTLY_FALLEN", "nameTh": "ป้อมเหมันต์ไป๋เหมย (Baimei Frost Principality)", "founderTh": "สายขุนนางปราการหิมะ", "summaryTh": "แคว้นชายแดนเหมันต์ที่พ่ายศึกฤดูหนาวและถูกเป่ยหมิงลดฐานะเป็นเพียงป้อมเก่าไป๋เหมย"}, {"id": "DYN_RECENT_NANZHU_PEARL", "group": "RECENT_6", "groupTh": "⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "status": "RECENTLY_FALLEN", "nameTh": "สันนิบาตไข่มุกหนานจู (Nanzhu Pearl League)", "founderTh": "สภานายเรือสมุทรทักษิณ (~180 ปีก่อน)", "summaryTh": "กองเรือพาณิชย์และนักสำรวจทะเลหมอกที่ล่มสลายหลังเผชิญมรสุมยักษ์และแรงสั่นสะเทือนจากราชันมังกรสมุทร"}, {"id": "DYN_RECENT_CHISHAN_IRON", "group": "RECENT_6", "groupTh": "⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "status": "RECENTLY_FALLEN", "nameTh": "นครเหล็กฉื่อซาน (Chishan Iron Principality)", "founderTh": "สมาพันธ์ช่างหลอมเหล็กแดง", "summaryTh": "นครเหมืองแร่และโรงหลอมตะวันตกที่แตกสลายจากสงครามแย่งชิงแร่เหล็กไหล ก่อนช่างฝีมือจะอพยพไปรวมตัวที่นครรัฐฉื่อเยี่ยน"}, {"id": "DYN_RECENT_YUGUAN_CITADEL", "group": "RECENT_6", "groupTh": "⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "status": "RECENTLY_FALLEN", "nameTh": "ปราการด่านหยกอวี้กวาน (Yuguan Citadel)", "founderTh": "ผู้พิทักษ์ด่านหยกชายแดนกลาง", "summaryTh": "ปราการเก่าแก่ที่เคยคั่นกลางเส้นทางเข้าสู่หยุนเหอ ปัจจุบันเหลือเพียงด่านซากโบราณอวี้กวานและหลักศิลาสองชื่อของผู้อพยพ"}], "COSMOLOGY": {"titleTh": "จักรวาลสองชั้น ม่านกั้นภพ และความจริงอันโหดร้ายของการเหินหาว", "pillars": [{"icon": "🌌", "titleTh": "โครงสร้างจักรวาลสองชั้นและม่านกั้นภพ (The World Barrier)", "bodyTh": "โลกแบ่งออกเป็น \"โลกเบื้องล่าง\" ที่มีปราณเบาบางและเพดานตบะจำกัด กับ \"โลกเบื้องบน\" ที่ปราณหนาแน่นและกฎสวรรค์เข้มข้น ระหว่างสองภพมี \"ม่านกั้นภพ\" คอยแยกขาดและป้องกันไม่ให้ผู้ทรงพลังจากเบื้องบนลงมาแทรกแซงโลกเบื้องล่างได้ตามอำเภอใจ — ผู้ที่ตบะเกินเกณฑ์จะถูกแรงดีดม่านฟ้าขับไล่ ยกเว้นผู้ที่บาดเจ็บจนตบะร่วงต่ำกว่าเพดาน (เช่น ทูตตกสวรรค์ขงหมิง #21)"}, {"icon": "⚡", "titleTh": "กฎแห่งการเหินหาว (The Law of Ascension)", "bodyTh": "ผู้ฝึกตนในโลกเบื้องล่างที่ไต่เต้าจนถึงจุดสูงสุดของวิถีจะเผชิญ \"ด่านทัณฑ์สวรรค์\" เพื่อทะลวงม่านกั้นภพขึ้นสู่โลกเบื้องบน การเหินหาวมิใช่เพียงการเพิ่มพลัง แต่คือการสลัดคราบข้อจำกัดของโลกเบื้องล่างโดยทิ้งมรดก เคล็ดวิชา หรือร่องรอยไว้ให้ศิษย์รุ่นหลังสืบทอด"}, {"icon": "⚖️", "titleTh": "ความจริงอันโหดร้าย: ชาวสวรรค์โดยกำเนิด vs ชนชั้นต่ำผู้เหินหาว", "bodyTh": "สิ่งที่ผู้ฝึกตนในโลกเบื้องล่างไม่เคยล่วงรู้คือ ยอดคนระดับตำนานที่ถูกก้มกราบในโลกเบื้องล่าง เมื่อทะลวงม่านฟ้าขึ้นไปแล้ว กลับมีฐานะไม่ต่างจากชนชั้นต่ำไร้หัวนอนปลายเท้าในสายตาของชาวสวรรค์โดยกำเนิด — และแผ่นฝึกหายใจหรือปมเชือกคลังสินค้าชั้นผู้น้อยที่ถูกคัดทิ้งจากโลกเบื้องบน เมื่อหล่นลงมาโลกเบื้องล่างกลับกลายเป็นต้นกำเนิดของวิถีระดับตำนาน (เช่น วิถีชีพจรประคองสหาย และวิถีผู้ถือกุญแจผนึก)"}]}, "BEAST_KINGS": [{"id": "THUNDER_DRAGON_KING", "altId": "", "nameTh": "ราชันมังกรสายฟ้าประกาศิต (`DRAGON`)", "descTh": "ทายาทของมังกรพิทักษ์ราชบัลลังก์อาณาจักรเก่า อาศัยอยู่ท่ามกลางเมฆทัณฑ์สวรรค์เหนือยอดเขาหิมะทางเหนือ คอยกลืนกินสายฟ้าเป็นอาหารและปกครอง \"ราชสำนักพายุ (`Storm Court`)\""}, {"id": "INFERNO_PHOENIX_KING", "altId": "REBIRTH_PHOENIX", "nameTh": "ราชันหงส์เพลิงอมตะนิรันดร์กาล (`AVIAN`)", "descTh": "พญาวิหคเพลิงอมตะที่อาศัยอยู่ในปล่องภูเขาไฟยักษ์ ทุกครั้งที่บาดเจ็บถึงตายในสงคราม ร่างจะลุกไหม้กลายเป็น \"ไข่อมตะเกิดใหม่ (`Rebirth Egg`)\" แม้ความทรงจำเดิมจะเลือนหายไปหลังฟัก แต่ยีนสายเลือดบรรพกาลจะยิ่งแข็งแกร่งขึ้นทุกครั้งที่ผ่านความตาย"}, {"id": "ABYSSAL_LEVIATHAN_KING", "altId": "VOID_LEVIATHAN", "nameTh": "ราชันมังกรสมุทรสุญญากาศ (`LEVIATHAN`)", "descTh": "อสูรสมุทรบรรพกาลขนาดมหึมาที่หลับใหลอยู่ใต้น้ำลึกทางใต้ ครึ่งตัวอยู่ในโลกเบื้องล่างและอีกครึ่งตัวแทรกซึมอยู่ในช่องว่างระหว่างม่านกั้นภพ (`Void Phase`) แผ่แรงกดดันมิติมหาศาล (`Void Pressure`)"}, {"id": "STONE_TITAN_KING", "altId": "FOSSIL_TITAN", "nameTh": "ราชันยักษ์ศิลาดึกดำบรรพ์ (`TITAN`)", "descTh": "ซากโครงกระดูกยักษ์บรรพกาลที่เคยร่วมรบในมหาสงครามเมื่อหลายแสนปีก่อนและล้มตายลงในทะเลทรายตะวันตก เมื่อถูกปลุกขึ้นและกลืนกินแร่ธาตุหรือเลือดเนื้อ เกราะกระดูกและเนื้อหนังจะฟื้นคืนชีพกลับมาเป็นยักษ์ทลายขุนเขาอีกครั้ง"}, {"id": "SHADOW_SERPENT_KING", "altId": "TWIN_SERPENT", "nameTh": "ราชันอสรพิษแฝดเก้ายมโลก (`REPTILE`)", "descTh": "อสรพิษสองหัวสองร่างที่ถือกำเนิดจากไอพิษและโลหิตของยอดฝีมือที่ล้มตายในมหาสงครามโบราณ ตัวหนึ่งเป็นเกล็ดหยินสีดำ อีกตัวเป็นเกล็ดหยางสีชาด เชื่อมโยงชีวิตเข้าด้วยกัน"}, {"id": "CELESTIAL_QILIN_KING", "altId": "TIME_TURTLE", "nameTh": "ราชันกิเลนดาราและพญาเต่ากาลเวลา (`MYTHICAL` / `TURTLE`)", "descTh": "สัตว์เทพผู้ทรงภูมิปัญญาที่มีอายุขัยยาวนานที่สุดและเป็นพยานรู้เห็นการล่มสลายของอาณาจักรเมื่อหลายแสนปีก่อน สามารถแผ่สนามพลังชะลอกระแสเวลารอบตัว (`Time Slow`)"}], "ECO_BEASTS": [{"nameTh": "หมาป่าพันธะโลหิต (`BOND_WOLF`)", "descTh": "สัตว์คู่ใจของเหล่านักรบที่เติบโตและวิวัฒนาการถึง 5 ขั้นตามระดับความผูกพัน (`Bond Level`) และประสบการณ์รบเคียงข้างเจ้านาย"}, {"nameTh": "อาณานิคมแมลงวิญญาณ (`COLONY_SWARM`) และหนอนปรสิต (`PARASITE_WORM`)", "descTh": "สิ่งมีชีวิตที่รวมฝูงกันเป็นอาณานิคม หรือแฝงตัวเข้าสู่จุดชีพจรของร่างเจ้าบ้านเพื่อดูดซับปราณและกระตุ้นพลังแฝง"}, {"nameTh": "สัตว์มายาเลียนแบบ (`MIMIC_BEAST`)", "descTh": "สัตว์อสูรลึกลับตามซากโบราณสถานที่ใช้ดวงตาวิญญาณจดจำและจำลองรูปร่าง ท่วงท่า และปราณของสิ่งที่มันเคยพบเห็น"}, {"nameTh": "ภูตต้นไม้โบราณพันปี (`ANCIENT_TREE_SPIRIT`)", "descTh": "ต้นไม้ศักดิ์สิทธิ์ที่มีดวงจิตวิญญาณ แผ่ขยาย \"เครือข่ายรากวิญญาณใต้ดิน (`Root Network`)\" เพื่อปกป้องพื้นที่และเยียวยาพันธมิตร"}], "LEGENDARY_ARSENAL": [{"titleTh": "1.1 มรดกประจำ \"สายเชื้อพระวงศ์อาณาจักรเก่า\" (มหาอาณาจักรเป่ยหมิง)", "items": ["ผู้ถือครอง/ที่มา: กระบี่ประจำพระองค์ของ องค์จักรพรรดิองค์สุดท้าย กู่เซวียนหยวน (#1) ที่ใช้ชี้ฟ้าท้าทายศัตรูในศึกสุดท้ายก่อนที่พระองค์จะสูญหายไปพร้อมการระเบิดประตูมิติหลวง กระบี่เล่มจริงกระเด็นไปตกอยู่ในเทือกเขาหิมะแดนเหนือ ขณะที่ จักรพรรดิเหมันต์ กู่เทียนเฉิน (#46) จักรพรรดิเป่ยหมิงองค์ปัจจุบันถือครองกระบี่อิงฟ้าจำลองและกำลังตามหากระบี่เล่มจริง", "ผู้ถือครอง/ที่มา: ฉลองพระองค์ไหมเมฆาของ องค์หญิงกู่หลิงเฟย (#2) ปฐมบรรพชนผู้ก่อตั้งมหาอาณาจักรเป่ยหมิง ปัจจุบันนางยังคงสวมอาภรณ์ชุดนี้นั่งหลับตาจำศีลอยู่ในผลึกน้ำแข็งพันปีส่วนลึกสุดของตำหนักน้ำแข็งต้องห้าม", "ผู้ถือครอง/ที่มา: กำไลหยกสัญลักษณ์แห่งสายเลือดรัชทายาทราชวงศ์เก่าเทียนกู่ ตกทอดมาในราชสกุลเป่ยหมิงเพื่อใช้ยืนยันสิทธิ์ของผู้สืบทอดบัลลังก์น้ำแข็ง", "ผู้ถือครอง/ที่มา: มหาคัมภีร์เดินปราณราชันย์ของ กู่เซวียนหยวน (#1) ที่สืบทอดเฉพาะในหมู่จักรพรรดิแห่งเป่ยหมิง แผ่บารมีกดขี่ผู้ที่คิดกบฏต่อสายเลือดราชวงศ์เก่า", "ผู้ถือครอง/ที่มา: วิชาลับประจำราชสกุลเก่าที่ใช้ยิงปราณกระบี่ไร้รูปออกจากปลายนิ้ว ปัจจุบัน องค์หญิงรัชทายาท กู่ชิงเสวี่ย (#47) คือผู้ที่ฝึกฝนคัมภีร์นี้ได้สมบูรณ์แบบที่สุดในรอบหมื่นปี", "ผู้ถือครอง/ที่มา: เคล็ดวิชาบ่มเพาะภายในสูงสุดของ องค์หญิงกู่หลิงเฟย (#2) ที่ช่วยให้ปราณในกายไม่รั่วไหลและแช่แข็งอายุขัยคงความเยาว์วัยชั่วนิรันดร์ แต่ในทายาทรุ่นหลังอย่าง กู่เทียนเฉิน (#46) ที่ฝึกไม่ถึงขั้นสูงสุด กลับเกิดผลข้างเคียงเป็นอาการปราณเหมันต์กัดกินหัวใจ"]}, {"titleTh": "1.2 มรดกประจำ \"ตระกูลมหาเสนาบดีอาณาจักรเก่า\" (มหาอาณาจักรตงหวง)", "items": ["ผู้ถือครอง/ที่มา: พู่กันคู่กายของ อัครมหาเสนาบดี ซือหม่าชุน (#4) ผู้ใช้ร่างกฎหมายแผ่นดินและบันทึกวันสิ้นภพของอาณาจักรเก่า ก่อนจะแยกความทรงจำของตนออกเป็น 9 ม้วนคัมภีร์ลับ ปัจจุบันพู่กันด้ามนี้ถูกเก็บรักษาไว้เป็นสมบัติสูงสุดของตระกูลซือหม่าแห่งตงหวง", "ผู้ถือครอง/ที่มา: ลูกคิดทองคำบริหารคลังหลวงและเสบียงทัพของตระกูลมหาเสนาบดีและ เถ้าแก่เฉียน (#22 อดีตเจ้าคลังหลวง) ที่ใช้คำนวณภาษี เสบียง และรหัสคลังสมบัติลับทั้ง 9 แห่ง", "ผู้ถือครอง/ที่มา: มีดสั้นพระราชทานประจำตำแหน่งผู้ตรวจการแผ่นดินแห่งตระกูลมหาเสนาบดี ปัจจุบันอยู่ในมือของ หัวหน้าผู้ตรวจการแผ่นดิน เหยียนหลัว (#54) ตุลาการหน้าเหล็กแห่งตงหวงที่ใช้ซัดปลิดชีพผู้ละเมิดกฎหมายบ้านเมืองโดยไม่เคยพลาดเป้า", "ผู้ถือครอง/ที่มา: ผังค่ายกลพิชัยยุทธ์ที่ ซือหม่าชุน (#4) ใช้วางผังเมืองหลวงและส่งต่อให้ มหาปราชญ์หอคัมภีร์ ขงเหวิน (#55) ใช้วางระบบป้องกันหอคัมภีร์หลวงของตงหวงในปัจจุบัน", "ผู้ถือครอง/ที่มา: ศาสตร์การใช้อักษรราชโองการสะกดผู้ละเมิดกฎและการบริหารดวงชะตาแผ่นดินที่สืบทอดในสายเลือดของ ซือหม่าอี้เซวียน (#51) และทายาทผู้ตื่นรู้ความทรงจำแสนปีอย่าง คุณชายสาม ซือหม่าชิง (#52)"]}, {"titleTh": "1.3 มรดกประจำ \"ตระกูลแม่ทัพใหญ่อาณาจักรเก่า\" (มหาอาณาจักรซีหรง)", "items": ["ผู้ถือครอง/ที่มา: ทวนศึกคู่กายของ แม่ทัพใหญ่ทัวป๋าเลี่ย (#5) ที่ใช้สังหารแม่ทัพของอาณาจักรศัตรูไปถึง 9 คนในมหาสงครามเมื่อหลายแสนปีก่อน ก่อนที่เขาจะถือทวนเล่มนี้เดินหายเข้าไปในพายุทะเลทรายหินแดง", "ผู้ถือครอง/ที่มา: ตราหยกพยัคฆ์บัญชาการทัพหลวงที่จักรพรรดิอาณาจักรเก่ามอบให้ตระกูลแม่ทัพใหญ่ ปัจจุบันมี ปรมาจารย์ทวนเฒ่า ทัวป๋ากัง (#60) นั่งขัดสมาธิเฝ้าอยู่บนยอดผาหินแดงเพื่อควบคุมไม่ให้ จอมทัพใหญ่ ทัวป๋าเจิ้นเทียน (#56) นำตราพยัคฆ์ไปสั่งเปิดสงครามล้างภพก่อนเวลาอันควร", "ผู้ถือครอง/ที่มา: คันธนูเหล็กดาวตกของ ขุนพลเกาทัณฑ์ เย่ฉิงชาง (#8) มือธนูตาเดียวผู้สละดวงตาซ้ายหลอมเป็นลูกศรยิงเรือรบกลางเวหาของอาณาจักรศัตรูจนร่วงลงมาทั้งลำ ปัจจุบันดวงวิญญาณของเขายังสถิตอยู่ในคันธนูเล่มนี้ในก้นเหวลึก", "ผู้ถือครอง/ที่มา: ศาสตราและคัมภีร์หลอมกายาของ จ้าวพยัคฆ์ เหลยเจิ้น (#9) ขุนพลหมัดเหล็กผู้ยืนรับคมดาบและหอกนับหมื่นเล่มจนตายทั้งยืนค้ำเพดานถ้ำโบราณสถาน", "ผู้ถือครอง/ที่มา: วิชาฝ่ามือจอมทัพและเคล็ดวิชาปราณโลหิตที่เกิดจากการรบพุ่งท่ามกลางทะเลเลือดของกองทัพตระกูลทัวป๋าแห่งซีหรง"]}, {"titleTh": "1.4 ศาสตราและวิชาในตำนานที่ผูกกับ \"วีรบุรุษและยอดปราชญ์ยุคสงครามอาณาจักรโบราณ\" (ภาคที่ 5)", "items": ["ผู้ถือครอง/ที่มา: ศาสตราและวิชาที่บรรลุโดย หลี่เจี้ยนซิน (#6) อดีตหัวหน้าองครักษ์เสื้อแพรผู้ยืนขวางประตูเมืองหลวงเพียงลำพัง 7 วัน 7 คืนในวันสิ้นอาณาจักร เพื่อทำลายช่องโหว่ของทุกสรรพวิชาของอาณาจักรศัตรู", "ผู้ถือครอง/ที่มา: วิชาต้องห้ามที่ แม่ทัพหญิงมู่หรงเสวี่ย (#7) ใช้เผาผลาญพลังชีวิตตนเองเป็นดอกบัวโลหิตเพื่อทำลายทัพหน้าของศัตรู จนดวงจิตของนางหลอมรวมเข้ากับเมล็ดบัวโบราณในแดนลับ", "ผู้ถือครอง/ที่มา: วิชาตัวเบาเร้นเงาสูงสุดของ คู่แฝดเงาโลหิต อู๋หมิง & อู๋ซิน (#10) หัวหน้าหน่วยลอบสังหารหลวงที่ลอบเข้าค่ายศัตรูในคืนสุดท้ายของสงคราม", "ผู้ถือครอง/ที่มา: พิณวิเศษและบทเพลงอำลาอาณาจักรของ ฉินอู๋เซียง (#12) จอมพิณตาบอดผู้ควักดวงตาตนเองและดีดพิณสะกดทัพศัตรูจนสายพิณขาดสะบั้นกลางสมรภูมิ", "ผู้ถือครอง/ที่มา: มหาคัมภีร์โอสถของ ปรมาจารย์โอสถไป๋เฉ่า (#13) หมอหลวงผู้เปลี่ยนร่างกายตนเองเป็นเตาหลอมเพื่อสูดดมหมอกพิษของอาณาจักรศัตรูทั้งสมรภูมิเข้าไปขังไว้ในตันเถียนของตนคนเดียว", "ผู้ถือครอง/ที่มา: สิ่งประดิษฐ์กลไกอาคมชิ้นเอกของ กงซูจี (#15) สตรีอัจฉริยะเจ้ากรมกลไกแห่งอาณาจักรเก่าผู้ย้ายดวงจิตตนเองไปสถิตในหุ่นเชิดหยกขาว", "ผู้ถือครอง/ที่มา: เครื่องคำนวณดาราจักรของ โหราจารย์หลวง ซิงเฉินจื่อ (#16) ผู้มองเห็นคำทำนายความพ่ายแพ้ของอาณาจักรล่วงหน้า 10 ปีแต่ถูกขังลืมไว้บนหอคอยดูดาวที่เวลาหยุดนิ่ง และสืบทอดศาสตร์ต่อมาถึง ซิงอวิ๋น (#49)", "ผู้ถือครอง/ที่มา: ศาสตราที่ เฒ่าเข็มทิศ ซูเหยียน (#17) อดีตกัปตันกองเรือสำเภาเหินเวหาแห่งอาณาจักรเก่าใช้ผนึกวิญญาณของตนไว้หลังกลับมาจากลาดตระเวนสุดขอบม่านหมอก", "ผู้ถือครอง/ที่มา: วิชาต้องห้ามของ ตงฟางเย่ (#18) อดีตรองแม่ทัพผู้ยอมรับตราบาปว่าเป็นคนทรยศและถูกขังในคุกมืดใต้ดินมานับแสนปี เพื่อทำลายค่ายกลสังเวยชีวิตทหารนับล้าน", "ผู้ถือครอง/ที่มา: มหาคัมภีร์ที่ ไต้ซืออู๋เฉิน (#23) อดีตขุนพลเพชฌฆาตล้านศพใช้ฝึกฝนหลังหักดาบออกบวชเป็นหลวงจีนชรากวาดลานวัดเพื่อสะกดจิตสังหารในกาย", "ผู้ถือครอง/ที่มา: ศาสตราคู่กายของ แม่เฒ่าหมื่นไหม ยายเมิ่ง (#24) อดีตหัวหน้ากองภูษาหลวงแห่งวังหลังเทียนกู่ที่ปัจจุบันเร้นกายเป็นหญิงชราปะชุนเสื้อผ้าริมบึงน้ำ"]}, {"titleTh": "1.5 ศาสตราและวิชาในตำนานที่ผูกกับ \"ยอดคนและราชาผู้ล่มสลายในยุคกลียุคหลังสงคราม\" (ภาคที่ 6)", "items": ["ผู้ถือครอง/ที่มา: มหาคัมภีร์วิญญาณที่ มหาขันทีเก้าเงา เฉาเจิ้งฉุน (#27) ขโมยจากวังหลังไปตั้งอาณาจักรทมิฬไร้เงาในยุคกลียุค และใช้แยกวิญญาณสิงอยู่ในเศษกระจกโบราณเก้าเสี่ยง", "ผู้ถือครอง/ที่มา: วัตถุนอกรีตที่เกิดจากการทำพิธีสังเวยผิดพลาดของ มหาปุโรหิตสังเวยฟ้า เสิ่นเทียนจุน (#28) ผู้ก่อตั้งอาณาจักรเทวราชครูที่ถูกแรงสะท้อนม่านฟ้าถล่มจนสติแตก", "ผู้ถือครอง/ที่มา: ของวิเศษประจำตัว องค์ชายนักพนัน ไป๋อวี้ (#35) รัชทายาทผู้ยอมแกล้งแพ้พนันยกแผ่นดินให้ตงหวงเพื่อแลกกับชีวิตของราษฎรทั้งอาณาจักร", "ผู้ถือครอง/ที่มา: หลอมขึ้นโดย มารดาบจันทร์เสี้ยว เย่กูหาน (#37) เด็กกำพร้าทุ่งสังหารผู้รวบรวมเศษใบดาบหักจากศพทหารหมื่นนายมาหลอมใต้แสงจันทร์เพื่อใช้ล่าขุนนางผู้ก่อสงคราม", "ผู้ถือครอง/ที่มา: ศาสตราคู่กายของ ประมุขพรรคไม้เท้าหยก หงชี (#38) ผู้นำกลุ่มผู้ลี้ภัยสงครามนับล้านคนในยุคกลียุค", "ผู้ถือครอง/ที่มา: สุดยอดวิชากระบี่ของ เซียนสุราหมื่นไห จิ้วเจี้ยนเซียน (#39) ผู้เคยบุกเดี่ยวท้าดวลยอดฝีมือสูงสุดของทั้ง 3 มหาอำนาจก่อนจะเร้นกายเมามายเพราะล่วงรู้ความลับของโลก", "ผู้ถือครอง/ที่มา: ศาสตราอาคมของ จอมขมังเวทบึงทมิฬ ปู่เจ้าสมิงพราย (#40) ผู้ปลุกผีทหารไร้ญาติและควายธนูตั้งเป็นปราการกันชนในป่าดงดิบ", "ผู้ถือครอง/ที่มา: ดาบคู่กายของ ซามูไรไร้ปราณ เคนชินแห่งผาเมฆา (#41) ชายตันเถียนพิการผู้ฝึกฟันดาบวันละแสนครั้งจนตัดกระแสปราณของเซียนขาดสะบั้น", "ผู้ถือครอง/ที่มา: วิชาตัวเบาของ จอมโจรพันหน้า เต้าจื่อ (#43) ผู้ลอบเข้าไปขโมยคัดลอกคัมภีร์จากคลังหลวงของทั้ง 3 มหาอำนาจออกมาโปรยซ่อนไว้ตามแดนลับทั่วแผ่นดิน", "อาวุธและอุปกรณ์ในตำนานที่ยังว่างอยู่ (รอผูกเนื้อเรื่องใหม่):", "`LEG_WPN_TULONG_SABER` (ดาบพิชิตมังกรเพลิงราชันย์), `LEG_WPN_OATHBREAKER_DRAGON_LANCE` (ทวนมังกรสายฟ้าทลายสัตย์), อาวุธตำนานตระกูล `ROSARY` (ประคำพระธาตุโพธิญาณ), `CLAW` (กรงเล็บราชันอสูร), `NEEDLE` (เข็มเงินเจ็ดดารา), `FAN` (พัดขนนกเทวพายุ)", "`LEG_ARM_SHADOW_KIRIN_CUIRASS` (เกราะเกล็ดกิเลนเงาอเวจี), `LEG_ARM_IMMORTAL_TORTOISE_PLATE` (เกราะกระดองเต่าดำเสวียนอู่), `LEG_ACC_SAMSARA_KARMA_RING` (แหวนหยกสังสารวัฏ), `LEG_ACC_BODHI_STARLIGHT_BEADS` (สร้อยประคำเมล็ดโพธิ์แสงดารา)", "ชุดศาสตราเทวตำนานประจำวิถี `REL_V230_<PATH>` และ `REL_V250_<PATH>` ส่วนที่เหลืออีก 32 ชิ้น", "คัมภีร์วิชาในตำนานที่ยังว่างอยู่ (รอผูกเนื้อเรื่องใหม่):", "`LEG_COMBAT_SAMSARA_PUPPET_THREADS` (ด้ายชะตาสังสารวัฏ), `LEG_COMBAT_JADE_NIRVANA_HARMONY` (มุทราหยกนิพพาน), `LEG_AUX_QIANKUN_SHIFT` (เคล็ดเคลื่อนย้ายจักรวาล), `LEG_AUX_LINGXI_ONE_FINGER` (ดัชนีประสานใจ), `LEG_LIGHT_KUNPENG_ASTRAL_WINGS` (ปีกดาราคุนเผิง), `LEG_FORB_SAMSARA_KARMA_REVERSAL` (มหาวัฏจักรฝืนกลับตาลปัตรเวรกรรม), `LEG_PASS_NINE_YANG_MERIDIAN` (ชีพจรเก้าเอี้ยง), `LEG_PASS_DUGU_SWORD_HEART` (ดวงจิตกระบี่ไร้พ่าย), `LEG_MANTRA_TAIXUAN_SCRIPTURE` (คัมภีร์ไท่เสวียน), `LEG_MANTRA_EIGHT_DESOLATIONS_GOD` (เทวสูตรแปดพิภพ), `LEG_MANTRA_TEN_THOUSAND_GU_MONARCH` (คัมภีร์ราชันหมื่นพิษกู่), `LEG_MANTRA_LITTLE_LI_HEART_BLADE` (คัมภีร์มีดบินรวมใจไร้พลาด)", "ชุดมหาคัมภีร์ประจำวิถี `LEG_V230_<PATH>` (31 บท) และ `LEG_V250_<PATH>` (6 บทสำหรับวิถีใหม่)"]}], "FIGURES_60": [{"num": 1, "id": "LORE_FIG_01", "titleTh": "\"กู่เซวียนหยวน (Gu Xuanyuan)\" — องค์จักรพรรดิองค์สุดท้ายผู้สูญหาย", "groupTh": "👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "พระราชาองค์สุดท้ายของมหาอาณาจักรเทียนกู่ ผู้ถือครอง `LEG_WPN_YITIAN_SWORD` และฝึกฝน `LEG_MANTRA_SOVEREIGN_HEAVEN_EDICT` สละชีพไปพร้อมกับการระเบิดประตูมิติหลวงในวันสุดท้ายของสงคราม ทว่าไม่เคยมีผู้ใดพบพระศพ เสี้ยววิญญาณหรือร่างจริงอาจติดอยู่ในช่องว่างระหว่างประตูมิติหรือจำศีลอยู่ในโลงหยกใต้ดินลึก"}, {"num": 2, "id": "LORE_FIG_02", "titleTh": "\"องค์หญิงกู่หลิงเฟย (Princess Gu Lingfei)\" — ปฐมบรรพชนสายเชื้อพระวงศ์ (เป่ยหมิง)", "groupTh": "👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "พระธิดาองค์โตของจักรพรรดิองค์สุดท้าย ผู้นำสายเลือดราชวงศ์หนีขึ้นเหนือไปก่อตั้ง มหาอาณาจักรเป่ยหมิง ผู้ฝึก `LEG_PASS_MINGYU_IMMORTAL_QI` และสวม `LEG_ARM_CELESTIAL_CRANE_ROBE` ปัจจุบันยังคงจำศีลอยู่ในผลึกน้ำแข็งพันปีส่วนลึกสุดของตำหนักน้ำแข็งต้องห้าม รอวันชำระแค้นกับอาณาจักรศัตรู"}, {"num": 3, "id": "LORE_FIG_03", "titleTh": "\"องค์ชายเก้า กู่เย่ (Ninth Prince Gu Ye)\" — องค์ชายนอกคอกผู้สละราชสกุล", "groupTh": "👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "พระอนุชาผู้ทิ้งนามสกุลเชื้อพระวงศ์และแฝงตัวอยู่ในหมู่สามัญชนเพื่อเฝ้าดูการเกิดและล่มสลายของอาณาจักรน้อยใหญ่นับหมื่นครั้ง ใช้วิชาลอกคราบเปลี่ยนโฉมหน้าทุกหนึ่งพันปี และรู้ที่ซ่อนมรดกเชื้อพระวงศ์ดีที่สุด"}, {"num": 4, "id": "LORE_FIG_04", "titleTh": "\"ซือหม่าชุน (Sima Chun)\" — อัครมหาเสนาบดีผู้ถือพู่กันพิพากษา (ตงหวง)", "groupTh": "👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "ผู้นำตระกูลมหาเสนาบดีฝ่ายบุ๋น ผู้ถือครอง `LEG_WPN_CHUNQIU_JUDGMENT_BRUSH` และก่อตั้ง มหาอาณาจักรตงหวง ก่อนสิ้นใจได้แยกความทรงจำไว้ใน 9 ม้วนคัมภีร์ลับและวางค่ายกลกลับชาติมาเกิดไว้ในสายเลือดตระกูลมหาเสนาบดี"}, {"num": 5, "id": "LORE_FIG_05", "titleTh": "\"แม่ทัพใหญ่ทัวป๋าเลี่ย (General Tuoba Lie)\" — จอมทัพทวนโลหิตผู้ไม่ยอมคุกเข่า (ซีหรง)", "groupTh": "👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "ผู้นำตระกูลแม่ทัพใหญ่ผู้ถือ `LEG_WPN_OVERLORD_SPEAR` และ `LEG_ACC_TAICHI_HEAVEN_SEAL` ผู้ก่อตั้ง มหาอาณาจักรซีหรง หลังจบสงครามได้เดินหายเข้าไปในพายุทะเลทรายหินแดง กลายเป็นเงาร่างขุนพลโบราณที่ยังคงรบกับภาพหลอนของสงครามในคืนพายุทรายสีเลือด"}, {"num": 6, "id": "LORE_FIG_06", "titleTh": "\"หลี่เจี้ยนซิน (Li Jianxin)\" — วีรบุรุษผู้ปิดประตูเมืองหลวงเพียงลำพัง", "groupTh": "⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "อดีตหัวหน้าองครักษ์เสื้อแพรที่ถือ `LEG_WPN_XUANTIE_HEAVY_SWORD` ยืนขวางหน้าประตูเมืองหลวง 7 วัน 7 คืน ในวินาทีสุดท้ายได้บรรลุ `LEG_COMBAT_DUGU_NINE_SWORDS` และจำศีลวิญญาณในร่างศิลาใต้ซากกำแพงเมือง ปัจจุบันตื่นขึ้นมาในฐานะชายชราพเนจรผู้สูญเสียความทรงจำบางส่วน"}, {"num": 7, "id": "LORE_FIG_07", "titleTh": "\"แม่ทัพหญิงมู่หรงเสวี่ย (General Murong Xue)\" — ขุนพลหญิงผู้สังเวยบัวโลหิต", "groupTh": "⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "แม่ทัพหญิงผู้ร่ายวิชาต้องห้าม `LEG_FORB_BLOOD_LOTUS_SACRIFICE` เผาผลาญชีวิตตนเองเพื่อทำลายทัพหน้าศัตรู ดวงจิตและปราณบัวโลหิตหลอมรวมเข้ากับเมล็ดบัวโบราณในแดนลับ รอวันควบแน่นกายเนื้อขึ้นมาใหม่"}, {"num": 8, "id": "LORE_FIG_08", "titleTh": "\"ขุนพลเกาทัณฑ์ เย่ฉิงชาง (General Ye Qingcang)\" — มือธนูตาเดียวผู้ยิงตะวันทมิฬ", "groupTh": "⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "ผู้บัญชาการกองเกาทัณฑ์หลวงผู้ถือครอง `LEG_WPN_CONDOR_METEOR_BOW` สละดวงตาซ้ายหลอมเป็นลูกศรยิงเรือรบเวหาของศัตรูจนแขนทั้งสองข้างกลายเป็นหินศิลา ดวงวิญญาณยังคงสถิตอยู่ในคันธนูและซากศิลา"}, {"num": 9, "id": "LORE_FIG_09", "titleTh": "\"จ้าวพยัคฆ์ เหลยเจิ้น (Lei Zhen)\" — ขุนพลหมัดเหล็กผู้แบกภูเขาถล่มค่ายศัตรู", "groupTh": "⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "ขุนพลกองหน้าผู้สวม `LEG_WPN_WRATHFUL_TIGER_GAUNTLETS` และฝึก `LEG_MANTRA_DRAGON_ELEPHANT_PRAJNA` ยืนรับคมดาบและหอกนับหมื่นเล่มจนตายทั้งยืนค้ำเพดานถ้ำโบราณสถาน เลือดเนื้อไม่เน่าเปื่อยและดวงจิตพร้อมลืมตาทดสอบผู้ฝึกวิถีกายารุ่นหลัง"}, {"num": 10, "id": "LORE_FIG_10", "titleTh": "\"คู่แฝดเงาโลหิต อู๋หมิง & อู๋ซิน (Wu Ming & Wu Xin)\" — มือสังหารหลวงผู้ลอบเข้าค่ายศัตรู", "groupTh": "⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "สองพี่น้องฝาแฝดหัวหน้าหน่วยลอบสังหารผู้ฝึก `LEG_LIGHT_MOON_BAT_SHADOW` ที่หลอมรวมวิญญาณซ่อนอยู่ในเงาของมีดสั้นโบราณ"}, {"num": 11, "id": "LORE_FIG_11", "titleTh": "\"แม่ทัพทหารม้าเกราะดำ หานพัวจวิน (General Han Pojun)\" — ผู้นำกองทัพผีดิบผู้ไม่รู้ว่าสงครามจบแล้ว", "groupTh": "⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "แม่ทัพผู้คุมทหารม้าเกราะดำสามหมื่นนายที่ถูกค่ายกลมิติขังไว้ในหุบเขาหมอกมรณะ กลายเป็นกองทัพวิญญาณเกราะโบราณที่ยังคงลาดตระเวนและคิดว่าสงครามยังไม่จบ"}, {"num": 12, "id": "LORE_FIG_12", "titleTh": "\"ฉินอู๋เซียง (Qin Wuxiang)\" — จอมพิณตาบอดผู้บรรเลงเพลงอำลาอาณาจักร", "groupTh": "🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "นักดนตรีเอกผู้ถือครอง `LEG_WPN_JIUXIAO_PHOENIX_ZITHER` และบรรเลง `LEG_COMBAT_NINE_HEAVENS_GUANG_LING` จนสิ้นใจ ดวงจิตแห่งเสียงพิณยังคงปรากฏตัวในคืนเดือนมืดตามซากโบราณสถาน"}, {"num": 13, "id": "LORE_FIG_13", "titleTh": "\"ปรมาจารย์โอสถไป๋เฉ่า (Grandmaster Baicao)\" — หมอหลวงผู้กลืนพิษทั้งสมรภูมิ", "groupTh": "🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "เจ้ากรมโอสถหลวงผู้ฝึก `LEG_MANTRA_SHENNONG_MYRIAD_CRUCIBLE` สูดหมอกพิษของอาณาจักรศัตรูเข้าตันเถียนตนเองจนกลายเป็นคนบ้าครึ่งเซียนครึ่งอสูรพิษในบึงหมอก"}, {"num": 14, "id": "LORE_FIG_14", "titleTh": "\"ปรมาจารย์เตาหลอม โอวหยางเหยียน (Master Blacksmith Ouyang Yan)\" — ช่างตีศาสตราหลวงผู้หลอมตัวเองเข้ากับไฟพิภพ", "groupTh": "🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "กระโดดลงเตาหลอมไฟพิภพเพื่อไม่ให้พิมพ์เขียวศาสตราตกไปอยู่ในมือศัตรู ดวงวิญญาณหลอมรวมกับหัวใจเปลวเพลิงใต้ปล่องภูเขาไฟ"}, {"num": 15, "id": "LORE_FIG_15", "titleTh": "\"กงซูจี (Gongshu Ji)\" — สตรีอัจฉริยะเจ้ากรมกลไกผู้เปลี่ยนร่างเป็นหุ่นเชิดนิรันดร์", "groupTh": "🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "เจ้าของผลงาน `LEG_WPN_PEACOCK_PLUME_FOCUS` ย้ายดวงจิตและทะเลสำนึกของตนเองเข้าไปสถิตในหุ่นเชิดหยกขาวในห้องนิรภัยใต้ดิน"}, {"num": 16, "id": "LORE_FIG_16", "titleTh": "\"โหราจารย์หลวง ซิงเฉินจื่อ (Grand Astrologer Xingchenzi)\" — ผู้เห็นคำทำนายวันสิ้นอาณาจักรแต่ไม่มีใครเชื่อ", "groupTh": "🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "ผู้ถือครอง `ASTROLABE` ที่ถูกขังลืมอยู่บนหอคอยดูดาวที่ถูกค่ายกลเวลาแช่แข็งไว้ตั้งแต่ยุคล่มสลาย"}, {"num": 17, "id": "LORE_FIG_17", "titleTh": "\"เฒ่าเข็มทิศ ซูเหยียน (Old Compass Su Yan)\" — กัปตันนาวาหลวงผู้รอดชีวิตจากสุดขอบม่านหมอก", "groupTh": "🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "ผนึกวิญญาณเข้ากับเข็มทิศหยกและพังงาจานดารา คอยชี้ทางให้คนรุ่นหลังตามซากเรือโบราณ"}, {"num": 18, "id": "LORE_FIG_18", "titleTh": "\"ตงฟางเย่ (Dongfang Ye)\" — ขุนพลผู้ถูกตราหน้าว่าเป็นคนทรยศขายชาติ", "groupTh": "🌑 กลุ่มที่ 4: บุคคลปริศนา ผู้ถูกตราหน้าว่าทรยศ และตัวแปรจากอาณาจักรศัตรู (4 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "ผู้ฝึก `LEG_FORB_STAR_ABSORBING_VORTEX` ที่ถูกขังในคุกมืดใต้ดินมานับแสนปี แท้จริงแล้วเขาไม่ได้ทรยศ แต่ยอมทำลายค่ายกลสังเวยชีวิตทหารนับล้านเพื่อช่วยผู้คนแล้วรับตราบาปแทน"}, {"num": 19, "id": "LORE_FIG_19", "titleTh": "\"เฮ่อเหลียนโม่ (Helian Mo)\" — แม่ทัพทัพหน้าของอาณาจักรศัตรูที่ตกค้างอยู่ในแผ่นดินนี้", "groupTh": "🌑 กลุ่มที่ 4: บุคคลปริศนา ผู้ถูกตราหน้าว่าทรยศ และตัวแปรจากอาณาจักรศัตรู (4 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "ยอดขุนพลของอาณาจักรผู้ชนะสงครามที่หนีกลับไม่ทันตอนประตูมิติระเบิด ต้องซ่อนตัวจำศีลรักษาบาดแผลอยู่ใต้หุบเขาไฟมานับแสนปี"}, {"num": 20, "id": "LORE_FIG_20", "titleTh": "\"สตรีชุดขาวในโลงน้ำแข็ง — เยว่ชิง (Yue Qing)\" — ทูตเจรจาจากอาณาจักรศัตรูผู้หลงรักศัตรู", "groupTh": "🌑 กลุ่มที่ 4: บุคคลปริศนา ผู้ถูกตราหน้าว่าทรยศ และตัวแปรจากอาณาจักรศัตรู (4 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "อดีตทูตจากอาณาจักรคู่สงครามที่ถูกผนึกไว้ในโลงหยกน้ำแข็งใต้โบราณสถาน เป็นตัวละครเดียวจากอาณาจักรศัตรูที่มีจิตใจเป็นมิตร"}, {"num": 21, "id": "LORE_FIG_21", "titleTh": "\"ผู้ตรวจการสวรรค์ที่ถูกลืม — คงหมิง (Fallen Envoy Kong Ming)\" — คนจากโลกเบื้องบนที่ติดอยู่ในโลกล่าง", "groupTh": "🌑 กลุ่มที่ 4: บุคคลปริศนา ผู้ถูกตราหน้าว่าทรยศ และตัวแปรจากอาณาจักรศัตรู (4 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "อดีตผู้เหินหาวที่ถูกโลกเบื้องบนกดขี่เป็นทาสและถูกส่งจิตลงมาแทรกแซงสงคราม แต่สายใยวิญญาณขาดตอนประตูมิติระเบิด จึงติดค้างอยู่ในโลกล่าง"}, {"num": 22, "id": "LORE_FIG_22", "titleTh": "\"เถ้าแก่เฉียน (Innkeeper Qian)\" — อดีตเจ้าคลังหลวงผู้เปิดโรงเตี๊ยมเล็กๆ", "groupTh": "🏮 กลุ่มที่ 5: ตัวละครเร้นกายที่แฝงตัวอยู่ในยุทธภพยุคปัจจุบัน (4 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "ปลอมตัวเป็นเถ้าแก่โรงเตี๊ยมเฝ้ากุญแจคลังสมบัติลับทั้ง 9 แห่งของอาณาจักรเก่า"}, {"num": 23, "id": "LORE_FIG_23", "titleTh": "\"ภิกษุเฒ่ากวาดลาน — ไต้ซืออู๋เฉิน (Monk Wuchen)\" — อดีตขุนพลเพชฌฆาตผู้วางดาบหันพึ่งธรรม", "groupTh": "🏮 กลุ่มที่ 5: ตัวละครเร้นกายที่แฝงตัวอยู่ในยุทธภพยุคปัจจุบัน (4 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "อดีตขุนพลเพชฌฆาตล้านศพผู้หักดาบออกบวชและฝึก `LEG_MANTRA_DIAMOND_INDESTRUCTIBLE` กวาดลานวัดเพื่อสะกดจิตมาร"}, {"num": 24, "id": "LORE_FIG_24", "titleTh": "\"แม่เฒ่าหมื่นไหม — ยายเมิ่ง (Granny Meng)\" — อดีตนางกำนัลฝ่ายในผู้ถักทอชุดเกราะเซียน", "groupTh": "🏮 กลุ่มที่ 5: ตัวละครเร้นกายที่แฝงตัวอยู่ในยุทธภพยุคปัจจุบัน (4 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "อดีตหัวหน้ากองภูษาหลวงผู้ถือครอง `LEG_WPN_TIANCAN_FATE_WHIP` อาศัยอยู่ในกระท่อมไม้ไผ่รับปะชุนเสื้อผ้าให้จอมยุทธ์พเนจร"}, {"num": 25, "id": "LORE_FIG_25", "titleTh": "\"ผู้เฝ้าประตูไร้หน้า (The Faceless Gatekeeper)\" — ปริศนาใต้สำนักของผู้เล่น", "groupTh": "🏮 กลุ่มที่ 5: ตัวละครเร้นกายที่แฝงตัวอยู่ในยุทธภพยุคปัจจุบัน (4 ตัวละคร)", "eraId": "ERA_1_TIANGU_WAR", "summaryTh": "องครักษ์เงาผู้หลอมรวมร่างกายเข้ากับฐานศิลาของประตูมิติโบราณ (`ATLAS_DIMENSION_GATE`) ใต้หุบเขาที่ตั้งสำนักของผู้เล่น"}, {"num": 26, "id": "LORE_FIG_26", "titleTh": "\"ราชันย์คลังมืด เหยียนกวง (Dark-Vault King Yan Guang)\" — ผู้ก่อตั้งอาณาจักรเสนาบดีฝ่ายขวาที่ถูกฝังทั้งเป็นในกองทองคำ", "groupTh": "🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "ขุดเจาะลงไปใต้ซากพระราชวังหลวงเก่าเพื่อฮุบคลังสมบัติ แต่ถูกตระกูลมหาเสนาบดีตงหวงถล่มอุโมงค์ขังไว้กับกองภูเขาทองคำและไอพิษสงครามจนกลายเป็นราชันย์ซากศพชุดเกราะทองคำ"}, {"num": 27, "id": "LORE_FIG_27", "titleTh": "\"มหาขันทีเก้าเงา เฉาเจิ้งฉุน (Grand Eunuch Cao Zhengchun)\" — จ้าวอาณาจักรทมิฬไร้เงาผู้ฝึกวิชาหยินสุดขั้ว", "groupTh": "🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "อดีตหัวหน้าขันทีผู้ขโมย `LEG_MANTRA_NINE_YIN_SOUL_MIRROR` ไปตั้งอาณาจักรมืด เมื่อถูกเป่ยหมิงและซีหรงบุกเผาทำลาย ได้แยกวิญญาณสิงอยู่ในเศษกระจกเงาโบราณเก้าเสี่ยง"}, {"num": 28, "id": "LORE_FIG_28", "titleTh": "\"มหาปุโรหิตสังเวยฟ้า เสิ่นเทียนจุน (High Theocrat Shen Tianjun)\" — ผู้ก่อตั้งอาณาจักรเทวราชครูที่ถูกม่านฟ้าบดขยี้", "groupTh": "🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "เกณฑ์คนนับแสนทำพิธีสังเวยเปิดรูหนอนโลกเบื้องบน แต่ถูกแรงสะท้อนม่านฟ้าถล่มเมืองจมดินจนสติแตกกลายเป็นครึ่งเทพครึ่งมารวิปลาส (`VOID_HERETIC_PACT`)"}, {"num": 29, "id": "LORE_FIG_29", "titleTh": "\"อ๋องคลั่งปราบอุดร ทัวป๋าเซียว (Mad Warlord Tuoba Xiao)\" — ผู้นำกบฏเก้าทัพผู้ถูกตระกูลแม่ทัพใหญ่ตัดศีรษะ", "groupTh": "🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "หลานชายสายรองที่แยกตัวไปตั้งก๊กกบฏและถูกตัดศีรษะที่หน้าด่านหินแดง แต่ร่างไร้ศีรษะลุกขึ้นคว้าดาบควบม้ากลายเป็นขุนศึกไร้หัวออกล่าท้าดวลในคืนจันทร์สีเลือด"}, {"num": 30, "id": "LORE_FIG_30", "titleTh": "\"จักรพรรดิกลไก ม่อจี๋ (Automaton Emperor Mo Ji)\" — ราชาผู้เปลี่ยนประชากรทั้งเมืองเป็นหุ่นเชิด", "groupTh": "🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "ผ่าตัดเปลี่ยนชาวเมืองทั้งอาณาจักรเป็นหุ่นกลกึ่งมนุษย์ เมื่อศิลาปราณหมดลงจากการถูกปิดล้อม ยังคงจำศีลอยู่บนบัลลังก์กลไกใต้ดิน (`NODE_3_AUTOMATON_STELE_HALL`)"}, {"num": 31, "id": "LORE_FIG_31", "titleTh": "\"พญาอสูรคลั่ง โซ่วหวง (Beast-Tyrant Shou Huang)\" — เจ้าอาณาจักรหมื่นอสูรผู้ถูกสัตว์เลี้ยงตนเองกลืนกิน", "groupTh": "🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "ใช้ยันต์โลหิตบังคับฝูงอสูรเป็นทาสจนถูกฝูงอสูรก่อกบฏฉีกร่างและต้องย้ายวิญญาณไปแฝงในร่างอสูรกลายพันธุ์สองบุคลิก"}, {"num": 32, "id": "LORE_FIG_32", "titleTh": "\"จักรพรรดิร้อยวัน หลินเทียน (Hundred-Day Emperor Lin Tian)\" — ราชาสามัญชนผู้รวมแผ่นดินเกือบสำเร็จแต่ถูกสามมหาอำนาจร่วมมือกันสังหาร", "groupTh": "⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)", "eraId": "ERA_3_MIDDLE_EPOCHS", "summaryTh": "สามัญชนไร้รากปราณที่เกือบจะรวบรวมแผ่นดินตอนกลางได้สำเร็จ จน 3 มหาอำนาจแอบจับมือกันส่งยอดฝีมือมารุมสังหารในวันที่ครองราชย์ครบ 100 วัน"}, {"num": 33, "id": "LORE_FIG_33", "titleTh": "\"ราชินีเถ้าถ่าน ฉู่เยียน (Ash Queen Chu Yan)\" — จักรพรรดินีองค์สุดท้ายของราชวงศ์ที่ล่มสลาย", "groupTh": "⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)", "eraId": "ERA_3_MIDDLE_EPOCHS", "summaryTh": "สวมหน้ากากทองคำครึ่งซีกปิดรอยไฟคลอก ออกเดินเก็บรวบรวมป้ายวิญญาณของอาณาจักรที่ล่มสลายไปแล้วทั่วแผ่นดิน"}, {"num": 34, "id": "LORE_FIG_34", "titleTh": "\"ขุนพลเจ็ดแผ่นดิน เกาเซิ่ง (Seven-Banner General Gao Sheng)\" — ขุนศึกอมตะผู้รับใช้เจ็ดราชวงศ์ที่ล่มสลายทั้งหมด", "groupTh": "⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)", "eraId": "ERA_3_MIDDLE_EPOCHS", "summaryTh": "แบกธงรบที่ขาดวิ่นทั้ง 7 ผืนไว้บนหลัง ไม่ยอมก้มหัวรับใช้ใครอีกยกเว้นจะพิสูจน์ได้ว่าจะไม่ล่มสลายเป็นแห่งที่ 8"}, {"num": 35, "id": "LORE_FIG_35", "titleTh": "\"องค์ชายนักพนัน ไป๋อวี้ (Gambler Prince Bai Yu)\" — รัชทายาทผู้เอาอาณาจักรของตนเองไปเดิมพันบนโต๊ะพนัน", "groupTh": "⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)", "eraId": "ERA_3_MIDDLE_EPOCHS", "summaryTh": "ผู้ถือ `REL_V230_FORTUNE_GAMBLER` ที่ยอมแกล้งแพ้พนันยกแผ่นดินให้ตงหวงเพื่อแลกกับสัญญาไว้ชีวิตชาวเมืองทุกคน"}, {"num": 36, "id": "LORE_FIG_36", "titleTh": "\"อาลักษณ์บันทึกซาก หลิ่วจือ (Ruin Chronicler Liu Zhi)\" — ชายผู้เดินเก็บชื่อของอาณาจักรที่ถูกลืม", "groupTh": "⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)", "eraId": "ERA_3_MIDDLE_EPOCHS", "summaryTh": "เดินทางคัดลอกศิลาจารึกของอาณาจักรที่ถูก 3 มหาอำนาจลบชื่อออกจากประวัติศาสตร์ลงในสมุดปกขี้เถ้า"}, {"num": 37, "id": "LORE_FIG_37", "titleTh": "\"มารดาบจันทร์เสี้ยว เย่กูหาน (Crescent Blade Demon Ye Guhan)\" — ผู้หลอมดาบโค้งจากเศษดาบของศพทหารหมื่นนาย", "groupTh": "🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "ผู้ถือครอง `LEG_WPN_FULL_MOON_SCIMITAR` ที่ออกไล่ล่าสังหารขุนนางและแม่ทัพผู้ก่อสงคราม"}, {"num": 38, "id": "LORE_FIG_38", "titleTh": "\"ประมุขพรรคไม้เท้าหยก หงชี (Beggar Sovereign Hong Qi)\" — ผู้นำกลุ่มผู้ลี้ภัยสงครามนับล้านคน", "groupTh": "🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "ผู้ถือครอง `LEG_WPN_DAGOU_JADE_STAFF` ก่อตั้งเครือข่ายพรรคพเนจรคุ้มครองผู้อพยพสงคราม"}, {"num": 39, "id": "LORE_FIG_39", "titleTh": "\"เซียนสุราหมื่นไห จิ้วเจี้ยนเซียน (Drunken Sword Immortal Jiu Jianxian)\" — อดีตยอดฝีมืออันดับหนึ่งผู้เมามายเพื่อลืมความพ่ายแพ้", "groupTh": "🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "ผู้ฝึก `LEG_COMBAT_FEIXIAN_ONE_SWORD` ที่เคยบุกท้าดวล 3 มหาอำนาจและเลือกเมามายหลังล่วงรู้ความลับดำมืดของโลก"}, {"num": 40, "id": "LORE_FIG_40", "titleTh": "\"จอมขมังเวทบึงทมิฬ ปู่เจ้าสมิงพราย (Grand Occultist Pu Jao)\" — ผู้รวบรวมวิญญาณทหารไร้ญาติในป่าดงดิบ", "groupTh": "🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "ผู้ถือครอง `REL_V230_OCCULT_MAGE` ปลุกผีทหารและควายธนูตั้งเป็นแนวกันชนในบึงหมอก"}, {"num": 41, "id": "LORE_FIG_41", "titleTh": "\"ซามูไรไร้ปราณ เคนชินแห่งผาเมฆา (Void Samurai Kenshin)\" — ชายผู้หั่นปราณเซียนด้วยดาบเหล็กธรรมดา", "groupTh": "🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)", "eraId": "ERA_2_POST_TIANGU_CHAOS", "summaryTh": "ชายตันเถียนพิการผู้ฝึกฟันดาบคาตานะ (`SHADOW_SAMURAI`) วันละแสนครั้งจนตัดกระแสปราณของเซียนขาดสะบั้น"}, {"num": 42, "id": "LORE_FIG_42", "titleTh": "\"ทูตเจ็ดลิ้น ซูฉิน (Silver-Tongued Envoy Su Qin)\" — นักการทูตผู้ร่างสนธิสัญญาเขตกันชนหุบเขาสองแคว", "groupTh": "🏛️ กลุ่มที่ 4: ยอดคนผู้วางรากฐานสู่ยุคปัจจุบันและแคว้นเล็กของเรา (4 ตัวละคร)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "summaryTh": "บัณฑิตผู้เจรจาหยุดทัพ 3 มหาอำนาจและตั้งหุบเขาใจกลางแผ่นดินให้เป็นแคว้นอิสระขนาดเล็ก (ที่ตั้งสำนักเรา)"}, {"num": 43, "id": "LORE_FIG_43", "titleTh": "\"จอมโจรพันหน้า เต้าจื่อ (Phantom Thief Dao Zhi)\" — ผู้ขโมยคัมภีร์จาก 3 มหาอำนาจมาซ่อนไว้ในแดนลับ", "groupTh": "🏛️ กลุ่มที่ 4: ยอดคนผู้วางรากฐานสู่ยุคปัจจุบันและแคว้นเล็กของเรา (4 ตัวละคร)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "summaryTh": "ผู้ฝึก `LEG_LIGHT_LINGBO_STEP` ที่ลอบขโมยคัดลอกวิชาจากคลังหลวงทั้งสามไปซ่อนตามแดนลับให้คนรุ่นหลัง"}, {"num": 44, "id": "LORE_FIG_44", "titleTh": "\"นายหญิงเรือผี หลานอิน (Ghost-Fleet Admiral Lan Yin)\" — ผู้นำกองเรือผู้ลี้ภัยที่แล่นเรือเข้าไปในม่านหมอกทะเลใต้", "groupTh": "🏛️ กลุ่มที่ 4: ยอดคนผู้วางรากฐานสู่ยุคปัจจุบันและแคว้นเล็กของเรา (4 ตัวละคร)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "summaryTh": "นำกองเรือแล่นฝ่าม่านหมอกออกไปหาอาณาจักรอื่นและจะแล่นกลับมาปรากฏตัวในคืนพายุใหญ่พร้อมวัตถุดิบปริศนา"}, {"num": 45, "id": "LORE_FIG_45", "titleTh": "\"ปรมาจารย์ผู้ก่อตั้งสำนักรุ่นแรก (The First Patriarch of the Forgotten Sect)\" — เจ้าสำนักคนแรกสุดที่เคยตั้งสำนักบนหุบเขาของเรามาก่อน", "groupTh": "🏛️ กลุ่มที่ 4: ยอดคนผู้วางรากฐานสู่ยุคปัจจุบันและแคว้นเล็กของเรา (4 ตัวละคร)", "eraId": "ERA_4_THREE_EMPIRES_BALANCE", "summaryTh": "ผู้ทิ้งค่ายกลรากฐานและห้องลับใต้ดินไว้บนยอดเขาของเราก่อนหายสาบสูญไปใต้ฐานประตูมิติโบราณ!"}, {"num": 46, "id": "LORE_FIG_46", "titleTh": "\"จักรพรรดิเหมันต์ กู่เทียนเฉิน (Frost Emperor Gu Tianchen)\" — จักรพรรดิองค์ปัจจุบันผู้แบกรับคำสาปสายเลือดราชวงศ์", "groupTh": "❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: ราชันย์บัลลังก์น้ำแข็ง / ผู้ถือกระบี่อิงฟ้าจำลอง · ประวัติและ Lore: · ทายาทสายตรงรุ่นปัจจุบันของเชื้อพระวงศ์อาณาจักรเก่าที่ปกครองเป่ยหมิง เบื้องหน้าเขามีบุคลิกสง่างาม เยือกเย็น และเคร่งครัดในจารีตสวรรค์สูงสุด · แต่ความลับที่คนนอกไม่รู้คือ สายเลือดราชวงศ์เก่าที่สืบทอดมานับแสนปีเริ่มเกิดอาการ \"ปราณเหมันต์กัดกินหัวใจ\" ทำให้ผู้ครองบัลลังก์ทุกคนจะมีอายุขัยสั้นลงหากไม่พบ *\"แก่นปราณต้นกำเนิดใต้ประตูมิติโบราณ\"* เขาจึงกำลังส่งสายลับและสำนักในสังกัดลงมาสืบหาความลับในแคว้นเล็กของสำนักเราอย่างเงียบๆ"}, {"num": 47, "id": "LORE_FIG_47", "titleTh": "\"องค์หญิงรัชทายาท กู่ชิงเสวี่ย (Crown Princess Gu Qingxue)\" — หญิงงามอันดับหนึ่งแห่งแดนเหนือผู้ตั้งคำถามกับกฎสวรรค์", "groupTh": "❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: เทพธิดาเก้าเหมันต์ / กระบี่หิมะไร้ใจ · ประวัติและ Lore: · อัจฉริยะหญิงอันดับหนึ่งแห่งยุคของเป่ยหมิง ผู้ฝึกฝน กระบี่หกชีพจรปราณไร้รูป (`LEG_MANTRA_SIX_MERIDIAN_QI`) ได้สมบูรณ์ตั้งแต่วัยเยาว์ นางถูกวางตัวให้เป็นผู้ปลุกปฐมบรรพชน *องค์หญิงกู่หลิงเฟย (#2)* จากผลึกน้ำแข็ง · ทว่าระหว่างที่นางออกเดินทางท่องเที่ยวเก็บเกี่ยวประสบการณ์ในยุทธภพ นางกลับได้เห็นความทุกข์ยากของสามัญชนและเริ่มสงสัยว่า *\"การรักษาความบริสุทธิ์ของสายเลือดราชวงศ์เมื่อหลายแสนปีก่อน สำคัญกว่าชีวิตผู้คนในวันนี้จริงหรือ?\"*"}, {"num": 48, "id": "LORE_FIG_48", "titleTh": "\"อ๋องแปด กู่เจี้ยนหาน (Eighth Royal Uncle Gu Jianhan)\" — ผู้สำเร็จราชการเงาและเจ้าสำนักตรวจการแผ่นดินเหนือ", "groupTh": "❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: กระบี่อาญาสิทธิ์ราชสกุล / พยัคฆ์เฝ้าหอคอยหิมะ · ประวัติและ Lore: · พระปิตุลา (อา) ของจักรพรรดิองค์ปัจจุบัน ผู้กุมอำนาจหน่วยองครักษ์เงาเหมันต์และดูแลสำนักเซียนที่เป็นแขนขาของเป่ยหมิงทั้งหมด เขามีแนวคิดชาตินิยมสุดโต่ง มองว่าทั้ง *ตระกูลมหาเสนาบดีตงหวง* และ *ตระกูลแม่ทัพซีหรง* ล้วนเป็นเพียง \"ข้าราชบริพารชั้นผู้น้อยที่บังอาจตั้งตนเสมอเจ้านาย\" และต้องการให้เป่ยหมิงใช้กำลังยึดครองหุบเขาใจกลางแผ่นดินทันทีโดยไม่ต้องสนสนธิสัญญา!"}, {"num": 49, "id": "LORE_FIG_49", "titleTh": "\"เจ้าหอดูดาวหลวง ซิงอวิ๋น (Star-Tower Master Xing Yun)\" — โหราจารย์หนุ่มผู้มองเห็นดาวตัวแปรเหนือสำนักเรา", "groupTh": "❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: เนตรดาราเจ็ดชีวิต / ผู้สืบทอดซิงเฉินจื่อ · ประวัติและ Lore: · เจ้าหอดูดาวหลวงคนปัจจุบันของเป่ยหมิง ในคืนที่ผู้เล่นก่อตั้งสำนักขึ้นในแคว้นเล็กใจกลางแผ่นดิน ซิงอวิ๋นได้มองเห็น \"ดาวจอมราชันย์เร้นลับ\" ส่องสว่างขึ้นตรงตำแหน่งหุบเขาสองแคว แทนที่จะรายงานเรื่องนี้ให้อ๋องแปดส่งคนไปทำลายสำนักเรา เขากลับเลือกปกปิดคำทำนายนั้นไว้และปลอมตัวเป็นนักพรตพเนจรลงมาสังเกตการณ์สำนักของเราด้วยตนเอง!"}, {"num": 50, "id": "LORE_FIG_50", "titleTh": "\"แม่ชีดาบน้ำแข็ง เย่หนิงซวง (Frost-Blade Abbess Ye Ningshuang)\" — ผู้พิทักษ์สุสานราชวงศ์เก่าและผู้คุมคุกน้ำแข็ง", "groupTh": "❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: ดาบตัดวาสนา / ผู้เฝ้าตำหนักต้องห้าม · ประวัติและ Lore: · ยอดฝีมือหญิงอาวุโสผู้สละทางโลกเพื่อเฝ้าทางเข้าสุสานราชวงศ์เทียนกู่ในเทือกเขาหิมะ นางไม่เคยสนใจการเมืองของราชสำนัก แต่จะลงมือสังหารทุกคนที่คิดจะล่วงล้ำเข้าไปรบกวนการจำศีลของบรรพชนราชวงศ์เก่า"}, {"num": 51, "id": "LORE_FIG_51", "titleTh": "\"อัครมหาเสนาบดี ซือหม่าอี้เซวียน (Grand Chancellor Sima Yixuan)\" — ผู้นำตระกูลเสนาบดีคนปัจจุบันผู้เดินหมากทั้งแผ่นดิน", "groupTh": "📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: จิ้งจอกเก้าหางแห่งตงหวง / ผู้กุมถุงเงินของโลกหล้า · ประวัติและ Lore: · ผู้นำสูงสุดคนปัจจุบันของมหาอาณาจักรตงหวง ชายวัยกลางคนผู้มีรอยยิ้มอบอุ่นเหมือนบัณฑิตใจดีและไม่เคยถืออาวุธออกศึกด้วยตนเองแม้แต่ครั้งเดียว · แต่เพียงเขาดีดลูกคิดและตวัดพู่กันลงนามคำสั่งการค้าเพียงฉบับเดียว ก็สามารถทำให้สำนักใหญ่ขาดแคลนเสบียงจนล่มสลายได้ภายในสามเดือน! เขาสงสัยว่าหนึ่งในลูกหลานของเขากำลังจะตื่นรู้ความทรงจำของปฐมบรรพชน *ซือหม่าชุน (#4)* จึงพยายามจัดฉากทดสอบทายาททุกคนในตระกูล"}, {"num": 52, "id": "LORE_FIG_52", "titleTh": "\"คุณชายสาม ซือหม่าชิง (Third Young Master Sima Qing)\" — ทายาทหนุ่มผู้ตื่นรู้ความทรงจำเมื่อหลายแสนปีก่อนแต่แกล้งทำเป็นคนเสเพล!", "groupTh": "📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: คุณชายพัดทองคำจอมเสเพล / ผู้ซ่อนเนตรแสนปี · ประวัติและ Lore: · บุตรชายคนที่สามของตระกูลมหาเสนาบดีที่คนทั้งเมืองหลวงตงหวงตราหน้าว่าเป็นคนไม่ได้เรื่อง วันๆ เอาแต่เดินเที่ยวโรงเตี๊ยม ดื่มสุรา และสะสมของเก่าไร้ค่า · แต่ความจริงคือ: เขาคือคนที่ตื่นรู้ความทรงจำบางส่วนของปฐมบรรพชน *ซือหม่าชุน (#4)* แล้ว! เพราะเขารู้ความจริงเรื่องความพ่ายแพ้ของอาณาจักรเก่าและภัยจากโลกเบื้องบน เขาจึงแกล้งทำเป็นคนเสเพลเพื่อหลบเลี่ยงการแย่งชิงอำนาจในตระกูล แล้วแอบใช้เครือข่ายการค้าลับส่งทรัพยากรไปสนับสนุนสำนักเล็กๆ ที่มีแววจะต่อกรกับชะตากรรมของโลกได้!"}, {"num": 53, "id": "LORE_FIG_53", "titleTh": "\"เจ้าสัวหญิง ว่านจินเหนียง (Merchant Empress Wan Jinniang)\" — ประมุขหอการค้าหมื่นทองคำและตลาดประมูลหลวง", "groupTh": "📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: เทพธิดาลูกคิดหยก / นายหญิงผู้ซื้อได้แม้กระทั่งชีวิตเซียน · ประวัติและ Lore: · สตรีผู้ร่ำรวยที่สุดในแผ่นดินเบื้องล่าง ผู้ดูแล \"หอประมูลหมื่นทองคำ\" และเส้นทางคาราวานทั้งหมดของตงหวง นางถือคติว่า *\"ในโลกนี้ไม่มีสิ่งใดซื้อไม่ได้ หากซื้อไม่ได้แปลว่าศิลาปราณยังไม่มากพอ\"* นางคือตัวละครสำคัญที่จะเข้ามาติดต่อค้าขายระดับใหญ่และมอบพันธสัญญาการค้าให้แก่สำนักของผู้เล่น"}, {"num": 54, "id": "LORE_FIG_54", "titleTh": "\"หัวหน้าผู้ตรวจการแผ่นดิน เหยียนหลัว (Chief Censor Yan Luo)\" — ตุลาการหน้าเหล็กผู้ถือมีดสั้นเซียวหลี่คนปัจจุบัน", "groupTh": "📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: ยมทูตพู่กันดำ / มือปราบไร้ปราณีแห่งตงหวง · ประวัติและ Lore: · ผู้บังคับบัญชาสูงสุดของศาลตุลาการและกระดานค่าหัวแห่งตงหวง ผู้ได้รับพระราชทานสิทธิ์ถือครอง มีดสั้นเซียวหลี่ (`LEG_WPN_XIAOLI_HEART_DAGGER`) ในยุคปัจจุบัน เขาเป็นคนเถรตรงดั่งไม้บรรทัดเหล็ก ไม่ว่าโจรนอกรีตหรือลูกหลานขุนนางชั้นสูง หากทำผิดกฎหมายแผ่นดินตงหวง เขาจะตามไปซัดมีดสั้นปลิดชีพถึงหน้าประตูสำนัก!"}, {"num": 55, "id": "LORE_FIG_55", "titleTh": "\"มหาปราชญ์หอคัมภีร์ ขงเหวิน (Grand Scholar Kong Wen)\" — ผู้ดูแลค่ายกลแปดประตูและหอจดหมายเหตุตงหวง", "groupTh": "📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: ตู้คัมภีร์เดินได้ / ราชครูอักษรสวรรค์ · ประวัติและ Lore: · ชายชราผู้ดูแลหอคัมภีร์หลวงของตงหวงและควบคุม ค่ายกลแปดประตูราชสำนัก (`LEG_AUX_IMPERIAL_EIGHT_GATES`) เขามักจะจัดงาน \"ชุมนุมวิจารณ์คัมภีร์และประลองปัญญา\" เพื่อคัดเลือกศิษย์สายปราชญ์และสายค่ายกลจากสำนักต่างๆ เข้ามารับทุนสนับสนุนจากตงหวง"}, {"num": 56, "id": "LORE_FIG_56", "titleTh": "\"จอมทัพใหญ่ ทัวป๋าเจิ้นเทียน (Grand Marshal Tuoba Zhentian)\" — ผู้นำตระกูลแม่ทัพคนปัจจุบันผู้กระหายสงครามรวมแผ่นดิน", "groupTh": "⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: พยัคฆ์โลหิตผู้ครองประจิม / จอมทัพทวนสะท้านภพ · ประวัติและ Lore: · ผู้นำสูงสุดคนปัจจุบันของมหาอาณาจักรซีหรง ชายร่างยักษ์ผู้แบกทวนหนักหมื่นชั่งและมีรอยแผลเป็นเต็มแผ่นหลัง เขาเบื่อหน่ายสภาวะ \"คานอำนาจสามเส้า\" ที่ยืดเยื้อมานับแสนปีอย่างที่สุด และเชื่อว่าวิธีเดียวที่จะเตรียมรับมือกับภัยภายนอกคือ \"ซีหรงต้องบดขยี้ทั้งตงหวงและเป่ยหมิง แล้วรวบรวมแผ่นดินด้วยกฎอัยการศึก!\""}, {"num": 57, "id": "LORE_FIG_57", "titleTh": "\"แม่ทัพน้อยหญิง ทัวป๋าหงเหลียน (Young General Tuoba Honglian)\" — ธิดาพยัคฆ์ผู้ชอบปลอมตัวไปท้าดวลตามสำนักต่างๆ", "groupTh": "⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: ทวนเพลิงดอกบัวแดง / แชมเปี้ยนลานประลองซีหรง · ประวัติและ Lore: · บุตรสาวคนเดียวของจอมทัพใหญ่ทัวป๋าเจิ้นเทียน นางเกิดมาพร้อมรากฐานกายาเหล็กไหลระดับสูงสุดและหลงใหลการต่อสู้แบบตัวต่อตัวเป็นชีวิตจิตใจ · นางไม่ชอบนั่งบริหารกองทัพในค่ายทหาร แต่มักจะแอบหนีออกจากซีหรงมาประลองยุทธ์ในลานประลองและบุกไปขอท้าดวลกับศิษย์เอกของสำนักต่างๆ ทั่วแผ่นดิน หากใครสามารถเอาชนะนางได้โดยไม่ใช้ลูกไม้สกปรก นางจะนับถือเป็นสหายร่วมเป็นร่วมตายทันที!"}, {"num": 58, "id": "LORE_FIG_58", "titleTh": "\"ขุนพลเขี้ยวหมาป่า ชางหลาง (Wolf-Fang General Cang Lang)\" — ผู้บัญชาการกองทัพทหารม้าอสูรทะเลทราย", "groupTh": "⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: ราชันย์หมาป่าพายุทราย / ผู้สยบอสูรพันธะโลหิต · ประวัติและ Lore: · ขุนพลมือขวาของตระกูลแม่ทัพใหญ่ ผู้เติบโตมากับฝูงหมาป่าทะเลทรายและเชี่ยวชาญวิถีราชันย์อสูร (`BEAST_SOVEREIGN`) ผสานวิถีกายา (`BODY`) เขาคือผู้ควบคุมกองทัพทหารม้าขี่อสูรที่คอยลาดตระเวนตามแนวพรมแดนตะวันตกและออกล่าสัตว์อสูรระดับสูงในทะเลทรายหินแดง"}, {"num": 59, "id": "LORE_FIG_59", "titleTh": "\"เจ้าสำนักคุกโลหิต กู้หุน (Blood-Warden Gu Hun)\" — ผู้ดูแลกองทัพนักโทษไถ่บาปและเหมืองเหล็กไหลซีหรง", "groupTh": "⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: ผู้คุมโซ่กระดูก / เพชฌฆาตหุบเขาหินแดง · ประวัติและ Lore: · ในมหาอาณาจักรซีหรง ผู้ที่พ่ายแพ้หรือทำผิดกฎทหารจะไม่ถูกประหารชีวิตเปล่าๆ แต่จะถูกส่งมาให้ \"กู้หุน\" จองจำและจัดตั้งเป็น \"กองทัพนักโทษไถ่บาป\" ส่งไปขุดแร่เหล็กไหลหรือเป็นกองหน้าบุกทะลวงแดนลับที่อันตรายที่สุด"}, {"num": 60, "id": "LORE_FIG_60", "titleTh": "\"ปรมาจารย์ทวนเฒ่า ทัวป๋ากัง (Old Spear Grandmaster Tuoba Gang)\" — ผู้อาวุโสสูงสุดผู้เฝ้าตราพยัคฆ์ไท่จี๋และรอฟังเสียงจากพายุทราย", "groupTh": "⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)", "eraId": "ERA_5_PRESENT_CONVERGENCE", "summaryTh": "สมญานามในยุคปัจจุบัน: ปราการเหล็กด่านสุดท้าย / ผู้สื่อสารกับวิญญาณบรรพชน · ประวัติและ Lore: · ผู้อาวุโสสูงสุดของตระกูลแม่ทัพใหญ่ที่มีอายุยืนยาวที่สุดในซีหรง เขานั่งขัดสมาธิเฝ้า ตราพยัคฆ์ไท่จี๋ (`LEG_ACC_TAICHI_HEAVEN_SEAL`) อยู่บนยอดผาหินแดงที่หันหน้าเข้าหาพายุทะเลทราย เพื่อคอยสดับฟังเสียงทวนของปฐมบรรพชน *ทัวป๋าเลี่ย (#5)* และเป็นคนเดียวที่สามารถสั่งยับยั้งไม่ให้ทัวป๋าเจิ้นเทียนเปิดสงครามล้างภพก่อนเวลาอันควร!"}], "FACT_ERA_MAP": {"FACT_27_ANTEDILUVIAN_THREE_SOVEREIGN_EPOCHS": "ERA_0_ANTEDILUVIAN", "FACT_26_SUBCONTINENT_CRATER_BEYOND_FOG_SEA": "ERA_0_ANTEDILUVIAN", "FACT_08_TIANGU_MISSING_RIVER_BEND": "ERA_1_TIANGU_WAR", "FACT_23_MINGYU_FROST_ROBE_AND_HEART_FREEZE": "ERA_1_TIANGU_WAR", "FACT_24_XINGCHENZI_TOY_ASTROLABE_GEAR": "ERA_1_TIANGU_WAR", "FACT_25_KONG_MING_SHATTERED_DANTIAN_STRANDING": "ERA_1_TIANGU_WAR", "FACT_V370_08_TRANS_FIELD_CLAUSE_SOVEREIGN": "ERA_1_TIANGU_WAR", "FACT_V370_01_LEG_READ_FORM_BLADE": "ERA_2_POST_TIANGU_CHAOS", "FACT_V370_05_LEG_OATH_JUDGE_WARDEN": "ERA_2_POST_TIANGU_CHAOS", "FACT_V370_10_TRANS_SEALKEEPER_FORBIDDEN_KEY": "ERA_2_POST_TIANGU_CHAOS", "FACT_V370_12_TRANS_DYNASTIC_MANDATE_WEAVER": "ERA_2_POST_TIANGU_CHAOS", "FACT_14_CANGLAN_GRANARY_HALF_TALLY": "ERA_3_MIDDLE_EPOCHS", "FACT_V370_03_LEG_STORM_CALLER_TEMPEST": "ERA_3_MIDDLE_EPOCHS", "FACT_V370_06_LEG_ASHEN_KILN_ALCHEMY": "ERA_3_MIDDLE_EPOCHS", "FACT_V370_09_TRANS_TEMPO_SOVEREIGN": "ERA_3_MIDDLE_EPOCHS", "FACT_V370_11_TRANS_PRIMAL_VORTEX_MIRROR": "ERA_3_MIDDLE_EPOCHS", "FACT_03_QINGLAN_DOUBLE_TOLL_SEAL": "ERA_4_THREE_EMPIRES_BALANCE", "FACT_04_YUGUAN_REFUGEE_BOUNDARY": "ERA_4_THREE_EMPIRES_BALANCE", "FACT_16_TIGER_SEAL_CHIPPED_INKSTONE": "ERA_4_THREE_EMPIRES_BALANCE", "FACT_18_THREE_LANTERN_FOG_UNDERTOW": "ERA_4_THREE_EMPIRES_BALANCE", "FACT_21_SU_QIN_820YR_YUNHE_TREATY": "ERA_4_THREE_EMPIRES_BALANCE", "FACT_V370_02_LEG_TRIAGE_MERIDIAN": "ERA_4_THREE_EMPIRES_BALANCE", "FACT_V370_04_LEG_JADE_CARAVAN_VOYAGER": "ERA_4_THREE_EMPIRES_BALANCE", "FACT_V370_07_TRANS_CONSTELLATION_RELAY": "ERA_4_THREE_EMPIRES_BALANCE", "FACT_28_NAMELESS_FOUNDER_UPPER_WORLD_VIGIL": "ERA_5_PRESENT_CONVERGENCE", "FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR": "ERA_5_PRESENT_CONVERGENCE", "FACT_22_SIMA_QING_BROKEN_CURIO_HUNT": "ERA_5_PRESENT_CONVERGENCE"}, "START_WORLD_YEAR": 100001, "EPOCH_ZERO_TH": "ยุคที่ 0 ปีที่ 0 — คืนประตูมิติหลวงแตกและวันล่มสลายของมหาจักรวรรดิเทียนกู่", "START_EPOCH": 101, "START_YEAR_IN_EPOCH": 1, "YEARS_PER_EPOCH": 1000});
+  X.getLoreChronicleE0E1 = () => (g.JD && g.JD.LORE_CHRONICLE_E0_E1) || null;
+  X.LORE_COMPENDIUM_GET_ERA_FOR_FACT = (factId) => {
+    if (!factId) return "ERA_5_PRESENT_CONVERGENCE";
+    return (X.LORE_COMPENDIUM.FACT_ERA_MAP && X.LORE_COMPENDIUM.FACT_ERA_MAP[factId]) || "ERA_5_PRESENT_CONVERGENCE";
+  };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

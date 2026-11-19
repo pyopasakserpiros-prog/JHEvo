@@ -2238,6 +2238,19 @@
 
     // 3. GOD
     LEG_V240_GOD: 'sig_pantheon_deity_descent',
+    // JS2 v3.7.0c: 12 Legendary & Transcendent Dao Tier-7 Apex Signatures
+    LEG_V370_LEG_READ_FORM_BLADE: 'sig_iai_crimson_moon_slash',
+    LEG_V370_LEG_TRIAGE_MERIDIAN: 'sig_shennong_emerald_lotus',
+    LEG_V370_LEG_STORM_CALLER_TEMPEST: 'sig_thunder_god_halberd',
+    LEG_V370_LEG_JADE_CARAVAN_VOYAGER: 'sig_eight_directions_palm',
+    LEG_V370_LEG_OATH_JUDGE_WARDEN: 'sig_golden_buddha_bell',
+    LEG_V370_LEG_ASHEN_KILN_ALCHEMY: 'sig_shinobi_mudra_firestorm',
+    LEG_V370_TRANS_CONSTELLATION_RELAY: 'sig_heavens_sound_requiem',
+    LEG_V370_TRANS_FIELD_CLAUSE_SOVEREIGN: 'sig_taiji_yin_yang_crush',
+    LEG_V370_TRANS_TEMPO_SOVEREIGN: 'sig_void_spatial_slash',
+    LEG_V370_TRANS_SEALKEEPER_FORBIDDEN_KEY: 'sig_myriad_puppet_barrage',
+    LEG_V370_TRANS_PRIMAL_VORTEX_MIRROR: 'sig_void_spatial_slash',
+    LEG_V370_TRANS_DYNASTIC_MANDATE_WEAVER: 'sig_pantheon_deity_descent',
     ART190_GOD_040: 'sig_pantheon_deity_descent',
     ART190_GOD_075: 'sig_soul_scorching_flame',
     MP_STAFF_EARTH_GOD_BLESSING_T7: 'sig_shennong_emerald_lotus',
@@ -2699,7 +2712,7 @@
   SK.resolveCommonVfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const id = techOrMove.tech || techOrMove.id;
-    const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
+    const tech = (g.CULT && g.CULT.tech && g.CULT.tech(id)) || techOrMove;
     if (!tech || tech.legendary || tech.tier > 2 || tech.signatureVfx || tech.fxKind ||
         SK.TECH_TO_SIGNATURE_VFX[id] || techOrMove.signatureVfx ||
         (moveOpt && moveOpt.signatureVfx)) return null;
@@ -2936,13 +2949,15 @@
   SK.resolveT3Vfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const id = techOrMove.tech || techOrMove.id;
-    const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
+    const tech = (g.CULT && g.CULT.tech && g.CULT.tech(id)) || techOrMove;
     if (!tech || tech.tier !== 3 || tech.legendary || tech.fxKind || tech.signatureVfx ||
         techOrMove.signatureVfx || SK.TECH_TO_SIGNATURE_VFX[id] ||
         (moveOpt && (moveOpt.signatureVfx || moveOpt.fxKind || moveOpt.legendary))) return null;
     const moveId = moveOpt && (moveOpt.moveId || moveOpt.id);
     const move = (tech.moveDefs || []).find(m => m.id === moveId);
     if (move && (move.signatureVfx || move.fxKind || move.legendary || move.arch === 'forbid')) return null;
+    if (SK.TECH_TO_T3_VFX && SK.TECH_TO_T3_VFX[id]) return SK.TECH_TO_T3_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T3_VFX, tech, id); if (_tv) return _tv; }
     return SK.TECH_TO_T3_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 'bone_ribs' : tech.cat === 'FAITH_MANTRA' ? 'faith_lamella' : 'healing_chime') : null);
   };
 
@@ -3373,13 +3388,35 @@
       "variant": 71,
       "oldSignature": "sig_divine_crucible_forge",
       "nameTh": "มหาคัมภีร์เตาหลอมสวรรค์รังสรรค์หมื่นศาสตรา"
-    }
+    },
+    "LEG_V370_LEG_READ_FORM_BLADE": { "family": "void_blade", "variant": 72, "oldSignature": "sig_iai_crimson_moon_slash", "nameTh": "มหาคมกระบี่อ่านช่องฟ้าสะบั้นจุดตาย" },
+    "LEG_V370_LEG_TRIAGE_MERIDIAN": { "family": "vital_garden", "variant": 73, "oldSignature": "sig_shennong_emerald_lotus", "nameTh": "มหาเข็มชีพจรประคองสหายคืนชีวิต" },
+    "LEG_V370_LEG_STORM_CALLER_TEMPEST": { "family": "cloud_thunder", "variant": 74, "oldSignature": "sig_thunder_god_halberd", "nameTh": "มหาอสนีบัญชาพายุเจ็ดคาบสมุทร" },
+    "LEG_V370_LEG_JADE_CARAVAN_VOYAGER": { "family": "earth_veins", "variant": 75, "oldSignature": "sig_eight_directions_palm", "nameTh": "มหาด่านคาราวานหยกพิทักษ์หมื่นลี้" },
+    "LEG_V370_LEG_OATH_JUDGE_WARDEN": { "family": "gold_balance", "variant": 76, "oldSignature": "sig_golden_buddha_bell", "nameTh": "มหาตราตุลาการสัตย์สาบานสะกดยุทธภพ" },
+    "LEG_V370_LEG_ASHEN_KILN_ALCHEMY": { "family": "forge_lattice", "variant": 77, "oldSignature": "sig_shinobi_mudra_firestorm", "nameTh": "มหาเตาเถ้าคืนชีวิตหลอมโอสถนิรันดร์" },
+    "LEG_V370_TRANS_CONSTELLATION_RELAY": { "family": "astral_ladle", "variant": 78, "oldSignature": "sig_heavens_sound_requiem", "nameTh": "มหาค่ายประสานปราณหมู่ดาวค้ำฟ้า" },
+    "LEG_V370_TRANS_FIELD_CLAUSE_SOVEREIGN": { "family": "rune_brush", "variant": 79, "oldSignature": "sig_taiji_yin_yang_crush", "nameTh": "มหาธรรมนูญฟ้าขีดเขตบัญญัติพิภพ" },
+    "LEG_V370_TRANS_TEMPO_SOVEREIGN": { "family": "epoch_glass", "variant": 80, "oldSignature": "sig_void_spatial_slash", "nameTh": "มหาจังหวะกาลตัดห้วงลมหายใจฟ้า" },
+    "LEG_V370_TRANS_SEALKEEPER_FORBIDDEN_KEY": { "family": "puppet_lines", "variant": 81, "oldSignature": "sig_myriad_puppet_barrage", "nameTh": "มหากุญแจผนึกต้องห้ามสะกดหมื่นมาร" },
+    "LEG_V370_TRANS_PRIMAL_VORTEX_MIRROR": { "family": "dream_loom", "variant": 82, "oldSignature": "sig_void_spatial_slash", "nameTh": "มหากระจกวนปราณสะท้อนหมื่นสรรพวิชา" },
+    "LEG_V370_TRANS_DYNASTIC_MANDATE_WEAVER": { "family": "celestial_edict", "variant": 83, "oldSignature": "sig_pantheon_deity_descent", "nameTh": "มหาตราโองการทอชะตาแผ่นดินนิรันดร์" }
   };
   SK.resolveT7Vfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const id = techOrMove.tech || techOrMove.id;
-    const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
+    const tech = (g.CULT && g.CULT.tech && g.CULT.tech(id)) || techOrMove;
     if (!tech || tech.tier !== 7 || tech.legendary || techOrMove.legendary || tech.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary))) return null;
+    if (SK.T7_VFX_CATALOG && SK.T7_VFX_CATALOG[id]) return SK.T7_VFX_CATALOG[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_'))) {
+      const _t7Fam = {
+        LEG_READ_FORM_BLADE: 'myriad_blades', LEG_TRIAGE_MERIDIAN: 'lotus_bloom', LEG_STORM_CALLER_TEMPEST: 'thunder_cataclysm',
+        LEG_JADE_CARAVAN_VOYAGER: 'earth_shatter', LEG_OATH_JUDGE_WARDEN: 'golden_sanctum', LEG_ASHEN_KILN_ALCHEMY: 'crimson_inferno',
+        TRANS_CONSTELLATION_RELAY: 'star_constellation', TRANS_FIELD_CLAUSE_SOVEREIGN: 'imperial_seal', TRANS_TEMPO_SOVEREIGN: 'void_rift',
+        TRANS_SEALKEEPER_FORBIDDEN_KEY: 'void_rift', TRANS_PRIMAL_VORTEX_MIRROR: 'star_constellation', TRANS_DYNASTIC_MANDATE_WEAVER: 'golden_sanctum'
+      }[tech.path] || 'star_constellation';
+      return { family: _t7Fam, variant: 1, nameTh: tech.nameTh || 'มหาเคล็ดบ่มเพาะ' };
+    }
     return SK.T7_VFX_CATALOG[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? { family: 'myriad_blades', variant: 1, nameTh: tech.nameTh || 'มหาเคล็ดบ่มเพาะ' } : null);
   };
 
@@ -3819,6 +3856,8 @@
     if(!tech||tech.tier!==6||tech.legendary||techOrMove.legendary||tech.fxKind||techOrMove.fxKind||(moveOpt&&(moveOpt.fxKind||moveOpt.legendary||moveOpt.signatureVfx)))return null;
     const move=moveOpt&&(tech.moveDefs||[]).find(m=>m.id===moveOpt.id);
     if(move&&(move.fxKind||move.legendary||move.signatureVfx))return null;
+    if (SK.TECH_TO_T6_VFX && SK.TECH_TO_T6_VFX[id]) return SK.TECH_TO_T6_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T6_VFX, tech, id); if (_tv) return _tv; }
     return SK.TECH_TO_T6_VFX[id]||null;
   };
 
@@ -4632,6 +4671,8 @@
     if (!tech || tech.tier !== 5 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
+    if (SK.TECH_TO_T5_VFX && SK.TECH_TO_T5_VFX[id]) return SK.TECH_TO_T5_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T5_VFX, tech, id); if (_tv) return _tv; }
     return SK.TECH_TO_T5_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't5_totem_beast_crest' : tech.cat === 'FAITH_MANTRA' ? 't5_nether_ghost_lantern' : 't5_ocean_tide_trident') : null);
   };
 
@@ -5594,13 +5635,40 @@
   "TECH_V234_STRATEGY_GOVERNANCE_PAS_02": "t4_command_banner_thrust",
   "TECH_V234_STRATEGY_GOVERNANCE_AUX_02": "t4_tactical_shield_wall"
 };
+
+  SK._pickThematicDaoVfx = (mapObj, tech, id) => {
+    const vals = Object.values(mapObj || {});
+    if (!vals.length) return null;
+    const p = tech && tech.path || '';
+    const kwRe = {
+      LEG_READ_FORM_BLADE: /sword|blade|slash|cut|arc/i,
+      LEG_TRIAGE_MERIDIAN: /lotus|heal|jade|pulse|calm|chime|water|light/i,
+      LEG_STORM_CALLER_TEMPEST: /thunder|storm|lightning|wind|gale|frost/i,
+      LEG_JADE_CARAVAN_VOYAGER: /earth|shield|gold|iron|guard|stride/i,
+      LEG_OATH_JUDGE_WARDEN: /gold|bell|seal|light|lotus|judgment|sword/i,
+      LEG_ASHEN_KILN_ALCHEMY: /fire|flame|ember|ash|earth|cauldron|burn/i,
+      TRANS_CONSTELLATION_RELAY: /star|astral|lotus|light|chord|zither|heal/i,
+      TRANS_FIELD_CLAUSE_SOVEREIGN: /seal|array|gate|banner|imperial|earth/i,
+      TRANS_TEMPO_SOVEREIGN: /wind|void|chrono|wave|water|step|arc/i,
+      TRANS_SEALKEEPER_FORBIDDEN_KEY: /seal|chain|void|shadow|ward|talisman/i,
+      TRANS_PRIMAL_VORTEX_MIRROR: /mirror|star|vortex|water|astral|arc/i,
+      TRANS_DYNASTIC_MANDATE_WEAVER: /imperial|gold|star|banner|seal|light/i
+    }[p];
+    const filtered = kwRe ? vals.filter(v => kwRe.test(String(typeof v === 'string' ? v : (v && (v.family || v.id || ''))))) : [];
+    const pool = filtered.length ? filtered : vals;
+    const h = Math.abs(String(id || '').split('').reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0));
+    return pool[h % pool.length];
+  };
+
   SK.resolveT4Vfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const id = techOrMove.tech || techOrMove.id, tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
     if (!tech || tech.tier !== 4 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T4_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't4_tactical_shield_wall' : tech.cat === 'FAITH_MANTRA' ? 't4_five_element_flags' : 't4_bagua_trigram_ring') : null);
+    if (SK.TECH_TO_T4_VFX[id]) return SK.TECH_TO_T4_VFX[id];
+    if (tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T4_VFX, tech, id); if (_tv) return _tv; }
+    return ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't4_tactical_shield_wall' : tech.cat === 'FAITH_MANTRA' ? 't4_five_element_flags' : 't4_bagua_trigram_ring') : null);
   };
 
   SK.T3_EXT_VFX_CATALOG = {
@@ -6779,6 +6847,8 @@
     if (!tech || tech.tier !== 2 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
+    if (SK.TECH_TO_T2_VFX && SK.TECH_TO_T2_VFX[id]) return SK.TECH_TO_T2_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T2_VFX, tech, id); if (_tv) return _tv; }
     return SK.TECH_TO_T2_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't2_heavy_shoulder_ram' : tech.cat === 'FAITH_MANTRA' ? 't2_incense_prayer_wisp' : 't2_golden_shield_glint') : null);
   };
 
@@ -7206,6 +7276,8 @@
     if (!tech || tech.tier !== 1 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
+    if (SK.TECH_TO_T1_VFX && SK.TECH_TO_T1_VFX[id]) return SK.TECH_TO_T1_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T1_VFX, tech, id); if (_tv) return _tv; }
     return SK.TECH_TO_T1_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 'iron_palm' : tech.cat === 'FAITH_MANTRA' ? 'incense_wisp' : 'twin_balance') : null);
   };
 

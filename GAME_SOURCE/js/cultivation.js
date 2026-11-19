@@ -1939,7 +1939,19 @@
     LORE_ARCHIVIST: [245, 670, 1720, 4350, 10700, 26200, 63000],
     FORTUNE_GAMBLER: [240, 665, 1710, 4320, 10650, 26100, 62800],
     SPIRIT_HUSBANDRY: [245, 670, 1720, 4350, 10700, 26200, 63000],
-    ARENA_GLORY: [245, 675, 1730, 4380, 10750, 26300, 63200]
+    ARENA_GLORY: [245, 675, 1730, 4380, 10750, 26300, 63200],
+    LEG_READ_FORM_BLADE: [265, 725, 1860, 4700, 11500, 28000, 67500],
+    LEG_TRIAGE_MERIDIAN: [265, 725, 1860, 4700, 11500, 28000, 67500],
+    LEG_STORM_CALLER_TEMPEST: [265, 725, 1860, 4700, 11500, 28000, 67500],
+    LEG_JADE_CARAVAN_VOYAGER: [265, 725, 1860, 4700, 11500, 28000, 67500],
+    LEG_OATH_JUDGE_WARDEN: [265, 725, 1860, 4700, 11500, 28000, 67500],
+    LEG_ASHEN_KILN_ALCHEMY: [265, 725, 1860, 4700, 11500, 28000, 67500],
+    TRANS_CONSTELLATION_RELAY: [290, 790, 2020, 5100, 12450, 30200, 72500],
+    TRANS_FIELD_CLAUSE_SOVEREIGN: [290, 790, 2020, 5100, 12450, 30200, 72500],
+    TRANS_TEMPO_SOVEREIGN: [290, 790, 2020, 5100, 12450, 30200, 72500],
+    TRANS_SEALKEEPER_FORBIDDEN_KEY: [290, 790, 2020, 5100, 12450, 30200, 72500],
+    TRANS_PRIMAL_VORTEX_MIRROR: [290, 790, 2020, 5100, 12450, 30200, 72500],
+    TRANS_DYNASTIC_MANDATE_WEAVER: [290, 790, 2020, 5100, 12450, 30200, 72500]
   };
   const SUBPREF = {
     SWORD_IMMORTAL: { aff: { SWORD: 1, MOVEMENT: .5 }, p: { 'personality.courage': .4, 'values.martialPeak': .4 } },
@@ -2040,7 +2052,19 @@
       LORE_ARCHIVIST: (HC.eff(npc, 'affinities.SCRIPTURE') + HC.eff(npc, 'intellect.wisdom') + HC.eff(npc, 'intellect.memory') + HC.eff(npc, 'values.knowledgeCraft')) * 0.2 + HC.eff(npc, 'aptitudes.comprehension') * 0.36 - 1.0,
       FORTUNE_GAMBLER: (HC.eff(npc, 'intellect.intuition') + HC.eff(npc, 'physiology.agility') + HC.eff(npc, 'personality.courage') + HC.eff(npc, 'values.wealthResource')) * 0.2 + HC.eff(npc, 'aptitudes.combat') * 0.36 - 1.0,
       SPIRIT_HUSBANDRY: (HC.eff(npc, 'affinities.BEAST_TAMING') + HC.eff(npc, 'affinities.MEDICINE') + HC.eff(npc, 'interests.beasts') + HC.eff(npc, 'personality.empathy')) * 0.2 + HC.eff(npc, 'aptitudes.crafting') * 0.36 - 1.0,
-      ARENA_GLORY: (HC.eff(npc, 'interests.combat') + HC.eff(npc, 'physiology.strength') + HC.eff(npc, 'social.charisma') + HC.eff(npc, 'values.powerStatus')) * 0.2 + HC.eff(npc, 'aptitudes.combat') * 0.36 - 1.0
+      ARENA_GLORY: (HC.eff(npc, 'interests.combat') + HC.eff(npc, 'physiology.strength') + HC.eff(npc, 'social.charisma') + HC.eff(npc, 'values.powerStatus')) * 0.2 + HC.eff(npc, 'aptitudes.combat') * 0.36 - 1.0,
+      LEG_READ_FORM_BLADE: (npc && npc.daoDiscoveries && npc.daoDiscoveries['LEG_READ_FORM_BLADE']) ? (HC.eff(npc, 'interests.combat') * 0.40 + HC.eff(npc, 'personality.discipline') * 0.35 + HC.eff(npc, 'intellect.comprehension') * 0.30 + 14) : -999,
+      LEG_TRIAGE_MERIDIAN: (npc && npc.daoDiscoveries && npc.daoDiscoveries['LEG_TRIAGE_MERIDIAN']) ? (HC.eff(npc, 'personality.empathy') * 0.45 + HC.eff(npc, 'intellect.comprehension') * 0.35 + HC.eff(npc, 'personality.discipline') * 0.25 + 16) : -999,
+      LEG_STORM_CALLER_TEMPEST: (npc && npc.daoDiscoveries && npc.daoDiscoveries['LEG_STORM_CALLER_TEMPEST']) ? (HC.eff(npc, 'intellect.comprehension') * 0.40 + HC.eff(npc, 'personality.curiosity') * 0.35 + HC.eff(npc, 'interests.combat') * 0.25 + 14) : -999,
+      LEG_JADE_CARAVAN_VOYAGER: (npc && npc.daoDiscoveries && npc.daoDiscoveries['LEG_JADE_CARAVAN_VOYAGER']) ? (HC.eff(npc, 'aptitudes.socialCommerce') * 0.45 + HC.eff(npc, 'personality.curiosity') * 0.30 + HC.eff(npc, 'personality.discipline') * 0.25 + 14) : -999,
+      LEG_OATH_JUDGE_WARDEN: (npc && npc.daoDiscoveries && npc.daoDiscoveries['LEG_OATH_JUDGE_WARDEN']) ? (HC.eff(npc, 'personality.integrity') * 0.45 + HC.eff(npc, 'social.leadership') * 0.30 + HC.eff(npc, 'personality.discipline') * 0.25 + 14) : -999,
+      LEG_ASHEN_KILN_ALCHEMY: (npc && npc.daoDiscoveries && npc.daoDiscoveries['LEG_ASHEN_KILN_ALCHEMY']) ? (HC.eff(npc, 'values.knowledgeCraft') * 0.45 + HC.eff(npc, 'personality.discipline') * 0.30 + HC.eff(npc, 'intellect.comprehension') * 0.25 + 14) : -999,
+      TRANS_CONSTELLATION_RELAY: (npc && npc.daoDiscoveries && npc.daoDiscoveries['TRANS_CONSTELLATION_RELAY']) ? (HC.eff(npc, 'personality.empathy') * 0.42 + HC.eff(npc, 'social.leadership') * 0.30 + HC.eff(npc, 'intellect.comprehension') * 0.33 + 16) : -999,
+      TRANS_FIELD_CLAUSE_SOVEREIGN: (npc && npc.daoDiscoveries && npc.daoDiscoveries['TRANS_FIELD_CLAUSE_SOVEREIGN']) ? (HC.eff(npc, 'social.leadership') * 0.42 + HC.eff(npc, 'personality.rationality') * 0.33 + HC.eff(npc, 'personality.discipline') * 0.30 + 14) : -999,
+      TRANS_TEMPO_SOVEREIGN: (npc && npc.daoDiscoveries && npc.daoDiscoveries['TRANS_TEMPO_SOVEREIGN']) ? (HC.eff(npc, 'intellect.comprehension') * 0.42 + HC.eff(npc, 'personality.caution') * 0.30 + HC.eff(npc, 'interests.combat') * 0.30 + 14) : -999,
+      TRANS_SEALKEEPER_FORBIDDEN_KEY: (npc && npc.daoDiscoveries && npc.daoDiscoveries['TRANS_SEALKEEPER_FORBIDDEN_KEY']) ? (HC.eff(npc, 'personality.caution') * 0.38 + HC.eff(npc, 'intellect.comprehension') * 0.38 + HC.eff(npc, 'personality.discipline') * 0.28 + 14) : -999,
+      TRANS_PRIMAL_VORTEX_MIRROR: (npc && npc.daoDiscoveries && npc.daoDiscoveries['TRANS_PRIMAL_VORTEX_MIRROR']) ? (HC.eff(npc, 'intellect.comprehension') * 0.45 + HC.eff(npc, 'personality.curiosity') * 0.35 + HC.eff(npc, 'personality.rationality') * 0.25 + 14) : -999,
+      TRANS_DYNASTIC_MANDATE_WEAVER: (npc && npc.daoDiscoveries && npc.daoDiscoveries['TRANS_DYNASTIC_MANDATE_WEAVER']) ? (HC.eff(npc, 'social.leadership') * 0.42 + HC.eff(npc, 'personality.integrity') * 0.33 + HC.eff(npc, 'intellect.comprehension') * 0.30 + 16) : -999
     };
     const rootCount = (npc.h && npc.h.root && npc.h.root.rootCount) || 1;
     CULT.subList.forEach(({ path, sub }) => {
@@ -2326,7 +2350,19 @@
     LORE_ARCHIVIST: _pd('PATH_GAUGE', 'GATHERER_SCHOLAR', _ST_SCHOLAR, { hpGrowthPerNormStage: 0.03, mantraPerTier: { p: { matk: 0.038, mdef: 0.036, def: 0.02 }, f: { cast: 1.1 } }, combatOffenseBaseMult: 1.09, combatDefenseTakenMult: 0.93, usesFormationMastery: true }, { s1: 'SCRIPTURE', s2: 'ARRAY', mind: 'comprehension', gaugePerTick: 0.50 }),
     FORTUNE_GAMBLER: _pd('PATH_GAUGE', 'ASSASSIN_VANGUARD', _ST_TRADE, { hpGrowthPerNormStage: 0.04, mantraPerTier: { p: { atk: 0.032, matk: 0.032, eva: 0 }, f: { crit: 1.3, eva: 0.8 } }, combatOffenseBaseMult: 1.11, combatDefenseTakenMult: 0.92 }, { s1: 'trading', s2: 'MOVEMENT', mind: 'intuition', gaugePerTick: 0.50 }),
     SPIRIT_HUSBANDRY: _pd('PATH_GAUGE', 'MEDIC_SUPPORT', _ST_CRAFT_ALC, { hpGrowthPerNormStage: 0.05, mantraPerTier: { p: { mdef: 0.038, hp: 0.034, matk: 0.028 }, f: {} }, combatOffenseBaseMult: 1.10, combatDefenseTakenMult: 0.91 }, { s1: 'herbalism', s2: 'BEAST_TAMING', mind: 'wisdom', gaugePerTick: 0.50 }),
-    ARENA_GLORY: _pd('PATH_GAUGE', 'JUGGERNAUT', [{ kind: 'dummy', bk: 'training_ground', mult: 1.56 }, { kind: 'lift', bk: 'training_ground', mult: 1.50 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.36 }], { hpGrowthPerNormStage: 0.07, mantraPerTier: { p: { atk: 0.04, def: 0.034, hp: 0.03 }, f: { crit: 0.8 } }, combatOffenseBaseMult: 1.13, combatDefenseTakenMult: 0.90 }, { s1: 'SPEAR', s2: 'FIST_PALM', mind: 'courage', gaugePerTick: 0.55 })
+    ARENA_GLORY: _pd('PATH_GAUGE', 'JUGGERNAUT', [{ kind: 'dummy', bk: 'training_ground', mult: 1.56 }, { kind: 'lift', bk: 'training_ground', mult: 1.50 }, { kind: 'meditate', bk: 'meditation_hall', mult: 1.36 }], { hpGrowthPerNormStage: 0.07, mantraPerTier: { p: { atk: 0.04, def: 0.034, hp: 0.03 }, f: { crit: 0.8 } }, combatOffenseBaseMult: 1.13, combatDefenseTakenMult: 0.90 }, { s1: 'SPEAR', s2: 'FIST_PALM', mind: 'courage', gaugePerTick: 0.55 }),
+    LEG_READ_FORM_BLADE: _pd('PATH_GAUGE', 'BLADE_DUELIST', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.14, combatDefenseTakenMult: 0.9 }, { s1: 'SWORD', s2: 'MOVEMENT', mind: 'focus', gaugePerTick: 0.55 }),
+    LEG_TRIAGE_MERIDIAN: _pd('PATH_GAUGE', 'FIELD_SUPPORT', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.14, combatDefenseTakenMult: 0.9 }, { s1: 'MEDICINE', s2: 'ALCHEMY', mind: 'focus', gaugePerTick: 0.55 }),
+    LEG_STORM_CALLER_TEMPEST: _pd('PATH_GAUGE', 'WEATHER_CASTER', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.14, combatDefenseTakenMult: 0.9 }, { s1: 'FAN', s2: 'ARRAY', mind: 'focus', gaugePerTick: 0.55 }),
+    LEG_JADE_CARAVAN_VOYAGER: _pd('PATH_GAUGE', 'LOGISTICS_VANGUARD', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.14, combatDefenseTakenMult: 0.9 }, { s1: 'BLADE', s2: 'BODY_REFINING', mind: 'focus', gaugePerTick: 0.55 }),
+    LEG_OATH_JUDGE_WARDEN: _pd('PATH_GAUGE', 'ARBITER_PALADIN', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.14, combatDefenseTakenMult: 0.9 }, { s1: 'SCRIPTURE', s2: 'SWORD', mind: 'focus', gaugePerTick: 0.55 }),
+    LEG_ASHEN_KILN_ALCHEMY: _pd('PATH_GAUGE', 'SALVAGE_WARDEN', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.14, combatDefenseTakenMult: 0.9 }, { s1: 'ALCHEMY', s2: 'MEDICINE', mind: 'focus', gaugePerTick: 0.55 }),
+    TRANS_CONSTELLATION_RELAY: _pd('PATH_GAUGE', 'RELAY_SUPPORT', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.16, combatDefenseTakenMult: 0.88 }, { s1: 'ARRAY', s2: 'MEDICINE', mind: 'focus', gaugePerTick: 0.55 }),
+    TRANS_FIELD_CLAUSE_SOVEREIGN: _pd('PATH_GAUGE', 'FIELD_LAWGIVER', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.16, combatDefenseTakenMult: 0.88 }, { s1: 'SPEAR', s2: 'administration', mind: 'focus', gaugePerTick: 0.55 }),
+    TRANS_TEMPO_SOVEREIGN: _pd('PATH_GAUGE', 'TEMPO_CONTROLLER', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.16, combatDefenseTakenMult: 0.88 }, { s1: 'ARRAY', s2: 'MOVEMENT', mind: 'focus', gaugePerTick: 0.55 }),
+    TRANS_SEALKEEPER_FORBIDDEN_KEY: _pd('PATH_GAUGE', 'SEAL_WARDEN', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.16, combatDefenseTakenMult: 0.88 }, { s1: 'TALISMAN', s2: 'ARRAY', mind: 'focus', gaugePerTick: 0.55 }),
+    TRANS_PRIMAL_VORTEX_MIRROR: _pd('PATH_GAUGE', 'ADAPTIVE_MIRROR', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.16, combatDefenseTakenMult: 0.88 }, { s1: 'SCRIPTURE', s2: 'ARRAY', mind: 'focus', gaugePerTick: 0.55 }),
+    TRANS_DYNASTIC_MANDATE_WEAVER: _pd('PATH_GAUGE', 'MANDATE_STRATEGIST', [{ kind: 'meditate', bk: 'meditation_hall', mult: 1.56 }, { kind: 'read', bk: 'scripture', mult: 1.48 }, { kind: 'dummy', bk: 'training_ground', mult: 1.42 }], { hpGrowthPerNormStage: 0.06, mantraPerTier: { p: { atk: 0.038, matk: 0.038, def: 0.032, mdef: 0.032 }, f: { crit: 0.9 } }, combatOffenseBaseMult: 1.16, combatDefenseTakenMult: 0.88 }, { s1: 'SCRIPTURE', s2: 'administration', mind: 'focus', gaugePerTick: 0.55 })
   });
 
   CULT.getPathDescriptor = pathId => CULT.PATH_DESCRIPTORS[pathId] || null;
@@ -9283,7 +9319,19 @@
     LORE_ARCHIVIST: { id: 'LORE_INDEX', path: 'LORE_ARCHIVIST', nameTh: 'ดัชนีอรรถาธิบายคัมภีร์ (Lore Index)', max: 100, gainOnHit: 24, gainOnHurt: 18, finisherNameTh: 'มหาสารานุกรมสยบหมื่นวิชา', finisherMult: 1.66 },
     FORTUNE_GAMBLER: { id: 'STAKE', path: 'FORTUNE_GAMBLER', nameTh: 'แต้มเดิมพันชะตาสวรรค์ (Destiny Stake)', max: 100, gainOnHit: 28, gainOnHurt: 22, finisherNameTh: 'เดิมพันหมดหน้าตักพลิกชะตาสวรรค์', finisherMult: 1.74 },
     SPIRIT_HUSBANDRY: { id: 'GROWTH_CYCLE', path: 'SPIRIT_HUSBANDRY', nameTh: 'วัฏจักรพฤกษางอกงาม (Growth Cycle)', max: 100, gainOnHit: 22, gainOnHurt: 22, finisherNameTh: 'ต้นไม้โลกเสิ่นหนงชุบชีวิตหมื่นหล้า', finisherMult: 1.64, healPct: 0.25 },
-    ARENA_GLORY: { id: 'RENOWN_FLAME', path: 'ARENA_GLORY', nameTh: 'เพลิงเกียรติยศลานประลอง (Renown Flame)', max: 100, gainOnHit: 26, gainOnHurt: 22, finisherNameTh: 'ศาสตราเจ้ายุทธจักรไร้พ่าย', finisherMult: 1.72 }
+    ARENA_GLORY: { id: 'RENOWN_FLAME', path: 'ARENA_GLORY', nameTh: 'เพลิงเกียรติยศลานประลอง (Renown Flame)', max: 100, gainOnHit: 26, gainOnHurt: 22, finisherNameTh: 'ศาสตราเจ้ายุทธจักรไร้พ่าย', finisherMult: 1.72 },
+    LEG_READ_FORM_BLADE: { id: 'FORM_TRACE', path: 'LEG_READ_FORM_BLADE', nameTh: 'รอยกระบวนท่า', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'กระบี่ปิดบทอ่านช่องฟ้า', finisherMult: 1.7 },
+    LEG_TRIAGE_MERIDIAN: { id: 'TRIAGE_PULSE', path: 'LEG_TRIAGE_MERIDIAN', nameTh: 'ชีพจรประคองชีวิต', max: 100, gainOnHit: 24, gainOnHurt: 22, finisherNameTh: 'ดัชนีเปิดชีพจรคืนสมดุล', finisherMult: 1.45, healPct: 0.25 },
+    LEG_STORM_CALLER_TEMPEST: { id: 'STORM_FRONT', path: 'LEG_STORM_CALLER_TEMPEST', nameTh: 'แนวพายุสมรภูมิ', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'อัสนีพายุสวรรค์ฟาดปฐพี', finisherMult: 1.7 },
+    LEG_JADE_CARAVAN_VOYAGER: { id: 'ROAD_MOMENTUM', path: 'LEG_JADE_CARAVAN_VOYAGER', nameTh: 'แรงเฉื่อยทางไกล', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'ขบวนคุ้มกันผ่าด่านหมื่นลี้', finisherMult: 1.7 },
+    LEG_OATH_JUDGE_WARDEN: { id: 'OATH_SCALE', path: 'LEG_OATH_JUDGE_WARDEN', nameTh: 'ตราชั่งสัตย์ยุทธภพ', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'คำพิพากษาสยบผู้ตระบัดสัตย์', finisherMult: 1.7 },
+    LEG_ASHEN_KILN_ALCHEMY: { id: 'ASHEN_GLAZE', path: 'LEG_ASHEN_KILN_ALCHEMY', nameTh: 'เคลือบเถ้าปราณ', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'เตาเถ้าแตกระเบิดคมกระเบื้อง', finisherMult: 1.7 },
+    TRANS_CONSTELLATION_RELAY: { id: 'STAR_RELAY', path: 'TRANS_CONSTELLATION_RELAY', nameTh: 'ข่ายปราณหมู่ดาว', max: 100, gainOnHit: 24, gainOnHurt: 22, finisherNameTh: 'ข่ายดาราประสานชีพจรทั้งคณะ', finisherMult: 1.50, healPct: 0.28 },
+    TRANS_FIELD_CLAUSE_SOVEREIGN: { id: 'FIELD_CHARTER', path: 'TRANS_FIELD_CLAUSE_SOVEREIGN', nameTh: 'ธรรมนูญสนามรบ', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'ประกาศธรรมนูญขีดเขตสมรภูมิ', finisherMult: 1.76 },
+    TRANS_TEMPO_SOVEREIGN: { id: 'TEMPO_BANK', path: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'คลังจังหวะสมรภูมิ', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'กลองศึกตัดจังหวะพลิกกระแส', finisherMult: 1.76 },
+    TRANS_SEALKEEPER_FORBIDDEN_KEY: { id: 'SEAL_KEY', path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'กุญแจปมผนึก', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'ปมผนึกคลังโบราณล็อกชีพจร', finisherMult: 1.76 },
+    TRANS_PRIMAL_VORTEX_MIRROR: { id: 'MIRROR_ECHO', path: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'เงาสะท้อนวิชา', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'กระจกนิ่งย้อนคืนหมื่นกระบวน', finisherMult: 1.76 },
+    TRANS_DYNASTIC_MANDATE_WEAVER: { id: 'MANDATE_THREAD', path: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'เส้นใยชะตาแผ่นดิน', max: 100, gainOnHit: 24, gainOnHurt: 20, finisherNameTh: 'เส้นใยดุลยภาพประคองแผ่นดิน', finisherMult: 1.76 }
   });
 
   CULT.isZeroQiSamurai = npc => !!(npc && npc.cult && npc.cult.path === 'SHADOW_SAMURAI');
@@ -11873,7 +11921,7 @@
   const gObj = typeof globalThis !== "undefined" ? globalThis : window;
   const C = gObj.CULT;
   if (!C || !C.PATHS) return;
-  const pMap = {"XIAN":"วิถีเซียน","BODY":"วิถีกายา","GOD":"วิถีเทพศรัทธา","DEMON":"วิถีมาร","HEART_SOUL":"วิถีจิตเซน","MECH_PUPPET":"วิถีหุ่นกลไก","KARMA_SAMSARA":"วิถีสังสารวัฏ","BEAST_SOVEREIGN":"วิถีราชันอสูร","SAGE_SUPPORT":"วิถีปราชญ์โอสถ","CRAFT_CREATION":"วิถีหลอมสร้าง","ARRAY_TALISMAN":"วิถีค่ายกลยันต์","STRATEGY_GOVERNANCE":"วิถีพิชัยยุทธ์","ASTRO_DIVINATION":"วิถีโหราดารา","BUDDHA_DHARMA":"วิถีพุทธธรรม","VOID_SPACE":"วิถีมิติเร้น","SONIC_HARMONY":"วิถีคีตยุทธ์","VENOM_GU":"วิถีพิษกู่","PRIMORDIAL_SHIFTER":"วิถีจำแลงอสูร","CELESTIAL_WEATHER":"วิถีบัญชาฟ้าฝน","WANDERING_DAO":"วิถีคนจร","MERCANTILE_DAO":"วิถีวาณิชย์","DRAGON_VEIN_GEOMANCY":"วิถีชีพจรมังกร","GRAVITY_DAO":"วิถีถ่วงดารา","CHRONO_EPOCH":"วิถีกาลเวลา","INK_LITERATI":"วิถีอักษรปราชญ์","SOUL_PUPPETRY":"วิถีเชิดเงา","PRIMORDIAL_CHAOS":"วิถีโกลาหล","SHADOW_SAMURAI":"วิถีดาบไร้ปราณ","NINPO_SHADOW":"วิถีเร้นเงา","NINPO_ELEMENTAL":"วิถีมุทราธาตุ","DIVINE_SUMMONER":"วิถีอัญเชิญเทวะ","DIVINE_POSSESSION":"วิถีร่างทรงเทวะ","DIVINE_CHANNELER":"วิถีสื่อเทวบัญญัติ","VOID_HERETIC_PACT":"วิถีพันธะสุญตา","OCCULT_MAGE":"วิถีไสยเวทย์","DEVOURING_FLESH":"วิถีกลืนสรีระ","NETHER_GRAVE":"วิถีสุสานยมโลก","ANCESTRAL_RITUAL":"วิถีบรรพชน","TIDE_VOYAGER":"วิถีจ้าวสมุทร","LORE_ARCHIVIST":"วิถีอาลักษณ์","FORTUNE_GAMBLER":"วิถีเดิมพันชะตา","SPIRIT_HUSBANDRY":"วิถีพฤกษาปราณ","ARENA_GLORY":"วิถีสังเวียนยุทธ์"};
+  const pMap = {"XIAN":"วิถีเซียน","BODY":"วิถีกายา","GOD":"วิถีเทพศรัทธา","DEMON":"วิถีมาร","HEART_SOUL":"วิถีจิตเซน","MECH_PUPPET":"วิถีหุ่นกลไก","KARMA_SAMSARA":"วิถีสังสารวัฏ","BEAST_SOVEREIGN":"วิถีราชันอสูร","SAGE_SUPPORT":"วิถีปราชญ์โอสถ","CRAFT_CREATION":"วิถีหลอมสร้าง","ARRAY_TALISMAN":"วิถีค่ายกลยันต์","STRATEGY_GOVERNANCE":"วิถีพิชัยยุทธ์","ASTRO_DIVINATION":"วิถีโหราดารา","BUDDHA_DHARMA":"วิถีพุทธธรรม","VOID_SPACE":"วิถีมิติเร้น","SONIC_HARMONY":"วิถีคีตยุทธ์","VENOM_GU":"วิถีพิษกู่","PRIMORDIAL_SHIFTER":"วิถีจำแลงอสูร","CELESTIAL_WEATHER":"วิถีบัญชาฟ้าฝน","WANDERING_DAO":"วิถีคนจร","MERCANTILE_DAO":"วิถีวาณิชย์","DRAGON_VEIN_GEOMANCY":"วิถีชีพจรมังกร","GRAVITY_DAO":"วิถีถ่วงดารา","CHRONO_EPOCH":"วิถีกาลเวลา","INK_LITERATI":"วิถีอักษรปราชญ์","SOUL_PUPPETRY":"วิถีเชิดเงา","PRIMORDIAL_CHAOS":"วิถีโกลาหล","SHADOW_SAMURAI":"วิถีดาบไร้ปราณ","NINPO_SHADOW":"วิถีเร้นเงา","NINPO_ELEMENTAL":"วิถีมุทราธาตุ","DIVINE_SUMMONER":"วิถีอัญเชิญเทวะ","DIVINE_POSSESSION":"วิถีร่างทรงเทวะ","DIVINE_CHANNELER":"วิถีสื่อเทวบัญญัติ","VOID_HERETIC_PACT":"วิถีพันธะสุญตา","OCCULT_MAGE":"วิถีไสยเวทย์","DEVOURING_FLESH":"วิถีกลืนสรีระ","NETHER_GRAVE":"วิถีสุสานยมโลก","ANCESTRAL_RITUAL":"วิถีบรรพชน","TIDE_VOYAGER":"วิถีจ้าวสมุทร","LORE_ARCHIVIST":"วิถีอาลักษณ์","FORTUNE_GAMBLER":"วิถีเดิมพันชะตา","SPIRIT_HUSBANDRY":"วิถีพฤกษาปราณ","ARENA_GLORY":"วิถีสังเวียนยุทธ์","LEG_READ_FORM_BLADE":"วิถีกระบี่อ่านช่องฟ้า","LEG_TRIAGE_MERIDIAN":"วิถีชีพจรประคองสหาย","LEG_STORM_CALLER_TEMPEST":"วิถีจอมพายุบัญชาฟ้า","LEG_JADE_CARAVAN_VOYAGER":"วิถีจอมคาราวานหยก","LEG_OATH_JUDGE_WARDEN":"วิถีผู้คุมสัตย์สาบาน","LEG_ASHEN_KILN_ALCHEMY":"วิถีเตาเถ้าคืนชีวิต","TRANS_CONSTELLATION_RELAY":"วิถีประสานปราณหมู่ดาว","TRANS_FIELD_CLAUSE_SOVEREIGN":"วิถีธรรมนูญฟ้าขีดเขต","TRANS_TEMPO_SOVEREIGN":"วิถีปรมาจารย์จังหวะกาล","TRANS_SEALKEEPER_FORBIDDEN_KEY":"วิถีผู้ถือกุญแจผนึก","TRANS_PRIMAL_VORTEX_MIRROR":"วิถีกระจกสะท้อนหมื่นวิชา","TRANS_DYNASTIC_MANDATE_WEAVER":"วิถีทอชะตาแผ่นดิน"};
   const sMap = {"SWORD_IMMORTAL":"กระบี่สวรรค์","FIVE_ELEMENTS":"เบญจธาตุสมดุล","ELIXIR_DAO":"โอสถอมฤต","ASTRAL_ARRAY":"ค่ายกลดารา","BLOOD_DEMON":"ปราณโลหิตแดง","PHANTOM_SOUL":"วิญญาณมายา","TIME_VOID":"กาลมิติเร้น","SOUND_ZITHER":"พิณสะกดจิต","YIN_YANG_HARMONY":"หยินหยางไร้ลักษณ์","FROST_MOON_IMMORTAL":"จันทราเหมันต์","STAR_ARCHER":"เซียนศรดารา","CLOUD_DRAGON_SPEAR":"ทวนมังกรเมฆา","PURE_SWORD_SAINT":"กระบี่ไร้ลักษณ์","CELESTIAL_STAR_SWORD":"กระบี่ผ่าดารา","KUNLUN_JADE_CAULDRON":"หม้อหยกกลั่นปราณ","NINE_HEAVENS_THUNDER_SEAL":"ตราอสนีเก้าฟ้า","TIGER_SOVEREIGN":"พยัคฆ์คลั่ง","BLOOD_DRAGON":"มังกรโลหิต","VAJRA_BODHI":"กายาวัชระ","DEVOURING_FIEND":"อสูรกลืนปราณ","SOLAR_FORGE":"เพลิงสุริยัน","THUNDER_BODY":"กายาอสนีบาต","JADE_IMMORTAL_BODY":"กายาหยกพิสุทธิ์","TITAN_MOUNTAIN_BODY":"ยักษ์แบกขุนเขา","WOOD_SPRING_BODY":"กายาพฤกษา","STAFF_GUARD":"พลองเหล็กพิทักษ์","WAR_SPEAR_SOVEREIGN":"ทวนศึกทลายทัพ","IRON_BOW_SENTINEL":"เกาทัณฑ์ศิลาเหล็ก","OVERLORD_HEAVY_BLADE":"จอมดาบผ่าผา","METEOR_IRON_FIST":"หมัดเหล็กดาวตก","NINE_SUNS_FURNACE_BODY":"เตาหลอมเก้าตะวัน","ABYSSAL_LEVIATHAN_BONE":"กระดูกมังกรบาดาล","WAR_DEITY":"เทพสงคราม","MERCY_DEITY":"เทพเมตตา","FATE_ORACLE":"เทพพยากรณ์","TOTEM_BEAST_GOD":"เทพอสูรบรรพกาล","UNDERWORLD_JUDGE":"ตุลาการยมโลก","OCEAN_SOVEREIGN":"เทพเจ้าสมุทร","HARVEST_EARTH_GOD":"เทพบิดรพืชพรรณ","MEDICINE_BODHI_GOD":"เทพโอสถเมตตา","SUN_BOW_DEITY":"เทพศรสุริยัน","GOLDEN_ARHAT_STAFF":"พลองทองพิทักษ์","SOLAR_CHARIOT_SOVEREIGN":"ราชรถสุริยัน","STYX_FERRYMAN_JUDGE":"คนแจวเรือข้ามแม่น้ำลืมเลือน","STORM_THUNDER_EMPEROR":"เทพพายุสายฟ้า","SHADOW_ASSASSIN":"นักฆ่าไร้เงา","VENOM_GU_SOVEREIGN":"จอมราชันย์หมื่นพิษกู่","NETHER_GHOST_KING":"ราชันภูตผี","HEAVEN_DEVOURING_DEMON":"จอมมารกลืนสวรรค์","SHADOW_ARCHER":"ศรเงาปลิดชีพ","BLOOD_SPEAR_ASURA":"ทวนโลหิตอสูร","ASHURA_SLAUGHTER_BLADE":"ดาบมารไร้ปรานี","CRIMSON_MOON_EXECUTIONER":"เพชฌฆาตจันทร์เลือด","MYRIAD_MIASMA_ALCHEMIST":"หมอกพิษมรณะ","ABYSSAL_SOUL_EATER":"มารกลืนวิญญาณ","ZEN_VOID_MIND":"จิตเซนสุญตา","CALLIGRAPHY_PAINTING_SAGE":"พู่กันภาพมายา","DREAM_ILLUSION_WEAVER":"ทอมายาสุบิน","MIND_SWORD_TELEKINESIS":"กระบี่จิตไร้รูป","ZITHER_HEART_BOW":"ศรพิณสะกดจิต","HEART_BLADE_MEDITATION":"มีดบินประสานใจ","VOID_SPEAR_MIND":"ทวนจิตสุญตา","CELESTIAL_CHESS_SCHOLAR":"หมากล้อมบัญชาจิต","SEVEN_EMOTIONS_ZITHER":"พิณมารเจ็ดอารมณ์สะกดจิต","VOID_LOTUS_CONTEMPLATOR":"ปทุมแก้วส่องจิต","HEAVENLY_GOLEM":"หุ่นศิลาเทวะ","THOUSAND_THREAD_ASSASSIN":"ใยไหมสังหาร","BEAST_CHIMERA_MECH":"พยัคฆ์กลเหล็ก","CELESTIAL_BALLISTA":"หน้าไม้กลดารา","SOUL_VESSEL_AVATAR":"หุ่นกายทิพย์","FLYING_BLADE_ORBITER":"กงล้อพันกระบี่","ASTRAL_CLOCKWORK_PRIME":"เฟืองดาราคำนวณ","THUNDER_CORE_ARTILLERY":"ท่ออสนีถล่มค่าย","JADE_SPIDER_WEAVER":"หุ่นแมงมุมหยก","SOLAR_BRONZE_COLOSSUS":"หุ่นยักษ์สำริด","REVERSED_RETRIBUTION":"วิบากย้อนกรรม","SIX_PATHS_WHEEL":"กงล้อหกภพ","FATE_SEVERING_THREAD":"ด้ายตัดวาสนา","LOTUS_MERCY_PURIFIER":"ปทุมชำระบาป","ASURA_JUDGMENT_BLADE":"ดาบทัณฑ์อสูร","PAST_LIFE_MIRROR":"กระจกชาติภพ","BODHI_VOW_GUARDIAN":"ปณิธานคุ้มภพ","CAUSE_EFFECT_LEDGER":"สมุดบัญชีกรรม","NETHER_RIVER_REAPER":"โซ่ยมทูตลืมเลือน","GOLDEN_WHEEL_ARBITER":"กงล้อทองตัดสิน","MYRIAD_BEAST_PACK":"จ้าวฝูงหมื่นอสูร","PRIMORDIAL_BLOOD_MUTATOR":"ปลุกเลือดบรรพกาล","SYMBIOTIC_BEAST_WARRIOR":"นักรบผสานอสูร","COLOSSUS_SHIELD_TAMER":"อสูรยักษ์คุ้มด่าน","SWARM_GU_HIVE_MASTER":"จ้าวฝูงแมลงพิษ","CELESTIAL_ASTRAL_FAIRY_TAMER":"พันธะภูตพฤกษา","ABYSSAL_DRAGON_TOTEM":"มังกรสมุทรอัสนี","KUNPENG_WIND_RIDER":"ขี่พญาคุนเผิง","QILIN_THUNDER_HERALD":"กิเลนอสนี","NINE_NETHER_SERPENT_LORD":"อสรพิษเก้ายมโลก","GOLDEN_NEEDLE_SAINT":"ปราชญ์เข็มทอง","CELESTIAL_ZITHER_ENVOY":"พิณทิพย์ชูใจ","DIVINE_NECTAR_APOTHECARY":"หมอนํ้าค้างทิพย์","QIMEN_TALISMAN_PATRON":"ยันต์ฉีเหมินคุ้มทัพ","SOUL_LANTERN_SHEPHERD":"โคมวิญญาณคุ้มชีพ","WAR_BANNER_CHORISTER":"ธงศึกปลุกขวัญ","WOOD_SPIRIT_SYMBIONT":"ปราณพฤกษาชุบชีพ","IMMORTAL_PEACH_APOTHECARY":"โอสถท้อต่อชะตา","EIGHT_TRIGRAMS_BANNER_SAGE":"ธงแปดทิศหนุนทัพ","CELESTIAL_INK_CHRONICLER":"หมึกทองจารึกคุณ","PILL_FURNACE_IMMORTAL":"เตาโอสถเก้าทวาร","POISON_VENOM_CAULDRON":"หม้อหลอมร้อยพิษ","HEAVENLY_ANVIL_SMITH":"ทั่งเหล็กร้อยหลอม","SPIRIT_SWORD_ARTIFICER":"ช่างกระบี่วิญญาณ","RUNE_ARRAY_ENGRAVER":"สลักอักขระศาสตรา","DIVINE_FLAME_SMELTER":"อัคคีหลอมแร่","SPIRIT_FEAST_HEALER":"ครัวทิพย์ฟื้นชีวา","JADE_MEAL_PREPARER":"สำรับหยกบำเพ็ญ","CELESTIAL_ARMOR_ARTISAN":"ช่างเกราะไหมเหล็ก","STAR_METEOR_WEAPONSMITH":"ช่างเหล็กดาวตก","NINE_REVOLUTIONS_ALCHEMIST":"โอสถเก้าวัฏจักร","PUPPET_RELIC_ARTIFICER":"ช่างหลอมของวิเศษ","EARTH_VEIN_WARDEN":"ค่ายกลชีพจรดิน","SEAL_SCRIPT_EXORCIST":"ยันต์ผนึกปราบมาร","THUNDER_TALISMAN_ADEPT":"ยันต์อสนีทลายทัพ","MIRAGE_ARRAY_WEAVER":"ค่ายกลพรางเงา","ASTRAL_STARFALL_ARRAY":"ค่ายกลดาวตก","VERMILION_SEAL_TALISMAN":"ยันต์ชาดสุริยัน","LABYRINTH_MIST_FORMATION":"ค่ายกลหมอกวงกต","BATTLEFIELD_STRATEGIST":"กุนซือธงศึก","SECT_STEWARD":"พ่อบ้านดูแลสำนัก","DIPLOMATIC_ENVOY":"ทูตประสานไมตรี","CARAVAN_QUARTERMASTER":"พลาธิการคาราวาน","CIVIL_TEACHING_MENTOR":"อาจารย์อบรมศิษย์","IMPERIAL_SEAL_CHANCELLOR":"เสนาบดีตราหยก","SHADOW_INTELLIGENCE_MARSHAL":"ข่าวกรองเงาจันทร์","GRAND_LOGISTICS_COMMANDER":"ส่งบำรุงหมื่นลี้","STAR_CHART_PROPHET":"พยากรณ์ผังดาว","POLARIS_FATE_WEAVER":"ทอชะตาดาวเหนือ","ECLIPSE_DOOM_SEER":"เนตรสุริยคราส","METEOR_OMEN_CALLER":"เพรียกดาวตก","QIMEN_EIGHT_GATES_DIVINER":"ฉีเหมินแปดประตู","BIG_DIPPER_LONGEVITY_SAGE":"กระบวยดาราต่อชะตาฟ้า","VAJRA_WRATH_GUARDIAN":"ธรรมบาลวัชระพิโรธปราบมาร","GOLDEN_LOTUS_CHAN":"ฌานบัวทอง","SUTRA_CHANT_ARHAT":"อรหันต์สวดมนต์","THOUSAND_PALM_BODHISATTVA":"มหาเมตตาโพธิสัตว์พันกร","RELIC_PAGODA_KEEPER":"พิทักษ์เจดีย์ธาตุ","KARMA_FIRE_ASCETIC":"เพลิงกัลป์เผาวิบาก","DIMENSIONAL_BLADE_REAPER":"คมดาบตัดมิติ","VOID_BLINK_STRIDER":"ก้าวพริบตาข้ามว่าง","POCKET_REALM_ARCHITECT":"เนรมิตมิติย่อย","SINGULARITY_COLLAPSE_MAGE":"หลุมดำกลืนมิติ","PHASE_MIRAGE_ASSASSIN":"เร้นเงาเหลื่อมภพ","SPATIAL_BARRIER_WARDEN":"ม่านกระจกมิติ","SEVEN_STRINGS_ANNIHILATION":"พิณเจ็ดสายสังหาร","JADE_FLUTE_SOUL_CHARMER":"ขลุ่ยหยกสะกดจิต","WAR_DRUM_TEMPEST_HERALD":"กลองศึกสะท้านภพ","RESONANT_BELL_EXORCIST":"กระดิ่งสลายมาร","SILENT_WAVE_ASSASSIN":"คลื่นเสียงไร้รูป","CELESTIAL_CHOIR_CONDUCTOR":"จ้าวทำนองประสาน","GOLDEN_SILKWORM_GU_LORD":"ราชันกู่ไหมทอง","MYRIAD_VENOM_APOTHECARY":"หมอพิษหมื่นบุปผา","BLOOD_PARASITE_HEXER":"กู่โลหิตสูบชีพ","CORROSIVE_MIASMA_WEAVER":"หมอกพิษกัดเกราะ","SCORPION_CLAW_EXECUTIONER":"กรงเล็บแมงป่องพิษ","IMMORTAL_NECTAR_TOXIN_SAGE":"หัตถ์พิษแปรเปลี่ยนเป็นน้ำอมฤต","AZURE_DRAGON_SCALE_SHIFTER":"เกล็ดมังกรคราม","WHITE_TIGER_FANG_RAVAGER":"เขี้ยวพยัคฆ์ขาว","VERMILION_PHOENIX_WING_ASCENDANT":"ปีกหงส์เพลิงคืนชีพ","BLACK_TORTOISE_SHELL_COLOSSUS":"กระดองเต่าดำ","FIEND_APE_TITAN_MORPH":"พญาวานรทลายผา","NINE_TAIL_MIRAGE_SHIFTER":"จิ้งจอกเก้าหาง","THUNDER_CLOUD_CALLER":"เมฆาอสนีบาต","MONSOON_RAIN_WEAVER":"พิรุณสลายเพลิง","BLIZZARD_FROST_HERALD":"พายุหิมะเยือกแข็ง","TYPHOON_GALE_SOVEREIGN":"พายุคลั่งกวาดทัพ","MIRAGE_FOG_SHROUDER":"หมอกทึบพรางสัมผัส","SOLAR_ZENITH_INVOKER":"แสงสุริยันแผดเผา","HORIZON_WIND_WALKER":"คนจรสุดขอบฟ้า","RUIN_PATHFINDER_SAGE":"บุกเบิกซากโบราณ","CARAVAN_ESCORT_VANGUARD":"คุ้มภัยคาราวาน","WILDERNESS_BEAST_TRACKER":"พรานแกะรอยอสูร","CLOUD_STEP_HERMIT":"ฤๅษีเหยียบเมฆา","REALM_MAPPER_CHRONICLER":"วาดแผนที่หมื่นลี้","GOLDEN_ABACUS_ARBITER":"ลูกคิดทองคำ","BLOOD_CONTRACT_NOTARY":"พันธสัญญาโลหิต","CARAVAN_SYNDICATE_MAGNATE":"เจ้าสัวคาราวาน","TREASURE_APPRAISER_SAGE":"ปราชญ์ดูของวิเศษ","DEBT_FORECLOSURE_ENFORCER":"ผู้คุมกฎทวงหนี้","EQUITY_SHIELD_CHANCELLOR":"ตราชั่งคลังสมดุล","LUOPAN_GEOMANCER_SAGE":"หลัวผานชี้มงคล","MOUNTAIN_SPINE_ANCHOR":"ตรึงสันหลังขุนเขา","LEYLINE_WARD_ARCHITECT":"ผังค่ายชีพจรดิน","EARTH_DRAGON_AWAKENER":"ปลุกชีพมังกรดิน","JADE_FAULT_CRUSHER":"รอยเลื่อนทลายด่าน","SANCTUARY_PEAK_CUSTODIAN":"พิทักษ์ยอดเขาเซียน","HEAVY_STAR_CRUSHER":"ดาราหนักหมื่นชั่ง","ZERO_GRAVITY_DRIFTER":"กายาเบาเหินหาว","ORBITAL_REPULSION_WARDEN":"ม่านผลักศาสตรา","SINGULARITY_WELL_CONTROLLER":"เขตแดนถ่วงทัพ","METEOR_WEIGHT_STRIKER":"หมัดศิลาถ่วงหนัก","TIDAL_LOCK_ARBITER":"แรงดึงตรึงคู่ศึก","SUNDIAL_EPOCH_CHRONICLER":"เงาตะวันจารึกยุค","HOURGLASS_SAND_REAPER":"ทรายเวลาพรากชีพ","REWIND_SPRING_HEALER":"ย้อนวสันต์คืนชีพ","ACCELERATED_BLADE_FLASH":"ดาบเร่งพริบตา","STASIS_SEAL_WARDEN":"ผนึกหยุดเวลา","PAST_FUTURE_MIRROR_SAGE":"กระจกอดีตอนาคต","IMPERIAL_EDICT_CALLIGRAPHER":"พู่กันราชโองการสวรรค์","LANDSCAPE_SCROLL_PAINTER":"ภาพวาดขุนเขานํ้า","SWORD_POEM_IMMORTAL":"กวีกระบี่ร่ายมนตร์","CLASSICS_LAW_ARBITER":"บัญญัติมณเฑียรบาล","VERMILION_CRITIQUE_CENSOR":"หมึกชาดสลายวิชา","HISTORIANS_DESTINY_QUILL":"พู่กันพงศาวดาร","PHANTOM_SILK_PUPPETEER":"เชิดเงาไหมล่องหน","SOUL_STITCH_NEEDLE_MASTER":"เข็มเย็บวิญญาณ","PAPER_EFFIGY_CONJURER":"หุ่นกระดาษรับเคราะห์","CORPSE_FLAME_MARIONETTE":"หุ่นเชิดเพลิงผี","MIRROR_SHADOW_TWIN":"เงาแฝดกระจก","FATE_STRING_CONDUCTOR":"ชักใยด้ายชะตา","HUN_DUN_ORIGIN_DEVOURER":"กลืนกินปฐมโกลาหลหุ่นตุ้น","YIN_YANG_MILLSTONE_SAGE":"โม่หินหยินหยาง","FIVE_PHASE_INVERSION_ADEPT":"ย้อนทวนเบญจธาตุ","ENTROPY_FLAME_SOVEREIGN":"เพลิงโกลาหล","GENESIS_LOTUS_CREATOR":"บัวกำเนิดปราณ","ABYSSAL_CHAOS_HALBERD":"ทวนผ่าโกลาหล","IAI_FLASH_SLICER":"เพลงดาบชักฝักสะบั้นพริบตา","MURAMASA_BLOOD_EDGE":"ดาบปีศาจกระหายโลหิตสังหาร","UNBROKEN_IRON_STANCE":"ปราการดาบเหล็กจิตไม่สั่นคลอน","KENJUTSU_SWORD_SAINT":"คมดาบตัดวิญญาณ","CLONE_MIRAGE_WEAVER":"แยกร่างเงามายา","SMOKE_MIST_ASSASSIN":"หมอกควันปลิดชีพ","CONCEALED_WEAPON_STRIKER":"ซัดดาวอาวุธลับ","SHADOW_BIND_STRATEGIST":"ตรึงเงาสะกดร่าง","EXPLOSIVE_TAG_TRAPPER":"กับดักยันต์ระเบิด","FIVE_SEAL_ELEMENTALIST":"มุทราเบญจธาตุ","SUBSTITUTION_ESCAPE":"สลับร่างท่อนไม้","CHAKRA_SCROLL_SEALER":"ม้วนผนึกอาคม","CELESTIAL_BEAST_HERALD":"อัญเชิญสัตว์เทวะ","WAR_DEITY_CONVOKER":"อัญเชิญขุนพลฟ้า","NETHER_GATE_CALLER":"เพรียกประตูนรก","PANTHEON_CHOIR_CONDUCTOR":"โองการชุมนุมเทพ","SOLAR_AVATAR_VESSEL":"ร่างทรงสุริยเทพ","STORM_WRATH_MEDIUM":"ร่างทรงเทพอสนี","VAJRA_EARTH_ANCHOR":"ร่างทรงเทพปฐพี","MAHADEVA_DESTROYER":"ร่างทรงเทพผลาญภพ","JUDGMENT_SCALE_BORROWER":"ตราชั่งชั่งวิญญาณ","THUNDERBOLT_WIELDER":"ศาสตราอสนีเทพ","THIRD_EYE_INSIGHT":"เนตรทิพย์สามภพ","SERPENT_GRACE_BORROWER":"บารมีนาคราช","MADNESS_WHISPERER":"สาวกเสียงกระซิบโพ้นม่านฟ้า","FLESH_MUTATION_ADEPT":"ผลัดเนื้ออสูรว่าง","VOID_WARPING_HERETIC":"ฉีกบิดห้วงสุญตา","SANITY_SACRIFICE_WARLOCK":"สังเวยจิตแลกฤทธิ์","YANTRA_IRON_SKIN":"ยันต์คงกระพัน","BLACK_ARTS_HEXER":"คุณไสยมนต์ดำ","PHRAY_SPIRIT_WHISPER":"พรายกระซิบเตือน","SACRED_GOLEM_TAMER":"พยนต์อาคม","IRON_BONE_DEVOURER":"กลืนแร่กระดูกเหล็ก","BEAST_FLESH_CONSUMER":"กลืนเลือดอสูร","INTERNAL_ORGAN_REFINER":"หลอมอวัยวะมาร","PRIMORDIAL_STOMACH_TITAN":"เตาหลอมเลือดเนื้อกลืนหมื่นอสูร","ANCESTRAL_GRAVE_KEEPER":"เฝ้าสุสานโบราณ","BONE_PUPPET_REFINER":"หุ่นกระดูกวัชระ","SOUL_SIPHON_REAPER":"สูบวิญญาณชิงชีพ","CORPSE_EXPLOSION_ACOLYTE":"ระเบิดซากศพ","MARROW_HERITAGE_SHAMAN":"ปลุกเลือดบรรพชน","ANCESTRAL_TABLET_CHANTER":"สวดป้ายบูรพาจารย์","HEROIC_SPIRIT_SPEARMAN":"ทวนวิญญาณวีรชน","CHRONICLE_TOTEM_GUARDIAN":"เสาหลักวงศ์ตระกูล","ABYSSAL_TIDE_SPEAR":"ทวนคลื่นบาดาล","FROST_MAELSTROM_CALLER":"นํ้าวนเหมันต์","DRAGON_SHIP_NAVIGATOR":"นายท้ายสำเภามังกร","DEEP_PEARL_APOTHECARY":"ไข่มุกสมุทร","ANCIENT_RUBBING_DECODER":"ถอดศิลาจารึก","SUTRA_COMPILER_SAGE":"สังคายนาคัมภีร์","TECHNIQUE_MIRROR_SCHOLAR":"เนตรกระจกสะท้อนหมื่นวิชา","FORBIDDEN_SCROLL_CUSTODIAN":"เฝ้าหอต้องห้าม","JADE_DICE_HIGH_ROLLER":"เต๋าหยกท้าชะตา","FATE_COIN_FLIPPER":"เหรียญพลิกเป็นตาย","KARMA_ROULETTE_DEALER":"กงล้อเสี่ยงทาย","ALL_IN_DESPERADO_BLADE":"เดิมพันชะตาฟ้าแลกชีวิต","IMMORTAL_HERB_PLANTER":"ปลูกสมุนไพรเซียน","IRON_THORN_VINE_WEAVER":"เถาวัลย์หนามเหล็ก","SPIRIT_GRAIN_SOVEREIGN":"รวงข้าววิญญาณ","PARASITIC_SPORE_CULTIVATOR":"เกสรกลืนปราณ","GRAND_TOURNEY_CHAMPION":"เจ้ายุทธเจ็ดศาสตรา","DUELIST_HONOR_BLADE":"ดาบดวลเกียรติยศ","CROWD_ROAR_BRAWLER":"หมัดก้องสังเวียน","BANNER_GLORY_MARSHAL":"ธงชัยเกียรติยุทธ์"};
   for (const [pid, p] of Object.entries(C.PATHS)) {
     if (pMap[pid]) { p.nameTh = pMap[pid]; p.shortTh = pMap[pid]; }
@@ -14816,6 +14864,292 @@
       if (sm && sm.cultRatePct) r *= (1 + sm.cultRatePct);
     }
     return r;
+  };
+
+
+  /* ============================================================================
+   * JS2 v3.7.0 — Legendary & Transcendent Dao Engine (CULT.LEGENDARY_DAO)
+   * 12 Standalone High-Grade Paths (6 Legendary + 6 Transcendent, 60 Subpaths)
+   * Strictly Lower-World Scale (Stage 1.0 -> 9.0, Veil intact). Zero W.rng consumption.
+   * ============================================================================ */
+  const LD_PROVENANCE = Object.freeze({"LEG_READ_FORM_BLADE": {"id": "LEG_READ_FORM_BLADE", "nameTh": "วิถีกระบี่อ่านช่องฟ้า", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "kw": "KW_DAO_READ_FORM", "minEqStage": 4, "lore": {"eraTh": "ปลายกลียุคหลังสงครามใหญ่", "regionId": "NORTHERN_PEAKS", "inventorTh": "ครูฝึกด่านซานเจียงผู้รอดชีวิตจากทัพม้าเหล็ก", "adapterTh": "ศิษย์เฝ้าด่านรุ่นหลังที่บันทึกแผ่นท่าลงกระดานไม้", "competingAccountsTh": "ด่านซานเจียงถือว่าเป็นวิชารักษาด่านท้องถิ่น ขณะที่หอคัมภีร์บางแห่งเข้าใจผิดว่าเป็นเศษคัมภีร์สำนักกระบี่โบราณ", "discoverySources": ["แผ่นจารึกท่าด่านชายแดน", "ครูฝึกเฝ้าด่าน", "บันทึกการประลอง"]}, "subpaths": [{"id": "LEG_SUB_CLOSING_BLADE", "nameTh": "กระบี่ปิดบท", "descTh": "จำท่าโจมตีหลักของศัตรูแล้วตัดกระบวนด้วยคมกระบี่เดียวเมื่อเห็นสัญญาณซ้ำ"}, {"id": "LEG_SUB_STANCE_BREAKER", "nameTh": "กระบี่ตัดกระบวน", "descTh": "เน้นฟันทำลายหลักการยืนและเกราะปราณของศัตรูที่ตั้งท่าต่อเนื่อง"}, {"id": "LEG_SUB_ECHO_PARRY", "nameTh": "กระบี่สะท้อนจังหวะ", "descTh": "รับแรงปะทะแล้วเบี่ยงจังหวะศัตรูให้เสียหลักเปิดทางให้สหายซ้ำ"}, {"id": "LEG_SUB_BORDER_SENTINEL", "nameTh": "กระบี่เฝ้าด่าน", "descTh": "ยึดมั่นแนวป้องกันด่านชายแดน ปิดทางบุกของศัตรูที่โถมเข้าใส่"}, {"id": "LEG_SUB_SINGLE_DRAW_VERDICT", "nameTh": "กระบี่ชักเดี่ยวตัดสิน", "descTh": "สะสมสมาธิรอจังหวะเดียวที่ศัตรูเผยช่องว่างแล้วชักกระบี่ปลิดศึก"}]}, "LEG_TRIAGE_MERIDIAN": {"id": "LEG_TRIAGE_MERIDIAN", "nameTh": "วิถีชีพจรประคองสหาย", "grade": "LEGENDARY", "originType": "LOWLY_UPPER_WORLD", "kw": "KW_DAO_TRIAGE_PULSE", "minEqStage": 4, "lore": {"eraTh": "ต้นยุคดุลยภาพสามมหาอำนาจ", "regionId": "CENTRAL_HEARTLAND", "inventorTh": "แผ่นฝึกหายใจชั้นผู้น้อยที่ถูกคัดทิ้งจากหอพักโลกเบื้องบน", "adapterTh": "หมอสนามกองคุ้มกันที่ตัดทอนขั้นตอนเกินกำลังและเพิ่มท่ารับชีพจร", "competingAccountsTh": "สำนักแพทย์บางแห่งยกย่องว่าเป็นตำราเซียนโอสถ แต่บันทึกหอรักษาเก่าชี้ชัดว่าเริ่มต้นจากแผ่นฝึกหายใจคนรับใช้ที่ถูกดัดแปลงจนใช้งานได้จริงในโลกเบื้องล่าง", "discoverySources": ["สมุดเวรหอรักษา", "แผ่นฝึกหายใจคัดทิ้ง", "หมอสนามกองคุ้มกัน"]}, "subpaths": [{"id": "LEG_SUB_WARD_PHYSICIAN", "nameTh": "หมอสนามประคองชีพ", "descTh": "มุ่งเน้นฟื้นฟูสหายที่บาดเจ็บหนักที่สุดอย่างตรงจุดและประหยัดปราณ"}, {"id": "LEG_SUB_MERIDIAN_UNBLOCK", "nameTh": "ดัชนีเปิดชีพจร", "descTh": "สกัดจุดเปิดเส้นปราณให้สหายลงมือคล่องตัว พร้อมสะกดจุดชีพจรศัตรู"}, {"id": "LEG_SUB_POISON_SIPHON", "nameTh": "ถ่ายพิษคืนสมดุล", "descTh": "ดึงไอพิษออกจากร่างสหายแล้วสะท้อนกลับเป็นพิษอ่อนกำลังใส่ศัตรู"}, {"id": "LEG_SUB_ESCORT_VIGIL", "nameTh": "ชีพจรคุ้มขบวน", "descTh": "ตั้งแนวประคองขวัญและเกราะปราณให้คณะเดินทางฝ่าการซุ่มโจมตี"}, {"id": "LEG_SUB_FEVER_CALM", "nameTh": "ระงับธาตุไฟแทรก", "descTh": "คลายความเครียดและระงับอาการปราณตีกลับของสหายกลางสมรภูมิ"}]}, "LEG_STORM_CALLER_TEMPEST": {"id": "LEG_STORM_CALLER_TEMPEST", "nameTh": "วิถีจอมพายุบัญชาฟ้า", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "kw": "KW_DAO_FRONT_SHIFT", "minEqStage": 4, "lore": {"eraTh": "ยุคภัยแล้งและมรสุมเจ็ดปี", "regionId": "SOUTHERN_WATERS", "inventorTh": "กัปตันเรือเดินสมุทรและพรานยอดเขาที่ร่วมกันจดทิศลม", "adapterTh": "ศิษย์หอดูดาวชายฝั่งที่แปรวิชาอ่านเมฆเป็นเพลงพัดอสนี", "competingAccountsTh": "ชาวประมงถือว่าเป็นวิชาพยากรณ์คลื่นลม ขณะที่นักค่ายกลมองว่าเป็นการชักนำประจุฟ้าในวงแคบ", "discoverySources": ["บันทึกมรสุมเจ็ดปี", "หอเตือนพายุชายฝั่ง", "พรานยอดเขา"]}, "subpaths": [{"id": "LEG_SUB_MONSOON_HERALD", "nameTh": "ผู้เรียกลมมรสุม", "descTh": "สร้างแนวฝนลมลดความคล่องตัวของศัตรูและเสริมพลังธาตุวารี"}, {"id": "LEG_SUB_THUNDER_SQUALL", "nameTh": "พายุอสนีลูกโซ่", "descTh": "ฟาดสายฟ้าชิ่งใส่ศัตรูที่ยืนเกาะกลุ่มอย่างรวดเร็ว"}, {"id": "LEG_SUB_FROST_FRONT", "nameTh": "แนวลมเหมันต์", "descTh": "แผ่ลมหนาวแช่แข็งจังหวะการร่ายและการเคลื่อนไหวของศัตรู"}, {"id": "LEG_SUB_DROUGHT_MIST", "nameTh": "หมอกระอุกลางศึก", "descTh": "สร้างไอร้อนและหมอกควันบดบังสายตาพร้อมเผาผลาญปราณศัตรู"}, {"id": "LEG_SUB_CLEAR_SKY_EYE", "nameTh": "เนตรตาพายุ", "descTh": "รักษาความสงบกลางความโกลาหล ลบล้างหมอกพรางตาและเสริมความแม่นยำให้ทีม"}]}, "LEG_JADE_CARAVAN_VOYAGER": {"id": "LEG_JADE_CARAVAN_VOYAGER", "nameTh": "วิถีจอมคาราวานหยก", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "kw": "KW_DAO_PROVISION_SHARE", "minEqStage": 4, "lore": {"eraTh": "ยุคน้ำหลากใหญ่ลุ่มน้ำหยุนเหอ", "regionId": "EASTERN_PLAINS", "inventorTh": "นายท่าเรือข้ามฟากและกองคาราวานจากตำนานเรือข้าวสามหนี้", "adapterTh": "หัวหน้ากองคุ้มกันเส้นทางเกลือที่พัฒนาท่ารับส่งเสบียงกลางศึก", "competingAccountsTh": "พงศาวดารเมืองหลวงอ้างว่าขุนนางผู้ตรวจการเป็นผู้คิดค้น แต่สมุดบัญชีด่านเก็บภาษีเก่าชี้ว่าเป็นผลงานของนายท่าสามัญชนสามคน", "discoverySources": ["สมุดบัญชีด่านภาษีเก่า", "กองคาราวานเส้นทางเกลือ", "ท่าข้ามฟากโบราณ"]}, "subpaths": [{"id": "LEG_SUB_SALT_ROAD_GUARD", "nameTh": "ผู้คุ้มเส้นทางเกลือ", "descTh": "ชำนาญการตั้งขบวนคุ้มกันเกวียนและต้านทานการดักปล้นในหุบเขา"}, {"id": "LEG_SUB_FIELD_TINKER", "nameTh": "เตาหลอมซ่อมกลางทาง", "descTh": "ปรับแต่งและซ่อมแซมศาสตรากลางภารกิจ ลดความเสียหายเมื่อแผนผิดพลาด"}, {"id": "LEG_SUB_LEDGER_BROKER", "nameTh": "สมุดบัญชีหยก", "descTh": "คำนวณต้นทุนและช่องโหว่ของศัตรูด้วยความแม่นยำดุจลูกคิดทองคำ"}, {"id": "LEG_SUB_RELAY_COURIER", "nameTh": "ม้าเร็วส่งสาร", "descTh": "เร่งความเร็วเดินทางและฉาบฉวยตัดกำลังแนวหลังของศัตรู"}, {"id": "LEG_SUB_FERRY_PACT", "nameTh": "พันธะท่าข้ามฟาก", "descTh": "สืบทอดเจตนารมณ์ช่วยเหลือข้ามลำน้ำ ยามคับขันช่วยพาคณะถอนตัวได้อย่างปลอดภัย"}]}, "LEG_OATH_JUDGE_WARDEN": {"id": "LEG_OATH_JUDGE_WARDEN", "nameTh": "วิถีผู้คุมสัตย์สาบาน", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "kw": "KW_DAO_VERDICT_MARK", "minEqStage": 4, "lore": {"eraTh": "ยุคก่อตั้งพันธมิตรสำนักหลังกลียุค", "regionId": "CENTRAL_HEARTLAND", "inventorTh": "กลุ่มผู้เฒ่าและตุลาการพเนจรที่แยกตัวจากความขัดแย้งนองเลือด", "adapterTh": "หอจดหมายเหตุสำนักศึกษาไป๋ลู่ที่รวบรวมวิธีสืบพยานสองแหล่ง", "competingAccountsTh": "ฝ่ายธรรมะมองว่าเป็นศาลยุทธภพเที่ยงธรรม ขณะที่สำนักอิสระบางแห่งเกรงว่าถูกใช้เป็นเครื่องมือการเมือง", "discoverySources": ["หอจดหมายเหตุไป๋ลู่", "ศาลไกล่เกลี่ยยุทธภพ", "ศิลาจารึกคำสัตย์"]}, "subpaths": [{"id": "LEG_SUB_VOW_WITNESS", "nameTh": "พยานสัตย์สาบาน", "descTh": "ยืนหยัดเป็นพยานคำสัตย์ เสริมพลังแก่ผู้รักษาสัจจะและลงทัณฑ์ผู้ตระบัดสัตย์"}, {"id": "LEG_SUB_TRUTH_LANTERN", "nameTh": "โคมส่องรอยจริง", "descTh": "สืบสาวหลักฐานจริงเพื่อทำลายกลลวงพรางกายและเตือนภัยล่วงหน้า"}, {"id": "LEG_SUB_BLOOD_DEBT_BAILIFF", "nameTh": "ตุลาการทวงหนี้เลือด", "descTh": "ไล่ล่าผู้ก่อเหตุร้ายและทลายเกราะปราณของศัตรูที่มีค่าความแค้นสูง"}, {"id": "LEG_SUB_TRUCE_MEDIATOR", "nameTh": "ผู้ไกล่เกลี่ยสงบศึก", "descTh": "ลดความรุนแรงของความขัดแย้ง เกลี้ยกล่อมศัตรูสามัญที่อ่อนล้าให้ถอนตัว"}, {"id": "LEG_SUB_ARCHIVE_INQUISITOR", "nameTh": "ผู้ตรวจหอจดหมายเหตุ", "descTh": "ตรวจสอบประวัติคัมภีร์และปิดผนึกกระบวนท่าที่ขัดต่อธรรมเนียม"}]}, "LEG_ASHEN_KILN_ALCHEMY": {"id": "LEG_ASHEN_KILN_ALCHEMY", "nameTh": "วิถีเตาเถ้าคืนชีวิต", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "kw": "KW_DAO_ASHEN_GLAZE", "minEqStage": 4, "lore": {"eraTh": "ศึกปิดล้อมเมืองเตาเผาสามฤดู", "regionId": "WESTERN_BADLANDS", "inventorTh": "ช่างปั้นเครื่องเคลือบและศิษย์หลอมโอสถที่ถูกขับออกจากสำนักใหญ่", "adapterTh": "ช่างบูรณะซากศึกประจำด่านชายแดนที่นำเถ้าถ่านมาหลอมเกราะฉุกเฉิน", "competingAccountsTh": "สำนักหลอมโอสถชั้นสูงดูแคลนว่าเป็นวิชาเก็บกากของเหลือ แต่เมืองชายแดนที่รอดพ้นการปิดล้อมต่างยกย่องว่าเป็นวิถีแห่งการเอาชีวิตรอด", "discoverySources": ["เตาเผาร้างหลังศึกปิดล้อม", "ตำรากลั่นกากโอสถ", "ช่างบูรณะซากกำแพงเมือง"]}, "subpaths": [{"id": "LEG_SUB_DREG_REFINER", "nameTh": "กลั่นกากโอสถคืนฤทธิ์", "descTh": "นำกากโอสถที่หลอมพลาดมากลั่นซ้ำเป็นยาพอกและไอเพลิงรักษาสหาย"}, {"id": "LEG_SUB_CRACKED_GLAZE_WARD", "nameTh": "เกราะเคลือบเถ้าแตกสะท้อน", "descTh": "สร้างเกราะกระเบื้องเคลือบหนา เมื่อแตกจากการโจมตีหนักจะระเบิดสะเก็ดสวนกลับ"}, {"id": "LEG_SUB_RUIN_MASON", "nameTh": "ช่างบูรณะซากศึก", "descTh": "ซ่อมแซมแนวรับและค่ายกลที่ชำรุด ลดความสูญเสียของสำนักในยามกลียุค"}, {"id": "LEG_SUB_CHARCOAL_BREATH", "nameTh": "ลมหายใจถ่านมอด", "descTh": "เก็บงำความร้อนใต้เถ้าถ่านไว้รอจังหวะปะทุรุนแรงเมื่อศึกยืดเยื้อ"}, {"id": "LEG_SUB_SCAR_KILN_FORGE", "nameTh": "เตาหลอมแผลศาสตรา", "descTh": "หลอมรอยบิ่นและเศษโลหะแตกหักให้กลายเป็นคมดาบเถ้าเพลิงที่เจาะเกราะได้"}]}, "TRANS_CONSTELLATION_RELAY": {"id": "TRANS_CONSTELLATION_RELAY", "nameTh": "วิถีประสานปราณหมู่ดาว", "grade": "TRANSCENDENT", "originType": "ASCENDED_LOWER_MASTER", "kw": "KW_DAO_STAR_RELAY", "minEqStage": 6, "lore": {"eraTh": "ปลายยุคสามมหาอำนาจตอนต้น", "regionId": "NORTHERN_PEAKS", "inventorTh": "ปรมาจารย์หมอทัพผู้บรรลุจุดสูงสุดโลกเบื้องล่างและข้ามม่านฟ้าไปแล้ว", "adapterTh": "ศิษย์เอกที่เฝ้าช่องเขาคุ้มกันอาจารย์ระหว่างฟ้าทัณฑ์ครั้งสุดท้าย", "competingAccountsTh": "บันทึกสองสำนักขัดแย้งกันว่าแผนภาพไตรดาราหรือสายพิณประสานใจกันแน่ที่ช่วยศิษย์รอดจากฟ้าทัณฑ์ในวันนั้น", "discoverySources": ["แผนภาพด่านปฐมพยาบาลเก่า", "รอยจารึกช่องเขาทัณฑ์ฟ้า", "ครูฝึกกู้ภัยอาวุโส"]}, "subpaths": [{"id": "TRANS_SUB_TRIAD_ANCHOR", "nameTh": "หลักปราณไตรดารา", "descTh": "ปักหลักสามตำแหน่งแบ่งเบาความเสียหายหนักและส่งต่อเกราะปราณ"}, {"id": "TRANS_SUB_HEARTSTRING_CHORD", "nameTh": "สายพิณประสานใจ", "descTh": "แปรอารมณ์และความมุ่งมั่นจริงของสหายเป็นทำนองฟื้นฟูขวัญและลดความเครียด"}, {"id": "TRANS_SUB_TRIBULATION_CANOPY", "nameTh": "ม่านดาราต้านทัณฑ์", "descTh": "กางม่านดาราคุ้มกันการโจมตีรุนแรงตามตำนานช่องเขาทัณฑ์ฟ้า"}, {"id": "TRANS_SUB_ECHO_MENDING", "nameTh": "ฟื้นฟูสะท้อนตำแหน่ง", "descTh": "ส่งต่อผลของการรักษาจากหนึ่งเป้าหมายไปยังสหายที่เชื่อมข่ายอยู่ตามสัดส่วน"}, {"id": "TRANS_SUB_STAR_VIGIL_CHAIN", "nameTh": "โซ่ดาราเฝ้าระวัง", "descTh": "เชื่อมสายตาและจังหวะระวังภัยของทั้งทีม ป้องกันการลอบโจมตีจากมุมอับ"}]}, "TRANS_FIELD_CLAUSE_SOVEREIGN": {"id": "TRANS_FIELD_CLAUSE_SOVEREIGN", "nameTh": "วิถีธรรมนูญฟ้าขีดเขต", "grade": "TRANSCENDENT", "originType": "ASCENDED_LOWER_MASTER", "kw": "KW_DAO_FIELD_CLAUSE", "minEqStage": 6, "lore": {"eraTh": "ปลายสมัยมหาอาณาจักรเทียนกู่ก่อนล่มสลาย", "regionId": "EASTERN_PLAINS", "inventorTh": "แม่ทัพนักกฎหมายยุคเทียนกู่ผู้ฝึกตนจนข้ามม่านฟ้าก่อนอาณาจักรแตก", "adapterTh": "ขุนศึกชายแดนที่นำกติกาสงบศึกเฉพาะจุดมาปรับใช้คุ้มกันขบวนถอนทัพ", "competingAccountsTh": "ราชสำนักตงหวงอ้างสิทธิ์สืบทอดสายตรง แต่นักค่ายกลอิสระพบหลักฐานเดียวกันสลักไว้บนศิลาด่านสองแห่งที่ไม่อยู่ในอำนาจราชสำนัก", "discoverySources": ["ศิลาธรรมนูญด่านโบราณ", "ตำราพิชัยสงครามเทียนกู่", "บันทึกการถอนทัพชายแดน"]}, "subpaths": [{"id": "TRANS_SUB_WEIGHT_OF_ARMS", "nameTh": "ธรรมนูญน้ำหนักศาสตรา", "descTh": "เพิ่มน้ำหนักการปะทะซึ่งหน้า บีบให้ศัตรูสายหลบหลีกต้องรับแรงกดดัน"}, {"id": "TRANS_SUB_SILENT_RING", "nameTh": "เขตห้ามร่ายซ้อน", "descTh": "จำกัดการร่ายท่าซ้ำต่อเนื่องในเขตแดน ตัดจังหวะสายปราณที่พึ่งพาท่าเดิม"}, {"id": "TRANS_SUB_EQUAL_GROUND", "nameTh": "ผืนดินเสมอภาค", "descTh": "ลดช่องว่างความได้เปรียบจากภูมิประเทศและบัฟพุ่งพรวด ชนะกันด้วยรากฐานจริง"}, {"id": "TRANS_SUB_BANNER_CHARTER", "nameTh": "กฎธงทัพ", "descTh": "ปักธงบัญชาการเสริมระเบียบทัพและการประสานจังหวะโจมตีของสหาย"}, {"id": "TRANS_SUB_TRUCE_BOUNDARY", "nameTh": "เส้นเขตพักรบ", "descTh": "ขีดแนวกันชนชั่วคราวเปิดโอกาสให้สหายบาดเจ็บถอนตัวและจัดขบวนใหม่"}]}, "TRANS_TEMPO_SOVEREIGN": {"id": "TRANS_TEMPO_SOVEREIGN", "nameTh": "วิถีปรมาจารย์จังหวะกาล", "grade": "TRANSCENDENT", "originType": "LOCAL_LOWER_HISTORY", "kw": "KW_DAO_TEMPO_BANK", "minEqStage": 6, "lore": {"eraTh": "ยุคหอกลองริมแม่น้ำและกองเรือลำเลียง", "regionId": "SOUTHERN_WATERS", "inventorTh": "นายกลองเรือรบและช่างนาฬิกาน้ำริมแม่น้ำใหญ่", "adapterTh": "ยอดฝีมือที่นำหลักการหน่วงกระแสน้ำมาประยุกต์เป็นจังหวะกระบวนท่า", "competingAccountsTh": "บางคนนึกว่าเป็นวิถีกาลเวลาจากแดนลับ แต่จารึกหอกลองเก่าพิสูจน์ว่าเกิดจากการจับจังหวะฝีพายและสายน้ำจริงในโลกเบื้องล่าง", "discoverySources": ["จารึกหอกลองริมแม่น้ำ", "บันทึกแผนสำรองกองเรือ", "ครูฝึกจังหวะกลองศึก"]}, "subpaths": [{"id": "TRANS_SUB_DEFERRED_CURRENT", "nameTh": "สายน้ำรอผล", "descTh": "เก็บปราณไว้ปลายกระแสแล้วปล่อยผลเมื่อเงื่อนไขในสนามเกิดขึ้นจริง"}, {"id": "TRANS_SUB_DRUM_CADENCE", "nameTh": "จังหวะกลองศึก", "descTh": "กำหนดจังหวะรุกพร้อมเพรียงให้สหายเข้าโจมตีอย่างต่อเนื่อง"}, {"id": "TRANS_SUB_STILL_INTERVAL", "nameTh": "ช่องว่างระหว่างลมหายใจ", "descTh": "แทรกตัวเข้าโจมตีในเสี้ยววินาทีที่ศัตรูเปลี่ยนท่าหายใจ"}, {"id": "TRANS_SUB_COUNTER_BEAT", "nameTh": "ตีตัดจังหวะ", "descTh": "ทำลายจังหวะร่ายท่าใหญ่ของศัตรูและยืดคูลดาวน์กระบวนท่า"}, {"id": "TRANS_SUB_SEASON_TIDE", "nameTh": "กระแสน้ำเปลี่ยนฤดู", "descTh": "ปรับจังหวะการฟื้นฟูของคณะให้สอดคล้องกับกระแสศึกยาวนาน"}]}, "TRANS_SEALKEEPER_FORBIDDEN_KEY": {"id": "TRANS_SEALKEEPER_FORBIDDEN_KEY", "nameTh": "วิถีผู้ถือกุญแจผนึก", "grade": "TRANSCENDENT", "originType": "LOWLY_UPPER_WORLD", "kw": "KW_DAO_SEAL_KNOT", "minEqStage": 6, "lore": {"eraTh": "ยุคสำรวจซากคลังโบราณหลังสงครามใหญ่", "regionId": "WESTERN_BADLANDS", "inventorTh": "ปมเชือกผูกหีบสินค้าแตกหักง่ายของพนักงานคลังชั้นผู้น้อยในโลกเบื้องบน", "adapterTh": "นักยันต์โลกเบื้องล่างที่ตัดขั้นตอนใช้ปราณสูงออกแล้วดัดแปลงเป็นผนึกกักเก็บที่ควบคุมได้", "competingAccountsTh": "สองสำนักยันต์ถกเถียงกันไม่จบว่าควรถ่ายระบายไออันตรายในปมผนึกทิ้งกลางทางหรือถือไปส่งผู้เชี่ยวชาญ", "discoverySources": ["เศษป้ายคลังสินค้าโบราณ", "สำนักยันต์ผนึกชายแดน", "หอเก็บวัตถุต้องห้าม"]}, "subpaths": [{"id": "TRANS_SUB_CARGO_KNOT", "nameTh": "ปมผนึกคลังโบราณ", "descTh": "ใช้ปมเชือกคลังโบราณดัดแปลงกักเก็บและสะกดกระบวนท่าศัตรูอย่างมั่นคง"}, {"id": "TRANS_SUB_VENTING_WARD", "nameTh": "ผนึกระบายไอพิษ", "descTh": "เลือกปล่อยระบายแรงดันและไอพิษออกจากผนึกอย่างปลอดภัยเพื่อปกป้องสหาย"}, {"id": "TRANS_SUB_KEYBEARER_LOCK", "nameTh": "กุญแจล็อกกระบวน", "descTh": "สะกดจุดเชื่อมต่อท่าไม้ตายของคู่ต่อสู้ให้ใช้การไม่ได้ชั่วคราว"}, {"id": "TRANS_SUB_TABOO_DAMPER", "nameTh": "เกราะคุมวิชาต้องห้าม", "descTh": "ลดทอนแรงตีกลับจากวิชาต้องห้ามและเปลี่ยนเป็นเกราะปราณคุ้มกาย"}, {"id": "TRANS_SUB_RELIC_CAGE", "nameTh": "กรงผนึกศาสตรา", "descTh": "ตรึงอานุภาพศาสตราวิเศษของศัตรูให้แสดงฤทธิ์ได้ลดลงชั่วคราว"}]}, "TRANS_PRIMAL_VORTEX_MIRROR": {"id": "TRANS_PRIMAL_VORTEX_MIRROR", "nameTh": "วิถีกระจกสะท้อนหมื่นวิชา", "grade": "TRANSCENDENT", "originType": "ASCENDED_LOWER_MASTER", "kw": "KW_DAO_MIRROR_ECHO", "minEqStage": 6, "lore": {"eraTh": "ยุคชุมนุมหอคัมภีร์ห้าสำนัก", "regionId": "EASTERN_PLAINS", "inventorTh": "อาลักษณ์พเนจรที่รวบรวมบันทึกวิชาต่างสำนักข้ามสามชั่วคนก่อนบรรลุและข้ามม่านฟ้า", "adapterTh": "ศิษย์หอคัมภีร์ที่นำเศษบันทึกไม่ครบชุดมาต่อเติมเป็นเคล็ดกระจกนิ่ง", "competingAccountsTh": "หอคัมภีร์หลายแห่งต่างถือเศษสำเนาคนละบทและโต้เถียงกันว่าบทใดคือต้นฉบับก่อนอาจารย์ขึ้นสู่เบื้องบน", "discoverySources": ["บันทึกข้ามรุ่นหอคัมภีร์", "กระจกทองแดงจารึกอักขระ", "ศิษย์อาลักษณ์พเนจร"]}, "subpaths": [{"id": "TRANS_SUB_STILL_MIRROR", "nameTh": "กระจกนิ่งสะท้อนปราณ", "descTh": "รักษาจิตใจให้นิ่งดั่งผิวน้ำเพื่อสะท้อนส่วนหนึ่งของแรงโจมตีกลับคืน"}, {"id": "TRANS_SUB_VORTEX_SIPHON", "nameTh": "วังวนเบี่ยงกระแส", "descTh": "หมุนวนปราณเบี่ยงทิศทางแรงปะทะและฟื้นฟูปราณส่วนหนึ่งให้ตนเอง"}, {"id": "TRANS_SUB_LINEAGE_NOTE", "nameTh": "บันทึกวิถีข้ามรุ่น", "descTh": "ต่อยอดบทเรียนจากผู้ฝึกต่างรุ่นให้ประสานงานกันได้เกินกว่ากำลังคนเดียว"}, {"id": "TRANS_SUB_ELEMENT_MIMIC", "nameTh": "จำลองธาตุศัตรู", "descTh": "ปรับธาตุปราณตามการโจมตีล่าสุดที่พบเพื่อตอบโต้จุดอ่อนของศัตรู"}, {"id": "TRANS_SUB_SHATTER_GLASS", "nameTh": "กระจกแตกคืนรูป", "descTh": "จงใจสลายเกราะกระจกที่สะสมไว้ให้แตกเป็นคมแสงเจาะเกราะศัตรู"}]}, "TRANS_DYNASTIC_MANDATE_WEAVER": {"id": "TRANS_DYNASTIC_MANDATE_WEAVER", "nameTh": "วิถีทอชะตาแผ่นดิน", "grade": "TRANSCENDENT", "originType": "LOCAL_LOWER_HISTORY", "kw": "KW_DAO_MANDATE_THREAD", "minEqStage": 6, "lore": {"eraTh": "ยุควัฏจักรผลัดแผ่นดินสามราชวงศ์", "regionId": "CENTRAL_HEARTLAND", "inventorTh": "บัณฑิตสันโดษผู้รอดชีวิตจากการล่มสลายของสามอาณาจักรยุคหลังเทียนกู่", "adapterTh": "อาลักษณ์ราชสำนักและผู้ประคองราษฎร์ที่แปรบทเรียนประวัติศาสตร์เป็นวิถีบำเพ็ญ", "competingAccountsTh": "ราชสำนักบางแห่งเกรงว่าผู้ฝึกวิถีนี้จะแทรกแซงการเมือง แต่บันทึกเดิมย้ำชัดว่าวิถีนี้เป็นเพียงการอ่านกระแสโลกและประคองผู้คนมิใช่การยึดครองบัลลังก์", "discoverySources": ["พงศาวดารสามราชวงศ์", "ศาลากลางเมืองยามกลียุค", "บันทึกอาลักษณ์สันโดษ"]}, "subpaths": [{"id": "TRANS_SUB_COURT_CHRONICLER", "nameTh": "อาลักษณ์ชะตาราชสำนัก", "descTh": "บันทึกและวิเคราะห์ความเปลี่ยนแปลงของราชสำนัก เสริมความแม่นยำและการทูต"}, {"id": "TRANS_SUB_HEGEMON_BALANCE", "nameTh": "ตราชั่งคานมหาอำนาจ", "descTh": "ต้านทานศัตรูที่มีพลังเหนือกว่า ลดแรงกดดันจากฝ่ายที่บุกรุกเกินกำลัง"}, {"id": "TRANS_SUB_TURMOIL_SHEPHERD", "nameTh": "ผู้ประคองราษฎร์ยามกลียุค", "descTh": "ยิ่งแผ่นดินตกอยู่ในกลียุค ยิ่งเสริมความอึดและการคุ้มครองสหายได้แข็งแกร่ง"}, {"id": "TRANS_SUB_SECT_CORNERSTONE", "nameTh": "ศิลาฤกษ์สืบสำนัก", "descTh": "เป็นหลักยึดมั่นคงให้สำนัก ช่วยประคองขวัญและลดความแตกแยกภายใน"}, {"id": "TRANS_SUB_VEIL_WITNESS", "nameTh": "พยานขอบม่านฟ้า", "descTh": "เฝ้าสังเกตกฎเกณฑ์ขอบม่านฟ้าอย่างถ่อมตน เสริมสติปัญญาและเตรียมความพร้อมสู่ด่านทัณฑ์ฟ้า"}]}});
+  const LD_IDS = Object.freeze(Object.keys(LD_PROVENANCE));
+  const LD_LEG_IDS = Object.freeze(LD_IDS.filter(k => LD_PROVENANCE[k].grade === 'LEGENDARY'));
+  const LD_TRANS_IDS = Object.freeze(LD_IDS.filter(k => LD_PROVENANCE[k].grade === 'TRANSCENDENT'));
+
+  function detHash370(str) {
+    let h = 2166136261 >>> 0;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function detUnit370(str) { return (detHash370(str) % 10000) / 10000; }
+
+  CULT.LEGENDARY_DAO = {
+    VERSION: '3.7.0-legendary-dao',
+    PROVENANCE: LD_PROVENANCE,
+    PATH_IDS: LD_IDS,
+    LEGENDARY_IDS: LD_LEG_IDS,
+    TRANSCENDENT_IDS: LD_TRANS_IDS,
+
+    gradeOf(pathId) {
+      const p = LD_PROVENANCE[pathId];
+      return p ? p.grade : 'ORDINARY';
+    },
+
+    gradeLabelTh(pathId) {
+      const gr = CULT.LEGENDARY_DAO.gradeOf(pathId);
+      return gr === 'TRANSCENDENT' ? 'เหนือตำนาน' : gr === 'LEGENDARY' ? 'ตำนาน' : 'สามัญ';
+    },
+
+    ensureWorldState(W) {
+      if (!W || !W.world) return null;
+      if (!W.world.legendaryDao || typeof W.world.legendaryDao !== 'object') {
+        W.world.legendaryDao = {
+          lastMonthTick: -1,
+          discoveriesCount: 0,
+          adoptionsCount: 0,
+          declinesCount: 0,
+          rippleEventsCount: 0,
+          events: []
+        };
+      }
+      if (!Array.isArray(W.world.legendaryDao.events)) W.world.legendaryDao.events = [];
+      return W.world.legendaryDao;
+    },
+
+    recordEvent(W, textTh, kind, pathId) {
+      const root = CULT.LEGENDARY_DAO.ensureWorldState(W);
+      if (!root || !textTh) return;
+      root.events.push({ day: (W && W.day) || 0, kind: kind || 'dao', pathId: pathId || null, textTh });
+      if (root.events.length > 50) root.events.shift();
+      if (W && W.log) W.log('cult', textTh, []);
+    },
+
+    // Step 1: Credible Discovery (opens an option; NEVER forces adoption!)
+    recordDiscovery(W, npc, pathId, sourceKind, evidenceTh) {
+      if (!W || !npc || !LD_PROVENANCE[pathId]) return false;
+      if (!npc.daoDiscoveries || typeof npc.daoDiscoveries !== 'object') npc.daoDiscoveries = {};
+      if (npc.daoDiscoveries[pathId]) return false;
+      const prov = LD_PROVENANCE[pathId];
+      npc.daoDiscoveries[pathId] = {
+        pathId,
+        grade: prov.grade,
+        discoveredDay: W.day || 0,
+        sourceKind: sourceKind || 'archive',
+        evidenceTh: evidenceTh || (prov.lore.discoverySources && prov.lore.discoverySources[0]) || 'บันทึกโบราณ',
+        decision: 'PENDING'
+      };
+      const root = CULT.LEGENDARY_DAO.ensureWorldState(W);
+      if (root) root.discoveriesCount = (root.discoveriesCount || 0) + 1;
+      CULT.LEGENDARY_DAO.recordEvent(
+        W,
+        '📜 ' + ((npc.h && npc.h.name && (npc.h.name.given || npc.h.name.full)) || npc.name || 'ศิษย์') + ' ค้นพบร่องรอย「' + prov.nameTh + '」(' + CULT.LEGENDARY_DAO.gradeLabelTh(pathId) + ') จาก' + npc.daoDiscoveries[pathId].evidenceTh,
+        'discovery',
+        pathId
+      );
+      return true;
+    },
+
+    // Step 2: 100% Autonomous Human-Core Evaluation (ADOPT / STUDY / DECLINE)
+    evaluateNpcAdoption(W, npc, pathId) {
+      if (!W || !npc || !LD_PROVENANCE[pathId]) return { decision: 'DECLINE', reasonTh: 'ข้อมูลไม่ครบถ้วน' };
+      const prov = LD_PROVENANCE[pathId];
+      const disc = npc.daoDiscoveries && npc.daoDiscoveries[pathId];
+      if (!disc) return { decision: 'DECLINE', reasonTh: 'ยังไม่เคยพบหลักฐานหรือผู้ถ่ายทอดของวิถีนี้' };
+      if (npc.cult && npc.cult.path === pathId) return { decision: 'ADOPT', reasonTh: 'กำลังบำเพ็ญวิถีนี้อยู่แล้ว' };
+
+      const eqStage = (npc.cult && typeof CULT.equivalentStage === 'function') ? CULT.equivalentStage(npc.cult) : ((npc.cult && npc.cult.stage) || 1);
+      const curGrade = npc.cult ? CULT.LEGENDARY_DAO.gradeOf(npc.cult.path) : 'ORDINARY';
+      const hc = (typeof globalThis !== 'undefined' && globalThis.HC) || null;
+      const eff = (k, fb) => (hc && typeof hc.eff === 'function' ? hc.eff(npc, k) : fb);
+
+      const curiosity = eff('personality.curiosity', 50);
+      const ambition = eff('personality.ambition', 50);
+      const discipline = eff('personality.discipline', 50);
+      const caution = eff('personality.caution', 50);
+      const comp = eff('intellect.comprehension', 50);
+
+      // Gate: Transcendent requires mature cultivation (eqStage >= 6); Legendary >= 4 (or rare prodigy >= 3 with manual)
+      const earlyOpening = prov.grade === 'LEGENDARY' && disc.sourceKind === 'manual' && comp >= 68;
+      const reqStage = earlyOpening ? 3 : prov.minEqStage;
+      if (eqStage < reqStage) {
+        disc.decision = 'STUDY';
+        return { decision: 'STUDY', reasonTh: 'ตบะยังไม่ถึงระดับที่รองรับหลักการของ「' + prov.nameTh + '」(ต้องเทียบเท่าขั้น ' + reqStage + ') จึงเก็บไว้ศึกษาต่อ' };
+      }
+
+      // Opportunity cost: switching away from a high-stage ordinary/legendary path is costly for cautious NPCs
+      const switchCost = (curGrade === 'TRANSCENDENT' ? 35 : curGrade === 'LEGENDARY' ? 22 : 0) + Math.max(0, eqStage - reqStage) * 4 + caution * 0.25;
+      const drive = curiosity * 0.35 + ambition * 0.30 + discipline * 0.25 + comp * 0.30 + (prov.grade === 'TRANSCENDENT' ? 10 : 6);
+      const root = CULT.LEGENDARY_DAO.ensureWorldState(W);
+
+      if (drive < switchCost + 18) {
+        disc.decision = 'DECLINE';
+        if (root) root.declinesCount = (root.declinesCount || 0) + 1;
+        const reasonTh = ((npc.h && npc.h.name && (npc.h.name.given || npc.h.name.full)) || npc.name || 'ศิษย์') + ' พิจารณาแล้วเลือกปฏิเสธ「' + prov.nameTh + '」เพื่อรักษารากฐานวิถีเดิมที่ลงทุนฝึกฝนมา';
+        CULT.LEGENDARY_DAO.recordEvent(W, '⚖️ ' + reasonTh, 'decline', pathId);
+        return { decision: 'DECLINE', reasonTh };
+      }
+
+      // Autonomous Adoption: clean path transition matching retraining.js invariants
+      const subList = (CULT.PATHS[pathId] && CULT.PATHS[pathId].subPaths) || [];
+      const pickSub = subList.length ? subList[detHash370(String(W.seed || 's') + ':' + npc.id + ':' + pathId) % subList.length] : null;
+      const nextStage = Math.max(1, Math.min(8, Math.round(eqStage * 0.85)));
+      if (!npc.cult) npc.cult = { path: pathId, sub: pickSub ? pickSub.id : 'NONE', stage: nextStage, prog: 0, techs: [] };
+      else {
+        npc.cult.prevPath = npc.cult.path;
+        npc.cult.path = pathId;
+        npc.cult.sub = pickSub ? pickSub.id : 'NONE';
+        npc.cult.stage = nextStage;
+        npc.cult.prog = 0;
+        delete npc.cult.track;
+        delete npc.cult.mantra;
+      }
+      // Clean up legacy path-specific runtime states
+      delete npc.mechState;
+      delete npc.karmaState;
+      delete npc.pathGauge;
+      delete npc.demonicRealmsGauge;
+      delete npc.grandDaoState;
+      if (typeof CULT.bestMantra === 'function') {
+        const bm = CULT.bestMantra(pathId, nextStage, npc);
+        if (bm) npc.cult.mantra = bm.id || bm;
+      }
+      if (typeof CULT.ensurePathGauge === 'function') CULT.ensurePathGauge(npc);
+      const M = (g && g.MARTIAL) || null;
+      if (M) {
+        if (npc.equip && typeof M.gearUsable === 'function') {
+          for (const sl of Object.keys(npc.equip)) {
+            if (npc.equip[sl] && !M.gearUsable(npc, npc.equip[sl])) npc.equip[sl] = null;
+          }
+        }
+        if (typeof M.reconcileInnate === 'function') M.reconcileInnate(npc, W);
+        if (typeof M.reconcilePassives === 'function') M.reconcilePassives(npc);
+        if (typeof M.invalidateMartialCaches === 'function') M.invalidateMartialCaches(npc);
+      }
+      if (typeof CULT.refreshLifespan === 'function') CULT.refreshLifespan(npc);
+      if (g && g.STATS && typeof g.STATS.dirty === 'function') g.STATS.dirty(npc);
+      disc.decision = 'ADOPT';
+      disc.adoptedDay = W.day || 0;
+      if (root) root.adoptionsCount = (root.adoptionsCount || 0) + 1;
+      const npcDispName = (npc.h && npc.h.name && (npc.h.name.given || npc.h.name.full)) || npc.name || 'ศิษย์';
+      const reasonTh = npcDispName + ' ตัดสินใจหันมาบำเพ็ญ「' + prov.nameTh + '」(' + (pickSub ? pickSub.nameTh : '') + ') หลังประเมินความสอดคล้องและหลักฐานจริง';
+      CULT.LEGENDARY_DAO.recordEvent(W, '🌟 ' + reasonTh, 'adopt', pathId);
+      return { decision: 'ADOPT', reasonTh, subId: pickSub ? pickSub.id : null };
+    },
+
+    // Step 3: Monthly Pure-Deterministic Discovery & Multi-Layer World Ripples (Zero W.rng!)
+    tickMonthlyDiscoveryAndRipples(W, opts) {
+      opts = opts || {};
+      const day = (W && W.day) || 0;
+      if (!opts.force && day < 30) return (W && W.world && W.world.legendaryDao) || null;
+      const root = CULT.LEGENDARY_DAO.ensureWorldState(W);
+      if (!root) return null;
+      const monthIdx = Math.floor(day / 30);
+      if (!opts.force && monthIdx <= root.lastMonthTick) return root;
+      root.lastMonthTick = monthIdx;
+      const seed = String(W.seed || 'seed');
+      const living = (W.npcs || []).filter(n => n && !n.dead && !n.exiled);
+
+      // A. Activity-gated credible discovery scan (requires real expedition, lore study, or mature mastery!)
+      const existingHighGrade = living.filter(n => n.cult && LD_PROVENANCE[n.cult.path]).length;
+      if (existingHighGrade < Math.max(2, Math.floor(living.length * 0.22)) && detUnit370(seed + ':ld_disc:m' + monthIdx) < 0.24) {
+        const candidates = living.filter(n => {
+          if (!n.cult || CULT.equivalentStage(n.cult) < 4) return false;
+          const hasExp = (n.expCount || 0) > 0 || (n.lastTrip && n.lastTrip > 0);
+          const hasLore = (n.loreKnowledge && Object.keys(n.loreKnowledge).length > 0) || (n.readCount || 0) > 0;
+          return hasExp || hasLore || CULT.equivalentStage(n.cult) >= 6;
+        });
+        if (candidates.length > 0) {
+          const npc = candidates[detHash370(seed + ':ld_npc:m' + monthIdx) % candidates.length];
+          const eq = CULT.equivalentStage(npc.cult);
+          const pool = eq >= 6 ? LD_IDS : LD_LEG_IDS;
+          const pid = pool[detHash370(seed + ':ld_pid:m' + monthIdx + ':' + npc.id) % pool.length];
+          const srcKind = ((npc.expCount || 0) > 0 || (npc.lastTrip && npc.lastTrip > 0)) ? 'expedition_lore' : 'archive';
+          if (CULT.LEGENDARY_DAO.recordDiscovery(W, npc, pid, srcKind)) {
+            CULT.LEGENDARY_DAO.evaluateNpcAdoption(W, npc, pid);
+          }
+        }
+      }
+
+      // B. Multi-Layer World Ripples from Active High-Grade Practitioners (Dynamic home polity!)
+      const homePolityId = (W.sect && W.sect.homePolityId) || 'POL_YUNHE';
+      const homeCourt = W.world && W.world.continent && W.world.continent.courts && W.world.continent.courts[homePolityId];
+      let ashenSalvagers = 0, mandateWeavers = 0, oathJudges = 0, caravanVoyagers = 0;
+      for (const n of living) {
+        if (!n.cult) continue;
+        const p = n.cult.path;
+        const eq = CULT.equivalentStage(n.cult);
+        if (p === 'LEG_ASHEN_KILN_ALCHEMY') ashenSalvagers++;
+        if (p === 'TRANS_DYNASTIC_MANDATE_WEAVER' && eq >= 6) mandateWeavers++;
+        if (p === 'LEG_OATH_JUDGE_WARDEN') oathJudges++;
+        if (p === 'LEG_JADE_CARAVAN_VOYAGER') caravanVoyagers++;
+      }
+
+      // Ripple 1 (Custom Dao #1): Ashen Kiln Alchemists salvage turmoil shortages (closed-loop from resourcePool + ledger)
+      if (ashenSalvagers > 0 && W.sect && homeCourt) {
+        const inTurmoil = homeCourt.livingPolity && (homeCourt.livingPolity.era === 'TURMOIL' || homeCourt.livingPolity.era === 'DECLINING');
+        if (inTurmoil && Number.isFinite(W.sect.stones)) {
+          const saved = Math.min(18, ashenSalvagers * 6);
+          if (W.world.resourcePool && W.world.resourcePool.stones >= saved) {
+            W.world.resourcePool.stones -= saved;
+            W.sect.stones += saved;
+            if (Array.isArray(W.sect.ledger)) W.sect.ledger.push({ day, kind: 'income', amt: saved, note: 'กู้คืนศิลาจากเตาเถ้าคืนชีวิต' });
+            root.rippleEventsCount = (root.rippleEventsCount || 0) + 1;
+          }
+        }
+      }
+
+      // Ripple 2 (Custom Dao #2): Dynastic Mandate Weavers stabilize local polity legitimacy & home sect morale
+      if (mandateWeavers > 0) {
+        if (homeCourt && homeCourt.livingPolity) {
+          homeCourt.livingPolity.legitimacy = Math.min(100, Math.round((homeCourt.livingPolity.legitimacy + Math.min(0.8, mandateWeavers * 0.4)) * 10) / 10);
+        }
+        if (W.sect && Number.isFinite(W.sect.morale)) {
+          W.sect.morale = Math.min(100, Math.round((W.sect.morale + Math.min(1.5, mandateWeavers * 0.7)) * 10) / 10);
+        }
+        root.rippleEventsCount = (root.rippleEventsCount || 0) + 1;
+      }
+
+      // Ripple 3: Oath Judge Wardens calm internal sect stress & grudge friction
+      if (oathJudges > 0) {
+        let calmed = 0;
+        for (const n of living) {
+          if (n.h && n.h.state && Number.isFinite(n.h.state.stress) && n.h.state.stress > 40) {
+            n.h.state.stress = Math.max(0, n.h.state.stress - Math.min(2.5, oathJudges * 1.2));
+            calmed++;
+          }
+        }
+        if (calmed > 0) root.rippleEventsCount = (root.rippleEventsCount || 0) + 1;
+      }
+
+      // Ripple 4: Jade Caravan Voyagers improve sect caravan & expedition supply endurance
+      if (caravanVoyagers > 0 && W.sect) {
+        W.sect.caravanSupplyEfficiency = Math.min(0.25, caravanVoyagers * 0.06);
+        root.rippleEventsCount = (root.rippleEventsCount || 0) + 1;
+      }
+      return root;
+    },
+
+    peekSummary(W) {
+      const root = W && W.world && W.world.legendaryDao;
+      const living = (W && W.npcs || []).filter(n => n && !n.dead && !n.exiled);
+      const legCount = living.filter(n => n.cult && CULT.LEGENDARY_DAO.gradeOf(n.cult.path) === 'LEGENDARY').length;
+      const transCount = living.filter(n => n.cult && CULT.LEGENDARY_DAO.gradeOf(n.cult.path) === 'TRANSCENDENT').length;
+      const last = root && root.events && root.events.length ? root.events[root.events.length - 1] : null;
+      return {
+        legCount,
+        transCount,
+        discoveriesCount: (root && root.discoveriesCount) || 0,
+        adoptionsCount: (root && root.adoptionsCount) || 0,
+        declinesCount: (root && root.declinesCount) || 0,
+        rippleEventsCount: (root && root.rippleEventsCount) || 0,
+        recentTh: last ? last.textTh : ''
+      };
+    }
   };
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);

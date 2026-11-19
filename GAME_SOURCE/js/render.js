@@ -448,7 +448,7 @@
     return w;
   }
 
-  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78', ASTRO_DIVINATION: '#74c0fc', BUDDHA_DHARMA: '#fcc419', VOID_SPACE: '#9775fa', SONIC_HARMONY: '#63e6be', VENOM_GU: '#a9e34b', PRIMORDIAL_SHIFTER: '#ff8787', CELESTIAL_WEATHER: '#4dabf7', WANDERING_DAO: '#69db7c', MERCANTILE_DAO: '#ffd43b', DRAGON_VEIN_GEOMANCY: '#d9a97c', GRAVITY_DAO: '#845ef7', CHRONO_EPOCH: '#e599f7', INK_LITERATI: '#adb5bd', SOUL_PUPPETRY: '#da77f2', PRIMORDIAL_CHAOS: '#ff6b6b', SHADOW_SAMURAI: '#e63946', NINPO_SHADOW: '#4a4e69', NINPO_ELEMENTAL: '#f77f00', DIVINE_SUMMONER: '#ffd166', DIVINE_POSSESSION: '#ff9f1c', DIVINE_CHANNELER: '#4cc9f0', VOID_HERETIC_PACT: '#7209b7', OCCULT_MAGE: '#d97706', DEVOURING_FLESH: '#9b2226', NETHER_GRAVE: '#6c757d', ANCESTRAL_RITUAL: '#e9c46a', TIDE_VOYAGER: '#0077b6', LORE_ARCHIVIST: '#8ecae6', FORTUNE_GAMBLER: '#ffb703', SPIRIT_HUSBANDRY: '#52b788', ARENA_GLORY: '#f4a261' };
+  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78', ASTRO_DIVINATION: '#74c0fc', BUDDHA_DHARMA: '#fcc419', VOID_SPACE: '#9775fa', SONIC_HARMONY: '#63e6be', VENOM_GU: '#a9e34b', PRIMORDIAL_SHIFTER: '#ff8787', CELESTIAL_WEATHER: '#4dabf7', WANDERING_DAO: '#69db7c', MERCANTILE_DAO: '#ffd43b', DRAGON_VEIN_GEOMANCY: '#d9a97c', GRAVITY_DAO: '#845ef7', CHRONO_EPOCH: '#e599f7', INK_LITERATI: '#adb5bd', SOUL_PUPPETRY: '#da77f2', PRIMORDIAL_CHAOS: '#ff6b6b', SHADOW_SAMURAI: '#e63946', NINPO_SHADOW: '#4a4e69', NINPO_ELEMENTAL: '#f77f00', DIVINE_SUMMONER: '#ffd166', DIVINE_POSSESSION: '#ff9f1c', DIVINE_CHANNELER: '#4cc9f0', VOID_HERETIC_PACT: '#7209b7', OCCULT_MAGE: '#d97706', DEVOURING_FLESH: '#9b2226', NETHER_GRAVE: '#6c757d', ANCESTRAL_RITUAL: '#e9c46a', TIDE_VOYAGER: '#0077b6', LORE_ARCHIVIST: '#8ecae6', FORTUNE_GAMBLER: '#ffb703', SPIRIT_HUSBANDRY: '#52b788', ARENA_GLORY: '#f4a261', LEG_READ_FORM_BLADE: '#38bdf8', LEG_TRIAGE_MERIDIAN: '#34d399', LEG_STORM_CALLER_TEMPEST: '#60a5fa', LEG_JADE_CARAVAN_VOYAGER: '#f59e0b', LEG_OATH_JUDGE_WARDEN: '#fbbf24', LEG_ASHEN_KILN_ALCHEMY: '#ea580c', TRANS_CONSTELLATION_RELAY: '#a78bfa', TRANS_FIELD_CLAUSE_SOVEREIGN: '#e11d48', TRANS_TEMPO_SOVEREIGN: '#06b6d4', TRANS_SEALKEEPER_FORBIDDEN_KEY: '#7c3aed', TRANS_PRIMAL_VORTEX_MIRROR: '#ec4899', TRANS_DYNASTIC_MANDATE_WEAVER: '#d97706' };
   // Ordinary martial casts use the real weapon family for their motion language.
   // Legendary named arts deliberately keep their authored, higher-priority motifs.
   R.WEAPON_MOTION_VFX = Object.freeze({
@@ -596,7 +596,7 @@
     NINPO_SHADOW:'shadow_court',NINPO_ELEMENTAL:'seal_obelisk',DIVINE_SUMMONER:'deity_throne',DIVINE_POSSESSION:'beast_avatar',
     DIVINE_CHANNELER:'storm_spire',VOID_HERETIC_PACT:'void_maw',OCCULT_MAGE:'seal_obelisk',DEVOURING_FLESH:'beast_avatar',
     NETHER_GRAVE:'grave_procession',ANCESTRAL_RITUAL:'grave_procession',TIDE_VOYAGER:'ocean_pillars',LORE_ARCHIVIST:'ink_landscape',
-    FORTUNE_GAMBLER:'fortune_table',SPIRIT_HUSBANDRY:'jade_garden',ARENA_GLORY:'sword_constellation'
+    FORTUNE_GAMBLER:'fortune_table',SPIRIT_HUSBANDRY:'jade_garden',ARENA_GLORY:'sword_constellation',LEG_READ_FORM_BLADE:'sword_constellation',LEG_TRIAGE_MERIDIAN:'jade_garden',LEG_STORM_CALLER_TEMPEST:'storm_spire',LEG_JADE_CARAVAN_VOYAGER:'fortune_table',LEG_OATH_JUDGE_WARDEN:'lotus_sanctuary',LEG_ASHEN_KILN_ALCHEMY:'seal_obelisk',TRANS_CONSTELLATION_RELAY:'star_orrery',TRANS_FIELD_CLAUSE_SOVEREIGN:'imperial_gates',TRANS_TEMPO_SOVEREIGN:'epoch_dial',TRANS_SEALKEEPER_FORBIDDEN_KEY:'void_maw',TRANS_PRIMAL_VORTEX_MIRROR:'taiji_court',TRANS_DYNASTIC_MANDATE_WEAVER:'imperial_gates'
   };
   R.LEGENDARY_APEX_BUDGET = Object.freeze({ radiusMin:60,radiusMax:84,fieldMax:136,maxFull:2,maxFullLow:1,maxRecipients:8 });
   R.LEGENDARY_SCENES = Object.freeze(Object.fromEntries(Object.values(R.LEGENDARY_ART_VISUALS).filter(a=>!a.passive).map((a,i)=>{
@@ -1732,7 +1732,19 @@
     LORE_ARCHIVIST:       { id: 'LORE_ARCHIVIST',       nameTh: 'วิถีอาลักษณ์หอคัมภีร์',    moteShape: 'bamboo_slip_glyph',      apexCrownShape: 'myriad_canon_archive_wheel', family: 'SONIC_LITERATI',  primary: '#8ecae6', secondary: '#ffd166', accent: '#ffffff', maxStage: 8 },
     FORTUNE_GAMBLER:      { id: 'FORTUNE_GAMBLER',      nameTh: 'วิถีเดิมพันชะตา',         moteShape: 'fate_dice_card',         apexCrownShape: 'heavenly_roulette_dice',     family: 'FORTUNE_TRADE',   primary: '#ffb703', secondary: '#ef476f', accent: '#06d6a0', maxStage: 8 },
     SPIRIT_HUSBANDRY:     { id: 'SPIRIT_HUSBANDRY',     nameTh: 'วิถีเกษตรวิญญาณ',        moteShape: 'sprouting_vine_flower',  apexCrownShape: 'world_tree_canopy_roots',    family: 'LIFE_ALCHEMY',    primary: '#52b788', secondary: '#ffd166', accent: '#b7e4c7', maxStage: 8 },
-    ARENA_GLORY:          { id: 'ARENA_GLORY',          nameTh: 'วิถีเกียรติยุทธ์ประลอง',   moteShape: 'champion_laurel_halberd',apexCrownShape: 'gladiator_champion_crown',   family: 'COMMAND_MARTIAL', primary: '#f4a261', secondary: '#e63946', accent: '#ffd166', maxStage: 8 }
+    ARENA_GLORY:          { id: 'ARENA_GLORY',          nameTh: 'วิถีเกียรติยุทธ์ประลอง',   moteShape: 'champion_laurel_halberd',apexCrownShape: 'gladiator_champion_crown',   family: 'COMMAND_MARTIAL', primary: '#f4a261', secondary: '#e63946', accent: '#ffd166', maxStage: 8 },
+    LEG_READ_FORM_BLADE: { id: 'LEG_READ_FORM_BLADE', nameTh: 'วิถีกระบี่อ่านช่องฟ้า', moteShape: 'leg_read_form_blade_mote', apexCrownShape: 'leg_read_form_blade_crown', family: 'BLADE_AURA', primary: '#38bdf8', secondary: '#bae6fd', accent: '#fbbf24', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_TRIAGE_MERIDIAN: { id: 'LEG_TRIAGE_MERIDIAN', nameTh: 'วิถีชีพจรประคองสหาย', moteShape: 'leg_triage_meridian_mote', apexCrownShape: 'leg_triage_meridian_crown', family: 'JADE_LOTUS', primary: '#34d399', secondary: '#a7f3d0', accent: '#fef08a', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_STORM_CALLER_TEMPEST: { id: 'LEG_STORM_CALLER_TEMPEST', nameTh: 'วิถีจอมพายุบัญชาฟ้า', moteShape: 'leg_storm_caller_tempest_mote', apexCrownShape: 'leg_storm_caller_tempest_crown', family: 'STORM_TEMPEST', primary: '#60a5fa', secondary: '#93c5fd', accent: '#fde047', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_JADE_CARAVAN_VOYAGER: { id: 'LEG_JADE_CARAVAN_VOYAGER', nameTh: 'วิถีจอมคาราวานหยก', moteShape: 'leg_jade_caravan_voyager_mote', apexCrownShape: 'leg_jade_caravan_voyager_crown', family: 'GOLDEN_CARAVAN', primary: '#f59e0b', secondary: '#fde68a', accent: '#10b981', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_OATH_JUDGE_WARDEN: { id: 'LEG_OATH_JUDGE_WARDEN', nameTh: 'วิถีผู้คุมสัตย์สาบาน', moteShape: 'leg_oath_judge_warden_mote', apexCrownShape: 'leg_oath_judge_warden_crown', family: 'OATH_BALANCE', primary: '#fbbf24', secondary: '#fef08a', accent: '#ef4444', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_ASHEN_KILN_ALCHEMY: { id: 'LEG_ASHEN_KILN_ALCHEMY', nameTh: 'วิถีเตาเถ้าคืนชีวิต', moteShape: 'leg_ashen_kiln_alchemy_mote', apexCrownShape: 'leg_ashen_kiln_alchemy_crown', family: 'ASHEN_CERAMIC', primary: '#ea580c', secondary: '#fdba74', accent: '#94a3b8', maxStage: 8, grade: 'LEGENDARY' },
+    TRANS_CONSTELLATION_RELAY: { id: 'TRANS_CONSTELLATION_RELAY', nameTh: 'วิถีประสานปราณหมู่ดาว', moteShape: 'trans_constellation_relay_mote', apexCrownShape: 'trans_constellation_relay_crown', family: 'STAR_CONSTELLATION', primary: '#a78bfa', secondary: '#ddd6fe', accent: '#fde047', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_FIELD_CLAUSE_SOVEREIGN: { id: 'TRANS_FIELD_CLAUSE_SOVEREIGN', nameTh: 'วิถีธรรมนูญฟ้าขีดเขต', moteShape: 'trans_field_clause_sovereign_mote', apexCrownShape: 'trans_field_clause_sovereign_crown', family: 'IMPERIAL_CHARTER', primary: '#e11d48', secondary: '#fda4af', accent: '#fbbf24', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_TEMPO_SOVEREIGN: { id: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'วิถีปรมาจารย์จังหวะกาล', moteShape: 'trans_tempo_sovereign_mote', apexCrownShape: 'trans_tempo_sovereign_crown', family: 'RIVER_CADENCE', primary: '#06b6d4', secondary: '#a5f3fc', accent: '#f59e0b', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_SEALKEEPER_FORBIDDEN_KEY: { id: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'วิถีผู้ถือกุญแจผนึก', moteShape: 'trans_sealkeeper_forbidden_key_mote', apexCrownShape: 'trans_sealkeeper_forbidden_key_crown', family: 'FORBIDDEN_KEY', primary: '#7c3aed', secondary: '#c4b5fd', accent: '#f43f5e', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_PRIMAL_VORTEX_MIRROR: { id: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'วิถีกระจกสะท้อนหมื่นวิชา', moteShape: 'trans_primal_vortex_mirror_mote', apexCrownShape: 'trans_primal_vortex_mirror_crown', family: 'MIRROR_VORTEX', primary: '#ec4899', secondary: '#fbcfe8', accent: '#38bdf8', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_DYNASTIC_MANDATE_WEAVER: { id: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'วิถีทอชะตาแผ่นดิน', moteShape: 'trans_dynastic_mandate_weaver_mote', apexCrownShape: 'trans_dynastic_mandate_weaver_crown', family: 'DYNASTIC_LOOM', primary: '#d97706', secondary: '#fde68a', accent: '#2563eb', maxStage: 8, grade: 'TRANSCENDENT' }
   });
 
   R.resolvePathVisualSignature = pKey => {
@@ -5007,9 +5019,14 @@
       // Unflipped HUD overlays: HP bar, Nameplate, Acting Office Seal, Action Bubble
       const showName = this.opts.names && (z >= 1.05 || sel);
       ctx.textAlign = 'center';
-      if (act === 'fight') {
+      const isSparring = act === 'pair' && n.act && n.act.ctx && n.act.ctx.pair && n.act.ctx.pair.type === 'spar';
+      if (act === 'fight' || isSparring) {
         const effHm = (g.COMBAT && g.COMBAT.hpMax) ? g.COMBAT.hpMax(n) : ((g.STATS && g.STATS.hpMax) ? g.STATS.hpMax(n) : CULT.hpMax(n));
         this.hpBar(ctx, x, y - 30 * sc, n.h.state.hp / Math.max(1, effHm), 15);
+        const qMax = (CULT && CULT.qiMax) ? CULT.qiMax(n) : 100;
+        const qFrac = Math.max(0, Math.min(1, (n.h.state.qi || 0) / Math.max(1, qMax)));
+        ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x - 15, y - 26.5 * sc, 30, 2);
+        ctx.fillStyle = '#38bdf8'; ctx.fillRect(x - 15, y - 26.5 * sc, Math.round(30 * qFrac), 2);
       }
       if (showName) {
         ctx.font = (sel ? '600 ' : '') + '9px ' + FONT;
@@ -5046,8 +5063,15 @@
       }
       if (n.fx && this.W.t - n.fx.t < 4) {
         const age = (this.W.t - n.fx.t);
+        const fxTxt = String(n.fx.text || '');
+        const isDmgFx = /(?:^|✦)-/.test(fxTxt);
+        const isHealFx = /^\+/.test(fxTxt);
+        if (isDmgFx && age < 0.35) {
+          ctx.save(); ctx.strokeStyle = 'rgba(255,95,80,.75)'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(x, y - 12 * sc, 11 * sc, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+        }
         ctx.font = 'bold 10px ' + FONT;
-        ctx.fillStyle = /^-/.test(n.fx.text) ? '#ff6b5e' : '#ffe27a';
+        ctx.fillStyle = isHealFx ? '#4ade80' : isDmgFx ? '#ff6b5e' : '#ffe27a';
         ctx.strokeStyle = 'rgba(0,0,0,.7)';
         ctx.lineWidth = 2.4;
         const fy = y - 38 * sc - age * 3;
@@ -5579,6 +5603,18 @@
         ctx.strokeText(label, 0, textY);
         ctx.fillText(label, 0, textY);
       }
+      if (b.fx && this.W && this.W.t - b.fx.t < 4) {
+        const bAge = this.W.t - b.fx.t;
+        const bTxt = String(b.fx.text || '');
+        ctx.font = 'bold 10px ' + FONT;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = /^\+/.test(bTxt) ? '#4ade80' : /(?:^|✦)-/.test(bTxt) ? '#ff6b5e' : '#ffe27a';
+        ctx.strokeStyle = 'rgba(0,0,0,.72)';
+        ctx.lineWidth = 2.4;
+        const bFy = labelY - 12 - bAge * 3;
+        ctx.strokeText(bTxt, 0, bFy);
+        ctx.fillText(bTxt, 0, bFy);
+      }
       ctx.restore();
     },
 
@@ -5725,8 +5761,9 @@
       if (Array.isArray(W.fights) && W.fights.length && this.cam.z >= 0.65) {
         const KIND_LABELS = { spar: '🥋 ซ้อมมือ', feud: '🩸 ดวลสะสางแค้น', leadership: '👑 ชิงตำแหน่งเจ้าสำนัก', tourney: '🏆 ประลองยุทธ์', raid: '⚔️ ต้านผู้บุกรุก', hunt: '🐾 ล่าอสูร' };
         W.fights.forEach(fg => {
-          if (!fg || fg.done) return;
-          const units = [].concat(fg.A || [], fg.B || []).map(id => (W.byId && W.byId[id]) || (W.foes && W.foes.find(x => x && x.id === id))).filter(u => u && !u.dead && Number.isFinite(u.x) && Number.isFinite(u.y));
+          if (!fg || fg.over) return;
+          const bList = (W.wildlife && Array.isArray(W.wildlife.beasts)) ? W.wildlife.beasts : [];
+          const units = [].concat(fg.A || [], fg.B || []).map(id => (W.byId && W.byId[id]) || (W.foes && W.foes.find(x => x && x.id === id)) || bList.find(x => x && x.id === id)).filter(u => u && !u.dead && Number.isFinite(u.x) && Number.isFinite(u.y));
           if (!units.length) return;
           const cx = units.reduce((s, u) => s + u.x, 0) / units.length * TS;
           const cy = (units.reduce((s, u) => s + u.y, 0) / units.length - 2.6) * TS;
@@ -6404,6 +6441,79 @@
           ctx.fill();
           break;
         }
+        case 'LEG_READ_FORM_BLADE': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(-9, 3); ctx.lineTo(0, -13); ctx.lineTo(9, 3); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 4.5, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'LEG_TRIAGE_MERIDIAN': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, 4); ctx.moveTo(-7, -4); ctx.lineTo(7, -4); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 7.5, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'LEG_STORM_CALLER_TEMPEST': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.8;
+          ctx.beginPath(); ctx.moveTo(-4, -13); ctx.lineTo(3, -5); ctx.lineTo(-2, -4); ctx.lineTo(5, 5); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 8.5, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+          break;
+        }
+        case 'LEG_JADE_CARAVAN_VOYAGER': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.strokeRect(-7, -10, 14, 10);
+          ctx.fillStyle = col2; ctx.beginPath(); ctx.arc(-4, -5, 2.2, 0, Math.PI * 2); ctx.arc(4, -5, 2.2, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'LEG_OATH_JUDGE_WARDEN': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(0, 4); ctx.moveTo(-9, -8); ctx.lineTo(9, -8); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(-7, -3, 3.2, 0, Math.PI); ctx.arc(7, -3, 3.2, 0, Math.PI); ctx.stroke();
+          break;
+        }
+        case 'LEG_ASHEN_KILN_ALCHEMY': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.7;
+          ctx.beginPath(); ctx.arc(0, -3, 7, 0.2, Math.PI - 0.2); ctx.closePath(); ctx.stroke();
+          ctx.fillStyle = col2; ctx.beginPath(); ctx.moveTo(-4, -10); ctx.lineTo(0, -15); ctx.lineTo(4, -10); ctx.fill();
+          break;
+        }
+        case 'TRANS_CONSTELLATION_RELAY': {
+          ctx.strokeStyle = col2; ctx.lineWidth = 1.3;
+          ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(-8, 2); ctx.lineTo(8, 2); ctx.closePath(); ctx.stroke();
+          ctx.fillStyle = col1;
+          ctx.beginPath(); ctx.arc(0, -13, 2.6, 0, Math.PI * 2); ctx.arc(-8, 2, 2.4, 0, Math.PI * 2); ctx.arc(8, 2, 2.4, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'TRANS_FIELD_CLAUSE_SOVEREIGN': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.7;
+          ctx.strokeRect(-8, -11, 16, 14);
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.moveTo(-8, -4); ctx.lineTo(8, -4); ctx.moveTo(0, -11); ctx.lineTo(0, 3); ctx.stroke();
+          break;
+        }
+        case 'TRANS_TEMPO_SOVEREIGN': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.arc(0, -4, 8.2, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(0, -11); ctx.moveTo(0, -4); ctx.lineTo(6, -1); ctx.stroke();
+          break;
+        }
+        case 'TRANS_SEALKEEPER_FORBIDDEN_KEY': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.7;
+          ctx.beginPath(); ctx.arc(0, -9, 4.2, 0, Math.PI * 2); ctx.moveTo(0, -5); ctx.lineTo(0, 5); ctx.moveTo(0, 1); ctx.lineTo(4.5, 1); ctx.moveTo(0, 4); ctx.lineTo(3.5, 4); ctx.stroke();
+          break;
+        }
+        case 'TRANS_PRIMAL_VORTEX_MIRROR': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(0, -4, 8.5, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 4.2, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(6, 2); ctx.stroke();
+          break;
+        }
+        case 'TRANS_DYNASTIC_MANDATE_WEAVER': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(8, -4); ctx.lineTo(0, 6); ctx.lineTo(-8, -4); ctx.closePath(); ctx.stroke();
+          ctx.fillStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 3.0, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
         case 'ARENA_GLORY':
         default: {
           // ช่อมงกุฎชัยพฤกษ์เจ้ายุทธจักร & คมทวนคู่ไขว้ (Champion Laurel Wreath + Crossed Halberds)
@@ -6646,6 +6756,40 @@
           ctx.lineTo(mx - 2.2, my + 1.8);
           ctx.closePath();
           ctx.fill();
+          break;
+        }
+        case 'leg_read_form_blade_mote':
+        case 'trans_field_clause_sovereign_mote': {
+          ctx.beginPath(); ctx.moveTo(mx, my - 3.0); ctx.lineTo(mx + 2.4, my); ctx.lineTo(mx, my + 3.0); ctx.lineTo(mx - 2.4, my); ctx.closePath(); ctx.fill();
+          break;
+        }
+        case 'leg_triage_meridian_mote':
+        case 'trans_constellation_relay_mote': {
+          ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.3;
+          ctx.beginPath(); ctx.moveTo(mx - 2.6, my); ctx.lineTo(mx + 2.6, my); ctx.moveTo(mx, my - 2.6); ctx.lineTo(mx, my + 2.6); ctx.stroke();
+          break;
+        }
+        case 'leg_storm_caller_tempest_mote':
+        case 'trans_tempo_sovereign_mote': {
+          ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.3;
+          ctx.beginPath(); ctx.moveTo(mx - 1.8, my - 2.6); ctx.lineTo(mx + 1.4, my); ctx.lineTo(mx - 1.2, my + 2.6); ctx.stroke();
+          break;
+        }
+        case 'leg_jade_caravan_voyager_mote':
+        case 'leg_ashen_kiln_alchemy_mote': {
+          ctx.fillRect(mx - 2.0, my - 2.0, 4.0, 4.0);
+          break;
+        }
+        case 'leg_oath_judge_warden_mote':
+        case 'trans_sealkeeper_forbidden_key_mote': {
+          ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(mx, my, 2.3, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'trans_primal_vortex_mirror_mote':
+        case 'trans_dynastic_mandate_weaver_mote': {
+          ctx.beginPath(); ctx.moveTo(mx, my - 3.2); ctx.lineTo(mx + 2.6, my + 1.8); ctx.lineTo(mx - 2.6, my + 1.8); ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.7; ctx.stroke();
           break;
         }
         default: {
@@ -10416,7 +10560,7 @@
   const gObj = typeof globalThis !== "undefined" ? globalThis : window;
   const R = gObj.Render;
   if (!R || !R.PATH_VISUAL_SIGNATURES) return;
-  const pMap = {"XIAN":"วิถีเซียน","BODY":"วิถีกายา","GOD":"วิถีเทพศรัทธา","DEMON":"วิถีมาร","HEART_SOUL":"วิถีจิตเซน","MECH_PUPPET":"วิถีหุ่นกลไก","KARMA_SAMSARA":"วิถีสังสารวัฏ","BEAST_SOVEREIGN":"วิถีราชันอสูร","SAGE_SUPPORT":"วิถีปราชญ์โอสถ","CRAFT_CREATION":"วิถีหลอมสร้าง","ARRAY_TALISMAN":"วิถีค่ายกลยันต์","STRATEGY_GOVERNANCE":"วิถีพิชัยยุทธ์","ASTRO_DIVINATION":"วิถีโหราดารา","BUDDHA_DHARMA":"วิถีพุทธธรรม","VOID_SPACE":"วิถีมิติเร้น","SONIC_HARMONY":"วิถีคีตยุทธ์","VENOM_GU":"วิถีพิษกู่","PRIMORDIAL_SHIFTER":"วิถีจำแลงอสูร","CELESTIAL_WEATHER":"วิถีบัญชาฟ้าฝน","WANDERING_DAO":"วิถีคนจร","MERCANTILE_DAO":"วิถีวาณิชย์","DRAGON_VEIN_GEOMANCY":"วิถีชีพจรมังกร","GRAVITY_DAO":"วิถีถ่วงดารา","CHRONO_EPOCH":"วิถีกาลเวลา","INK_LITERATI":"วิถีอักษรปราชญ์","SOUL_PUPPETRY":"วิถีเชิดเงา","PRIMORDIAL_CHAOS":"วิถีโกลาหล","SHADOW_SAMURAI":"วิถีดาบไร้ปราณ","NINPO_SHADOW":"วิถีเร้นเงา","NINPO_ELEMENTAL":"วิถีมุทราธาตุ","DIVINE_SUMMONER":"วิถีอัญเชิญเทวะ","DIVINE_POSSESSION":"วิถีร่างทรงเทวะ","DIVINE_CHANNELER":"วิถีสื่อเทวบัญญัติ","VOID_HERETIC_PACT":"วิถีพันธะสุญตา","OCCULT_MAGE":"วิถีไสยเวทย์","DEVOURING_FLESH":"วิถีกลืนสรีระ","NETHER_GRAVE":"วิถีสุสานยมโลก","ANCESTRAL_RITUAL":"วิถีบรรพชน","TIDE_VOYAGER":"วิถีจ้าวสมุทร","LORE_ARCHIVIST":"วิถีอาลักษณ์","FORTUNE_GAMBLER":"วิถีเดิมพันชะตา","SPIRIT_HUSBANDRY":"วิถีพฤกษาปราณ","ARENA_GLORY":"วิถีสังเวียนยุทธ์"};
+  const pMap = {"XIAN":"วิถีเซียน","BODY":"วิถีกายา","GOD":"วิถีเทพศรัทธา","DEMON":"วิถีมาร","HEART_SOUL":"วิถีจิตเซน","MECH_PUPPET":"วิถีหุ่นกลไก","KARMA_SAMSARA":"วิถีสังสารวัฏ","BEAST_SOVEREIGN":"วิถีราชันอสูร","SAGE_SUPPORT":"วิถีปราชญ์โอสถ","CRAFT_CREATION":"วิถีหลอมสร้าง","ARRAY_TALISMAN":"วิถีค่ายกลยันต์","STRATEGY_GOVERNANCE":"วิถีพิชัยยุทธ์","ASTRO_DIVINATION":"วิถีโหราดารา","BUDDHA_DHARMA":"วิถีพุทธธรรม","VOID_SPACE":"วิถีมิติเร้น","SONIC_HARMONY":"วิถีคีตยุทธ์","VENOM_GU":"วิถีพิษกู่","PRIMORDIAL_SHIFTER":"วิถีจำแลงอสูร","CELESTIAL_WEATHER":"วิถีบัญชาฟ้าฝน","WANDERING_DAO":"วิถีคนจร","MERCANTILE_DAO":"วิถีวาณิชย์","DRAGON_VEIN_GEOMANCY":"วิถีชีพจรมังกร","GRAVITY_DAO":"วิถีถ่วงดารา","CHRONO_EPOCH":"วิถีกาลเวลา","INK_LITERATI":"วิถีอักษรปราชญ์","SOUL_PUPPETRY":"วิถีเชิดเงา","PRIMORDIAL_CHAOS":"วิถีโกลาหล","SHADOW_SAMURAI":"วิถีดาบไร้ปราณ","NINPO_SHADOW":"วิถีเร้นเงา","NINPO_ELEMENTAL":"วิถีมุทราธาตุ","DIVINE_SUMMONER":"วิถีอัญเชิญเทวะ","DIVINE_POSSESSION":"วิถีร่างทรงเทวะ","DIVINE_CHANNELER":"วิถีสื่อเทวบัญญัติ","VOID_HERETIC_PACT":"วิถีพันธะสุญตา","OCCULT_MAGE":"วิถีไสยเวทย์","DEVOURING_FLESH":"วิถีกลืนสรีระ","NETHER_GRAVE":"วิถีสุสานยมโลก","ANCESTRAL_RITUAL":"วิถีบรรพชน","TIDE_VOYAGER":"วิถีจ้าวสมุทร","LORE_ARCHIVIST":"วิถีอาลักษณ์","FORTUNE_GAMBLER":"วิถีเดิมพันชะตา","SPIRIT_HUSBANDRY":"วิถีพฤกษาปราณ","ARENA_GLORY":"วิถีสังเวียนยุทธ์","LEG_READ_FORM_BLADE":"วิถีกระบี่อ่านช่องฟ้า","LEG_TRIAGE_MERIDIAN":"วิถีชีพจรประคองสหาย","LEG_STORM_CALLER_TEMPEST":"วิถีจอมพายุบัญชาฟ้า","LEG_JADE_CARAVAN_VOYAGER":"วิถีจอมคาราวานหยก","LEG_OATH_JUDGE_WARDEN":"วิถีผู้คุมสัตย์สาบาน","LEG_ASHEN_KILN_ALCHEMY":"วิถีเตาเถ้าคืนชีวิต","TRANS_CONSTELLATION_RELAY":"วิถีประสานปราณหมู่ดาว","TRANS_FIELD_CLAUSE_SOVEREIGN":"วิถีธรรมนูญฟ้าขีดเขต","TRANS_TEMPO_SOVEREIGN":"วิถีปรมาจารย์จังหวะกาล","TRANS_SEALKEEPER_FORBIDDEN_KEY":"วิถีผู้ถือกุญแจผนึก","TRANS_PRIMAL_VORTEX_MIRROR":"วิถีกระจกสะท้อนหมื่นวิชา","TRANS_DYNASTIC_MANDATE_WEAVER":"วิถีทอชะตาแผ่นดิน"};
   for (const [pid, sig] of Object.entries(R.PATH_VISUAL_SIGNATURES)) {
     if (sig && pMap[pid]) sig.nameTh = pMap[pid];
   }

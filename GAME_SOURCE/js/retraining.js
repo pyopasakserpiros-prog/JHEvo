@@ -8,6 +8,7 @@ M.retrainingTarget=(n,key)=>{
  if(n.cult.path===k.path&&n.cult.sub===k.id)return {ok:false,reason:'เดินสายนี้อยู่แล้ว'};
  if(n.cult.path===k.path&&n.cult.sub==='NONE')return {ok:false,reason:'ใช้การศึกษาสายเริ่มต้น ไม่ต้องสละขั้น'};
  const effSt=CULT.effectiveTechStage?CULT.effectiveTechStage(n):n.cult.stage;if(effSt<k.tier)return {ok:false,reason:'ขั้นเดิมยังไม่ถึงเกณฑ์ความรู้'};
+ if(CULT.LEGENDARY_DAO&&CULT.LEGENDARY_DAO.gradeOf(k.path)!=='ORDINARY'){const prov=CULT.LEGENDARY_DAO.PROVENANCE[k.path];const eqS=CULT.equivalentStage?CULT.equivalentStage(n.cult):effSt;if(!n.daoDiscoveries||!n.daoDiscoveries[k.path])return {ok:false,reason:'ยังไม่เคยค้นพบหลักฐานหรือร่องรอยของวิถีระดับสูงนี้'};if(prov&&eqS<(prov.minEqStage||4))return {ok:false,reason:'ตบะยังไม่ถึงเกณฑ์รองรับวิถีระดับสูง (ต้องเทียบเท่าขั้น '+(prov.minEqStage||4)+')'};}
  return {ok:true,knowledge:k,pathChanged:n.cult.path!==k.path,newStage:M.retrainingStage(n.cult.stage,n.cult.path!==k.path)};
 };
 M.retrainingQuote=(W,n,key,opts)=>{

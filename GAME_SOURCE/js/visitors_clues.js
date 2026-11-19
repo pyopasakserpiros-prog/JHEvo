@@ -5112,7 +5112,7 @@
       if (returned && prev) {
         returned.visitCount = (prev.visitCount || prev.visits || 1) + 1;
         returned.visits = returned.visitCount;
-        W.world.guestRegistry[returned.id] = Object.assign({}, returned);
+        W.world.guestRegistry[returned.id] = JSON.parse(JSON.stringify(returned));
       }
       return returned;
     };
@@ -5238,7 +5238,7 @@
       guest.accessLevel = 'none';
       guest.untilDay = W.day;
       cs.funnel.rejected++;
-      W.world.guestRegistry[guest.id] = Object.assign({}, guest, { lastDepartDay: W.day });
+      W.world.guestRegistry[guest.id] = Object.assign(JSON.parse(JSON.stringify(guest)), { lastDepartDay: W.day });
       W.log('event', '🚪 ' + adm.reasonTh + ' (' + guest.nameTh + ' · ' + guest.roleTitleTh + ')', adm.officerId ? [adm.officerId] : [], { visitorId: guest.id });
       return guest;
     }
@@ -5256,7 +5256,7 @@
     }
 
     W.world.visitors.push(guest);
-    W.world.guestRegistry[guest.id] = Object.assign({}, guest);
+    W.world.guestRegistry[guest.id] = JSON.parse(JSON.stringify(guest));
     W.log('event', '🎐 ' + guest.nameTh + ' (' + guest.roleTitleTh + ') มาเยือนสำนัก — ' + adm.reasonTh, adm.officerId ? [adm.officerId] : [], { visitorId: guest.id });
     return guest;
   };
@@ -5290,7 +5290,7 @@
         v.clueTruthful = true;
       }
     }
-    W.world.guestRegistry[v.id] = Object.assign({}, v);
+    W.world.guestRegistry[v.id] = JSON.parse(JSON.stringify(v));
     return v;
   };
 
@@ -7225,6 +7225,17 @@
       VC.ensure(W, true);
       if (W && W.sect && W.sect.mentorship && SECT && SECT.MENTORSHIP) SECT.MENTORSHIP.ensure(W);
       if (W && W.world && W.world.jianghu && SECT && SECT.JIANGHU) SECT.JIANGHU.ensure(W);
+      if (W && W.world && W.world.livingSects && g.EXPED && g.EXPED.LIVING_SECTS) {
+        const orgs = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+        for (const s of orgs) { if (s && s.livingRoster && s.livingRoster.leader) s.leaderNameTh = s.livingRoster.leader.nameTh; }
+        if (Array.isArray(W.world.sects) && Array.isArray(W.world.allSects)) {
+          for (let i = 0; i < W.world.sects.length; i++) {
+            const ws = W.world.sects[i];
+            const ai = ws ? W.world.allSects.findIndex(x => x && (x.id === ws.id || (ws.canonicalId && x.canonicalId === ws.canonicalId))) : -1;
+            if (ai >= 0) W.world.sects[i] = W.world.allSects[ai];
+          }
+        }
+      }
       return W;
     };
   }

@@ -9,8 +9,8 @@ console.log('=== JS2 v3.5.0b Phase B — P1 Live-Loop Wiring & Hardening Suite =
 
 const W = SIM.create('v350b-p1-seed');
 while (W.npcs.length < 6) SIM.addNpc(W, { ageYears: 20, rank: 2, stage: 3 });
-assert.strictEqual(SIM.PATCH_VERSION, '3.5.0c', 'PATCH_VERSION must be 3.5.0b');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.5.0c-release-polish', 'SAVE_SCHEMA_VERSION must be 3.5.0b-p1-hardening');
+assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'PATCH_VERSION must be 3.5.0b');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SAVE_SCHEMA_VERSION must be 3.5.0b-p1-hardening');
 
 // ---------------------------------------------------------------------------
 // G1-05: Vows consolidation (no triple-dip, pill breach triggers, VOLUNTARY_VOWS stats work)

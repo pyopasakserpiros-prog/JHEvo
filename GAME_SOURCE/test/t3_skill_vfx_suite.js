@@ -8,7 +8,7 @@ assert.equal(Math.max(...JD.TECH.techniques.filter(t=>!t.legendary).map(t=>t.tie
 for(let i=2;i<tiers.length;i++){assert(tiers[i].rMin>tiers[i-1].rMax);assert(tiers[i].life>tiers[i-1].life);assert.equal(tiers[i].planned,false);}
 assert(tiers[6].rMax<Render.LEGENDARY_APEX_BUDGET.radiusMin,'reserved ordinary T7 remains below the expanded Legendary apex');
 assert(tiers[6].life<Math.min(...Object.values(Render.LEGENDARY_SCENES).map(s=>s.life)),'ordinary T7 retains a shorter cast than Legendary');
-assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length,45);assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length,256);
+assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length,45);assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length,268);
 function recorder(){let depth=0;const ops=[];const ctx=new Proxy({globalAlpha:1},{get(o,k){if(k in o)return o[k];return(...args)=>{if(k==='save')depth++;if(k==='restore')depth--;for(const a of args)if(typeof a==='number')assert(Number.isFinite(a),k);ops.push([k,...args]);};},set(o,k,v){o[k]=v;ops.push([k,v]);return true;}});return{ctx,ops,depth:()=>depth};}
 function view(W){return Object.assign({W,t:.6,opts:{quality:'high'},cam:{x:120*16,y:70*16,z:1},vw:1000,vh:700,castClock:0,castLastTime:null,castSeen:new Map(),castActive:new Map(),npcPos:n=>n},Render.methods);}
 function actors(W,p){const a={id:'t3Caster',name:'caster',foe:true,tier:3,power:500,hp:20,hpMax:100,speed:1,x:120,y:70,sx:[],act:{id:'fight',ctx:{}},skl:[p]};const d={...a,id:'t3Enemy',hp:100,x:122,sx:[],skl:[]},ally={...a,id:'t3Ally',hp:2,x:118,sx:[],skl:[]};W.foes=[a,d,ally];W.foeById={[a.id]:a,[d.id]:d,[ally.id]:ally};return{a,d,ally,f:{id:11,serious:true,A:[a.id,ally.id],B:[d.id]}};}

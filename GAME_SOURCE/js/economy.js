@@ -93,14 +93,30 @@
     if (g.CONTENT && g.CONTENT.organById && g.CONTENT.organById[id]) return g.CONTENT.organById[id].nameTh;
     return id;
   };
+  const _baseValCache = Object.create(null);
   ECO.base = id => {
     if (typeof id !== 'string') return 5;
     if (id === 'grain') return ECO.GRAIN_PRICE; if (id === 'meal') return 1.2;
-    if (matById[id]) return matById[id].value || matById[id].price || 10;
+    const cached = _baseValCache[id];
+    if (cached !== undefined) return cached;
+    if (matById[id]) { const v = matById[id].value || matById[id].price || 10; _baseValCache[id] = v; return v; }
     if (id.startsWith('P:')) {
       const raw = id.slice(2);
       const r = recipeById[raw] || recipeByOutItemId[raw];
-      if (r) return 14 * Math.pow(2.05, r.tier - 1);
+      if (r) {
+        const fVal = 14 * Math.pow(2.05, r.tier - 1);
+        let v = fVal;
+        if ((r.tier || 1) >= 4 && Array.isArray(r.inputs)) {
+          let inCost = 0;
+          for (const inp of r.inputs) {
+            const mv = matById[inp.matId || inp.id];
+            inCost += ((mv && (mv.value || mv.price)) || 8) * (inp.count || inp.qty || 1);
+          }
+          if (inCost > 0) v = Math.max(fVal, Math.round(inCost * 1.15));
+        }
+        _baseValCache[id] = v;
+        return v;
+      }
       if (itemById[raw]) return itemById[raw].value || 10;
       return 10;
     }
@@ -3181,7 +3197,7 @@
     const prefSet = Array.isArray(prefElements) ? new Set(prefElements.map(x => x === 'DARK_YIN' ? 'YIN_SHADOW' : x)) : null;
     return Object.keys(W.sect.stock).filter(k => {
       if (!(W.sect.stock[k] > 0)) return false;
-      if (k === 'herb' || k.startsWith('MAT_HERB_') || k.startsWith('MAT_V234_')) return true;
+      if (k === 'herb' || k.startsWith('MAT_HERB_')) return true;
       const m = matById[k];
       return !!(m && (m.category === 'HERB' || m.cat === 'HERB' || m.sub === 'HERB'));
     }).sort((a, b) => {

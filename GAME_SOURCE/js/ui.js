@@ -5,7 +5,7 @@
   const clamp = U.clamp;
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const UI = { G: null, sheet: null, tab: null, activePeakId: 'OVERVIEW', postDirFilter: 'ALL', lastHud: 0, logSubFilter: 'all', editNpcId: null, editStatGroup: 'personality', editDraft: null, spawnDest: 'sect', spawnSearch: '', spawnKind: 'ALL', spawnTier: 'ALL', spawnElement: 'ALL', spawnRarity: 'ALL', spawnPage: 1, spawnPageSize: 40, spawnQty: 1, spawnQuality: 1, stockSearch: '', stockType: 'ALL', stockTier: 'ALL', stockSort: 'qty', bagSearch: '', bagType: 'ALL', bagSort: 'tier', bagCat: 'ALL', bagPage: 1, bagSelKey: null, bagMoreOpen: false, stockCat: 'ALL', stockPage: 1, stockSelKey: null, stockMoreOpen: false, shopCat: 'ALL', shopSearch: '', shopSort: 'tier', shopPage: 1, shopSelKey: null, shopMoreOpen: false, shopBuyerId: null, sectSubTab: 'CORE', sectPostsSubTab: 'OFFICES', stockItemsSubTab: 'GRID', shopSubTab: 'EXCHANGE', npcSubTab: 'CORE', worldExpSubTab: 'TRAVEL', worldSectsSubTab: 'NEIGHBORS', worldDiscSubTab: 'PORTALS', worldContentSubTab: 'REGIONS', buildingSubTab: 'OVERVIEW', editCharSubTab: 'CULT_ECON', editPetSubTab: 'PETS_BUFFS' };
+  const UI = { G: null, sheet: null, tab: null, activePeakId: 'OVERVIEW', postDirFilter: 'ALL', lastHud: 0, logSubFilter: 'all', editNpcId: null, editStatGroup: 'personality', editDraft: null, spawnDest: 'sect', spawnSearch: '', spawnKind: 'ALL', spawnTier: 'ALL', spawnElement: 'ALL', spawnRarity: 'ALL', spawnPage: 1, spawnPageSize: 40, spawnQty: 1, spawnQuality: 1, stockSearch: '', stockType: 'ALL', stockTier: 'ALL', stockSort: 'qty', bagSearch: '', bagType: 'ALL', bagSort: 'tier', bagCat: 'ALL', bagPage: 1, bagSelKey: null, bagMoreOpen: false, stockCat: 'ALL', stockPage: 1, stockSelKey: null, stockMoreOpen: false, shopCat: 'ALL', shopSearch: '', shopSort: 'tier', shopPage: 1, shopSelKey: null, shopMoreOpen: false, shopBuyerId: null, sectSubTab: 'CORE', sectPostsSubTab: 'OFFICES', stockItemsSubTab: 'GRID', shopSubTab: 'EXCHANGE', npcSubTab: 'CORE', worldExpSubTab: 'TRAVEL', worldSectsSubTab: 'NEIGHBORS', worldDiscSubTab: 'PORTALS', worldContentSubTab: 'REGIONS', buildingSubTab: 'OVERVIEW', editCharSubTab: 'CULT_ECON', editPetSubTab: 'PETS_BUFFS', loreEraFilter: 'ALL', loreEmpGroup: 'ALL', loreFigGroup: 'ALL', loreChaosSub: 'EVENTS', loreChaosEra: 'ALL', loreSurvFilter: 'ALL' };
   const SPEEDS = [[0, '⏸'], [1, '1×'], [2, '2×'], [4, '4×'], [8, '8×'], [16, '16×'], [32, '32×'], [48, '48×'], [96, '96×']];
   UI.SPEEDS = SPEEDS.map(s => s[0]);
 
@@ -338,7 +338,7 @@
   };
 
   // ITEM_ART_CATALOG_START
-  const ITEM_ART = {"version":2,"grid":{"columns":8,"rows":8},"style":"Generated painterly wuxia inventory art, transparent shared atlases; WebP quality 88. Five tier sheets normalized into fixed 96px cells with subject bounds <=80px; prior four named/manual/material sheets unchanged.","sheets":{"manuals":{"url":"assets/item_art_manuals.webp","width":1254,"height":1254,"cells":["starter","sword","fist","lightness","support-lotus","defensive-shield","spirit-mantra","forbidden","yin-yang","mechanism","karma","beast","alchemy","creation","array","strategy","astrology","buddha","void","sonic","venom","shifter","weather","wanderer","merchant","geomancy","gravity","chrono","ink","soul-puppet","chaos","samurai","ninja-shadow","ninja-elements","summoner","possession","channeler","heretic","occult","devouring","nether","ancestral","tide","archive","fortune","husbandry","arena","dragon-treasure","recipe-alchemy","recipe-forging","recipe-tailoring","recipe-cooking","recipe-talisman","recipe-beast","guide-fishing","guide-farming","treasure-map","forbidden-sealed","jade-tablet","bamboo-manual","phoenix-treasure","samsara-treasure","official-decree","starter-bundle"]},"equipment":{"url":"assets/item_art_equipment.webp","width":1254,"height":1254,"cells":["LEG_WPN_YITIAN_SWORD","LEG_WPN_XUANTIE_HEAVY_SWORD","LEG_WPN_TULONG_SABER","LEG_WPN_FULL_MOON_SCIMITAR","LEG_WPN_XIAOLI_HEART_DAGGER","LEG_WPN_DAGOU_JADE_STAFF","LEG_WPN_OVERLORD_SPEAR","LEG_WPN_OATHBREAKER_DRAGON_LANCE","LEG_WPN_WRATHFUL_TIGER_GAUNTLETS","LEG_WPN_CONDOR_METEOR_BOW","LEG_WPN_PEACOCK_PLUME_FOCUS","LEG_WPN_JIUXIAO_PHOENIX_ZITHER","LEG_WPN_CHUNQIU_JUDGMENT_BRUSH","LEG_WPN_TIANCAN_FATE_WHIP","LEG_WPN_BODHI_NIRVANA_ROSARY","LEG_WPN_TAOTIE_DEVOURING_CLAW","LEG_WPN_BAIHUA_SOUL_NEEDLE","LEG_WPN_BAJIAO_TEMPEST_FAN","LEG_WPN_HETU_LUOSHU_ASTROLABE","LEG_WPN_CAISHEN_GOLDEN_ABACUS","LEG_ARM_CELESTIAL_CRANE_ROBE","LEG_ARM_SHADOW_KIRIN_CUIRASS","LEG_ARM_IMMORTAL_TORTOISE_PLATE","LEG_ACC_SAMSARA_KARMA_RING","LEG_ACC_BODHI_STARLIGHT_BEADS","LEG_ACC_TAICHI_HEAVEN_SEAL","LEG_ACC_DRAGON_PHOENIX_BANGLE","sword","blade","spear","staff","fist","bow","focus","zither","brush","whip","rosary","claw","needle","fan","astrolabe","abacus","robe","leather","heavy-armor","ring","necklace","charm","bracelet","pill-heal","pill-qi","pill-breakthrough","pill-detox","pill-soul","pill-body","pill-blood","pill-ascension","pill-longevity","pill-ice","pill-fire","pill-lightning","medicine-gourd","medicine-bottle"]},"materials":{"url":"assets/item_art_materials.webp","width":1254,"height":1254,"cells":["meat","jerky","fang","claw","hide","fur","bone","horn","scale","feather","silk-cocoon","chitin","shell","resin","blood","core","herb","ginseng","mushroom","lotus","ice-lotus","fire-flower","poison-flower","grain","copper","iron","coal","silver","gold","jade","crystal","ice-crystal","fire-crystal","lightning-crystal","wood-crystal","shadow-crystal","light-crystal","astral-crystal","space-crystal","demon-crystal","powder","silk-cloth","wood","cinnabar","phoenix-feather","heart","liver","lungs","kidney","stomach","coins","spirit-stones","wooden-chest","treasure-chest","food","talisman","sword-t1","sword-t2","sword-t3","sword-t4","sword-t5","sword-t6","sword-t7","letter"]},"legends":{"url":"assets/item_art_legends.webp","width":1254,"height":1254,"cells":["LEG_COMBAT_DUGU_NINE_SWORDS","LEG_COMBAT_DRAGON_SUBDUING_PALMS","LEG_COMBAT_FEIXIAN_ONE_SWORD","LEG_AUX_QIANKUN_SHIFT","LEG_AUX_LINGXI_ONE_FINGER","LEG_LIGHT_LINGBO_STEP","LEG_LIGHT_MOON_BAT_SHADOW","LEG_FORB_STAR_ABSORBING_VORTEX","LEG_FORB_BLOOD_LOTUS_SACRIFICE","LEG_PASS_MINGYU_IMMORTAL_QI","LEG_PASS_NINE_YANG_MERIDIAN","LEG_PASS_DUGU_SWORD_HEART","LEG_COMBAT_NINE_HEAVENS_GUANG_LING","LEG_AUX_HEAVEN_INSCRIPTION_SEAL","LEG_COMBAT_SAMSARA_PUPPET_THREADS","LEG_AUX_IMPERIAL_EIGHT_GATES","LEG_COMBAT_JADE_NIRVANA_HARMONY","LEG_LIGHT_KUNPENG_ASTRAL_WINGS","LEG_FORB_SAMSARA_KARMA_REVERSAL","LEG_V230_ASTRO_DIVINATION","LEG_V230_BUDDHA_DHARMA","LEG_V230_VOID_SPACE","LEG_V230_SONIC_HARMONY","LEG_V230_VENOM_GU","LEG_V230_PRIMORDIAL_SHIFTER","LEG_V230_CELESTIAL_WEATHER","LEG_V230_WANDERING_DAO","LEG_V230_MERCANTILE_DAO","LEG_V230_DRAGON_VEIN_GEOMANCY","LEG_V230_GRAVITY_DAO","LEG_V230_CHRONO_EPOCH","LEG_V230_INK_LITERATI","LEG_V230_SOUL_PUPPETRY","LEG_V230_PRIMORDIAL_CHAOS","LEG_V230_SHADOW_SAMURAI","LEG_V230_NINPO_SHADOW","LEG_V230_NINPO_ELEMENTAL","LEG_V230_DIVINE_SUMMONER","LEG_V230_DIVINE_POSSESSION","LEG_V230_DIVINE_CHANNELER","LEG_V230_VOID_HERETIC_PACT","LEG_V230_OCCULT_MAGE","LEG_V230_DEVOURING_FLESH","LEG_V230_NETHER_GRAVE","LEG_V230_ANCESTRAL_RITUAL","LEG_V230_TIDE_VOYAGER","LEG_V230_LORE_ARCHIVIST","LEG_V230_FORTUNE_GAMBLER","LEG_V230_SPIRIT_HUSBANDRY","LEG_V230_ARENA_GLORY","robe-t2","robe-t3","armor-t4","armor-t5","robe-t6","robe-t7","pill-breakthrough","pill-detox","pill-soul","pill-body","pill-qi","pill-resurrection","pill-demonic","pill-ascension"]},"arsenala":{"url":"assets/item_art_arsenala.webp","width":768,"height":768,"cells":["blade-t1","blade-t2","blade-t3","blade-t4","blade-t5","blade-t6","blade-t7","blade-mythic","spear-t1","spear-t2","spear-t3","spear-t4","spear-t5","spear-t6","spear-t7","spear-mythic","staff-t1","staff-t2","staff-t3","staff-t4","staff-t5","staff-t6","staff-t7","staff-mythic","fist-t1","fist-t2","fist-t3","fist-t4","fist-t5","fist-t6","fist-t7","fist-mythic","bow-t1","bow-t2","bow-t3","bow-t4","bow-t5","bow-t6","bow-t7","bow-mythic","focus-t1","focus-t2","focus-t3","focus-t4","focus-t5","focus-t6","focus-t7","focus-mythic","dagger-t1","dagger-t2","dagger-t3","dagger-t4","dagger-t5","dagger-t6","dagger-t7","dagger-mythic","zither-t1","zither-t2","zither-t3","zither-t4","zither-t5","zither-t6","zither-t7","zither-mythic"]},"arsenalb":{"url":"assets/item_art_arsenalb.webp","width":768,"height":768,"cells":["brush-t1","brush-t2","brush-t3","brush-t4","brush-t5","brush-t6","brush-t7","brush-mythic","whip-t1","whip-t2","whip-t3","whip-t4","whip-t5","whip-t6","whip-t7","whip-mythic","rosary-t1","rosary-t2","rosary-t3","rosary-t4","rosary-t5","rosary-t6","rosary-t7","rosary-mythic","claw-t1","claw-t2","claw-t3","claw-t4","claw-t5","claw-t6","claw-t7","claw-mythic","needle-t1","needle-t2","needle-t3","needle-t4","needle-t5","needle-t6","needle-t7","needle-mythic","fan-t1","fan-t2","fan-t3","fan-t4","fan-t5","fan-t6","fan-t7","fan-mythic","astrolabe-t1","astrolabe-t2","astrolabe-t3","astrolabe-t4","astrolabe-t5","astrolabe-t6","astrolabe-t7","astrolabe-mythic","abacus-t1","abacus-t2","abacus-t3","abacus-t4","abacus-t5","abacus-t6","abacus-t7","abacus-mythic"]},"attire":{"url":"assets/item_art_attire.webp","width":768,"height":768,"cells":["heavy-t1","heavy-t2","heavy-t3","heavy-t4","heavy-t5","heavy-t6","heavy-t7","heavy-mythic","light-t1","light-t2","light-t3","light-t4","light-t5","light-t6","light-t7","light-mythic","robe-t1","robe-t2","robe-t3","robe-t4","robe-t5","robe-t6","robe-t7","robe-mythic","boots-t1","boots-t2","boots-t3","boots-t4","boots-t5","boots-t6","boots-t7","boots-mythic","helmet-t1","helmet-t2","helmet-t3","helmet-t4","helmet-t5","helmet-t6","helmet-t7","helmet-mythic","ring-t1","ring-t2","ring-t3","ring-t4","ring-t5","ring-t6","ring-t7","ring-mythic","necklace-t1","necklace-t2","necklace-t3","necklace-t4","necklace-t5","necklace-t6","necklace-t7","necklace-mythic","bracelet-t1","bracelet-t2","bracelet-t3","bracelet-t4","bracelet-t5","bracelet-t6","bracelet-t7","bracelet-mythic"]},"supplies":{"url":"assets/item_art_supplies.webp","width":768,"height":768,"cells":["charm-t1","charm-t2","charm-t3","charm-t4","charm-t5","charm-t6","charm-t7","charm-mythic","ornament-t1","ornament-t2","ornament-t3","ornament-t4","ornament-t5","ornament-t6","ornament-t7","ornament-mythic","aux_tool-t1","aux_tool-t2","aux_tool-t3","aux_tool-t4","aux_tool-t5","aux_tool-t6","aux_tool-t7","aux_tool-mythic","pill_heal-t1","pill_heal-t2","pill_heal-t3","pill_heal-t4","pill_heal-t5","pill_heal-t6","pill_heal-t7","pill_heal-mythic","pill_qi-t1","pill_qi-t2","pill_qi-t3","pill_qi-t4","pill_qi-t5","pill_qi-t6","pill_qi-t7","pill_qi-mythic","pill_break-t1","pill_break-t2","pill_break-t3","pill_break-t4","pill_break-t5","pill_break-t6","pill_break-t7","pill_break-mythic","pill_detox-t1","pill_detox-t2","pill_detox-t3","pill_detox-t4","pill_detox-t5","pill_detox-t6","pill_detox-t7","pill_detox-mythic","pill_body-t1","pill_body-t2","pill_body-t3","pill_body-t4","pill_body-t5","pill_body-t6","pill_body-t7","pill_body-mythic"]},"resources":{"url":"assets/item_art_resources.webp","width":768,"height":768,"cells":["pill_soul-t1","pill_soul-t2","pill_soul-t3","pill_soul-t4","pill_soul-t5","pill_soul-t6","pill_soul-t7","pill_soul-mythic","mat_ore-t1","mat_ore-t2","mat_ore-t3","mat_ore-t4","mat_ore-t5","mat_ore-t6","mat_ore-t7","mat_ore-mythic","mat_herb-t1","mat_herb-t2","mat_herb-t3","mat_herb-t4","mat_herb-t5","mat_herb-t6","mat_herb-t7","mat_herb-mythic","mat_hide-t1","mat_hide-t2","mat_hide-t3","mat_hide-t4","mat_hide-t5","mat_hide-t6","mat_hide-t7","mat_hide-mythic","mat_bone-t1","mat_bone-t2","mat_bone-t3","mat_bone-t4","mat_bone-t5","mat_bone-t6","mat_bone-t7","mat_bone-mythic","mat_core-t1","mat_core-t2","mat_core-t3","mat_core-t4","mat_core-t5","mat_core-t6","mat_core-t7","mat_core-mythic","mat_crystal-t1","mat_crystal-t2","mat_crystal-t3","mat_crystal-t4","mat_crystal-t5","mat_crystal-t6","mat_crystal-t7","mat_crystal-mythic","fish-t1","fish-t2","fish-t3","fish-t4","fish-t5","fish-t6","fish-t7","fish-mythic"]}},"manualPaths":{"XIAN":1,"BODY":2,"GOD":34,"DEMON":7,"HEART_SOUL":6,"MECH_PUPPET":9,"KARMA_SAMSARA":10,"BEAST_SOVEREIGN":11,"SAGE_SUPPORT":4,"CRAFT_CREATION":13,"ARRAY_TALISMAN":14,"STRATEGY_GOVERNANCE":15,"ASTRO_DIVINATION":16,"BUDDHA_DHARMA":17,"VOID_SPACE":18,"SONIC_HARMONY":19,"VENOM_GU":20,"PRIMORDIAL_SHIFTER":21,"CELESTIAL_WEATHER":22,"WANDERING_DAO":23,"MERCANTILE_DAO":24,"DRAGON_VEIN_GEOMANCY":25,"GRAVITY_DAO":26,"CHRONO_EPOCH":27,"INK_LITERATI":28,"SOUL_PUPPETRY":29,"PRIMORDIAL_CHAOS":30,"SHADOW_SAMURAI":31,"NINPO_SHADOW":32,"NINPO_ELEMENTAL":33,"DIVINE_SUMMONER":34,"DIVINE_POSSESSION":35,"DIVINE_CHANNELER":36,"VOID_HERETIC_PACT":37,"OCCULT_MAGE":38,"DEVOURING_FLESH":39,"NETHER_GRAVE":40,"ANCESTRAL_RITUAL":41,"TIDE_VOYAGER":42,"LORE_ARCHIVIST":43,"FORTUNE_GAMBLER":44,"SPIRIT_HUSBANDRY":45,"ARENA_GLORY":46},"legendaryEquipment":{"LEG_WPN_YITIAN_SWORD":0,"LEG_WPN_XUANTIE_HEAVY_SWORD":1,"LEG_WPN_TULONG_SABER":2,"LEG_WPN_FULL_MOON_SCIMITAR":3,"LEG_WPN_XIAOLI_HEART_DAGGER":4,"LEG_WPN_DAGOU_JADE_STAFF":5,"LEG_WPN_OVERLORD_SPEAR":6,"LEG_WPN_OATHBREAKER_DRAGON_LANCE":7,"LEG_WPN_WRATHFUL_TIGER_GAUNTLETS":8,"LEG_WPN_CONDOR_METEOR_BOW":9,"LEG_WPN_PEACOCK_PLUME_FOCUS":10,"LEG_WPN_JIUXIAO_PHOENIX_ZITHER":11,"LEG_WPN_CHUNQIU_JUDGMENT_BRUSH":12,"LEG_WPN_TIANCAN_FATE_WHIP":13,"LEG_WPN_BODHI_NIRVANA_ROSARY":14,"LEG_WPN_TAOTIE_DEVOURING_CLAW":15,"LEG_WPN_BAIHUA_SOUL_NEEDLE":16,"LEG_WPN_BAJIAO_TEMPEST_FAN":17,"LEG_WPN_HETU_LUOSHU_ASTROLABE":18,"LEG_WPN_CAISHEN_GOLDEN_ABACUS":19,"LEG_ARM_CELESTIAL_CRANE_ROBE":20,"LEG_ARM_SHADOW_KIRIN_CUIRASS":21,"LEG_ARM_IMMORTAL_TORTOISE_PLATE":22,"LEG_ACC_SAMSARA_KARMA_RING":23,"LEG_ACC_BODHI_STARLIGHT_BEADS":24,"LEG_ACC_TAICHI_HEAVEN_SEAL":25,"LEG_ACC_DRAGON_PHOENIX_BANGLE":26},"legendaryTechniques":{"LEG_COMBAT_DUGU_NINE_SWORDS":0,"LEG_COMBAT_DRAGON_SUBDUING_PALMS":1,"LEG_COMBAT_FEIXIAN_ONE_SWORD":2,"LEG_AUX_QIANKUN_SHIFT":3,"LEG_AUX_LINGXI_ONE_FINGER":4,"LEG_LIGHT_LINGBO_STEP":5,"LEG_LIGHT_MOON_BAT_SHADOW":6,"LEG_FORB_STAR_ABSORBING_VORTEX":7,"LEG_FORB_BLOOD_LOTUS_SACRIFICE":8,"LEG_PASS_MINGYU_IMMORTAL_QI":9,"LEG_PASS_NINE_YANG_MERIDIAN":10,"LEG_PASS_DUGU_SWORD_HEART":11,"LEG_COMBAT_NINE_HEAVENS_GUANG_LING":12,"LEG_AUX_HEAVEN_INSCRIPTION_SEAL":13,"LEG_COMBAT_SAMSARA_PUPPET_THREADS":14,"LEG_AUX_IMPERIAL_EIGHT_GATES":15,"LEG_COMBAT_JADE_NIRVANA_HARMONY":16,"LEG_LIGHT_KUNPENG_ASTRAL_WINGS":17,"LEG_FORB_SAMSARA_KARMA_REVERSAL":18,"LEG_V230_ASTRO_DIVINATION":19,"LEG_V230_BUDDHA_DHARMA":20,"LEG_V230_VOID_SPACE":21,"LEG_V230_SONIC_HARMONY":22,"LEG_V230_VENOM_GU":23,"LEG_V230_PRIMORDIAL_SHIFTER":24,"LEG_V230_CELESTIAL_WEATHER":25,"LEG_V230_WANDERING_DAO":26,"LEG_V230_MERCANTILE_DAO":27,"LEG_V230_DRAGON_VEIN_GEOMANCY":28,"LEG_V230_GRAVITY_DAO":29,"LEG_V230_CHRONO_EPOCH":30,"LEG_V230_INK_LITERATI":31,"LEG_V230_SOUL_PUPPETRY":32,"LEG_V230_PRIMORDIAL_CHAOS":33,"LEG_V230_SHADOW_SAMURAI":34,"LEG_V230_NINPO_SHADOW":35,"LEG_V230_NINPO_ELEMENTAL":36,"LEG_V230_DIVINE_SUMMONER":37,"LEG_V230_DIVINE_POSSESSION":38,"LEG_V230_DIVINE_CHANNELER":39,"LEG_V230_VOID_HERETIC_PACT":40,"LEG_V230_OCCULT_MAGE":41,"LEG_V230_DEVOURING_FLESH":42,"LEG_V230_NETHER_GRAVE":43,"LEG_V230_ANCESTRAL_RITUAL":44,"LEG_V230_TIDE_VOYAGER":45,"LEG_V230_LORE_ARCHIVIST":46,"LEG_V230_FORTUNE_GAMBLER":47,"LEG_V230_SPIRIT_HUSBANDRY":48,"LEG_V230_ARENA_GLORY":49},"tierFamilies":{"SWORD":{"sheet":"materials","cells":[56,57,58,59,60,61,62,62],"group":"equipment"},"BLADE":{"sheet":"arsenala","cells":[0,1,2,3,4,5,6,7],"group":"equipment"},"SPEAR":{"sheet":"arsenala","cells":[8,9,10,11,12,13,14,15],"group":"equipment"},"STAFF":{"sheet":"arsenala","cells":[16,17,18,19,20,21,22,23],"group":"equipment"},"FIST":{"sheet":"arsenala","cells":[24,25,26,27,28,29,30,31],"group":"equipment"},"BOW":{"sheet":"arsenala","cells":[32,33,34,35,36,37,38,39],"group":"equipment"},"FOCUS":{"sheet":"arsenala","cells":[40,41,42,43,44,45,46,47],"group":"equipment"},"DAGGER":{"sheet":"arsenala","cells":[48,49,50,51,52,53,54,55],"group":"equipment"},"ZITHER":{"sheet":"arsenala","cells":[56,57,58,59,60,61,62,63],"group":"equipment"},"BRUSH":{"sheet":"arsenalb","cells":[0,1,2,3,4,5,6,7],"group":"equipment"},"WHIP":{"sheet":"arsenalb","cells":[8,9,10,11,12,13,14,15],"group":"equipment"},"ROSARY":{"sheet":"arsenalb","cells":[16,17,18,19,20,21,22,23],"group":"equipment"},"CLAW":{"sheet":"arsenalb","cells":[24,25,26,27,28,29,30,31],"group":"equipment"},"NEEDLE":{"sheet":"arsenalb","cells":[32,33,34,35,36,37,38,39],"group":"equipment"},"FAN":{"sheet":"arsenalb","cells":[40,41,42,43,44,45,46,47],"group":"equipment"},"ASTROLABE":{"sheet":"arsenalb","cells":[48,49,50,51,52,53,54,55],"group":"equipment"},"ABACUS":{"sheet":"arsenalb","cells":[56,57,58,59,60,61,62,63],"group":"equipment"},"HEAVY":{"sheet":"attire","cells":[0,1,2,3,4,5,6,7],"group":"equipment"},"LIGHT":{"sheet":"attire","cells":[8,9,10,11,12,13,14,15],"group":"equipment"},"ROBE":{"sheet":"attire","cells":[16,17,18,19,20,21,22,23],"group":"equipment"},"BOOTS":{"sheet":"attire","cells":[24,25,26,27,28,29,30,31],"group":"equipment"},"HELMET":{"sheet":"attire","cells":[32,33,34,35,36,37,38,39],"group":"equipment"},"RING":{"sheet":"attire","cells":[40,41,42,43,44,45,46,47],"group":"equipment"},"NECKLACE":{"sheet":"attire","cells":[48,49,50,51,52,53,54,55],"group":"equipment"},"BRACELET":{"sheet":"attire","cells":[56,57,58,59,60,61,62,63],"group":"equipment"},"CHARM":{"sheet":"supplies","cells":[0,1,2,3,4,5,6,7],"group":"equipment"},"ORNAMENT":{"sheet":"supplies","cells":[8,9,10,11,12,13,14,15],"group":"equipment"},"AUX_TOOL":{"sheet":"supplies","cells":[16,17,18,19,20,21,22,23],"group":"equipment"},"PILL_HEAL":{"sheet":"supplies","cells":[24,25,26,27,28,29,30,31],"group":"pill"},"PILL_QI":{"sheet":"supplies","cells":[32,33,34,35,36,37,38,39],"group":"pill"},"PILL_BREAK":{"sheet":"supplies","cells":[40,41,42,43,44,45,46,47],"group":"pill"},"PILL_DETOX":{"sheet":"supplies","cells":[48,49,50,51,52,53,54,55],"group":"pill"},"PILL_BODY":{"sheet":"supplies","cells":[56,57,58,59,60,61,62,63],"group":"pill"},"PILL_SOUL":{"sheet":"resources","cells":[0,1,2,3,4,5,6,7],"group":"pill"},"MAT_ORE":{"sheet":"resources","cells":[8,9,10,11,12,13,14,15],"group":"material"},"MAT_HERB":{"sheet":"resources","cells":[16,17,18,19,20,21,22,23],"group":"material"},"MAT_HIDE":{"sheet":"resources","cells":[24,25,26,27,28,29,30,31],"group":"material"},"MAT_BONE":{"sheet":"resources","cells":[32,33,34,35,36,37,38,39],"group":"material"},"MAT_CORE":{"sheet":"resources","cells":[40,41,42,43,44,45,46,47],"group":"material"},"MAT_CRYSTAL":{"sheet":"resources","cells":[48,49,50,51,52,53,54,55],"group":"material"},"FISH":{"sheet":"resources","cells":[56,57,58,59,60,61,62,63],"group":"fish"}},"typeAliases":{"SABER":"BLADE","GAUNTLET":"FIST","FIST_PALM":"FIST","HEAVY_ARMOR":"HEAVY","LIGHT_ARMOR":"LIGHT","PENDANT":"NECKLACE","HEADGEAR":"HELMET","SHOES":"BOOTS"},"normalization":{"layouts":"docs/ITEM_ART_TIER_CROPS.json","tool":"tools/normalize_item_sheet.js","cellSize":96,"innerSize":80,"newSheets":["arsenala","arsenalb","attire","supplies","resources"]}};
+  const ITEM_ART = {"version":2,"grid":{"columns":8,"rows":8},"style":"Generated painterly wuxia inventory art, transparent shared atlases; WebP quality 88. Five tier sheets normalized into fixed 96px cells with subject bounds <=80px; prior four named/manual/material sheets unchanged.","sheets":{"manuals":{"url":"assets/item_art_manuals.webp","width":1254,"height":1254,"cells":["starter","sword","fist","lightness","support-lotus","defensive-shield","spirit-mantra","forbidden","yin-yang","mechanism","karma","beast","alchemy","creation","array","strategy","astrology","buddha","void","sonic","venom","shifter","weather","wanderer","merchant","geomancy","gravity","chrono","ink","soul-puppet","chaos","samurai","ninja-shadow","ninja-elements","summoner","possession","channeler","heretic","occult","devouring","nether","ancestral","tide","archive","fortune","husbandry","arena","dragon-treasure","recipe-alchemy","recipe-forging","recipe-tailoring","recipe-cooking","recipe-talisman","recipe-beast","guide-fishing","guide-farming","treasure-map","forbidden-sealed","jade-tablet","bamboo-manual","phoenix-treasure","samsara-treasure","official-decree","starter-bundle"]},"equipment":{"url":"assets/item_art_equipment.webp","width":1254,"height":1254,"cells":["LEG_WPN_YITIAN_SWORD","LEG_WPN_XUANTIE_HEAVY_SWORD","LEG_WPN_TULONG_SABER","LEG_WPN_FULL_MOON_SCIMITAR","LEG_WPN_XIAOLI_HEART_DAGGER","LEG_WPN_DAGOU_JADE_STAFF","LEG_WPN_OVERLORD_SPEAR","LEG_WPN_OATHBREAKER_DRAGON_LANCE","LEG_WPN_WRATHFUL_TIGER_GAUNTLETS","LEG_WPN_CONDOR_METEOR_BOW","LEG_WPN_PEACOCK_PLUME_FOCUS","LEG_WPN_JIUXIAO_PHOENIX_ZITHER","LEG_WPN_CHUNQIU_JUDGMENT_BRUSH","LEG_WPN_TIANCAN_FATE_WHIP","LEG_WPN_BODHI_NIRVANA_ROSARY","LEG_WPN_TAOTIE_DEVOURING_CLAW","LEG_WPN_BAIHUA_SOUL_NEEDLE","LEG_WPN_BAJIAO_TEMPEST_FAN","LEG_WPN_HETU_LUOSHU_ASTROLABE","LEG_WPN_CAISHEN_GOLDEN_ABACUS","LEG_ARM_CELESTIAL_CRANE_ROBE","LEG_ARM_SHADOW_KIRIN_CUIRASS","LEG_ARM_IMMORTAL_TORTOISE_PLATE","LEG_ACC_SAMSARA_KARMA_RING","LEG_ACC_BODHI_STARLIGHT_BEADS","LEG_ACC_TAICHI_HEAVEN_SEAL","LEG_ACC_DRAGON_PHOENIX_BANGLE","sword","blade","spear","staff","fist","bow","focus","zither","brush","whip","rosary","claw","needle","fan","astrolabe","abacus","robe","leather","heavy-armor","ring","necklace","charm","bracelet","pill-heal","pill-qi","pill-breakthrough","pill-detox","pill-soul","pill-body","pill-blood","pill-ascension","pill-longevity","pill-ice","pill-fire","pill-lightning","medicine-gourd","medicine-bottle"]},"materials":{"url":"assets/item_art_materials.webp","width":1254,"height":1254,"cells":["meat","jerky","fang","claw","hide","fur","bone","horn","scale","feather","silk-cocoon","chitin","shell","resin","blood","core","herb","ginseng","mushroom","lotus","ice-lotus","fire-flower","poison-flower","grain","copper","iron","coal","silver","gold","jade","crystal","ice-crystal","fire-crystal","lightning-crystal","wood-crystal","shadow-crystal","light-crystal","astral-crystal","space-crystal","demon-crystal","powder","silk-cloth","wood","cinnabar","phoenix-feather","heart","liver","lungs","kidney","stomach","coins","spirit-stones","wooden-chest","treasure-chest","food","talisman","sword-t1","sword-t2","sword-t3","sword-t4","sword-t5","sword-t6","sword-t7","letter"]},"legends":{"url":"assets/item_art_legends.webp","width":1254,"height":1254,"cells":["LEG_COMBAT_DUGU_NINE_SWORDS","LEG_COMBAT_DRAGON_SUBDUING_PALMS","LEG_COMBAT_FEIXIAN_ONE_SWORD","LEG_AUX_QIANKUN_SHIFT","LEG_AUX_LINGXI_ONE_FINGER","LEG_LIGHT_LINGBO_STEP","LEG_LIGHT_MOON_BAT_SHADOW","LEG_FORB_STAR_ABSORBING_VORTEX","LEG_FORB_BLOOD_LOTUS_SACRIFICE","LEG_PASS_MINGYU_IMMORTAL_QI","LEG_PASS_NINE_YANG_MERIDIAN","LEG_PASS_DUGU_SWORD_HEART","LEG_COMBAT_NINE_HEAVENS_GUANG_LING","LEG_AUX_HEAVEN_INSCRIPTION_SEAL","LEG_COMBAT_SAMSARA_PUPPET_THREADS","LEG_AUX_IMPERIAL_EIGHT_GATES","LEG_COMBAT_JADE_NIRVANA_HARMONY","LEG_LIGHT_KUNPENG_ASTRAL_WINGS","LEG_FORB_SAMSARA_KARMA_REVERSAL","LEG_V230_ASTRO_DIVINATION","LEG_V230_BUDDHA_DHARMA","LEG_V230_VOID_SPACE","LEG_V230_SONIC_HARMONY","LEG_V230_VENOM_GU","LEG_V230_PRIMORDIAL_SHIFTER","LEG_V230_CELESTIAL_WEATHER","LEG_V230_WANDERING_DAO","LEG_V230_MERCANTILE_DAO","LEG_V230_DRAGON_VEIN_GEOMANCY","LEG_V230_GRAVITY_DAO","LEG_V230_CHRONO_EPOCH","LEG_V230_INK_LITERATI","LEG_V230_SOUL_PUPPETRY","LEG_V230_PRIMORDIAL_CHAOS","LEG_V230_SHADOW_SAMURAI","LEG_V230_NINPO_SHADOW","LEG_V230_NINPO_ELEMENTAL","LEG_V230_DIVINE_SUMMONER","LEG_V230_DIVINE_POSSESSION","LEG_V230_DIVINE_CHANNELER","LEG_V230_VOID_HERETIC_PACT","LEG_V230_OCCULT_MAGE","LEG_V230_DEVOURING_FLESH","LEG_V230_NETHER_GRAVE","LEG_V230_ANCESTRAL_RITUAL","LEG_V230_TIDE_VOYAGER","LEG_V230_LORE_ARCHIVIST","LEG_V230_FORTUNE_GAMBLER","LEG_V230_SPIRIT_HUSBANDRY","LEG_V230_ARENA_GLORY","robe-t2","robe-t3","armor-t4","armor-t5","robe-t6","robe-t7","pill-breakthrough","pill-detox","pill-soul","pill-body","pill-qi","pill-resurrection","pill-demonic","pill-ascension"]},"arsenala":{"url":"assets/item_art_arsenala.webp","width":768,"height":768,"cells":["blade-t1","blade-t2","blade-t3","blade-t4","blade-t5","blade-t6","blade-t7","blade-mythic","spear-t1","spear-t2","spear-t3","spear-t4","spear-t5","spear-t6","spear-t7","spear-mythic","staff-t1","staff-t2","staff-t3","staff-t4","staff-t5","staff-t6","staff-t7","staff-mythic","fist-t1","fist-t2","fist-t3","fist-t4","fist-t5","fist-t6","fist-t7","fist-mythic","bow-t1","bow-t2","bow-t3","bow-t4","bow-t5","bow-t6","bow-t7","bow-mythic","focus-t1","focus-t2","focus-t3","focus-t4","focus-t5","focus-t6","focus-t7","focus-mythic","dagger-t1","dagger-t2","dagger-t3","dagger-t4","dagger-t5","dagger-t6","dagger-t7","dagger-mythic","zither-t1","zither-t2","zither-t3","zither-t4","zither-t5","zither-t6","zither-t7","zither-mythic"]},"arsenalb":{"url":"assets/item_art_arsenalb.webp","width":768,"height":768,"cells":["brush-t1","brush-t2","brush-t3","brush-t4","brush-t5","brush-t6","brush-t7","brush-mythic","whip-t1","whip-t2","whip-t3","whip-t4","whip-t5","whip-t6","whip-t7","whip-mythic","rosary-t1","rosary-t2","rosary-t3","rosary-t4","rosary-t5","rosary-t6","rosary-t7","rosary-mythic","claw-t1","claw-t2","claw-t3","claw-t4","claw-t5","claw-t6","claw-t7","claw-mythic","needle-t1","needle-t2","needle-t3","needle-t4","needle-t5","needle-t6","needle-t7","needle-mythic","fan-t1","fan-t2","fan-t3","fan-t4","fan-t5","fan-t6","fan-t7","fan-mythic","astrolabe-t1","astrolabe-t2","astrolabe-t3","astrolabe-t4","astrolabe-t5","astrolabe-t6","astrolabe-t7","astrolabe-mythic","abacus-t1","abacus-t2","abacus-t3","abacus-t4","abacus-t5","abacus-t6","abacus-t7","abacus-mythic"]},"attire":{"url":"assets/item_art_attire.webp","width":768,"height":768,"cells":["heavy-t1","heavy-t2","heavy-t3","heavy-t4","heavy-t5","heavy-t6","heavy-t7","heavy-mythic","light-t1","light-t2","light-t3","light-t4","light-t5","light-t6","light-t7","light-mythic","robe-t1","robe-t2","robe-t3","robe-t4","robe-t5","robe-t6","robe-t7","robe-mythic","boots-t1","boots-t2","boots-t3","boots-t4","boots-t5","boots-t6","boots-t7","boots-mythic","helmet-t1","helmet-t2","helmet-t3","helmet-t4","helmet-t5","helmet-t6","helmet-t7","helmet-mythic","ring-t1","ring-t2","ring-t3","ring-t4","ring-t5","ring-t6","ring-t7","ring-mythic","necklace-t1","necklace-t2","necklace-t3","necklace-t4","necklace-t5","necklace-t6","necklace-t7","necklace-mythic","bracelet-t1","bracelet-t2","bracelet-t3","bracelet-t4","bracelet-t5","bracelet-t6","bracelet-t7","bracelet-mythic"]},"supplies":{"url":"assets/item_art_supplies.webp","width":768,"height":768,"cells":["charm-t1","charm-t2","charm-t3","charm-t4","charm-t5","charm-t6","charm-t7","charm-mythic","ornament-t1","ornament-t2","ornament-t3","ornament-t4","ornament-t5","ornament-t6","ornament-t7","ornament-mythic","aux_tool-t1","aux_tool-t2","aux_tool-t3","aux_tool-t4","aux_tool-t5","aux_tool-t6","aux_tool-t7","aux_tool-mythic","pill_heal-t1","pill_heal-t2","pill_heal-t3","pill_heal-t4","pill_heal-t5","pill_heal-t6","pill_heal-t7","pill_heal-mythic","pill_qi-t1","pill_qi-t2","pill_qi-t3","pill_qi-t4","pill_qi-t5","pill_qi-t6","pill_qi-t7","pill_qi-mythic","pill_break-t1","pill_break-t2","pill_break-t3","pill_break-t4","pill_break-t5","pill_break-t6","pill_break-t7","pill_break-mythic","pill_detox-t1","pill_detox-t2","pill_detox-t3","pill_detox-t4","pill_detox-t5","pill_detox-t6","pill_detox-t7","pill_detox-mythic","pill_body-t1","pill_body-t2","pill_body-t3","pill_body-t4","pill_body-t5","pill_body-t6","pill_body-t7","pill_body-mythic"]},"resources":{"url":"assets/item_art_resources.webp","width":768,"height":768,"cells":["pill_soul-t1","pill_soul-t2","pill_soul-t3","pill_soul-t4","pill_soul-t5","pill_soul-t6","pill_soul-t7","pill_soul-mythic","mat_ore-t1","mat_ore-t2","mat_ore-t3","mat_ore-t4","mat_ore-t5","mat_ore-t6","mat_ore-t7","mat_ore-mythic","mat_herb-t1","mat_herb-t2","mat_herb-t3","mat_herb-t4","mat_herb-t5","mat_herb-t6","mat_herb-t7","mat_herb-mythic","mat_hide-t1","mat_hide-t2","mat_hide-t3","mat_hide-t4","mat_hide-t5","mat_hide-t6","mat_hide-t7","mat_hide-mythic","mat_bone-t1","mat_bone-t2","mat_bone-t3","mat_bone-t4","mat_bone-t5","mat_bone-t6","mat_bone-t7","mat_bone-mythic","mat_core-t1","mat_core-t2","mat_core-t3","mat_core-t4","mat_core-t5","mat_core-t6","mat_core-t7","mat_core-mythic","mat_crystal-t1","mat_crystal-t2","mat_crystal-t3","mat_crystal-t4","mat_crystal-t5","mat_crystal-t6","mat_crystal-t7","mat_crystal-mythic","fish-t1","fish-t2","fish-t3","fish-t4","fish-t5","fish-t6","fish-t7","fish-mythic"]}},"manualPaths":{"XIAN":1,"BODY":2,"GOD":34,"DEMON":7,"HEART_SOUL":6,"MECH_PUPPET":9,"KARMA_SAMSARA":10,"BEAST_SOVEREIGN":11,"SAGE_SUPPORT":4,"CRAFT_CREATION":13,"ARRAY_TALISMAN":14,"STRATEGY_GOVERNANCE":15,"ASTRO_DIVINATION":16,"BUDDHA_DHARMA":17,"VOID_SPACE":18,"SONIC_HARMONY":19,"VENOM_GU":20,"PRIMORDIAL_SHIFTER":21,"CELESTIAL_WEATHER":22,"WANDERING_DAO":23,"MERCANTILE_DAO":24,"DRAGON_VEIN_GEOMANCY":25,"GRAVITY_DAO":26,"CHRONO_EPOCH":27,"INK_LITERATI":28,"SOUL_PUPPETRY":29,"PRIMORDIAL_CHAOS":30,"SHADOW_SAMURAI":31,"NINPO_SHADOW":32,"NINPO_ELEMENTAL":33,"DIVINE_SUMMONER":34,"DIVINE_POSSESSION":35,"DIVINE_CHANNELER":36,"VOID_HERETIC_PACT":37,"OCCULT_MAGE":38,"DEVOURING_FLESH":39,"NETHER_GRAVE":40,"ANCESTRAL_RITUAL":41,"TIDE_VOYAGER":42,"LORE_ARCHIVIST":43,"FORTUNE_GAMBLER":44,"SPIRIT_HUSBANDRY":45,"ARENA_GLORY":46,"LEG_READ_FORM_BLADE":31,"LEG_TRIAGE_MERIDIAN":4,"LEG_STORM_CALLER_TEMPEST":22,"LEG_JADE_CARAVAN_VOYAGER":24,"LEG_OATH_JUDGE_WARDEN":15,"LEG_ASHEN_KILN_ALCHEMY":13,"TRANS_CONSTELLATION_RELAY":16,"TRANS_FIELD_CLAUSE_SOVEREIGN":15,"TRANS_TEMPO_SOVEREIGN":27,"TRANS_SEALKEEPER_FORBIDDEN_KEY":14,"TRANS_PRIMAL_VORTEX_MIRROR":43,"TRANS_DYNASTIC_MANDATE_WEAVER":15},"legendaryEquipment":{"LEG_WPN_YITIAN_SWORD":0,"LEG_WPN_XUANTIE_HEAVY_SWORD":1,"LEG_WPN_TULONG_SABER":2,"LEG_WPN_FULL_MOON_SCIMITAR":3,"LEG_WPN_XIAOLI_HEART_DAGGER":4,"LEG_WPN_DAGOU_JADE_STAFF":5,"LEG_WPN_OVERLORD_SPEAR":6,"LEG_WPN_OATHBREAKER_DRAGON_LANCE":7,"LEG_WPN_WRATHFUL_TIGER_GAUNTLETS":8,"LEG_WPN_CONDOR_METEOR_BOW":9,"LEG_WPN_PEACOCK_PLUME_FOCUS":10,"LEG_WPN_JIUXIAO_PHOENIX_ZITHER":11,"LEG_WPN_CHUNQIU_JUDGMENT_BRUSH":12,"LEG_WPN_TIANCAN_FATE_WHIP":13,"LEG_WPN_BODHI_NIRVANA_ROSARY":14,"LEG_WPN_TAOTIE_DEVOURING_CLAW":15,"LEG_WPN_BAIHUA_SOUL_NEEDLE":16,"LEG_WPN_BAJIAO_TEMPEST_FAN":17,"LEG_WPN_HETU_LUOSHU_ASTROLABE":18,"LEG_WPN_CAISHEN_GOLDEN_ABACUS":19,"LEG_ARM_CELESTIAL_CRANE_ROBE":20,"LEG_ARM_SHADOW_KIRIN_CUIRASS":21,"LEG_ARM_IMMORTAL_TORTOISE_PLATE":22,"LEG_ACC_SAMSARA_KARMA_RING":23,"LEG_ACC_BODHI_STARLIGHT_BEADS":24,"LEG_ACC_TAICHI_HEAVEN_SEAL":25,"LEG_ACC_DRAGON_PHOENIX_BANGLE":26},"legendaryTechniques":{"LEG_COMBAT_DUGU_NINE_SWORDS":0,"LEG_COMBAT_DRAGON_SUBDUING_PALMS":1,"LEG_COMBAT_FEIXIAN_ONE_SWORD":2,"LEG_AUX_QIANKUN_SHIFT":3,"LEG_AUX_LINGXI_ONE_FINGER":4,"LEG_LIGHT_LINGBO_STEP":5,"LEG_LIGHT_MOON_BAT_SHADOW":6,"LEG_FORB_STAR_ABSORBING_VORTEX":7,"LEG_FORB_BLOOD_LOTUS_SACRIFICE":8,"LEG_PASS_MINGYU_IMMORTAL_QI":9,"LEG_PASS_NINE_YANG_MERIDIAN":10,"LEG_PASS_DUGU_SWORD_HEART":11,"LEG_COMBAT_NINE_HEAVENS_GUANG_LING":12,"LEG_AUX_HEAVEN_INSCRIPTION_SEAL":13,"LEG_COMBAT_SAMSARA_PUPPET_THREADS":14,"LEG_AUX_IMPERIAL_EIGHT_GATES":15,"LEG_COMBAT_JADE_NIRVANA_HARMONY":16,"LEG_LIGHT_KUNPENG_ASTRAL_WINGS":17,"LEG_FORB_SAMSARA_KARMA_REVERSAL":18,"LEG_V230_ASTRO_DIVINATION":19,"LEG_V230_BUDDHA_DHARMA":20,"LEG_V230_VOID_SPACE":21,"LEG_V230_SONIC_HARMONY":22,"LEG_V230_VENOM_GU":23,"LEG_V230_PRIMORDIAL_SHIFTER":24,"LEG_V230_CELESTIAL_WEATHER":25,"LEG_V230_WANDERING_DAO":26,"LEG_V230_MERCANTILE_DAO":27,"LEG_V230_DRAGON_VEIN_GEOMANCY":28,"LEG_V230_GRAVITY_DAO":29,"LEG_V230_CHRONO_EPOCH":30,"LEG_V230_INK_LITERATI":31,"LEG_V230_SOUL_PUPPETRY":32,"LEG_V230_PRIMORDIAL_CHAOS":33,"LEG_V230_SHADOW_SAMURAI":34,"LEG_V230_NINPO_SHADOW":35,"LEG_V230_NINPO_ELEMENTAL":36,"LEG_V230_DIVINE_SUMMONER":37,"LEG_V230_DIVINE_POSSESSION":38,"LEG_V230_DIVINE_CHANNELER":39,"LEG_V230_VOID_HERETIC_PACT":40,"LEG_V230_OCCULT_MAGE":41,"LEG_V230_DEVOURING_FLESH":42,"LEG_V230_NETHER_GRAVE":43,"LEG_V230_ANCESTRAL_RITUAL":44,"LEG_V230_TIDE_VOYAGER":45,"LEG_V230_LORE_ARCHIVIST":46,"LEG_V230_FORTUNE_GAMBLER":47,"LEG_V230_SPIRIT_HUSBANDRY":48,"LEG_V230_ARENA_GLORY":49},"tierFamilies":{"SWORD":{"sheet":"materials","cells":[56,57,58,59,60,61,62,62],"group":"equipment"},"BLADE":{"sheet":"arsenala","cells":[0,1,2,3,4,5,6,7],"group":"equipment"},"SPEAR":{"sheet":"arsenala","cells":[8,9,10,11,12,13,14,15],"group":"equipment"},"STAFF":{"sheet":"arsenala","cells":[16,17,18,19,20,21,22,23],"group":"equipment"},"FIST":{"sheet":"arsenala","cells":[24,25,26,27,28,29,30,31],"group":"equipment"},"BOW":{"sheet":"arsenala","cells":[32,33,34,35,36,37,38,39],"group":"equipment"},"FOCUS":{"sheet":"arsenala","cells":[40,41,42,43,44,45,46,47],"group":"equipment"},"DAGGER":{"sheet":"arsenala","cells":[48,49,50,51,52,53,54,55],"group":"equipment"},"ZITHER":{"sheet":"arsenala","cells":[56,57,58,59,60,61,62,63],"group":"equipment"},"BRUSH":{"sheet":"arsenalb","cells":[0,1,2,3,4,5,6,7],"group":"equipment"},"WHIP":{"sheet":"arsenalb","cells":[8,9,10,11,12,13,14,15],"group":"equipment"},"ROSARY":{"sheet":"arsenalb","cells":[16,17,18,19,20,21,22,23],"group":"equipment"},"CLAW":{"sheet":"arsenalb","cells":[24,25,26,27,28,29,30,31],"group":"equipment"},"NEEDLE":{"sheet":"arsenalb","cells":[32,33,34,35,36,37,38,39],"group":"equipment"},"FAN":{"sheet":"arsenalb","cells":[40,41,42,43,44,45,46,47],"group":"equipment"},"ASTROLABE":{"sheet":"arsenalb","cells":[48,49,50,51,52,53,54,55],"group":"equipment"},"ABACUS":{"sheet":"arsenalb","cells":[56,57,58,59,60,61,62,63],"group":"equipment"},"HEAVY":{"sheet":"attire","cells":[0,1,2,3,4,5,6,7],"group":"equipment"},"LIGHT":{"sheet":"attire","cells":[8,9,10,11,12,13,14,15],"group":"equipment"},"ROBE":{"sheet":"attire","cells":[16,17,18,19,20,21,22,23],"group":"equipment"},"BOOTS":{"sheet":"attire","cells":[24,25,26,27,28,29,30,31],"group":"equipment"},"HELMET":{"sheet":"attire","cells":[32,33,34,35,36,37,38,39],"group":"equipment"},"RING":{"sheet":"attire","cells":[40,41,42,43,44,45,46,47],"group":"equipment"},"NECKLACE":{"sheet":"attire","cells":[48,49,50,51,52,53,54,55],"group":"equipment"},"BRACELET":{"sheet":"attire","cells":[56,57,58,59,60,61,62,63],"group":"equipment"},"CHARM":{"sheet":"supplies","cells":[0,1,2,3,4,5,6,7],"group":"equipment"},"ORNAMENT":{"sheet":"supplies","cells":[8,9,10,11,12,13,14,15],"group":"equipment"},"AUX_TOOL":{"sheet":"supplies","cells":[16,17,18,19,20,21,22,23],"group":"equipment"},"PILL_HEAL":{"sheet":"supplies","cells":[24,25,26,27,28,29,30,31],"group":"pill"},"PILL_QI":{"sheet":"supplies","cells":[32,33,34,35,36,37,38,39],"group":"pill"},"PILL_BREAK":{"sheet":"supplies","cells":[40,41,42,43,44,45,46,47],"group":"pill"},"PILL_DETOX":{"sheet":"supplies","cells":[48,49,50,51,52,53,54,55],"group":"pill"},"PILL_BODY":{"sheet":"supplies","cells":[56,57,58,59,60,61,62,63],"group":"pill"},"PILL_SOUL":{"sheet":"resources","cells":[0,1,2,3,4,5,6,7],"group":"pill"},"MAT_ORE":{"sheet":"resources","cells":[8,9,10,11,12,13,14,15],"group":"material"},"MAT_HERB":{"sheet":"resources","cells":[16,17,18,19,20,21,22,23],"group":"material"},"MAT_HIDE":{"sheet":"resources","cells":[24,25,26,27,28,29,30,31],"group":"material"},"MAT_BONE":{"sheet":"resources","cells":[32,33,34,35,36,37,38,39],"group":"material"},"MAT_CORE":{"sheet":"resources","cells":[40,41,42,43,44,45,46,47],"group":"material"},"MAT_CRYSTAL":{"sheet":"resources","cells":[48,49,50,51,52,53,54,55],"group":"material"},"FISH":{"sheet":"resources","cells":[56,57,58,59,60,61,62,63],"group":"fish"}},"typeAliases":{"SABER":"BLADE","GAUNTLET":"FIST","FIST_PALM":"FIST","HEAVY_ARMOR":"HEAVY","LIGHT_ARMOR":"LIGHT","PENDANT":"NECKLACE","HEADGEAR":"HELMET","SHOES":"BOOTS"},"normalization":{"layouts":"docs/ITEM_ART_TIER_CROPS.json","tool":"tools/normalize_item_sheet.js","cellSize":96,"innerSize":80,"newSheets":["arsenala","arsenalb","attire","supplies","resources"]}};
   // ITEM_ART_CATALOG_END
   UI.ITEM_ART_CATALOG = ITEM_ART;
   const ART_GRADE_NAMES = ['Common','Refined','Rare','Exceptional','Legendary'];
@@ -767,8 +767,8 @@
     const c = SIM.calendar(W.t); const wk = { clear: '☀️', cloud: '⛅', rain: '🌧️', snow: '❄️', fog: '🌫️' }[W.weather.kind] || '';
     const celEv = (W.celestialAlignment && W.celestialAlignment.activeEvent) || W.celestialEvent;
     const celTxt = celEv ? (' · ' + (celEv.icon || '🌌') + ' ' + celEv.nameTh) : '';
-    $('dateTxt').title = SIM.SEASON_TH[c.season] + (celEv ? (' — ' + (celEv.descTh || celEv.nameTh)) : '');
-    $('dateTxt').textContent = wk + ' ปี ' + c.year + ' ด.' + c.month + ' ว.' + c.dom + '  ' + U.pad2(c.hour) + ':' + U.pad2(c.minute) + ' · ' + SIM.SEASON_TH[c.season] + celTxt;
+    $('dateTxt').title = SIM.CALENDAR.ERA_NAME_TH + ' · ยุคที่ ' + c.epoch + ' ปีที่ ' + c.yearInEpoch + ' (รวม ' + c.worldYear.toLocaleString('en-US') + ' ปีหลังเทียนกู่แตก · ปีสำนักที่ ' + c.year + ') · เดือน ' + c.month + ' (' + c.monthNameTh + ') วันที่ ' + c.dom + ' · ' + SIM.SEASON_TH[c.season] + (celEv ? (' — ' + (celEv.descTh || celEv.nameTh)) : '');
+    $('dateTxt').textContent = wk + ' ยุค ' + c.epoch + ' ปี ' + c.yearInEpoch + ' ด.' + c.month + ' ว.' + c.dom + '  ' + U.pad2(c.hour) + ':' + U.pad2(c.minute) + ' · ' + SIM.SEASON_TH[c.season] + celTxt;
     document.querySelectorAll('#speedBar button').forEach(b => b.classList.toggle('on', +b.dataset.sp === G.speed));
     const alive = W.npcs.filter(n => !n.dead && !n.exiled), away = alive.filter(n => n.away).length; const S = W.sect;
     const pop = SECT.memberOccupancy ? SECT.memberOccupancy(W) : alive.length;
@@ -864,6 +864,17 @@
     else if (kind === 'sect') show('sect', '🏯 สำนัก', [['over', 'ภาพรวม'], ['council', '🏛️ สภา/ธรรมนูญ'], ['peaks', '⛰️ หุบเขา/ยอดเขา'], ['lineage', '💞 คู่บำเพ็ญ/มรดก'], ['dao', '🌌 แดนลับ/ชะตาฟ้า'], ['visuals', '✨ กราฟิก/ฟ้าดิน'], ['policy', 'นโยบาย/นิสัยผู้นำ'], ['posts', 'ตำแหน่ง'], ['library', '📚 หอคัมภีร์'], ['stock', 'ภาพรวมคลัง'], ['stockItems', '📦 คลังไอเทม'], ['shop', '🛒 ร้าน/คุณูปการ'], ['bld', 'อาคาร']], arg || 'over');
     else if (kind === 'log') { if (UI.audio && UI.audio.playGuqinChime) UI.audio.playGuqinChime(); show('log', '📜 บันทึกเหตุการณ์', Object.keys(LOG_GROUPS).map(k => [k, LOG_GROUPS[k][0]]), 'all'); }
     else if (kind === 'world') show('world', '🧭 ยุทธภพนอกสำนัก', [['map', '🗺️ แผนที่ยุทธภพ'], ['polities', '🏛️ อาณาจักร'], ['exp', 'คณะเดินทาง'], ['visitors', '🎐 ผู้มาเยือน'], ['clues', '🗺️ เบาะแส/มรดก'], ['content', '🌿 พื้นที่/ตำรับ'], ['ecology', '🐾 อสูรและนิเวศ'], ['disc', '🔭 ค้นพบ'], ['sects', 'สำนักอื่น'], ['hist', 'ประวัติ']], arg || 'exp', true);
+    else if (kind === 'lore') {
+      show('lore', '📜 พงศาวดารและตำนานโลก (Master Lore Compendium)', [
+        ['eras', '⏳ 6 มหายุคสมัย'],
+        ['chaos_e0_e1', '📖 มหากาพย์ยุค 0–1'],
+        ['empires', '🏚️ อาณาจักร & ราชวงศ์'],
+        ['figures', '🧙‍♂️ 60 ยอดคนตำนาน'],
+        ['cosmos', '🌌 จักรวาล & 6 ราชันอสูร'],
+        ['arsenal', '🗡️ ศาสตรา & คัมภีร์'],
+        ['living', '📖 บันทึกพื้นถิ่น 40 เรื่อง']
+      ], arg || 'eras', true);
+    }
     else if (kind === 'edit') {
       const W = UI.G.W;
       if (!UI.editNpcId || !W.byId[UI.editNpcId] || W.byId[UI.editNpcId].dead) {
@@ -1205,6 +1216,36 @@
     }
     else if (a === 'set-exp-subtab') {
       UI.worldExpSubTab = arg || 'TRAVEL';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-lore-era') {
+      UI.loreEraFilter = arg || 'ALL';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-lore-emp-group') {
+      UI.loreEmpGroup = arg || 'ALL';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-lore-fig-group') {
+      UI.loreFigGroup = arg || 'ALL';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-lore-chaos-sub') {
+      UI.loreChaosSub = arg || 'EVENTS';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-lore-chaos-era') {
+      UI.loreChaosEra = arg || 'ALL';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-lore-surv-filter') {
+      UI.loreSurvFilter = arg || 'ALL';
       UI.render();
       const sb = $('shBody'); if (sb) sb.scrollTop = 0;
     }
@@ -1792,6 +1833,7 @@
       case 'sect': html = UI.rSect(); break;
       case 'log': html = UI.rLog(); break;
       case 'world': html = UI.rWorld(); break;
+      case 'lore': html = UI.rLore(); break;
       case 'edit': html = UI.rEdit(); break;
       case 'menu': html = UI.rMenu(); break;
       case 'npc': html = UI.rNpc(); break;
@@ -4460,13 +4502,16 @@
     const places = Object.values(EXPED.SETTLEMENTS);
     const current = EXPED.POLITY_DEFS[UI.selectedPolityId];
     if (!current) {
+      const ownerOf = cid => (EXPED.LIVING_POLITIES && EXPED.LIVING_POLITIES.ownerOf) ? EXPED.LIVING_POLITIES.ownerOf(W, cid) : (EXPED.SETTLEMENTS[cid] && EXPED.SETTLEMENTS[cid].polityId);
       const cards = polities.map(polity => {
         const court = state.courts[polity.id], capital = places.find(n => n.order === polity.capital);
-        const count = places.filter(n => n.polityId === polity.id).length;
+        const count = places.filter(n => ownerOf(n.id) === polity.id).length;
+        const lp = court && court.livingPolity;
+        const eraTxt = lp ? (' · ' + esc(lp.eraTh) + ' (กำลัง ' + lp.power + ')') : '';
         return '<button type="button" class="polity-card" data-do="world-polity" data-arg="' + esc(polity.id) +
           '" style="--court-color:' + polity.color + '"><span class="polity-card-glyph" aria-hidden="true">🏛️</span>' +
           '<span class="polity-card-text"><strong>' + esc(polity.nameTh) + '</strong><small>' + esc(capital.nameTh) +
-          ' · ' + count + ' เมืองและด่าน</small></span><span class="polity-card-arrow" aria-hidden="true">›</span></button>';
+          ' · ' + count + ' เมืองและด่าน' + eraTxt + '</small></span><span class="polity-card-arrow" aria-hidden="true">›</span></button>';
       }).join('');
       return '<header class="polity-header"><h2>อาณาจักรแห่งยุทธภพ</h2><span class="chip">' +
         polities.length + ' อาณาจักร</span></header><div class="polity-grid">' + cards + '</div>';
@@ -4475,15 +4520,17 @@
     const seats = Object.values(court.seats);
     const ruler = seats.find(s => s.role === 'ruler');
     const rulerName = state.figures[ruler?.holderId]?.h.name.full;
-    const cities = places.filter(n => n.polityId === current.id);
+    const ownerOf = cid => (EXPED.LIVING_POLITIES && EXPED.LIVING_POLITIES.ownerOf) ? EXPED.LIVING_POLITIES.ownerOf(W, cid) : (EXPED.SETTLEMENTS[cid] && EXPED.SETTLEMENTS[cid].polityId);
+    const cities = places.filter(n => ownerOf(n.id) === current.id);
+    const lp = court && court.livingPolity;
     const region = EXPED.WORLD_REGIONS[current.macroRegion];
     let h = polityButton(null,'‹ อาณาจักรทั้งหมด','btn polity-back');
     h += '<header class="polity-hero" style="--court-color:' + current.color + '"><div class="polity-hero-meta">' +
-      esc(polityGovTh[current.government]) + ' · ' + esc(region.shortTh) + '</div><h2>' + esc(current.nameTh) +
+      esc(polityGovTh[current.government]) + ' · ' + esc(region.shortTh) + (lp ? (' · ' + esc(lp.eraTh) + ' · รุ่นที่ ' + lp.dynastyGen) : '') + '</div><h2>' + esc(current.nameTh) +
       '</h2><div class="polity-hero-line">' + esc(ruler?.nameTh || 'ผู้นำ') + ' <b>' +
       esc(rulerName || 'ตำแหน่งว่าง') + '</b></div><div class="polity-metrics"><div><small>เสถียรภาพ</small><b>' + court.stability +
       '/100</b></div><div><small>นโยบายปัจจุบัน</small><b>' + esc(polityPolicyTh[court.policy]) +
-      '</b></div></div>' + atlasLocationButton(capital,'📍 เมืองหลวง · ' + capital.nameTh) + '</header>';
+      '</b></div>' + (lp ? ('<div><small>กำลังแคว้น</small><b>' + lp.power + '</b></div><div><small>กองทัพ/คลัง/ความชอบธรรม</small><b>' + Math.round(lp.military) + '/' + Math.round(lp.treasury) + '/' + Math.round(lp.legitimacy) + '</b></div>') : '') + '</div>' + atlasLocationButton(capital,'📍 เมืองหลวง · ' + capital.nameTh) + '</header>';
 
     h += '<details class="polity-section" open><summary>ราชสำนักและตำแหน่ง <span>' + seats.length + '</span></summary>';
     const central = seats.filter(s => s.stationId === capital.id), provincial = seats.filter(s => s.stationId !== capital.id);
@@ -4506,7 +4553,7 @@
     }
     h += '</details><details class="polity-section"><summary>ความเคลื่อนไหวล่าสุด</summary>';
     const recent = (W.sect.sectChronicle || []).filter(e => e.storyThreadId === 'court:' + current.id ||
-      (e.type === 'diplomacy' && EXPED.SETTLEMENTS[e.location?.nodeId]?.polityId === current.id)).slice(-6).reverse();
+      (e.type === 'diplomacy' && ((EXPED.LIVING_POLITIES && EXPED.LIVING_POLITIES.ownerOf(W, e.location?.nodeId)) || EXPED.SETTLEMENTS[e.location?.nodeId]?.polityId) === current.id)).slice(-6).reverse();
     h += recent.length ? recent.map(e => '<div class="polity-row"><small>' + dayStamp(e.t) + '</small> ' +
       esc(e.text) + atlasLocationButton(e.location,'📍 ดูจุดเกิดเหตุ') + '</div>').join('') : '<p class="muted">ยังไม่มีข่าวจากราชสำนักนี้</p>';
     return h + '</details>';
@@ -4514,13 +4561,16 @@
 
   function atlasCityInfo(W, node) {
     const state = W.world.continent, city = state?.cities?.[node.id];
-    const polity = EXPED.POLITY_DEFS[node.polityId], court = state?.courts?.[node.polityId];
+    const dynOwnerId = (EXPED.LIVING_POLITIES && EXPED.LIVING_POLITIES.ownerOf(W, node.id)) || node.polityId;
+    const polity = EXPED.POLITY_DEFS[dynOwnerId], court = state?.courts?.[dynOwnerId];
+    const origPolity = dynOwnerId !== node.polityId ? EXPED.POLITY_DEFS[node.polityId] : null;
     const capital = polity && Object.values(EXPED.SETTLEMENTS).find(n => n.order === polity.capital);
     const specialty = {river:'การค้าลุ่มน้ำ',farm:'เกษตรกรรม',ferry:'ท่าข้ามฟาก',academy:'การศึกษา',
       road:'สถานีพักทาง',port:'การค้าชายฝั่ง',forge:'การหลอมและตีเหล็ก',mountain:'ชุมชนภูเขา',desert:'การค้าทะเลทราย',
       marsh:'สมุนไพรพื้นที่ชุ่มน้ำ',hunt:'ชุมชนพราน'};
     let h = '<div class="atlas-fact"><b>' + esc(polity?.nameTh || 'ชุมชนชายฝั่งอิสระ') +
-      '</b> · ' + esc(settlementTierTh[node.tier]) + ' · ' + esc(specialty[node.specialty]) + '</div>';
+      '</b>' + (origPolity ? ' <small class="muted">(เดิมสังกัด' + esc(origPolity.nameTh) + ')</small>' : '') +
+      ' · ' + esc(settlementTierTh[node.tier]) + ' · ' + esc(specialty[node.specialty]) + '</div>';
     if (city) h += '<div class="atlas-fact">ความปลอดภัย ' + Math.round(city.safety) +
       '/100 · ความรุ่งเรือง ' + Math.round(city.prosperity) + '/100 · ศิษย์มาเยือน ' + city.visits + ' ครั้ง</div>';
     if (court) {
@@ -4960,7 +5010,8 @@
       const many = g1.nodes.length > 1, n = g1.nodes[0], isHome = n.kind === 'HOME_SECT';
       const symbol = many && !isHome ? String(g1.nodes.length) : atlasSymbol(n);
       const side = !many && (n.kind === 'NEIGHBOR_SECT' || n.kind === 'WANDERING_LEGEND') ? atlasSide(n) : isHome ? 'home' : !many && n.kind === 'WORLD_ANOMALY' ? 'event' : '';
-      const cityColor = !many && n.kind === 'SETTLEMENT' ? EXPED.POLITY_DEFS[n.polityId]?.color : null;
+      const dynCityOwner = !many && n.kind === 'SETTLEMENT' ? ((EXPED.LIVING_POLITIES && EXPED.LIVING_POLITIES.ownerOf(W, n.id)) || n.polityId) : null;
+      const cityColor = dynCityOwner ? EXPED.POLITY_DEFS[dynCityOwner]?.color : null;
       const marked = selected && g1.nodes.some(x => x.id === selected.id);
       const priority = !many && (n.kind === 'HOME_SECT' || (n.kind === 'NEIGHBOR_SECT' && n.isAllianceLeader) || marked);
       const visibleLabel = !many && (priority || view.zoom >= 1.8) && !labels.some(p => Math.abs(p.x-g1.x)<20/view.zoom && Math.abs(p.y-g1.y)<7/view.zoom);
@@ -5029,6 +5080,269 @@
   };
 
   /* ----- ยุทธภพ ----- */
+
+  // JS2 v3.8.0: Dedicated Read-Only Master Lore Compendium & Era Chronicle Window (Zero-RNG, Zero-Mutation)
+  UI.rLore = () => {
+    const W = UI.G && UI.G.W;
+    const tab = UI.tab || 'eras';
+    const C = EXPED && EXPED.LORE_COMPENDIUM;
+    if (!C) return '<div class="card"><div class="muted">ไม่พบข้อมูลคลังพงศาวดารโลก (EXPED.LORE_COMPENDIUM)</div></div>';
+    const eras = C.ERAS || [];
+    const eraById = Object.fromEntries(eras.map(e => [e.id, e]));
+    const empires = C.EMPIRES_AND_REALMS || [];
+    const figs = C.FIGURES_60 || [];
+    const facts = (EXPED && EXPED.LIVING_LORE && EXPED.LIVING_LORE.CANON_FACTS) || [];
+    const getFactEra = (f) => (EXPED && EXPED.LORE_COMPENDIUM_GET_ERA_FOR_FACT) ? EXPED.LORE_COMPENDIUM_GET_ERA_FOR_FACT(f && f.id) : 'ERA_5_PRESENT_CONVERGENCE';
+    let h = '';
+
+    // Top Epigraph Banner
+    h += '<div class="card" style="border-left:3px solid #f59e0b;background:rgba(245,158,11,0.06)">';
+    h += '<div style="font-weight:700;font-size:13.5px;color:#fcd34d">📜 คัมภีร์ปฐมบทและพงศาวดารมหาทวีป (JS2 Master World Lore)</div>';
+    h += '<div class="muted" style="font-size:11.5px;margin-top:4px;font-style:italic">' + esc(C.EPIGRAPH_TH || '') + '</div>';
+    h += '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">'
+      + '<span class="chip g">⏳ ' + eras.length + ' มหายุคสมัย</span>'
+      + '<span class="chip b">🏚️ ' + empires.length + ' อาณาจักร/มหาจักรวรรดิ</span>'
+      + '<span class="chip">🧙‍♂️ ' + figs.length + ' ยอดคนตำนาน</span>'
+      + '<span class="chip">🐉 ' + (C.BEAST_KINGS ? C.BEAST_KINGS.length : 0) + ' ราชันอสูร</span>'
+      + '<span class="chip">📖 ' + facts.length + ' บันทึกพื้นถิ่น</span>'
+      + '</div>'
+      + '<div style="margin-top:7px;padding:6px 8px;border-radius:6px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);font-size:11.5px;line-height:1.5">'
+      + '<b>🗓️ ปฏิทินและศักราชมาตรฐานของโลก (JS2 v3.8.1 · 1 ยุค = 1,000 ปี):</b> '
+      + 'นับ <b>ยุคที่ 0 ปีที่ 0</b> คือคืนประตูมิติหลวงแตกและวันล่มสลายของมหาจักรวรรดิเทียนกู่ · ก่อนหน้านั้นคือ <b>มหายุคก่อนประวัติศาสตร์</b> · '
+      + 'วันเริ่มเกมคือ <b>ยุคที่ 101 ปีที่ 1 เดือน 1 (เดือนอ้ายวสันต์) วันที่ 1</b> (100,001 ปีหลังเทียนกู่แตก · 1 ปี = 12 เดือน × 30 วัน = 360 วัน)'
+      + (W ? (' · ขณะนี้คือ <b>' + esc(SIM.dateText(W.t)) + '</b>') : '')
+      + '</div></div>';
+
+    if (tab === 'eras') {
+      const selEra = UI.loreEraFilter || 'ALL';
+      h += '<div class="subtab-bar" style="margin:6px 0 10px 0">';
+      h += '<button class="chip' + (selEra === 'ALL' ? ' b' : '') + '" data-do="set-lore-era" data-arg="ALL">ทุกยุค (' + eras.length + ')</button>';
+      for (const e of eras) {
+        h += '<button class="chip' + (selEra === e.id ? ' b' : '') + '" data-do="set-lore-era" data-arg="' + esc(e.id) + '">' + esc(e.icon + ' ' + e.codeTh) + '</button>';
+      }
+      h += '</div>';
+
+      const shownEras = selEra === 'ALL' ? eras : eras.filter(e => e.id === selEra);
+      for (const e of shownEras) {
+        const eraEmpires = empires.filter(x => x.eraId === e.id);
+        const eraFigs = figs.filter(x => x.eraId === e.id);
+        const eraFacts = facts.filter(f => getFactEra(f) === e.id);
+        h += '<div class="card" style="border-left:4px solid ' + esc(e.color || '#d4a373') + ';margin-bottom:10px">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'
+          + '<div style="font-weight:700;font-size:14px">' + esc(e.icon + ' ' + e.codeTh + ' · ' + e.nameTh) + '</div>'
+          + '<span class="chip">' + esc(e.spanTh || '') + '</span></div>';
+        if (e.quoteTh) h += '<div class="muted" style="font-size:11.5px;margin-top:4px;font-style:italic">' + esc(e.quoteTh) + '</div>';
+        for (const ch of (e.chapters || [])) {
+          h += '<div style="margin-top:8px;padding:7px 9px;border-radius:6px;background:rgba(255,255,255,0.03)">'
+            + '<div style="font-weight:600;font-size:12.5px;color:#fde68a">' + esc(ch.titleTh) + '</div>'
+            + '<div style="font-size:12px;line-height:1.55;margin-top:3px">' + esc(ch.bodyTh) + '</div></div>';
+        }
+        h += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;font-size:11px">'
+          + '<span class="chip b">อาณาจักร/ก๊กในยุคนี้: ' + eraEmpires.length + '</span>'
+          + '<span class="chip g">บุคคลตำนานในยุคนี้: ' + eraFigs.length + '</span>'
+          + '<span class="chip">บันทึกพื้นถิ่นในยุคนี้: ' + eraFacts.length + '</span></div>';
+        if (eraEmpires.length) {
+          h += '<details style="margin-top:6px"' + (selEra !== 'ALL' ? ' open' : '') + '><summary style="cursor:pointer;font-size:12px;font-weight:600">🏚️ อาณาจักรและขั้วอำนาจประจำ' + esc(e.codeTh) + ' (' + eraEmpires.length + ')</summary><div style="margin-top:4px">';
+          for (const em of eraEmpires) {
+            const stBadge = em.status === 'ACTIVE' ? '<span class="chip ok">คงอยู่</span>' : (em.status === 'BEYOND_FOG' ? '<span class="chip b">พ้นทะเลหมอก</span>' : '<span class="chip bad">ล่มสลาย</span>');
+            h += '<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11.5px"><b>' + esc(em.nameTh) + '</b> ' + stBadge + '<div class="muted">' + esc(em.founderTh || '') + ' — ' + esc(em.summaryTh || '') + '</div></div>';
+          }
+          h += '</div></details>';
+        }
+        if (eraFigs.length) {
+          h += '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:12px;font-weight:600">🧙‍♂️ ยอดคนในตำนานประจำ' + esc(e.codeTh) + ' (' + eraFigs.length + ')</summary><div style="margin-top:4px">';
+          for (const fg of eraFigs) {
+            h += '<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11.5px"><b>#' + fg.num + ' ' + esc(fg.titleTh) + '</b><div class="muted">' + esc(fg.summaryTh || '') + '</div></div>';
+          }
+          h += '</div></details>';
+        }
+        if (eraFacts.length) {
+          h += '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:12px;font-weight:600">📖 บันทึกพื้นถิ่นและปฐมบทวิถีประจำ' + esc(e.codeTh) + ' (' + eraFacts.length + ')</summary><div style="margin-top:4px">';
+          for (const ft of eraFacts) {
+            h += '<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11.5px"><b>' + esc(ft.titleTh || ft.id) + '</b> <span class="chip">' + esc(ft.category || '') + '</span><div class="muted">' + esc(ft.summaryTh || (ft.accounts && ft.accounts.SECT_ORTHODOX && ft.accounts.SECT_ORTHODOX.summaryTh) || '') + '</div></div>';
+          }
+          h += '</div></details>';
+        }
+        h += '</div>';
+      }
+      return h;
+    }
+
+
+    if (tab === 'chaos_e0_e1') {
+      const CH = (EXPED && EXPED.getLoreChronicleE0E1 && EXPED.getLoreChronicleE0E1()) || (JD && JD.LORE_CHRONICLE_E0_E1);
+      if (!CH) return h + '<div class="card"><div class="muted">ไม่พบข้อมูลมหากาพย์ยุค 0–1 (JD.LORE_CHRONICLE_E0_E1)</div></div>';
+      const sub = UI.loreChaosSub || 'EVENTS';
+      const evs = CH.EVENTS || [];
+      const chFigs = CH.FIGURES_E0_E1 || [];
+      const fSects = CH.FALLEN_SECTS_E0_E1 || [];
+      const stMap = CH.SURVIVAL_STATUS || {};
+
+      h += '<div class="subtab-bar" style="margin:6px 0 8px 0">'
+        + '<button class="chip' + (sub === 'EVENTS' ? ' b' : '') + '" data-do="set-lore-chaos-sub" data-arg="EVENTS">📜 เหตุการณ์ระดับนิยาย (' + evs.length + ')</button>'
+        + '<button class="chip' + (sub === 'SURVIVORS' ? ' b' : '') + '" data-do="set-lore-chaos-sub" data-arg="SURVIVORS">👁️ บุคคลที่อาจยังมีชีวิต (' + chFigs.length + ')</button>'
+        + '<button class="chip' + (sub === 'SECTS' ? ' b' : '') + '" data-do="set-lore-chaos-sub" data-arg="SECTS">🏯 สำนักโบราณล่มสลาย (' + fSects.length + ')</button>'
+        + '</div>';
+
+      if (sub === 'EVENTS') {
+        const ef = UI.loreChaosEra || 'ALL';
+        h += '<div class="subtab-bar" style="margin:0 0 10px 0">'
+          + '<button class="chip' + (ef === 'ALL' ? ' g' : '') + '" data-do="set-lore-chaos-era" data-arg="ALL">ทั้งหมด (' + evs.length + ')</button>'
+          + '<button class="chip' + (ef === 'ERA_0' ? ' g' : '') + '" data-do="set-lore-chaos-era" data-arg="ERA_0">👑 ยุคที่ 0 · ปฐมกาล & คืนประตูมิติแตก</button>'
+          + '<button class="chip' + (ef === 'ERA_1' ? ' g' : '') + '" data-do="set-lore-chaos-era" data-arg="ERA_1">🔥 ยุคที่ 1 · กลียุคแปดก๊ก (ปี 1–1,000)</button>'
+          + '</div>';
+        const shown = ef === 'ALL' ? evs : evs.filter(x => x.eraGroup === ef);
+        for (const ev of shown) {
+          const borderCol = ev.eraGroup === 'ERA_0' ? '#f59e0b' : '#ef4444';
+          h += '<div class="card" style="border-left:4px solid ' + borderCol + ';margin-bottom:10px">'
+            + '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;align-items:center">'
+            + '<div style="font-weight:700;font-size:13.5px;color:#fde68a">' + esc(ev.titleTh) + '</div>'
+            + '<span class="chip b">' + esc(ev.yearLabelTh || '') + '</span></div>'
+            + '<div class="muted" style="font-size:11px;margin-top:3px">📍 <b>สถานที่:</b> ' + esc(ev.locationTh || '-') + ' · 👥 <b>บุคคลสำคัญ:</b> ' + esc((ev.keyFigures || []).join(', ')) + '</div>'
+            + '<div style="font-size:12.2px;line-height:1.65;margin-top:6px;text-align:justify">' + esc(ev.narrativeTh || '') + '</div>'
+            + '<div style="margin-top:6px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,0.03);font-size:11.5px"><b>📌 ผลสืบเนื่องถึงยุคปัจจุบัน:</b> ' + esc(ev.aftermathTh || '') + '</div>'
+            + (ev.reusableHooks && ev.reusableHooks.length ? ('<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap"><span class="muted" style="font-size:10.5px">🧩 จุดต่อยอดในเกม:</span> ' + ev.reusableHooks.map(hk => '<span class="chip">' + esc(hk) + '</span>').join(' ') + '</div>') : '')
+            + '</div>';
+        }
+        return h;
+      }
+
+      if (sub === 'SURVIVORS') {
+        const sf = UI.loreSurvFilter || 'ALL';
+        h += '<div class="subtab-bar" style="margin:0 0 10px 0">'
+          + '<button class="chip' + (sf === 'ALL' ? ' g' : '') + '" data-do="set-lore-surv-filter" data-arg="ALL">ทั้งหมด (' + chFigs.length + ')</button>';
+        for (const [sk, sv] of Object.entries(stMap)) {
+          h += '<button class="chip' + (sf === sk ? ' g' : '') + '" data-do="set-lore-surv-filter" data-arg="' + esc(sk) + '">' + esc(sv.labelTh) + '</button>';
+        }
+        h += '</div>';
+        const shown = sf === 'ALL' ? chFigs : chFigs.filter(x => x.survivalStatus === sf);
+        for (const fg of shown) {
+          const st = stMap[fg.survivalStatus] || { labelTh: fg.survivalStatus, color: '#94a3b8' };
+          h += '<div class="card" style="border-left:4px solid ' + esc(st.color || '#94a3b8') + ';margin-bottom:9px">'
+            + '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap">'
+            + '<div><b style="font-size:13px">' + esc(fg.nameTh) + '</b> <span class="muted" style="font-size:11.5px">— ' + esc(fg.epithetTh || '') + '</span></div>'
+            + '<span class="chip" style="border-color:' + esc(st.color) + '">' + esc(st.labelTh) + '</span></div>'
+            + '<div class="muted" style="font-size:11px;margin-top:3px">🏛️ <b>สังกัดเดิม:</b> ' + esc(fg.factionTh || '-') + ' · 📍 <b>ร่องรอย/พิกัดที่อาจพบ:</b> ' + esc(fg.possibleLocationTh || '-') + '</div>'
+            + '<div style="font-size:11.5px;margin-top:4px;color:#bae6fd"><b>วิธีคงอยู่/สถานะ:</b> ' + esc(fg.survivalMethodTh || '') + '</div>'
+            + '<div style="font-size:12px;line-height:1.6;margin-top:5px">' + esc(fg.biographyTh || '') + '</div>'
+            + (fg.reusableHooks && fg.reusableHooks.length ? ('<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap"><span class="muted" style="font-size:10.5px">🧩 จุดต่อยอด:</span> ' + fg.reusableHooks.map(hk => '<span class="chip">' + esc(hk) + '</span>').join(' ') + '</div>') : '')
+            + '</div>';
+        }
+        return h;
+      }
+
+      // sub === 'SECTS'
+      for (const fs of fSects) {
+        h += '<div class="card" style="border-left:4px solid #a78bfa;margin-bottom:9px">'
+          + '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap"><b style="font-size:13px">🏯 ' + esc(fs.nameTh) + '</b><span class="chip bad">ล่มสลาย: ' + esc(fs.fallenTh || '') + '</span></div>'
+          + '<div class="muted" style="font-size:11px;margin-top:3px">ก่อตั้ง: ' + esc(fs.foundedTh || '') + ' · ผู้ก่อตั้ง: ' + esc(fs.founderTh || '') + ' · วิถีที่เชื่อมโยง: ' + esc((fs.pathsTh || []).join(', ')) + '</div>'
+          + '<div style="font-size:12px;line-height:1.6;margin-top:5px">' + esc(fs.summaryTh || '') + '</div>'
+          + (fs.reusableHooks && fs.reusableHooks.length ? ('<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">' + fs.reusableHooks.map(hk => '<span class="chip">' + esc(hk) + '</span>').join(' ') + '</div>') : '')
+          + '</div>';
+      }
+      return h;
+    }
+
+    if (tab === 'empires') {
+      const selG = UI.loreEmpGroup || 'ALL';
+      const groups = [
+        ['ALL', 'ทั้งหมด (' + empires.length + ')'],
+        ['ETERNAL_3', '👑 3 มหาอำนาจ'],
+        ['OUTER_6', '🌊 6 พ้นทะเลหมอก'],
+        ['FIRST_WAVE_FALLEN', '🏚️ ก๊กแรกหลังเทียนกู่'],
+        ['MIDDLE_12', '⚔️ 12 อาณาจักรยุคกลาง'],
+        ['RECENT_6', '⏳ 6 แคว้นเพิ่งล่มสลาย']
+      ];
+      h += '<div class="subtab-bar" style="margin:6px 0 10px 0">';
+      for (const [gk, gl] of groups) {
+        h += '<button class="chip' + (selG === gk ? ' b' : '') + '" data-do="set-lore-emp-group" data-arg="' + gk + '">' + esc(gl) + '</button>';
+      }
+      h += '</div>';
+      const list = selG === 'ALL' ? empires : empires.filter(e => e.group === selG);
+      for (const em of list) {
+        const er = eraById[em.eraId];
+        const stBadge = em.status === 'ACTIVE' ? '<span class="chip ok">คงอยู่ถึงปัจจุบัน</span>' : (em.status === 'BEYOND_FOG' ? '<span class="chip b">พ้นทะเลหมอก</span>' : '<span class="chip bad">ล่มสลายแล้ว</span>');
+        h += '<div class="card" style="margin-bottom:8px">'
+          + '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap"><b>' + esc(em.nameTh) + '</b><div>' + stBadge + (er ? ' <span class="chip">' + esc(er.icon + ' ' + er.codeTh) + '</span>' : '') + '</div></div>'
+          + '<div class="muted" style="font-size:11.5px;margin-top:3px"><b>ผู้ก่อตั้ง/รากฐาน:</b> ' + esc(em.founderTh || '-') + '</div>'
+          + '<div style="font-size:12px;margin-top:4px;line-height:1.5">' + esc(em.summaryTh || '') + '</div></div>';
+      }
+      return h;
+    }
+
+    if (tab === 'figures') {
+      const selF = UI.loreFigGroup || 'ALL';
+      const fGroups = [
+        ['ALL', 'ทั้งหมด (60)'],
+        ['ERA_1_TIANGU_WAR', '👑 ยุคเทียนกู่ (#1–25)'],
+        ['ERA_2_POST_TIANGU_CHAOS', '🔥 ยุคกลียุค (#26–31, #37–41)'],
+        ['ERA_3_MIDDLE_EPOCHS', '⚔️ ยุคกลาง (#32–36)'],
+        ['ERA_4_THREE_EMPIRES_BALANCE', '⚖️ ยุควางรากฐาน (#42–45)'],
+        ['ERA_5_PRESENT_CONVERGENCE', '✨ ยุคปัจจุบัน (#46–60)']
+      ];
+      h += '<div class="subtab-bar" style="margin:6px 0 10px 0">';
+      for (const [fk, fl] of fGroups) {
+        h += '<button class="chip' + (selF === fk ? ' b' : '') + '" data-do="set-lore-fig-group" data-arg="' + fk + '">' + esc(fl) + '</button>';
+      }
+      h += '</div>';
+      const list = selF === 'ALL' ? figs : figs.filter(f => f.eraId === selF);
+      for (const fg of list) {
+        const er = eraById[fg.eraId];
+        h += '<div class="card" style="margin-bottom:7px">'
+          + '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap"><b>#' + fg.num + ' · ' + esc(fg.titleTh) + '</b>' + (er ? '<span class="chip">' + esc(er.icon + ' ' + er.codeTh) + '</span>' : '') + '</div>'
+          + '<div class="muted" style="font-size:11px;margin-top:2px">' + esc(fg.groupTh || '') + '</div>'
+          + '<div style="font-size:12px;margin-top:4px;line-height:1.5">' + esc(fg.summaryTh || '') + '</div></div>';
+      }
+      return h;
+    }
+
+    if (tab === 'cosmos') {
+      const cos = C.COSMOLOGY || {};
+      h += '<h3>🌌 ' + esc(cos.titleTh || 'จักรวาลวิทยาและม่านกั้นภพ') + '</h3>';
+      for (const p of (cos.pillars || [])) {
+        h += '<div class="card" style="margin-bottom:8px"><div style="font-weight:700;font-size:13px">' + esc((p.icon || '🌌') + ' ' + p.titleTh) + '</div><div style="font-size:12px;margin-top:4px;line-height:1.55">' + esc(p.bodyTh) + '</div></div>';
+      }
+      h += '<h3 style="margin-top:12px">🐉 ทำเนียบ 6 ราชันสัตว์อสูรสูงสุดแห่งแผ่นดิน</h3>';
+      for (const bk of (C.BEAST_KINGS || [])) {
+        h += '<div class="card" style="margin-bottom:7px"><div style="font-weight:700;font-size:12.5px">🐉 ' + esc(bk.nameTh) + ' <span class="chip">' + esc(bk.id) + '</span></div><div style="font-size:12px;margin-top:3px;line-height:1.5">' + esc(bk.descTh) + '</div></div>';
+      }
+      if (C.ECO_BEASTS && C.ECO_BEASTS.length) {
+        h += '<h3 style="margin-top:12px">🌿 นิเวศวิทยาสัตว์อสูรวิวัฒน์</h3>';
+        for (const eb of C.ECO_BEASTS) {
+          h += '<div class="card" style="margin-bottom:6px"><b>' + esc(eb.nameTh) + '</b><div class="muted" style="font-size:11.5px;margin-top:2px">' + esc(eb.descTh) + '</div></div>';
+        }
+      }
+      return h;
+    }
+
+    if (tab === 'arsenal') {
+      h += '<h3>🗡️ ทำเนียบมรดกศาสตราและมหาคัมภีร์ประจำแผ่นดิน</h3>';
+      for (const ag of (C.LEGENDARY_ARSENAL || [])) {
+        h += '<div class="card" style="margin-bottom:9px"><div style="font-weight:700;font-size:13px;color:#fcd34d;margin-bottom:5px">' + esc(ag.titleTh) + '</div>';
+        for (const it of (ag.items || [])) {
+          h += '<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11.8px;line-height:1.45">• ' + esc(it) + '</div>';
+        }
+        h += '</div>';
+      }
+      return h;
+    }
+
+    // tab === 'living'
+    h += '<h3>📖 บันทึกพื้นถิ่นและปฐมบทวิถีทั้งหมดในเกม (' + facts.length + ' เรื่อง · จัดหมวดตามยุค)</h3>';
+    for (const e of eras) {
+      const ef = facts.filter(f => getFactEra(f) === e.id);
+      if (!ef.length) continue;
+      h += '<div class="card" style="margin-bottom:9px;border-left:3px solid ' + esc(e.color || '#d4a373') + '">';
+      h += '<div style="font-weight:700;font-size:13px;margin-bottom:5px">' + esc(e.icon + ' ' + e.codeTh + ' · ' + e.nameTh) + ' (' + ef.length + ')</div>';
+      for (const ft of ef) {
+        const sum = ft.summaryTh || (ft.accounts && ft.accounts.SECT_ORTHODOX && ft.accounts.SECT_ORTHODOX.summaryTh) || '';
+        h += '<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11.8px"><b>' + esc(ft.titleTh || ft.id) + '</b> <span class="chip">' + esc(ft.category || '') + '</span>' + (ft.polityId ? ' <span class="chip b">' + esc(ft.polityId) + '</span>' : '') + '<div class="muted" style="margin-top:2px">' + esc(sum) + '</div></div>';
+      }
+      h += '</div>';
+    }
+    return h;
+  };
+
   UI.rWorld = () => {
     const W = UI.G.W, tab = UI.tab; let h = '';
     if (tab === 'map') return UI.rWorldMap(W);
@@ -5110,7 +5424,11 @@
         const trLabel = (C && C.TREATY_TH && C.TREATY_TH[s.treaty || 'NONE']) || (s.treaty || 'NONE');
         const trChip = ['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(s.treaty) ? 'ok' : ['TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(s.treaty) ? 'g' : s.treaty === 'NON_AGGRESSION' ? 'b' : ['EMBARGO','RIVAL_FEUD'].includes(s.treaty) ? 'r' : '';
         const specs = Array.isArray(s.specialtyMatIds) ? s.specialtyMatIds.map(id => esc(ECO.name(id))).join(' · ') : '';
-        return '<div class="card"><b>' + esc(s.icon || '🏯') + ' ' + esc(s.nameTh) + '</b> <span class="chip">' + esc(s.style) + '</span>' + (s.alignmentLabelTh ? ' <span class="chip v">' + esc(s.alignmentLabelTh) + '</span>' : '') + ' <span class="chip ' + trChip + '">📜 ' + esc(trLabel) + '</span>' + bar('ท่าทีต่อเรา', s.attitude + 100, { max: 200, txt: Math.round(s.attitude), wide: true, color: s.attitude > 20 ? '#5fd38a' : s.attitude < -20 ? '#e0584a' : '#e8c43a' }) + '<div class="muted">กำลัง ' + s.power + ' · อิทธิพล ' + (s.influence || 70) + (s.leaderNameTh ? ' · ประมุข: ' + esc(s.leaderNameTh) : '') + ' · ติดต่อล่าสุด ' + (s.contact ? 'วันที่ ' + s.contact : 'ยังไม่เคย') + '</div>' + (specs ? '<div class="muted">สินค้า/ทรัพยากรเฉพาะถิ่น: ' + specs + '</div>' : '') + '</div>';
+        const lr = s.livingRoster;
+        const trajChip = lr ? (' <span class="chip ' + (lr.trajectory === 'HEGEMON' || lr.trajectory === 'RISING' || lr.trajectory === 'REBORN' ? 'ok' : (lr.trajectory === 'DECLINING' || lr.trajectory === 'CRISIS' || lr.trajectory === 'COLLAPSED' ? 'r' : 'b')) + '">' + esc(lr.trajectoryTh || 'มั่นคง') + '</span>') : '';
+        const ldrTxt = (lr && lr.leader) ? (esc(lr.leader.nameTh) + ' (ขั้น ' + lr.leader.stage + ', อายุ ' + Math.floor(lr.leader.ageYears) + ')') : (s.leaderNameTh ? esc(s.leaderNameTh) : '');
+        const topProd = (lr && Array.isArray(lr.prodigies) && lr.prodigies.length) ? lr.prodigies.slice().sort((a, b) => b.talent - a.talent)[0] : null;
+        return '<div class="card"><b>' + esc(s.icon || '🏯') + ' ' + esc(s.nameTh) + '</b> <span class="chip">' + esc(s.style) + '</span>' + trajChip + (s.alignmentLabelTh ? ' <span class="chip v">' + esc(s.alignmentLabelTh) + '</span>' : '') + ' <span class="chip ' + trChip + '">📜 ' + esc(trLabel) + '</span>' + bar('ท่าทีต่อเรา', s.attitude + 100, { max: 200, txt: Math.round(s.attitude), wide: true, color: s.attitude > 20 ? '#5fd38a' : s.attitude < -20 ? '#e0584a' : '#e8c43a' }) + '<div class="muted">กำลัง ' + s.power + ' · อิทธิพล ' + (s.influence || 70) + (ldrTxt ? ' · ประมุข: ' + ldrTxt : '') + (topProd ? ' · ดาวรุ่ง: ' + esc(topProd.nameTh) + ' (พรสวรรค์ ' + topProd.talent + ')' : '') + ' · ติดต่อล่าสุด ' + (s.contact ? 'วันที่ ' + s.contact : 'ยังไม่เคย') + '</div>' + (specs ? '<div class="muted">สินค้า/ทรัพยากรเฉพาะถิ่น: ' + specs + '</div>' : '') + '</div>';
       }).join('');
       if (pol.events && pol.events.length) {
         h += '<h3>📜 บันทึกสนธิสัญญาและการเมืองยุทธภพ</h3><div class="card">' + pol.events.slice(-8).reverse().map(e => '<div class="logrow"><span class="tm">วันที่ ' + e.day + '</span>' + esc(e.summaryTh) + '</div>').join('') + '</div>';
@@ -5821,6 +6139,32 @@
     }
     return parts.length ? parts.join(" · ") : "อุปกรณ์เสริมกำลังยุทธ์";
   }
+
+  UI.formatLivingPolitiesSummary = (W) => {
+    if (!W || !g.EXPED || !g.EXPED.LIVING_POLITIES) return '';
+    const sum = g.EXPED.LIVING_POLITIES.peekSummary(W);
+    if (!sum || !sum.hegemonNameTh) return 'อาณาจักรทั้ง 9 ยังคงคานอำนาจกันอยู่';
+    const parts = ['👑 มหาอำนาจทวีป: ' + sum.hegemonNameTh];
+    if (sum.hegemonChanges > 0) parts.push('ผลัดขั้ว ' + sum.hegemonChanges + ' ครั้ง');
+    if (sum.goldenNamesTh.length) parts.push('✨ ยุคทอง: ' + sum.goldenNamesTh.join(', '));
+    if (sum.turmoilNamesTh.length) parts.push('🔥 เสื่อมถอย/กลียุค: ' + sum.turmoilNamesTh.join(', '));
+    if (sum.borderShiftsCount > 0 || sum.coupsCount > 0) parts.push('เปลี่ยนมือชายแดน ' + sum.borderShiftsCount + ' เมือง · ผลัดแผ่นดิน ' + sum.coupsCount + ' ครั้ง');
+    if (sum.recentTh) parts.push('ล่าสุด: ' + sum.recentTh);
+    return parts.join(' · ');
+  };
+
+  UI.formatLivingSectsSummary = (W) => {
+    if (!W || !g.EXPED || !g.EXPED.LIVING_SECTS) return '';
+    const sum = g.EXPED.LIVING_SECTS.peekSummary(W);
+    if (!sum || !sum.hegemonNameTh) return 'ยุทธภพกำลังก่อตัว';
+    const parts = ['👑 จ้าวยุทธภพ: ' + sum.hegemonNameTh + (sum.hegemonLeaderTh ? ' (' + sum.hegemonLeaderTh + ')' : '')];
+    if (sum.hegemonChanges > 0) parts.push('ผลัดขั้วแล้ว ' + sum.hegemonChanges + ' ครั้ง');
+    if (sum.risingNamesTh.length) parts.push('🔥 กำลังผงาด: ' + sum.risingNamesTh.join(', '));
+    if (sum.decliningNamesTh.length) parts.push('📉 เสื่อมถอย: ' + sum.decliningNamesTh.join(', '));
+    if (sum.collapsedCount > 0 || sum.rebornCount > 0) parts.push('ล่มสลาย ' + sum.collapsedCount + ' · ก่อตั้งใหม่ ' + sum.rebornCount);
+    if (sum.recentTh) parts.push('ล่าสุด: ' + sum.recentTh);
+    return parts.join(' · ');
+  };
 
   UI.formatExternalWorldEventsSummary = (W) => {
     if (!W || !g.EXPED || !g.EXPED.EXTERNAL_WORLD_EVENTS) return '';
@@ -8590,6 +8934,29 @@
         if (tacSum && !html.includes('npc-tactical-sixpath-card')) {
           html += '<div class="card npc-tactical-sixpath-card"><b>⚔ ยุทธวิธีและวิถีลึก (v3.3)</b><div class="muted">' + esc(tacSum) + '</div></div>';
         }
+        if (typeof CULT !== 'undefined' && CULT.LEGENDARY_DAO && !html.includes('npc-legendary-dao-card')) {
+          const pId = n.cult && n.cult.path;
+          const gr = pId ? CULT.LEGENDARY_DAO.gradeOf(pId) : 'ORDINARY';
+          const discs = n.daoDiscoveries ? Object.values(n.daoDiscoveries) : [];
+          if (gr !== 'ORDINARY' || discs.length > 0) {
+            const prov = pId ? CULT.LEGENDARY_DAO.PROVENANCE[pId] : null;
+            let dh = '<div class="card npc-legendary-dao-card"><b>✨ วิถีระดับสูงและร่องรอยที่ค้นพบ</b>';
+            if (prov) {
+              const badge = gr === 'TRANSCENDENT' ? '👑 เหนือตำนาน' : '⭐ ตำนาน';
+              dh += '<div style="margin-top:4px"><span class="tag">' + badge + '</span> <b>' + esc(prov.nameTh) + '</b></div>';
+              if (prov.lore && prov.lore.competingAccountsTh) dh += '<div class="muted" style="font-size:12px;margin-top:2px">' + esc(prov.lore.competingAccountsTh) + '</div>';
+            }
+            if (discs.length > 0) {
+              dh += '<div class="muted" style="font-size:12px;margin-top:4px">' + discs.map(d => {
+                const dp = CULT.LEGENDARY_DAO.PROVENANCE[d.pathId];
+                const decTh = d.decision === 'ADOPT' ? 'รับฝึก' : d.decision === 'DECLINE' ? 'ปฏิเสธ' : 'ศึกษาต่อ';
+                return '• ' + esc((dp && dp.nameTh) || d.pathId) + ' (' + decTh + ')';
+              }).join('<br>') + '</div>';
+            }
+            dh += '</div>';
+            html += dh;
+          }
+        }
         const loreCard = UI.renderNpcLivingLoreCard(W, n);
         if (loreCard && !html.includes('npc-living-lore-card')) {
           html += loreCard;
@@ -8607,6 +8974,18 @@
       const W = UI.G && UI.G.W;
       if (!W || UI.tab === 'map' || UI.tab === 'polities') return html;
       let outHtml = html;
+      const lsSum = UI.formatLivingSectsSummary ? UI.formatLivingSectsSummary(W) : '';
+      if (lsSum && !outHtml.includes('world-living-sects-card')) {
+        outHtml += '<div class="card world-living-sects-card"><b>🏯 วัฏจักรสำนักยุทธภพ (v3.6)</b><div class="muted">' + esc(lsSum) + '</div></div>';
+      }
+      const lpSum = UI.formatLivingPolitiesSummary ? UI.formatLivingPolitiesSummary(W) : '';
+      const ldHtml = UI.formatLegendaryDaoSummary ? UI.formatLegendaryDaoSummary(W) : '';
+      if (ldHtml && !outHtml.includes('world-legendary-dao-card')) {
+        outHtml += '<div class="card world-legendary-dao-card">' + ldHtml + '</div>';
+      }
+      if (lpSum && !outHtml.includes('world-living-polities-card')) {
+        outHtml += '<div class="card world-living-polities-card"><b>🏛️ วัฏจักร 9 อาณาจักร (v3.6)</b><div class="muted">' + esc(lpSum) + '</div></div>';
+      }
       const eweSum = UI.formatExternalWorldEventsSummary ? UI.formatExternalWorldEventsSummary(W) : '';
       if (eweSum && !outHtml.includes('world-external-events-card')) {
         outHtml += '<div class="card world-external-events-card"><b>🌍 อีเวนต์โลกภายนอก (v3.4)</b><div class="muted">' + esc(eweSum) + '</div></div>';

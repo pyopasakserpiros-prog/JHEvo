@@ -7,7 +7,7 @@ function actors(W,p){const a={id:'caster',name:'caster',foe:true,tier:6,power:50
 const ids=Object.keys(SK.TECH_TO_T6_VFX),families=Object.keys(SK.T6_VFX_FAMILIES),passives=Object.keys(SK.PASSIVE_TO_T6_VFX);
 assert.equal(families.length,50);assert.equal(ids.length,114);assert.equal(passives.length,8);assert.deepEqual(new Set(Object.values(SK.TECH_TO_T6_VFX)),new Set(families));
 assert.equal(SK.NONLEGENDARY_VFX_BUDGET[6].planned,false);assert(SK.NONLEGENDARY_VFX_BUDGET[6].rMax<SK.NONLEGENDARY_VFX_BUDGET[7].rMin);assert(SK.NONLEGENDARY_VFX_BUDGET[6].life<SK.NONLEGENDARY_VFX_BUDGET[7].life);
-assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length,45);assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length,256);
+assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length,45);assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length,268);
 let stages=0;
 for(const id of ids){
  const t=CULT.tech(id);assert.equal(t.tier,6);assert(!t.legendary);assert(SK.profile(t),id+' is a real active skill, not a named mantra');assert.equal(SK.resolveT6Vfx(t),SK.TECH_TO_T6_VFX[id]);

@@ -23,7 +23,7 @@ console.log('===================================================================
 
 const W = SIM.create('v235-test-world');
 const CE = COMBAT.COMPOSABLE_ENGINE;
-assert(SIM.PATCH_VERSION === '2.0.35' || ((SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.5.0c') || SIM.PATCH_VERSION === '3.5.0c' || SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.5.0c' || (SIM.PATCH_VERSION === '3.5.0c' || (SIM.PATCH_VERSION === '3.5.0c' || (SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || SIM.PATCH_VERSION === '2.6.0'))))))))) || SIM.PATCH_VERSION === '3.5.0' || (SIM.PATCH_VERSION === '3.6.0' || (SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || SIM.PATCH_VERSION === '2.6.0')))))))))))), `SIM.PATCH_VERSION must be 2.0.35, 3.0.0, 3.1.0 or 3.1.1 (got ${SIM.PATCH_VERSION})`);
+assert(SIM.PATCH_VERSION === '2.0.35' || ((SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.8.2') || SIM.PATCH_VERSION === '3.8.2' || SIM.PATCH_VERSION === '3.1.1' || (SIM.PATCH_VERSION === '3.8.2' || (SIM.PATCH_VERSION === '3.8.2' || (SIM.PATCH_VERSION === '3.8.2' || (SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || SIM.PATCH_VERSION === '2.6.0'))))))))) || SIM.PATCH_VERSION === '3.5.0' || (SIM.PATCH_VERSION === '3.6.0' || (SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || SIM.PATCH_VERSION === '2.6.0')))))))))))), `SIM.PATCH_VERSION must be 2.0.35, 3.0.0, 3.1.0 or 3.1.1 (got ${SIM.PATCH_VERSION})`);
 assert(HC.FINGERPRINT === '155:2f9c9dd7', `HC.FINGERPRINT must remain locked at 155:2f9c9dd7`);
 
 const caster = W.npcs[0];
@@ -301,7 +301,7 @@ assert(CULT.resolveTribulationVariant(W, caster, 'PURPLE_THUNDER_TRIBULATION').o
 assert(ECO.recordWeaponKill(W, caster, caster.equip.WEAPON, target).kills >= 1, 'Living Weapon kill recorded');
 assert(ECO.adaptArmorToElement(caster, { slot: 'ARMOR' }, 'FIRE').stacks === 1, 'Adaptive Armor element recorded');
 
-assert(Object.keys(SECT.UNIVERSAL_EQUITY_V235).length === 43, 'All 12 cultivation paths present in SECT.UNIVERSAL_EQUITY_V235');
+assert(Object.keys(SECT.UNIVERSAL_EQUITY_V235).length === 55, 'All 12 cultivation paths present in SECT.UNIVERSAL_EQUITY_V235');
 assert(Object.keys(SK.SUBPATH_ARCHETYPES_V235).length === 7, 'All 7 new subpath archetypes present in SK.SUBPATH_ARCHETYPES_V235');
 for (const [k, meta] of Object.entries(SK.KEYWORD_REGISTRY)) {
   assert(meta && meta.implemented === true, `Keyword ${k} marked implemented: true`);

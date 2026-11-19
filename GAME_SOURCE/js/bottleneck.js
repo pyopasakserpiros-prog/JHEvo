@@ -22,14 +22,30 @@
     DEVOURING_FLESH: 'DEMON', NETHER_GRAVE: 'DEMON', VOID_HERETIC_PACT: 'DEMON', OCCULT_MAGE: 'DEMON',
     DIVINE_SUMMONER: 'GOD', DIVINE_POSSESSION: 'GOD', DIVINE_CHANNELER: 'GOD',
     NINPO_SHADOW: 'BODY', NINPO_ELEMENTAL: 'XIAN', ANCESTRAL_RITUAL: 'GOD', TIDE_VOYAGER: 'BODY',
-    LORE_ARCHIVIST: 'ARRAY_TALISMAN', FORTUNE_GAMBLER: 'STRATEGY_GOVERNANCE', SPIRIT_HUSBANDRY: 'SAGE_SUPPORT', ARENA_GLORY: 'BODY'
+    LORE_ARCHIVIST: 'ARRAY_TALISMAN', FORTUNE_GAMBLER: 'STRATEGY_GOVERNANCE', SPIRIT_HUSBANDRY: 'SAGE_SUPPORT', ARENA_GLORY: 'BODY',
+    LEG_READ_FORM_BLADE: 'SHADOW_SAMURAI', LEG_TRIAGE_MERIDIAN: 'SAGE_SUPPORT', LEG_STORM_CALLER_TEMPEST: 'CELESTIAL_WEATHER', LEG_JADE_CARAVAN_VOYAGER: 'MERCANTILE_DAO', LEG_OATH_JUDGE_WARDEN: 'STRATEGY_GOVERNANCE', LEG_ASHEN_KILN_ALCHEMY: 'CRAFT_CREATION', TRANS_CONSTELLATION_RELAY: 'SAGE_SUPPORT', TRANS_FIELD_CLAUSE_SOVEREIGN: 'STRATEGY_GOVERNANCE', TRANS_TEMPO_SOVEREIGN: 'CHRONO_EPOCH', TRANS_SEALKEEPER_FORBIDDEN_KEY: 'ARRAY_TALISMAN', TRANS_PRIMAL_VORTEX_MIRROR: 'LORE_ARCHIVIST', TRANS_DYNASTIC_MANDATE_WEAVER: 'STRATEGY_GOVERNANCE'
   };
   BN.resolveBreakthroughPillKey = c => {
     if (!c) return null;
-    const exact = 'P:BT_' + c.path + '_' + c.stage;
+    const st = Math.max(1, c.stage || 1);
+    const exact = 'P:BT_' + c.path + '_' + st;
     if (ECO && ECO.pillInfo && ECO.pillInfo(exact)) return exact;
-    const mappedPath = GRAND_DAO_BT_LINEAGE[c.path] || 'XIAN';
-    return 'P:BT_' + mappedPath + '_' + Math.min(5, c.stage || 1);
+    // Follow GRAND_DAO_BT_LINEAGE transitively (up to 4 hops) for an existing pill at target stage (capped at 5)
+    let cur = c.path;
+    const stCap = Math.min(5, st);
+    for (let hop = 0; hop < 4; hop++) {
+      const next = GRAND_DAO_BT_LINEAGE[cur];
+      if (!next || next === cur) break;
+      cur = next;
+      const candExact = 'P:BT_' + cur + '_' + st;
+      if (ECO && ECO.pillInfo && ECO.pillInfo(candExact)) return candExact;
+      const candCap = 'P:BT_' + cur + '_' + stCap;
+      if (ECO && ECO.pillInfo && ECO.pillInfo(candCap)) return candCap;
+    }
+    // Fallback to XIAN universal breakthrough pill at stage (or capped stage)
+    const xianExact = 'P:BT_XIAN_' + st;
+    if (ECO && ECO.pillInfo && ECO.pillInfo(xianExact)) return xianExact;
+    return 'P:BT_XIAN_' + stCap;
   };
   BN.treasureOf = c => TR[c.path + ':' + c.stage] || null;
   BN.pillKey = c => 'P:BT_' + c.path + '_' + c.stage;

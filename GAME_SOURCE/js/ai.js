@@ -642,7 +642,7 @@
         if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.72, room: true };
         return null;
       }
-      if (c.path === 'SAGE_SUPPORT') {
+      if (['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(c.path)) {
         const sSg = AI.freeStation(W, n, 'music', 'tea_garden') || AI.freeStation(W, n, 'farm', 'herb_garden') || AI.freeStation(W, n, 'meditate', 'meditation_hall');
         if (sSg) return { st: sSg, mult: 1.48 };
         if (n.bed != null) return { st: W.map.stations[n.bed], mult: 0.75, room: true };
@@ -794,7 +794,7 @@
           (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(n, 'BEAST_TAMING', 0.08, 1.15);
           if (Array.isArray(n.pets)) n.pets.forEach(pt => { if (pt) { pt.fatigue = Math.max(0, (pt.fatigue || 0) - 1.5); pt.bond = Math.min(100, (pt.bond || 60) + 0.2); pt.loyalty = Math.round(pt.bond); if (pt.hpMax) pt.hp = pt.hpMax; } });
         }
-      } else if (c.path === 'SAGE_SUPPORT') {
+      } else if (['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(c.path)) {
         s.heartDemon = Math.max(0, (s.heartDemon || 0) - 0.04);
         s.stress = Math.max(0, (s.stress || 0) - 0.02);
         if ((W._isNewCalendarMinute !== false && W.t % 25 === 0)) {
@@ -1476,7 +1476,7 @@
   AI.findSupportBlessTarget = (W, n) => {
     if (!W || !n || !n.cult) return null;
     const tNow = W.t || 0;
-    const isSage = n.cult.path === 'SAGE_SUPPORT';
+    const isSage = ['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(n.cult.path);
     const doctrine = (g.SECT && g.SECT.ensureSupportDoctrine) ? g.SECT.ensureSupportDoctrine(W) : null;
     const priority = doctrine ? doctrine.triagePriority : 'BALANCED';
     const minHpThresh = doctrine ? (doctrine.minHpThreshold / 100) : 0.85;
@@ -1499,7 +1499,7 @@
       if (needBt && !hasBuff) sc += 1.5;
       const hdVisible = (o.h.state.heartDemon || 0) >= 65 || ((o.h.state.heartDemon || 0) > 35 && (Math.abs((o.x || 0) - (n.x || 0)) + Math.abs((o.y || 0) - (n.y || 0)) <= 14 || (n.h.mind.relations && n.h.mind.relations[o.id] && n.h.mind.relations[o.id].a >= 30)));
       if ((o.h.state.stress || 0) > 45 || hdVisible) sc += 1.0;
-      if (!hasBuff && (n.cult.path === 'SAGE_SUPPORT')) sc += 0.8;
+      if (!hasBuff && (['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(n.cult.path))) sc += 0.8;
 
       if (priority === 'ELDER_FIRST' && o.rank >= 4) {
         sc += 3.5;
@@ -1522,11 +1522,11 @@
   A.supportBless = {
     u(n, W) { if (!this.can(n, W)) return 0; let tot = 0; this.score(n, W, { add: (_, v) => { tot += v; } }); return tot; },
     nameTh: 'เดินปราณเยียวยาและหนุนพลัง', icon: '🪷', color: '#6ddfb5', cooldown: 180,
-    can: (n, W) => !!(n.cult && (n.cult.path === 'SAGE_SUPPORT' || n.post === 'healer' || ['LOTUS_MERCY_PURIFIER', 'MERCY_DEITY', 'ELIXIR_DAO', 'MEDICINE_BODHI_GOD', 'CELESTIAL_ASTRAL_FAIRY_TAMER'].includes(n.cult.sub)) && n.h.state.energy > 30 && (!n._lastSupportBlessAt || W.t - n._lastSupportBlessAt >= 180) && AI.findSupportBlessTarget(W, n)),
+    can: (n, W) => !!(n.cult && (['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(n.cult.path) || n.post === 'healer' || ['LOTUS_MERCY_PURIFIER', 'MERCY_DEITY', 'ELIXIR_DAO', 'MEDICINE_BODHI_GOD', 'CELESTIAL_ASTRAL_FAIRY_TAMER'].includes(n.cult.sub)) && n.h.state.energy > 30 && (!n._lastSupportBlessAt || W.t - n._lastSupportBlessAt >= 180) && AI.findSupportBlessTarget(W, n)),
     score(n, W, S) {
       const tgt = AI.findSupportBlessTarget(W, n);
       if (!tgt) return;
-      const isSage = n.cult && n.cult.path === 'SAGE_SUPPORT';
+      const isSage = n.cult && ['SAGE_SUPPORT', 'LEG_TRIAGE_MERIDIAN', 'TRANS_CONSTELLATION_RELAY'].includes(n.cult.path);
       S.add('เมตตาเยียวยาและหนุนพลัง (' + tgt.h.name.given + ')', (isSage ? 1.15 : 0.75) + (E(n, 'personality.empathy') - 45) / 140);
       if (n.post === 'healer') S.add('หน้าที่หมอประจำสำนัก', 0.55);
     },
