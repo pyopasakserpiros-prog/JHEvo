@@ -1250,6 +1250,16 @@
       UI.render();
       const sb = $('shBody'); if (sb) sb.scrollTop = 0;
     }
+    else if (a === 'set-lore-chronicle-book') {
+      UI.loreChronicleBook = arg || 'P1';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
+    else if (a === 'set-lore-chronicle-cat') {
+      UI.loreChronicleCat = arg || 'ALL';
+      UI.render();
+      const sb = $('shBody'); if (sb) sb.scrollTop = 0;
+    }
     else if (a === 'set-disc-subtab') {
       UI.worldDiscSubTab = arg || 'PORTALS';
       UI.render();
@@ -5246,22 +5256,73 @@
 
     if (tab === 'chronicles') {
       const BOOKS = [
-        { k: 'P1', label: '🌑 พาร์ท 1: ปฐมกาล & 6 จักรวรรดิพ้นหมอก', data: JD && JD.LORE_CHRONICLE_P1_ANTEDILUVIAN },
-        { k: 'TS', label: '🏛️ มหานิกายแกนฟ้าเทียนซู (ยุค 0–1)', data: JD && JD.LORE_CHRONICLE_E0_TIANSHU },
-        { k: 'P2', label: '👑 พาร์ท 2: จินหยาง & วีรชนเทียนกู่ #1–25', data: JD && JD.LORE_CHRONICLE_P2_TIANGU_HEROES },
-        { k: 'E01', label: '🔥 มหากาพย์กลียุค 0–1 (8 ก๊ก)', data: JD && JD.LORE_CHRONICLE_E0_E1 },
-        { k: 'DQ', label: '🐉 มหาจักรวรรดิต้าเฉียน (ยุค 1–2)', data: JD && JD.LORE_CHRONICLE_E1_E2_DAQIAN },
-        { k: 'E26A', label: '🦋 นิกายอวี้จิง & ผีเสื้อราตรีโม่หมิง (ยุค 26)', data: JD && JD.LORE_CHRONICLE_E26_YUJING },
-        { k: 'E26B', label: '🖌️ ผู้รอดชีวิตปลายยุค 26 & ศาลาพู่กันฟ้าคราม', data: JD && JD.LORE_CHRONICLE_E26_LATE },
-        { k: 'P3', label: '⚔️ พาร์ท 3: 12 อาณาจักรยุคกลาง & #32–41', data: JD && JD.LORE_CHRONICLE_P3_MIDDLE_EPOCHS },
-        { k: 'E99', label: '☄️ มหากาพย์ยุคที่ 99 (ศึก 2 ดินแดนศักดิ์สิทธิ์)', data: JD && JD.LORE_CHRONICLE_E99_EVE_OF_BALANCE },
-        { k: 'P4', label: '⚖️ พาร์ท 4: สนธิสัญญาหยุนเหอ & 6 แคว้นล่มสลาย', data: JD && JD.LORE_CHRONICLE_P4_YUNHE_BALANCE },
-        { k: 'P5', label: '✨ พาร์ท 5: ปัจจุบันกาล ยุค 101 & 15 ผู้กุมชะตา', data: JD && JD.LORE_CHRONICLE_P5_PRESENT_EPOCH101 }
+        // === 11 ปฐมบทหลัก ===
+        { k: 'P1', cat: 'CORE', label: '1. 🌑 ปฐมกาล & 6 จักรวรรดิพ้นหมอก', data: JD && JD.LORE_CHRONICLE_P1_ANTEDILUVIAN },
+        { k: 'TS', cat: 'CORE', label: '2. 🏛️ มหานิกายแกนฟ้าเทียนซู (ยุค 0–1)', data: JD && JD.LORE_CHRONICLE_E0_TIANSHU },
+        { k: 'P2', cat: 'CORE', label: '3. 👑 จินหยาง & วีรชนเทียนกู่ #1–25', data: JD && JD.LORE_CHRONICLE_P2_TIANGU_HEROES },
+        { k: 'E01', cat: 'CORE', label: '4. 🔥 กลียุค 0–1 (8 ก๊ก)', data: JD && JD.LORE_CHRONICLE_E0_E1 },
+        { k: 'DQ', cat: 'CORE', label: '5. 🐉 มหาจักรวรรดิต้าเฉียน (ยุค 1–2)', data: JD && JD.LORE_CHRONICLE_E1_E2_DAQIAN },
+        { k: 'E26A', cat: 'CORE', label: '6. 🦋 นิกายอวี้จิง & โม่หมิง (ยุค 26)', data: JD && JD.LORE_CHRONICLE_E26_YUJING },
+        { k: 'E26B', cat: 'CORE', label: '7. 🖌️ ผู้รอดชีวิตปลายยุค 26', data: JD && JD.LORE_CHRONICLE_E26_LATE },
+        { k: 'P3', cat: 'CORE', label: '8. ⚔️ 12 อาณาจักรยุคกลาง & #32–41', data: JD && JD.LORE_CHRONICLE_P3_MIDDLE_EPOCHS },
+        { k: 'E99', cat: 'CORE', label: '9. ☄️ ยุคที่ 99 (ศึก 2 ดินแดนศักดิ์สิทธิ์)', data: JD && JD.LORE_CHRONICLE_E99_EVE_OF_BALANCE },
+        { k: 'P4', cat: 'CORE', label: '10. ⚖️ สนธิสัญญาหยุนเหอ & 6 แคว้นล่มสลาย', data: JD && JD.LORE_CHRONICLE_P4_YUNHE_BALANCE },
+        { k: 'P5', cat: 'CORE', label: '11. ✨ ปัจจุบันกาล ยุค 101 & 15 ผู้กุมชะตา', data: JD && JD.LORE_CHRONICLE_P5_PRESENT_EPOCH101 },
+        // === 23 มหากาพย์ยุคที่ 2–94 ===
+        { k: 'B12', cat: 'ERAS', label: '12. 🐲 ปลายยุค 2: เศษโองการ & 18 ฝ่ามือมังกร', data: JD && JD.LORE_CHRONICLE_E2_LATE_MANDATE },
+        { k: 'B13', cat: 'ERAS', label: '13. ☀️ ยุค 3–4: ราชรถสุริยัน & เตาหลอมเก้าตะวัน', data: JD && JD.LORE_CHRONICLE_E3_E4_SUN_FORGE },
+        { k: 'B14', cat: 'ERAS', label: '14. ⚙️ ยุค 5–8: จักรวรรดิเฟืองดารา & หุ่นสำริด', data: JD && JD.LORE_CHRONICLE_E5_E8_CLOCKWORK },
+        { k: 'B15', cat: 'ERAS', label: '15. 🦍 ยุค 9–10: จักรวรรดิพันธะอสูรหวงเย่', data: JD && JD.LORE_CHRONICLE_E9_E10_BEAST_EMPIRE },
+        { k: 'B16', cat: 'ERAS', label: '16. ☣️ ยุค 11–14: วิบัติหมอกพิษมรกต & เตาเถ้า', data: JD && JD.LORE_CHRONICLE_E11_E14_PLAGUE_ALCHEMY },
+        { k: 'B17', cat: 'ERAS', label: '17. 🛕 ยุค 15–17: เทวราชอาณาจักรเสินตู', data: JD && JD.LORE_CHRONICLE_E15_E17_FAITH_SCHISM },
+        { k: 'B18', cat: 'ERAS', label: '18. ⛵ ยุค 18–22: เจ็ดกองเรือฝ่าทะเลหมอก', data: JD && JD.LORE_CHRONICLE_E18_E22_FOG_SEA },
+        { k: 'B19', cat: 'ERAS', label: '19. ♟️ ยุค 23–25: บัณฑิตหมึกทอง & สำนักหมากล้อม', data: JD && JD.LORE_CHRONICLE_E23_E25_LITERATI_CHESS },
+        { k: 'B20', cat: 'ERAS', label: '20. ❄️ ยุค 27–28: จักรวรรดิจันทราเหมันต์ปิงเยว่', data: JD && JD.LORE_CHRONICLE_E27_E28_FROST_MOON },
+        { k: 'B21', cat: 'ERAS', label: '21. 📜 ยุค 29–34: ศาลธรรมนูญสัตย์สาบาน', data: JD && JD.LORE_CHRONICLE_E29_E34_CHARTER },
+        { k: 'B22', cat: 'ERAS', label: '22. 🌀 ยุค 35–38: นครหอคอยมิติย่อยคงเฉิง', data: JD && JD.LORE_CHRONICLE_E35_E38_VOID_CITADELS },
+        { k: 'B23', cat: 'ERAS', label: '23. 🗡️ ยุค 39–44: ดาบไร้ปราณ & กงล้อหกภพ', data: JD && JD.LORE_CHRONICLE_E39_E44_BLADE_KARMA },
+        { k: 'B24', cat: 'ERAS', label: '24. 🏟️ ยุค 45–46: จักรวรรดิสังเวียนโลหิตจ้านหวู่', data: JD && JD.LORE_CHRONICLE_E45_E46_ARENA_EMPIRE },
+        { k: 'B25', cat: 'ERAS', label: '25. 🏮 ยุค 47–50: สุริยคราสเจ็ดราตรี & โคมวิญญาณ', data: JD && JD.LORE_CHRONICLE_E47_E50_NETHER_ECLIPSE },
+        { k: 'B26', cat: 'ERAS', label: '26. 🌅 ยุค 51–53: รุ่งอรุณยุคกลาง & คัมภีร์แปดทิศ', data: JD && JD.LORE_CHRONICLE_E51_E53_DAWN_MIDDLE },
+        { k: 'B27', cat: 'ERAS', label: '27. 🐫 ยุค 54–59: สหพันธ์คาราวานหยกทอง', data: JD && JD.LORE_CHRONICLE_E54_E59_CARAVAN_WARS },
+        { k: 'B28', cat: 'ERAS', label: '28. 🔪 ยุค 60–62: มีดบินไร้พลาด & เคลื่อนย้ายจักรวาล', data: JD && JD.LORE_CHRONICLE_E60_E62_QIANKUN_KNIFE },
+        { k: 'B29', cat: 'ERAS', label: '29. 💎 ยุค 63: เจ็ดราตรีงานประมูลหยกใต้ดิน', data: JD && JD.LORE_CHRONICLE_E63_JADE_AUCTION },
+        { k: 'B30', cat: 'ERAS', label: '30. 🕸️ ยุค 64–67: ด้ายสวรรค์เชิดวัฏสงสาร', data: JD && JD.LORE_CHRONICLE_E64_E67_SAMSARA_THREADS },
+        { k: 'B31', cat: 'ERAS', label: '31. 🩸 ยุค 68–73: ราชสำนักจันทร์เลือดเสวี่ยเยว่', data: JD && JD.LORE_CHRONICLE_E68_E73_BLOOD_MOON },
+        { k: 'B32', cat: 'ERAS', label: '32. 🌊 ยุค 74–77: ทะเลโลหิตอสุรา & สาธารณรัฐต้าซิง', data: JD && JD.LORE_CHRONICLE_E74_E77_ASHURA_SEA },
+        { k: 'B33', cat: 'ERAS', label: '33. 🌌 ยุค 78–84: หอประสานหมู่ดาว & ชีพจรมังกร', data: JD && JD.LORE_CHRONICLE_E78_E84_DRAGON_VEINS },
+        { k: 'B34', cat: 'ERAS', label: '34. ⚔️ ยุค 85–94: เจตจำนงกระบี่ไร้พ่ายตู่กู', data: JD && JD.LORE_CHRONICLE_E85_E94_DUGU_SWORD },
+        // === 6 สารานุกรมวิถีเจียงหู ===
+        { k: 'B35', cat: 'ANTH', label: '35. 🍶 โรงเตี๊ยม สุราเซียน & ครัวทิพย์', data: JD && JD.LORE_CHRONICLE_ANTHOLOGY_TAVERNS },
+        { k: 'B36', cat: 'ANTH', label: '36. ⛓️ เจ็ดศาสตราต้องคำสาป & หอผนึก', data: JD && JD.LORE_CHRONICLE_ANTHOLOGY_CURSED_RELICS },
+        { k: 'B37', cat: 'ANTH', label: '37. ❓ เจ็ดปริศนาไร้คำตอบอนุทวีปพันลี้', data: JD && JD.LORE_CHRONICLE_ANTHOLOGY_MYSTERIES },
+        { k: 'B38', cat: 'ANTH', label: '38. 🎭 แปดยอดคนประหลาด & ฤๅษีไร้สำนัก', data: JD && JD.LORE_CHRONICLE_ANTHOLOGY_HERMITS },
+        { k: 'B39', cat: 'ANTH', label: '39. 🌿 พฤกษาวิญญาณ & 6 เขตชีวนิเวศลับ', data: JD && JD.LORE_CHRONICLE_ANTHOLOGY_ECOLOGY },
+        { k: 'B40', cat: 'ANTH', label: '40. 🏮 12 เทศกาลประจำปี & จารีตยุทธภพ', data: JD && JD.LORE_CHRONICLE_ANTHOLOGY_CUSTOMS },
+        // === 4 พิมพ์เขียวระบบประเพณี มิติลับ & วัฏจักรโลก ===
+        { k: 'B41', cat: 'EVTS', label: '41. 🏆 มหาชุมนุมยุทธภพ & สังเวียนรอบคาบ', data: JD && JD.LORE_CHRONICLE_EVENTS_ASSEMBLIES },
+        { k: 'B42', cat: 'EVTS', label: '42. 🌀 ประตูมิติโลกใบเล็ก & แดนลับพันปี', data: JD && JD.LORE_CHRONICLE_EVENTS_POCKET_REALMS },
+        { k: 'B43', cat: 'EVTS', label: '43. ☄️ วัฏจักรคลื่นปราณ & มหาภัยพิบัติ', data: JD && JD.LORE_CHRONICLE_EVENTS_COSMIC_TIDES },
+        { k: 'B44', cat: 'EVTS', label: '44. ⚖️ ตลาดประมูล พิธีรับศิษย์ & ป้ายเหล็กดำ', data: JD && JD.LORE_CHRONICLE_EVENTS_RITES_MARKETS }
       ];
+      const selCat = UI.loreChronicleCat || 'ALL';
+      const CATS = [
+        ['ALL', '📚 ทั้งหมด (' + BOOKS.length + ')'],
+        ['CORE', '👑 11 ปฐมบทหลัก'],
+        ['ERAS', '⏳ 23 มหากาพย์ยุค 2–94'],
+        ['ANTH', '🏮 6 วิถีเจียงหู'],
+        ['EVTS', '🌀 4 ระบบประเพณี-มิติลับ']
+      ];
+      h += '<div class="subtab-bar" style="margin:6px 0 6px 0;gap:5px">';
+      for (const [ck, cl] of CATS) {
+        h += '<button class="chip' + (selCat === ck ? ' g' : '') + '" data-do="set-lore-chronicle-cat" data-arg="' + ck + '">' + esc(cl) + '</button>';
+      }
+      h += '</div>';
+      const shownBooks = selCat === 'ALL' ? BOOKS : BOOKS.filter(b => b.cat === selCat);
       const selK = UI.loreChronicleBook || 'P1';
-      const cur = BOOKS.find(b => b.k === selK) || BOOKS[0];
-      h += '<div class="subtab-bar" style="margin:6px 0 10px 0;gap:5px">';
-      for (const b of BOOKS) {
+      const cur = BOOKS.find(b => b.k === selK) || shownBooks[0] || BOOKS[0];
+      h += '<div class="subtab-bar" style="margin:0 0 10px 0;gap:5px">';
+      for (const b of shownBooks) {
         h += '<button class="chip' + (cur.k === b.k ? ' b' : '') + '" data-do="set-lore-chronicle-book" data-arg="' + b.k + '">' + esc(b.label) + '</button>';
       }
       h += '</div>';
@@ -5271,17 +5332,23 @@
       h += '<div class="card" style="border-left:4px solid #38bdf8;margin-bottom:10px">'
         + '<b style="font-size:14px">📚 ' + esc(meta.partLabelTh || meta.titleTh || meta.nameTh || cur.label) + '</b>'
         + (meta.eraSpanTh ? ('<div class="muted" style="font-size:11.5px;margin-top:3px">⏳ ' + esc(meta.eraSpanTh) + '</div>') : '')
-        + (meta.themeTh || meta.canonGuardrailsTh ? ('<div style="font-size:12px;margin-top:4px;line-height:1.5">' + esc(meta.themeTh || meta.canonGuardrailsTh) + '</div>') : '')
+        + (meta.themeTh || meta.summaryTh || meta.canonGuardrailsTh ? ('<div style="font-size:12px;margin-top:4px;line-height:1.5">' + esc(meta.themeTh || meta.summaryTh || meta.canonGuardrailsTh) + '</div>') : '')
         + '</div>';
+      if (D.ERA_LIVING_CONTEXT) {
+        const lc = D.ERA_LIVING_CONTEXT;
+        h += '<details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:12px;font-weight:600;color:#93c5fd">🌍 บริบทชีวิตประจำวันและสภาพสังคมของยุคสมัยนี้</summary><div class="card" style="margin-top:5px;font-size:11.5px;line-height:1.6">'
+          + Object.entries(lc).filter(([,v]) => typeof v === 'string').map(([,v]) => '<div style="margin-bottom:4px">• ' + esc(v) + '</div>').join('')
+          + '</div></details>';
+      }
       const evList = D.EVENTS || [];
       if (evList.length) {
         h += '<div class="muted" style="font-size:12px;margin:8px 0 4px 0"><b>📜 เหตุการณ์หลัก (' + evList.length + ' บท)</b></div>';
         for (const ev of evList) {
           h += '<div class="card" style="border-left:3px solid #f59e0b;margin-bottom:8px">'
             + '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap"><b style="font-size:13px">' + esc(ev.titleTh || ev.nameTh || '') + '</b>'
-            + '<span class="chip">' + esc(ev.yearLabelTh || '') + '</span></div>'
+            + '<span class="chip">' + esc(ev.yearLabelTh || ev.eraTh || '') + '</span></div>'
             + (ev.locationTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">📍 ' + esc(ev.locationTh) + '</div>') : '')
-            + '<div style="font-size:12px;line-height:1.65;margin-top:6px;white-space:pre-line">' + esc(ev.novelNarrativeTh || ev.narrativeTh || ev.summaryTh || '') + '</div>'
+            + '<div style="font-size:12px;line-height:1.65;margin-top:6px;white-space:pre-line">' + esc(ev.novelNarrativeTh || ev.narrativeTh || ev.storyTh || ev.summaryTh || '') + '</div>'
             + (ev.aftermathTh ? ('<div class="muted" style="font-size:11.5px;margin-top:5px">➡️ <b>ผลสืบเนื่อง:</b> ' + esc(ev.aftermathTh) + '</div>') : '')
             + '</div>';
         }
@@ -5293,28 +5360,50 @@
           h += '<div class="card" style="border-left:3px solid #34d399;margin-bottom:7px">'
             + '<b>' + esc((fg.num ? ('#' + fg.num + ' ') : '') + (fg.nameTh || fg.titleTh || '')) + '</b>'
             + (fg.titleTh && fg.nameTh ? (' <span class="muted" style="font-size:11.5px">— ' + esc(fg.titleTh) + '</span>') : '')
-            + (fg.definingDateTh || fg.eraSpanTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">⏳ ' + esc(fg.definingDateTh || fg.eraSpanTh) + '</div>') : '')
-            + '<div style="font-size:12px;line-height:1.6;margin-top:4px">' + esc(fg.novelBiographyTh || fg.biographyTh || fg.bioTh || fg.summaryTh || '') + '</div>'
+            + (fg.definingDateTh || fg.eraSpanTh || fg.eraTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">⏳ ' + esc(fg.definingDateTh || fg.eraSpanTh || fg.eraTh) + '</div>') : '')
+            + '<div style="font-size:12px;line-height:1.6;margin-top:4px">' + esc(fg.novelBiographyTh || fg.biographyTh || fg.bioTh || fg.summaryTh || fg.storyTh || '') + '</div>'
             + (fg.currentLocationAndHookTh || fg.possibleLocationTh ? ('<div class="muted" style="font-size:11px;margin-top:4px">📍 ' + esc(fg.currentLocationAndHookTh || fg.possibleLocationTh) + '</div>') : '')
             + '</div>';
         }
       }
       const extraLists = [
+        ['🏆 มหาชุมนุมยุทธภพและสังเวียนประจำรอบ', D.GRAND_CONVENTIONS],
+        ['🌀 ประตูมิติโลกใบเล็กและแดนลับตามวัฏจักร', D.POCKET_REALMS_DOSSIER],
+        ['☄️ วัฏจักรฟ้าดินและมหาภัยพิบัติประจำรอบ', D.WORLD_CYCLES_AND_CALAMITIES],
+        ['⚖️ ประเพณีเศรษฐกิจและจารีตระบบสำนัก', D.SYSTEM_TRADITIONS_AND_RITES],
+        ['🏮 12 เทศกาลประจำปี', D.TWELVE_MONTHLY_FESTIVALS],
+        ['🤝 รหัสลับและมารยาทยุทธภพ', D.MARTIAL_ETIQUETTE_AND_SECRET_CODES],
+        ['🍶 โรงเตี๊ยมในตำนาน', D.LEGENDARY_TAVERNS],
+        ['🍲 สุราเซียนและอาหารทิพย์', D.SPIRIT_DISHES_AND_WINES],
+        ['⛓️ แฟ้มศาสตราต้องคำสาป', D.CURSED_ARTIFACTS_DOSSIER],
+        ['❓ แฟ้มปริศนาและปรากฏการณ์พิศวง', D.ANOMALY_DOSSIERS],
+        ['📜 ตำราและวัตถุยอดคนประหลาด', D.ECCENTRIC_RELICS_AND_MANUALS],
+        ['🌿 หกเขตชีวนิเวศลับ', D.FORBIDDEN_BIOMES],
         ['🌊 6 มหาจักรวรรดิพ้นทะเลหมอก', D.OUTER_SIX_EMPIRES],
         ['🐉 6 ราชันอสูรบรรพกาล', D.BEAST_KINGS],
         ['⚔️ 12 อาณาจักรยุคกลาง', D.MIDDLE_TWELVE_KINGDOMS],
+        ['🏚️ อาณาจักรที่รุ่งเรืองและล่มสลาย', D.FALLEN_KINGDOMS],
         ['⏳ 6 แคว้นที่เพิ่งล่มสลาย', D.RECENT_SIX_FALLEN],
         ['🛡️ 5 รัฐกันชน', D.FIVE_BUFFER_KINGDOMS],
         ['❓ ปริศนาปลายเปิดแห่งโลก', D.OPEN_WORLD_MYSTERIES],
-        ['🏯 สำนักที่ถือกำเนิด/ล่มสลาย', D.SURVIVOR_SECTS || D.FALLEN_SECTS]
+        ['🏯 สำนักที่ถือกำเนิด/ล่มสลาย', D.SURVIVOR_SECTS || D.FALLEN_SECTS || D.SUCCESSOR_SECTS],
+        ['🏴 กลุ่มอำนาจใต้ดินและตระกูล', D.UNDERGROUND_FACTIONS || D.CLANS_AND_KINGDOMS],
+        ['🗡️ ศาสตราและยอดวิชาในตำนาน', D.LEGENDARY_RELICS_AND_TECHNIQUES || D.LEGENDARY_ARSENAL_1_TO_4],
+        ['🔀 เรื่องราวคู่ขนานในยุคเดียวกัน', D.PARALLEL_CHRONICLES],
+        ['👤 บุคคลร่วมสมัยในเหตุการณ์คู่ขนาน', D.SIDE_FIGURES],
+        ['🕸️ จุดตัดลับระหว่างเหตุการณ์', D.HIDDEN_INTERSECTIONS]
       ];
       for (const [secTitle, arr] of extraLists) {
         if (!Array.isArray(arr) || !arr.length) continue;
         h += '<div class="muted" style="font-size:12px;margin:10px 0 4px 0"><b>' + esc(secTitle) + ' (' + arr.length + ')</b></div>';
         for (const it of arr) {
-          h += '<div class="card" style="margin-bottom:7px"><b>' + esc(it.nameTh || it.titleTh || '') + '</b>'
-            + (it.foundedDateTh || it.fallenDateTh || it.lastContactDateTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">⏳ ' + esc([it.foundedDateTh, it.fallenDateTh, it.lastContactDateTh].filter(Boolean).join(' → ')) + '</div>') : '')
-            + '<div style="font-size:12px;line-height:1.55;margin-top:4px">' + esc(it.chronicleTh || it.loreChronicleTh || it.historicalRecordTh || it.causeOfFallTh || it.summaryTh || it.roleInBalanceTh || '') + '</div></div>';
+          const bodyTxt = it.originStoryTh || it.originAndHistoryTh || it.originAndMysteryTh || it.chronicleTh || it.loreChronicleTh || it.historicalRecordTh || it.narrativeTh || it.storyTh || it.causeOfFallTh || it.descriptionTh || it.loreTh || it.summaryTh || it.roleInBalanceTh || it.rulesAndFormatTh || '';
+          const cycBadge = (it.cycleYears !== undefined && it.cycleYears !== null) ? (' <span class="chip b">รอบ ' + esc(String(it.cycleYears)) + ' ปี</span>') : (it.cycleOrTriggerTh ? (' <span class="chip b">' + esc(it.cycleOrTriggerTh) + '</span>') : '');
+          h += '<div class="card" style="margin-bottom:7px"><b>' + esc(it.nameTh || it.titleTh || it.id || '') + '</b>' + cycBadge
+            + (it.foundedDateTh || it.fallenDateTh || it.lastContactDateTh || it.firstHeldEraTh || it.firstRecordedOpeningTh || it.firstRecordedEraTh || it.firstEstablishedEraTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">⏳ ' + esc([it.foundedDateTh, it.fallenDateTh, it.lastContactDateTh, it.firstHeldEraTh, it.firstRecordedOpeningTh, it.firstRecordedEraTh, it.firstEstablishedEraTh].filter(Boolean).join(' · ')) + '</div>') : '')
+            + '<div style="font-size:12px;line-height:1.55;margin-top:4px;white-space:pre-line">' + esc(bodyTxt) + '</div>'
+            + (it.systemBlueprint ? ('<details style="margin-top:5px"><summary style="cursor:pointer;font-size:11px;color:#fcd34d">⚙️ พิมพ์เขียวระบบเกมในอนาคต (System Blueprint)</summary><div class="muted" style="font-size:11px;margin-top:4px;line-height:1.5">' + Object.entries(it.systemBlueprint).map(([bk, bv]) => '<div><b>' + esc(bk) + ':</b> ' + esc(typeof bv === 'string' ? bv : JSON.stringify(bv)) + '</div>').join('') + '</div></details>') : '')
+            + '</div>';
         }
       }
       return h;

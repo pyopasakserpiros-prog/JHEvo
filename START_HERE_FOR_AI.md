@@ -1,9 +1,9 @@
-# START HERE FOR AI — JianghuSect Evolution (JS2 v3.8.3)
+# START HERE FOR AI — JianghuSect Evolution (JS2 v3.8.4)
 
 ## Current State
-- **Active Version**: **JS2 v3.8.3 Grand Lore Chronicles (11 Books) & New-Chat Handoff** (`SIM.PATCH_VERSION = '3.8.3'`, `SIM.SAVE_SCHEMA_VERSION = '3.8.3-grand-lore-chronicles-11books'`).
-- **Completed Series**: `v3.1.0` Living Lore → `v3.2.0` Equipment Expansion → `v3.3.0` Tactical Combat & Six-Path Mastery → `v3.4.0` External World Events → `v3.5.0a/b/c` Complete P0/P1/P2 Hardening → `v3.6.0a/b/c` Living Sects & Continental Polities → `v3.7.0/a/b/c` Legendary & Transcendent Dao Expansion (`55` Paths / `346` Subpaths) → `v3.8.0` Master Lore Compendium & Era Lore Window → `v3.8.1` Formal World Calendar (`ยุคที่ 101 ปีที่ 1`) → `v3.8.2` Era 0–1 Chaos Lore Archive → `v3.8.3` 11-Book Grand Lore Chronicles (`GAME_SOURCE/data/lore_chronicle_*.js`, synced into `data_expansion.js`) & `📚 คลังมหากาพย์ 11 บท` (`UI.rLore()`).
-- **Full Changelog & Handoff**: See `CHANGELOG_JS2_V310_TO_V383.md`, `docs/handovers/NEW_CHAT_HANDOFF_JS2_v3.8.3.md`, and `PATCH_REPORTS/` (intermediate changelogs `v3.6.0b–v3.8.2` archived in `PATCH_REPORTS/changelogs/`).
+- **Active Version**: **JS2 v3.8.4 Grand Lore Archive (44 Books + Canon Audit + 24 System Blueprints)** (`SIM.PATCH_VERSION = '3.8.4'`, `SIM.SAVE_SCHEMA_VERSION = '3.8.4-grand-lore-44books-canon-events'`).
+- **Completed Series**: `v3.1.0` Living Lore → `v3.2.0` Equipment Expansion → `v3.3.0` Tactical Combat & Six-Path Mastery → `v3.4.0` External World Events → `v3.5.0a/b/c` Complete P0/P1/P2 Hardening → `v3.6.0a/b/c` Living Sects & Continental Polities → `v3.7.0/a/b/c` Legendary & Transcendent Dao Expansion (`55` Paths / `346` Subpaths) → `v3.8.0–v3.8.4` Master Lore Compendium, World Calendar (`ยุคที่ 101 ปีที่ 1`), & 44-Book Standalone Lore Archive (`3.65 MB`, `1,299` Entities).
+- **Handoff & Reports**: See `docs/handovers/NEW_CHAT_HANDOFF_JS2_v3.8.4.md`, `PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.4.md`, and `CHANGELOG_JS2_V310_TO_V383.md`.
 
 ## Non-Negotiable Invariants (`AGENTS.md`)
 1. **Never modify `AGENTS.md`** (`67,202` bytes) or **`GAME_SOURCE/js/human_core.js`** (`HC.FINGERPRINT === '155:2f9c9dd7'`).

@@ -5,8 +5,8 @@ const g = require('./load.js');
 console.log('=== JS2 v3.8.3 Grand Lore Chronicles (11 Books) Verification Suite ===');
 
 // 1. Version & core locks
-assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.3', 'PATCH_VERSION must be 3.8.3');
-assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.3-grand-lore-chronicles-11books');
+assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.4', 'PATCH_VERSION must be 3.8.3');
+assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.4-grand-lore-44books-canon-events');
 assert.strictEqual(g.HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must stay locked');
 console.log('  [PASS] 1. Patch version 3.8.3 & HC.FINGERPRINT locked');
 
