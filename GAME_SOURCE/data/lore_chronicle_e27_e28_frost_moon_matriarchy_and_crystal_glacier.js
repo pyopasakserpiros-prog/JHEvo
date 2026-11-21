@@ -53,7 +53,7 @@
     {
       id: 'EVT_E27_01_RISE_OF_BINGYUE_AND_WENQUAN',
       eraGroup: 'ERA_27',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 26105,
       yearLabelTh: 'ยุคที่ 27 ปีที่ 105 · เดือนสิบเอ็ดเหมันต์กลาง วันที่ 15 (ศ.ท. 26,105)',
       titleTh: 'บัลลังก์ศิลาน้ำแข็งปิงเยว่และนครธาราอุ่นเวินเฉวียน — สองขั้วอำนาจใหม่หลังยุคที่ 26',
@@ -68,7 +68,7 @@
     {
       id: 'EVT_E27_02_COVENANT_OF_THREE_FROST_SECTS',
       eraGroup: 'ERA_27',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 26288,
       yearLabelTh: 'ยุคที่ 27 ปีที่ 288 · เดือนอ้ายวสันต์ วันที่ 9 (ศ.ท. 26,288)',
       titleTh: 'สัตยาบันธารหิมะสามยอด — กำเนิดสามสำนักสายเหมันต์แห่งยุทธภพตอนเหนือ',
@@ -83,7 +83,7 @@
     {
       id: 'EVT_E27_03_FORGING_HAIRPIN_AND_MIRROR',
       eraGroup: 'ERA_27',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 26540,
       yearLabelTh: 'ยุคที่ 27 ปีที่ 540 · เดือนแปดสารทกลาง วันที่ 15 (ศ.ท. 26,540)',
       titleTh: 'คืนจันทรุปราคาเหมันต์ — หลอมปิ่นหยกจันทร์เสี้ยว กระจกสะท้อนจันทร์ และการตื่นของเสวี่ยหลิง',
@@ -98,7 +98,7 @@
     {
       id: 'EVT_E27_04_WAR_OF_WARM_SPRINGS_AND_FROST_PASS',
       eraGroup: 'ERA_27',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 26812,
       yearLabelTh: 'ยุคที่ 27 ปีที่ 812 · เดือนสิบเหมันต์ต้น วันที่ 4 (ศ.ท. 26,812)',
       titleTh: 'สงครามด่านไอน้ำสิบสองปี — ทัพเกราะหิมะปิงเยว่ปะทะรถศึกไอน้ำเวินเฉวียน',
@@ -113,7 +113,7 @@
     {
       id: 'EVT_E28_05_MIRAGE_SCHISM_OF_THREE_SECTS',
       eraGroup: 'ERA_28',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 27085,
       yearLabelTh: 'ยุคที่ 28 ปีที่ 85 · เดือนสิบสองเหมันต์ลึก วันที่ 29 (ศ.ท. 27,085)',
       titleTh: 'ศึกสามเงาจันทร์บนธารน้ำแข็ง — มายากระจกน้ำแข็งยุแหย่สามสำนักห้ำหั่นกันเอง',
@@ -128,7 +128,7 @@
     {
       id: 'EVT_E28_06_FALL_OF_HAIRPIN_PAVILION',
       eraGroup: 'ERA_28',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 27360,
       yearLabelTh: 'ยุคที่ 28 ปีที่ 360 · เดือนหกคิมหันต์ลึก วันที่ 15 (ศ.ท. 27,360)',
       titleTh: 'ราตรีกระจกร้าวเก้าแฉก — อวสานหอปิ่นหยกตัดเหมันต์และโฉมหน้าจริงของเสวี่ยหลิง',
@@ -143,7 +143,7 @@
     {
       id: 'EVT_E28_07_WINTER_COLLAPSE_OF_TWO_KINGDOMS',
       eraGroup: 'ERA_28',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 27620,
       yearLabelTh: 'ยุคที่ 28 ปีที่ 620 · เดือนสิบเอ็ดเหมันต์กลาง วันที่ 22 (ศ.ท. 27,620)',
       titleTh: 'เหมันต์ร้อยปีและศึกครั้งสุดท้ายแห่งช่องแคบไอน้ำแข็ง — อวสานเวินเฉวียนและปิงเยว่',
@@ -158,7 +158,7 @@
     {
       id: 'EVT_E28_08_FINAL_SEAL_OF_CRYSTAL_GLACIER',
       eraGroup: 'ERA_28',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 27940,
       yearLabelTh: 'ยุคที่ 28 ปีที่ 940 · เดือนสิบสองเหมันต์ลึก วันที่ 30 (ศ.ท. 27,940)',
       titleTh: 'กระบี่สุดท้ายแห่งธารน้ำแข็งกระจกจันทร์ — ผนึกจิ้งจอกเก้าหางและอวสานสองสำนักเหมันต์',

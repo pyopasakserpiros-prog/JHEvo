@@ -52,7 +52,7 @@
     {
       id: 'ANTH_HERM_EVT_01_PROOFREADER_THIEF',
       eraGroup: 'ERA_13_100_ANTHOLOGY',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 12400,
       yearLabelTh: 'ยุคที่ 13 ปีที่ 400 · เดือนแปดใบไม้ร่วง วันที่ 14 (ศ.ท. 12,400)',
       titleTh: 'คืนที่จอมโจรขโมยคัมภีร์หอใหญ่แล้วเอามาแก้คำผิดให้ก่อนคืน',
@@ -70,7 +70,7 @@
     {
       id: 'ANTH_HERM_EVT_02_SECRET_PRICE_PHYSICIAN',
       eraGroup: 'ERA_13_100_ANTHOLOGY',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 23715,
       yearLabelTh: 'ยุคที่ 24 ปีที่ 715 · เดือนหกพิรุณสาด วันที่ 22 (ศ.ท. 23,715)',
       titleTh: 'หมอเฒ่าผู้รับค่ารักษาเป็นความลับหนึ่งเรื่องแทนศิลาวิญญาณ',
@@ -88,7 +88,7 @@
     {
       id: 'ANTH_HERM_EVT_03_BLIND_BEGGAR_CARTOGRAPHER',
       eraGroup: 'ERA_13_100_ANTHOLOGY',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 38208,
       yearLabelTh: 'ยุคที่ 39 ปีที่ 208 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 9 (ศ.ท. 38,208)',
       titleTh: 'ขอทานตาบอดผู้วาดแผนที่สมรภูมิแม่นกว่ากุนซือหลวง',
@@ -178,7 +178,7 @@
     {
       id: 'ANTH_HERM_EVT_08_POOR_SCHOLAR_AND_WOLF',
       eraGroup: 'ERA_13_100_ANTHOLOGY',
-      eraId: 'ERA_4_MODERN_BALANCE',
+      eraId: 'ERA_4_THREE_EMPIRES_BALANCE',
       worldYear: 99760,
       yearLabelTh: 'ยุคที่ 100 ปีที่ 760 · เดือนเก้าสารทปลาย วันที่ 16 (ศ.ท. 99,760)',
       titleTh: 'บัณฑิตตกอับที่สอนวิชาให้หมาป่าจนมันบรรลุขั้น 4 และทิ้งหมวกฟางไว้ให้ก่อนออกพเนจร',

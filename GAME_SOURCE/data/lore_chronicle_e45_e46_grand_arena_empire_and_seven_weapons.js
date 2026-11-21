@@ -56,7 +56,7 @@
     {
       id: 'EVT_E45_01_BLOOD_ARENA_CHARTER',
       eraGroup: 'ERA_45_46',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 44110,
       yearLabelTh: 'ยุคที่ 45 ปีที่ 110 · เดือนอ้ายวสันต์ วันที่ 9 (ศ.ท. 44,110)',
       titleTh: 'กฎเหล็กทรายแดง — สถาปนาจักรวรรดิสังเวียนโลหิตจ้านหวู่และธรรมเนียมเลื่อนยศบนลานประลอง',
@@ -74,7 +74,7 @@
     {
       id: 'EVT_E45_02_SEVEN_WEAPONS_FOUNDING',
       eraGroup: 'ERA_45_46',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 44265,
       yearLabelTh: 'ยุคที่ 45 ปีที่ 265 · เดือนสามปลายวสันต์ วันที่ 15 (ศ.ท. 44,265)',
       titleTh: 'หนึ่งวันเจ็ดศาสตราไร้พ่าย — กำเนิดสำนักเจ้ายุทธเจ็ดศาสตราและศิลาจารึกทำเนียบแชมป์เปี้ยนร้อยรุ่น',
@@ -92,7 +92,7 @@
     {
       id: 'EVT_E45_03_METEOR_FIST_VS_HONOR_BLADE',
       eraGroup: 'ERA_45_46',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 44540,
       yearLabelTh: 'ยุคที่ 45 ปีที่ 540 · เดือนหกกลางคิมหันต์ วันที่ 18 (ศ.ท. 44,540)',
       titleTh: 'หมัดดาวตกปะทะดาบดวลเกียรติยศ — คืนตื่นแห่งสนับหมัดแสงทองอรุณรุ่งและปลอกแขนเจ็ดห่วง',
@@ -110,7 +110,7 @@
     {
       id: 'EVT_E45_04_CLOUD_SPEAR_BORDER_DUEL',
       eraGroup: 'ERA_45_46',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 44792,
       yearLabelTh: 'ยุคที่ 45 ปีที่ 792 · เดือนแปดกลางสารท วันที่ 12 (ศ.ท. 44,792)',
       titleTh: 'มหาสังเวียนพรมแดนเก้านัด — เกราะหนักศิลาทองคำต้านทัพทวนมังกรเมฆาและธนูดารา',
@@ -128,7 +128,7 @@
     {
       id: 'EVT_E46_05_IRON_TIGER_HUNDRED_BOUTS',
       eraGroup: 'ERA_45_46',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 45118,
       yearLabelTh: 'ยุคที่ 46 ปีที่ 118 · เดือนสิบต้นเหมันต์ วันที่ 3 (ศ.ท. 45,118)',
       titleTh: 'ร้อยสังเวียนโลหิตแห่งเถี่ยหู่ — กำเนิดพยัคฆ์เกราะเหล็กเจ็ดแผล',
@@ -146,7 +146,7 @@
     {
       id: 'EVT_E46_06_THREE_SECT_GRAND_TOURNEY',
       eraGroup: 'ERA_45_46',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 45420,
       yearLabelTh: 'ยุคที่ 46 ปีที่ 420 · เดือนห้ากลางคิมหันต์ วันที่ 24 (ศ.ท. 45,420)',
       titleTh: 'มหกรรมประลองสามสำนักรุ่นที่ 50 — เมื่อเสียงโห่ร้องสังเวียนแปรเปลี่ยนเป็นความแตกแยก',
@@ -164,7 +164,7 @@
     {
       id: 'EVT_E46_07_FALL_OF_ZHANWU_AND_LONGYUN',
       eraGroup: 'ERA_45_46',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 45735,
       yearLabelTh: 'ยุคที่ 46 ปีที่ 735 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 22 (ศ.ท. 45,735)',
       titleTh: 'สงครามหักธงสองอาณาจักร — จุดจบแห่งจักรวรรดิจ้านหวู่และแคว้นทวนมังกรเมฆาหลงอวิ๋น',
@@ -182,7 +182,7 @@
     {
       id: 'EVT_E46_08_SEALING_OF_HUNDRED_CHAMPION_STELE',
       eraGroup: 'ERA_45_46',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 45880,
       yearLabelTh: 'ยุคที่ 46 ปีที่ 880 · เดือนสิบสองเหมันต์ลึก วันที่ 29 (ศ.ท. 45,880)',
       titleTh: 'คืนปักธงชัยเจ็ดศาสตรา — ผนึกพยัคฆ์เกราะเหล็กเจ็ดแผลและปิดทำเนียบแชมป์เปี้ยนยุค 46',

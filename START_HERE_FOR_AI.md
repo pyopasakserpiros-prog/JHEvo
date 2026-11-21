@@ -1,9 +1,9 @@
-# START HERE FOR AI — JianghuSect Evolution (JS2 v3.8.4)
+# START HERE FOR AI — JianghuSect Evolution (JS2 v3.8.6)
 
 ## Current State
-- **Active Version**: **JS2 v3.8.4 Grand Lore Archive (44 Books + Canon Audit + 24 System Blueprints)** (`SIM.PATCH_VERSION = '3.8.4'`, `SIM.SAVE_SCHEMA_VERSION = '3.8.4-grand-lore-44books-canon-events'`).
-- **Completed Series**: `v3.1.0` Living Lore → `v3.2.0` Equipment Expansion → `v3.3.0` Tactical Combat & Six-Path Mastery → `v3.4.0` External World Events → `v3.5.0a/b/c` Complete P0/P1/P2 Hardening → `v3.6.0a/b/c` Living Sects & Continental Polities → `v3.7.0/a/b/c` Legendary & Transcendent Dao Expansion (`55` Paths / `346` Subpaths) → `v3.8.0–v3.8.4` Master Lore Compendium, World Calendar (`ยุคที่ 101 ปีที่ 1`), & 44-Book Standalone Lore Archive (`3.65 MB`, `1,299` Entities).
-- **Handoff & Reports**: See `docs/handovers/NEW_CHAT_HANDOFF_JS2_v3.8.4.md`, `PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.4.md`, and `CHANGELOG_JS2_V310_TO_V383.md`.
+- **Active Version**: **JS2 v3.8.6 90-Book Grand Lore Archive & Deep Continuity Audit** (`SIM.PATCH_VERSION = '3.8.6'`, `SIM.SAVE_SCHEMA_VERSION = '3.8.6-90book-grand-lore-archive'`).
+- **Completed Series**: `v3.1.0`–`v3.7.0c` Core Systems & Living World → `v3.8.0–v3.8.4` Master Lore Compendium, 1,000-Year Epoch Calendar, & 44-Book Archive → `v3.8.5` Lore Continuity & Canon Hardening (`LC-01..LC-15`) → **`v3.8.6` 90-Book Grand Lore Archive (`7.25 MB`, `2,256` Entity IDs, 100% Epoch 1–101 coverage, `22,831 KB` single-file HTML)**.
+- **Handoff & Reports**: See `PATCH_REPORTS/PATCH_v3.8.6_90BOOK_GRAND_LORE_ARCHIVE.md`, `PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md`, `docs/handovers/NEW_CHAT_HANDOFF_JS2_v3.8.5.md`, and `CHANGELOG_JS2_V310_TO_V383.md`.
 
 ## Non-Negotiable Invariants (`AGENTS.md`)
 1. **Never modify `AGENTS.md`** (`67,202` bytes) or **`GAME_SOURCE/js/human_core.js`** (`HC.FINGERPRINT === '155:2f9c9dd7'`).

@@ -37,7 +37,7 @@
     {
       id: 'ANTH_ECO_EVT_01_SILENT_BAMBOO_CARAVAN',
       eraGroup: 'ANTHOLOGY_ECOLOGY_CROSS_ERA',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 9200,
       yearLabelTh: 'ยุคที่ 10 ปีที่ 200 · เดือนแปดสารทกลาง วันที่ 19 (ศ.ท. 9,200)',
       titleTh: 'คืนที่ป่าไผ่ดูดเสียงกลืนกองคาราวานเงียบกริบ',
@@ -53,7 +53,7 @@
     {
       id: 'ANTH_ECO_EVT_02_MIASMA_CRANE_MIGRATION',
       eraGroup: 'ANTHOLOGY_ECOLOGY_CROSS_ERA',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 23418,
       yearLabelTh: 'ยุคที่ 24 ปีที่ 418 · เดือนห้าคิมหันต์กลาง วันที่ 7 (ศ.ท. 23,418)',
       titleTh: 'ฤดูอพยพของนกกระเรียนกินหมอกพิษที่ช่วยชีวิตสามเมืองแดนใต้',
@@ -69,7 +69,7 @@
     {
       id: 'ANTH_ECO_EVT_03_SALT_MIRROR_VALLEY_CONFLICT',
       eraGroup: 'ANTHOLOGY_ECOLOGY_CROSS_ERA',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 40705,
       yearLabelTh: 'ยุคที่ 41 ปีที่ 705 · เดือนสิบเอ็ดเหมันต์กลาง วันที่ 15 (ศ.ท. 40,705)',
       titleTh: 'ศึกแย่งชิงหุบเขากระจกเกลือสะท้อนดาว',
@@ -101,7 +101,7 @@
     {
       id: 'ANTH_ECO_EVT_05_BOILING_MUD_CALDERA_EXPEDITION',
       eraGroup: 'ANTHOLOGY_ECOLOGY_CROSS_ERA',
-      eraId: 'ERA_4_LATE_BALANCE',
+      eraId: 'ERA_3_MIDDLE_EPOCHS',
       worldYear: 76644,
       yearLabelTh: 'ยุคที่ 77 ปีที่ 644 · เดือนสิบเหมันต์ต้น วันที่ 3 (ศ.ท. 76,644)',
       titleTh: 'คณะสำรวจบึงโคลนเดือดและเส้นทางหิ่งห้อยชี้นำชีพจรมังกร',
@@ -117,7 +117,7 @@
     {
       id: 'ANTH_ECO_EVT_06_GREAT_ECOLOGY_CODEX_ASSEMBLY',
       eraGroup: 'ANTHOLOGY_ECOLOGY_CROSS_ERA',
-      eraId: 'ERA_4_LATE_BALANCE',
+      eraId: 'ERA_4_THREE_EMPIRES_BALANCE',
       worldYear: 99600,
       yearLabelTh: 'ยุคที่ 100 ปีที่ 600 · เดือนอ้ายวสันต์ วันที่ 9 (ศ.ท. 99,600)',
       titleTh: 'การประชุมชำระสารานุกรมพฤกษา–อสูรนิเวศแห่งศตวรรษที่ร้อย',

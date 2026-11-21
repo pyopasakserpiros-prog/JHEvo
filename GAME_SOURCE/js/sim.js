@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '3.8.4',
-    SUPPORTED_PATCHES: ['3.0.0', '3.1.0', '3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0a', '3.6.0b', '3.6.0c', '3.7.0', '3.7.0a', '3.7.0b', '3.7.0c', '3.8.0', '3.8.1', '3.8.2', '3.8.3', '3.8.4', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
-    SAVE_SCHEMA_VERSION: '3.8.4-grand-lore-44books-canon-events',
+    PATCH_VERSION: '3.8.6',
+    SUPPORTED_PATCHES: ['3.0.0', '3.1.0', '3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0a', '3.6.0b', '3.6.0c', '3.7.0', '3.7.0a', '3.7.0b', '3.7.0c', '3.8.0', '3.8.1', '3.8.2', '3.8.3', '3.8.4', '3.8.5', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
+    SAVE_SCHEMA_VERSION: '3.8.6-90book-grand-lore-archive',
     DAY_FACTOR: 1.5,
     CALENDAR_MINS_PER_DAY: 1440,
     WORK_STEPS_PER_DAY: 2160,
@@ -85,6 +85,7 @@
     START_EPOCH: 101,
     START_YEAR_IN_EPOCH: 1,
     START_WORLD_YEAR: 100001,
+    START_DAY_OFFSET: 360,
     DAYS_PER_MONTH: 30,
     MONTHS_PER_YEAR: 12,
     DAYS_PER_YEAR: 360,
@@ -117,8 +118,10 @@
   SIM.worldYearFromYearsAgo = (yearsAgo, refYear) => (refYear != null ? refYear : SIM.CALENDAR.START_WORLD_YEAR) - Math.trunc(Number(yearsAgo) || 0);
   SIM.yearsAgoFromWorldYear = (worldYear, refYear) => (refYear != null ? refYear : SIM.CALENDAR.START_WORLD_YEAR) - Math.trunc(Number(worldYear) || 0);
   SIM.calendar = t => {
-    const day = Math.floor(t / 1440), yd = ((day % 360) + 360) % 360;
-    const year = Math.floor(day / 360) + 1;
+    const day = Math.floor(t / 1440);
+    const elapsedDay = Math.max(0, day - (SIM.CALENDAR.START_DAY_OFFSET || 0));
+    const yd = ((elapsedDay % 360) + 360) % 360;
+    const year = Math.floor(elapsedDay / 360) + 1;
     const month = Math.floor(yd / 30) + 1;
     const dom = (yd % 30) + 1;
     const season = Math.floor(yd / 90);
@@ -381,7 +384,7 @@
     if (ECO && ECO.ensureUniqueGearUids) ECO.ensureUniqueGearUids(W);
     const pl = W.map.byId.plaza; W.npcs.forEach(n => SIM.placeNear(W, n, pl.x + pl.w / 2, pl.y + pl.h / 2, 12));
     W.logs.length = 0; W.logSeq = 0;
-    W.log('system', 'ก่อตั้ง「' + S.name + '」 โดยเจ้าสำนัก ' + HC.fullName(master), [master.id]);
+    W.log('system', 'เปิดศักราชยุคที่ 101 — เจ้าสำนักรุ่นที่ ' + (S.masterGeneration || 7) + ' ' + HC.fullName(master) + ' สืบทอดและฟื้นฟู「' + S.name + '」', [master.id]);
     if (g.SECT && g.SECT.ensureCompanionsAndBloodlines) g.SECT.ensureCompanionsAndBloodlines(W);
     if (g.SECT && g.SECT.FENG_SHUI) g.SECT.FENG_SHUI.ensure(W);
     if (g.SECT && g.SECT.CARAVAN_AUCTION) g.SECT.CARAVAN_AUCTION.ensure(W);

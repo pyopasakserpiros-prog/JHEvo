@@ -50,7 +50,7 @@
     {
       id: 'EVT_E47_01_SNOW_ANCESTOR_AND_BEIDOU_SCHISM',
       eraGroup: 'ERA_47_50',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 46601,
       yearLabelTh: 'ยุคที่ 47 ปีที่ 601 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 11 (ศ.ท. 46,601)',
       titleTh: 'รอยร้าวหอดาราเป่ยโต่วกับหอบรรพชนเสวี่ยซง — ศึกสองแคว้นเหนือเหนือหุบเขาหิมะ',
@@ -67,7 +67,7 @@
     {
       id: 'EVT_E48_02_RISE_OF_WHITE_PAPER_PAVILION',
       eraGroup: 'ERA_47_50',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 47214,
       yearLabelTh: 'ยุคที่ 48 ปีที่ 214 · เดือนแปดสารทแรก วันที่ 15 (ศ.ท. 47,214)',
       titleTh: 'หอเชิดเงากระดาษขาว และเข็มเงินเย็บวิญญาณใต้แสงจันทร์เพ็ญ',
@@ -84,7 +84,7 @@
     {
       id: 'EVT_E48_03_WHISPER_CULT_AND_ECLIPSE_PROPHECY',
       eraGroup: 'ERA_47_50',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 47788,
       yearLabelTh: 'ยุคที่ 48 ปีที่ 788 · เดือนสิบสองเหมันต์ลึก วันที่ 29 (ศ.ท. 47,788)',
       titleTh: 'คำทำนายสุริยคราสเจ็ดราตรี และกำเนิดลัทธิเสียงกระซิบโพ้นม่านฟ้า',
@@ -101,7 +101,7 @@
     {
       id: 'EVT_E49_04_CRIMSON_BRIDE_OF_PAPER_AND_FLAME',
       eraGroup: 'ERA_47_50',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 48333,
       yearLabelTh: 'ยุคที่ 49 ปีที่ 333 · เดือนห้าสุริยัน วันที่ 7 (ศ.ท. 48,333)',
       titleTh: 'งานวิวาห์สีขาวแห่งหอเชิดเงา — โศกนาฏกรรมของไป๋เหลียนและเพลิงผีเก้าโคม',
@@ -118,7 +118,7 @@
     {
       id: 'EVT_E49_05_SEVEN_NIGHTS_NETHER_ECLIPSE',
       eraGroup: 'ERA_47_50',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 48812,
       yearLabelTh: 'ยุคที่ 49 ปีที่ 812 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 1 – 7 (ศ.ท. 48,812)',
       titleTh: 'มหาสุริยคราสเจ็ดราตรี — ตะวันดับเหนือยอดเขาอุดรและมหาศึกสองกระดาน',
@@ -135,7 +135,7 @@
     {
       id: 'EVT_E49_06_LANTERN_SHEPHERDS_LAST_VIGIL',
       eraGroup: 'ERA_47_50',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 48812,
       yearLabelTh: 'ยุคที่ 49 ปีที่ 812 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 6 – 7 (ศ.ท. 48,812)',
       titleTh: 'คืนดับโคมเก้าพันดวง — กำเนิดเจ้าสาวเพลิงผีและการสละชีพของสำนักโคมวิญญาณ',
@@ -152,7 +152,7 @@
     {
       id: 'EVT_E50_07_COLLAPSE_OF_XUESONG_AND_BEIDOU',
       eraGroup: 'ERA_47_50',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 49420,
       yearLabelTh: 'ยุคที่ 50 ปีที่ 420 · เดือนสามวสันต์ปลาย วันที่ 18 (ศ.ท. 49,420)',
       titleTh: 'การล่มสลายของสองแคว้นเหนือ — ป้ายบรรพชนไร้ธูปและหอดาราไร้ดวงดาว',
@@ -169,7 +169,7 @@
     {
       id: 'EVT_E50_08_BIRTH_OF_YOUMING_MIST_TOMB',
       eraGroup: 'ERA_47_50',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 49999,
       yearLabelTh: 'ยุคที่ 50 ปีที่ 999 · เดือนสิบสองเหมันต์ลึก วันที่ 30 (ศ.ท. 49,999 — คืนปิดฉากครึ่งแสนปีแรก)',
       titleTh: 'ศิลาหมอกโยวหมิง — ปิดฉากครึ่งแสนปีแรกและวางรากฐานราชรัฐสุสานหมอก',

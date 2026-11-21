@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * sync_lore_bundle.js — ซิงค์ไฟล์ Lore แยกทั้งหมด (44 บทมหากาพย์ภายใต้ GAME_SOURCE/data/lore_chronicle_*.js)
+ * sync_lore_bundle.js — ซิงค์ไฟล์ Lore แยกทั้งหมด (90 บทมหากาพย์ภายใต้ GAME_SOURCE/data/lore_chronicle_*.js)
  * เข้าสู่บล็อกเฉพาะท้ายไฟล์ GAME_SOURCE/data/data_expansion.js
  * เพื่อให้ผู้พัฒนาแก้ไฟล์ Lore แยกได้อย่างอิสระเหมือนอ่านนิยาย โดยยังรักษาข้อบังคับ 40 <script> tags ครบ 100%
  */
@@ -60,7 +60,55 @@ const loreFiles = [
   'data/lore_chronicle_events_grand_martial_assemblies.js',
   'data/lore_chronicle_events_periodic_pocket_realms.js',
   'data/lore_chronicle_events_cosmic_tides_and_calamities.js',
-  'data/lore_chronicle_events_markets_trials_and_sect_rites.js'
+  'data/lore_chronicle_events_markets_trials_and_sect_rites.js',
+
+  // === 46 คัมภีร์ตำนานชุดใหม่ v3.8.6 (Books 45–90: Prehistory, Sects, Fallen Clans, Multi-Format, Gaps, Continental Origins & Turning Points) ===
+  'data/lore_chronicle_aftermath_daren_commonwealth_exiles.js',
+  'data/lore_chronicle_aftermath_e26_ink_moth_and_azure_brush.js',
+  'data/lore_chronicle_aftermath_tianshu_remnants_and_seven_scrolls.js',
+  'data/lore_chronicle_beasts_point_of_view_six_sovereign_bloodlines.js',
+  'data/lore_chronicle_continental_crises_low_sky_and_double_voice.js',
+  'data/lore_chronicle_demon_paths_and_heretic_saints.js',
+  'data/lore_chronicle_e13_e17_birth_of_well_and_canal_accord.js',
+  'data/lore_chronicle_e18_e22_lighthouse_keepers_of_fog_coast.js',
+  'data/lore_chronicle_e19_e21_turning_point_fog_sea_closure_pivot.js',
+  'data/lore_chronicle_e22_e24_donghuang_sima_to_ji_transition.js',
+  'data/lore_chronicle_e30_e39_forging_of_three_great_empires.js',
+  'data/lore_chronicle_e32_e36_oathbreakers_and_iron_bridges.js',
+  'data/lore_chronicle_e40_e43_lantern_monks_and_frost_famine.js',
+  'data/lore_chronicle_e42_e44_turning_point_forging_and_alchemy_revolution.js',
+  'data/lore_chronicle_e44_e54_continental_currency_and_spirit_standard.js',
+  'data/lore_chronicle_e4_e12_grand_canal_and_river_reshaping.js',
+  'data/lore_chronicle_e50_e52_turning_point_dawn_of_middle_epochs.js',
+  'data/lore_chronicle_e55_e56_eve_of_red_salt_and_smuggler_roads.js',
+  'data/lore_chronicle_e65_e97_great_migrations_and_five_buffer_origins.js',
+  'data/lore_chronicle_e69_e72_eclipse_doctors_and_mirror_wards.js',
+  'data/lore_chronicle_e6_e9_turning_point_codification_of_55_paths.js',
+  'data/lore_chronicle_e74_e82_turning_point_death_of_republican_dream.js',
+  'data/lore_chronicle_e80_e83_the_silent_epoch_and_ash_river.js',
+  'data/lore_chronicle_e85_e97_the_three_way_bell_chain.js',
+  'data/lore_chronicle_e89_e95_seven_epochs_of_paper_emperors.js',
+  'data/lore_chronicle_e98_e100_turning_point_eve_of_epoch101.js',
+  'data/lore_chronicle_five_fallen_ascendant_clans.js',
+  'data/lore_chronicle_forgotten_academies_and_lost_arts.js',
+  'data/lore_chronicle_format_bounty_boards_and_infamous_rogues.js',
+  'data/lore_chronicle_format_folklore_songs_proverbs_and_taboos.js',
+  'data/lore_chronicle_format_forbidden_zone_containment_dossiers.js',
+  'data/lore_chronicle_format_item_whispers_thirty_relics.js',
+  'data/lore_chronicle_format_jianghu_detective_casebook.js',
+  'data/lore_chronicle_format_letters_wills_and_last_testaments.js',
+  'data/lore_chronicle_format_naturalist_field_journal_spirit_anomalies.js',
+  'data/lore_chronicle_format_ruin_inscriptions_and_broken_steles.js',
+  'data/lore_chronicle_format_treaties_ledgers_and_martial_law.js',
+  'data/lore_chronicle_format_unreliable_historians_three_versions.js',
+  'data/lore_chronicle_parallel_epoch100_secret_wars_before_dawn.js',
+  'data/lore_chronicle_parallel_middle_epochs_shadow_underworld.js',
+  'data/lore_chronicle_prehistory_three_forgotten_ages.js',
+  'data/lore_chronicle_prince14_donghuang_genius_bloodline.js',
+  'data/lore_chronicle_seams_of_the_realm_six_bridges.js',
+  'data/lore_chronicle_sect_three_ascensions_ten_epochs.js',
+  'data/lore_chronicle_sect_two_tribulations_softened_stone.js',
+  'data/lore_chronicle_sects_of_epoch101_nineteen_pillars.js'
 ];
 
 // Verify no unreferenced lore_chronicle_*.js files exist

@@ -46,7 +46,7 @@
     {
       id: 'EVT_E11_E14_01_SINKHOLE_OF_DISCARDED_DREGS',
       eraGroup: 'ERA_11_14',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 10088,
       yearLabelTh: 'ยุคที่ 11 ปีที่ 88 · เดือนห้าคิมหันต์กลาง วันที่ 12 (ศ.ท. 10,088)',
       titleTh: 'หลุมกากโอสถหนานหลิง และชั่วโมงแรกแห่งวิบัติหมอกพิษมรกต',
@@ -60,7 +60,7 @@
     {
       id: 'EVT_E11_E14_02_RIVER_BLOCKADE_KINGDOM_WAR',
       eraGroup: 'ERA_11_14',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 10412,
       yearLabelTh: 'ยุคที่ 11 ปีที่ 412 · เดือนเก้าสารทปลาย วันที่ 6 (ศ.ท. 10,412)',
       titleTh: 'สงครามปิดท่าเรือหลัวสุ่ย — เมื่อสองอาณาจักรแดนใต้ห้ำหั่นกันท่ามกลางหมอกพิษ',
@@ -74,7 +74,7 @@
     {
       id: 'EVT_E11_E14_03_GOLDEN_SILKWORM_VS_ASHEN_KILN',
       eraGroup: 'ERA_11_14',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 11105,
       yearLabelTh: 'ยุคที่ 12 ปีที่ 105 · เดือนสามวสันต์ปลาย วันที่ 21 (ศ.ท. 11,105)',
       titleTh: 'ศึกชิงเห็ดราต้นกำเนิด — สงครามเตาเถ้าปะทะตำหนักกู่ไหมทอง',
@@ -88,7 +88,7 @@
     {
       id: 'EVT_E11_E14_04_BIRTH_OF_ASHEN_KILN_WAY',
       eraGroup: 'ERA_11_14',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 11540,
       yearLabelTh: 'ยุคที่ 12 ปีที่ 540 · เดือนสิบเอ็ดเหมันต์กลาง วันที่ 9 (ศ.ท. 11,540)',
       titleTh: 'เพลิงเถ้ากลั่นกากโอสถ — กำเนิดวิถีเตาเถ้าคืนชีวิต (LEG_ASHEN_KILN_ALCHEMY)',
@@ -102,7 +102,7 @@
     {
       id: 'EVT_E11_E14_05_BIRTH_OF_TRIAGE_MERIDIAN',
       eraGroup: 'ERA_11_14',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 12074,
       yearLabelTh: 'ยุคที่ 13 ปีที่ 74 · เดือนเจ็ดสารทต้น วันที่ 18 (ศ.ท. 12,074)',
       titleTh: 'ค่ายไม้ไผ่กลางสายฝนพิษ — กำเนิดคณะหมอสนามชีพจรหยกและวิถีชีพจรประคองสหาย (LEG_TRIAGE_MERIDIAN)',
@@ -116,7 +116,7 @@
     {
       id: 'EVT_E11_E14_06_FALL_OF_TWO_REALMS',
       eraGroup: 'ERA_11_14',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 12488,
       yearLabelTh: 'ยุคที่ 13 ปีที่ 488 · เดือนแปดสารทกลาง วันที่ 27 (ศ.ท. 12,488)',
       titleTh: 'การล่มสลายของราชรัฐหนานหลิงและนครท่าเรือหลัวสุ่ย — วันที่บึงใต้กลายเป็นสุสานหมื่นพิษ',
@@ -130,7 +130,7 @@
     {
       id: 'EVT_E11_E14_07_SIEGE_OF_LINGXIN_CROWN',
       eraGroup: 'ERA_11_14',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 12892,
       yearLabelTh: 'ยุคที่ 13 ปีที่ 892 · เดือนสิบสองเหมันต์ลึก วันที่ 29 (ศ.ท. 12,892)',
       titleTh: 'ยุทธการเหมันต์เผาเถ้า — ศึกผนึกราชาเห็ดราดูดปราณ หลิงซิน',
@@ -144,7 +144,7 @@
     {
       id: 'EVT_E11_E14_08_COVENANT_OF_THE_ASH_WARD',
       eraGroup: 'ERA_11_14',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 13315,
       yearLabelTh: 'ยุคที่ 14 ปีที่ 315 · เดือนอ้ายวสันต์ วันที่ 15 (ศ.ท. 13,315)',
       titleTh: 'พันธสัญญาเตาเถ้า-ชีพจรหยก และรุ่งอรุณของบึงหมื่นกู่',

@@ -70,7 +70,7 @@
     {
       id: 'EVT_E35_01_FOUNDING_KONGCHENG_AND_ARCHITECTS',
       eraGroup: 'ERA_35_38',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 34220,
       yearLabelTh: 'ยุคที่ 35 ปีที่ 220 · เดือนสามวสันต์ปลาย วันที่ 9 (ศ.ท. 34,220)',
       titleTh: 'ปักเสาวาร์ปแรก ณ หุบเหวเมฆาพับ — กำเนิดนครรัฐคงเฉิงและมหานิกายสถาปนิกมิติเร้น',
@@ -88,7 +88,7 @@
     {
       id: 'EVT_E35_02_TAIJI_MILLSTONE_RISE_AND_CHAOS_SECT',
       eraGroup: 'ERA_35_38',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 34640,
       yearLabelTh: 'ยุคที่ 35 ปีที่ 640 · เดือนแปดสารทกลาง วันที่ 15 (ศ.ท. 34,640)',
       titleTh: 'ศิลาโม่ฟ้าหมุนทวน — กำเนิดราชอาณาจักรไท่จี๋และลัทธิโกลาหลโม่หินหยินหยาง',
@@ -106,7 +106,7 @@
     {
       id: 'EVT_E36_03_REAPER_SCHISM_AND_COMPASS_FORGING',
       eraGroup: 'ERA_35_38',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 35315,
       yearLabelTh: 'ยุคที่ 36 ปีที่ 315 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 22 (ศ.ท. 35,315)',
       titleTh: 'คมดาบผ่าหอคอยกระดาษ — กำเนิดสำนักคมดาบตัดมิติและเข็มทิศพับระยะร้อยลี้',
@@ -124,7 +124,7 @@
     {
       id: 'EVT_E36_04_WAR_OF_WARP_TOLLS',
       eraGroup: 'ERA_35_38',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 35842,
       yearLabelTh: 'ยุคที่ 36 ปีที่ 842 · เดือนหกฝนแรก วันที่ 4 (ศ.ท. 35,842)',
       titleTh: 'สงครามด่านเสาวาร์ปและคาราวานหินบด — ศึกทัพหลวงคงเฉิงปะทะไท่จี๋',
@@ -142,7 +142,7 @@
     {
       id: 'EVT_E37_05_THREE_SECT_RIFT_CONCLAVE',
       eraGroup: 'ERA_35_38',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 36290,
       yearLabelTh: 'ยุคที่ 37 ปีที่ 290 · เดือนเก้าสารทปลาย วันที่ 18 (ศ.ท. 36,290)',
       titleTh: 'มหาประลองสามสำนักบนสังเวียนมิติพับ — ศึกแห่งสุญตากับโกลาหล',
@@ -171,7 +171,7 @@
     {
       id: 'EVT_E37_06_AWAKENING_OF_XUYU_RIFT_RAY',
       eraGroup: 'ERA_35_38',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 36785,
       yearLabelTh: 'ยุคที่ 37 ปีที่ 785 · เดือนสิบสองเหมันต์ลึก วันที่ 29 (ศ.ท. 36,785)',
       titleTh: 'ราตรีเสาวาร์ปดับสูญ — การตื่นขึ้นของ "กระเบนมิติกลืนประตู · ซวีอวี๋"',
@@ -189,7 +189,7 @@
     {
       id: 'EVT_E38_07_COLLAPSE_OF_SEVEN_MIRROR_CITADEL',
       eraGroup: 'ERA_35_38',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 37412,
       yearLabelTh: 'ยุคที่ 38 ปีที่ 412 · เดือนสี่คิมหันต์แรก วันที่ 15 (ศ.ท. 37,412)',
       titleTh: 'คืนหอคอยคงเฉิงพับถล่ม — มหาศึกผนึกกระเบนซวีอวี๋ด้วยกระจกเจ็ดบานและโม่หยินหยาง',
@@ -220,7 +220,7 @@
     {
       id: 'EVT_E38_08_TWILIGHT_OF_TWO_REALMS_AND_ECHOING_SEAMS',
       eraGroup: 'ERA_35_38',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 37790,
       yearLabelTh: 'ยุคที่ 38 ปีที่ 790 · เดือนสิบสารทลึก วันที่ 3 (ศ.ท. 37,790)',
       titleTh: 'อัสดงแห่งสองอาณาจักร และศิลาจารึกรอยตะเข็บสุญตา',

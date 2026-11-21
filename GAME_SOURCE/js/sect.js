@@ -7635,25 +7635,44 @@
     if (typeof S.offspringSeq !== 'number') S.offspringSeq = S.offspring.length;
     if (typeof S.timelineSeq !== 'number') S.timelineSeq = S.timeline.length;
 
-    // Seed founding milestone once if timeline is empty
+    // Seed historical Gen-1 founding (#45) + current Gen-7 restoration once if timeline is empty
     if (S.timeline.length === 0) {
-      const founder = (S.masterId && W.byId && W.byId[S.masterId]) || (W.npcs && W.npcs[0]);
-      S.timelineSeq = 1;
+      const curMaster = (S.masterId && W.byId && W.byId[S.masterId]) || (W.npcs && W.npcs[0]);
+      const startGen = Number.isFinite(S.masterGeneration) ? S.masterGeneration : 7;
+      S.timelineSeq = 2;
       S.timeline.push({
         id: 'TL_1',
-        day: 360,
-        year: 1,
+        day: 0,
+        year: 0,
         month: 1,
+        eraLabelTh: 'ยุคที่ 100 ปีที่ 720',
         generation: 1,
         milestoneType: 'FOUNDING',
         typeNameTh: SECT.TIMELINE_TYPES.FOUNDING.nameTh,
         reportFormatTh: '🕯️ จารึกศิลาหอบรรพชน',
-        originCauseTh: 'ปณิธานการบุกเบิกสำนักและวางรากฐานค่ายกลพิทักษ์เขา',
-        systemImpactTh: 'สถาปนาเจ้าสำนักรุ่นที่ 1 · เปิดระบบบริหารสำนักและรับศิษย์รุ่นบุกเบิก',
+        originCauseTh: 'ปรมาจารย์รุ่นที่ 1 (#45) วางศิลาฤกษ์เหนือชีพจรปราณโบราณและทิ้งตราหินเทาไร้ลักษณ์',
+        systemImpactTh: 'ก่อตั้งรากฐานสำนักรุ่นที่ 1 สืบทอดต่อเนื่องถึงรุ่นที่ 7',
         icon: '🏛️',
-        titleTh: 'ก่อตั้ง「' + (S.name || 'สำนักเมฆาหยก') + '」และสถาปนาเจ้าสำนักรุ่นที่ 1',
-        descTh: 'ปรมาจารย์ผู้ก่อตั้ง「' + (founder ? HC.fullName(founder) : 'เจ้าสำนักรุ่นแรก') + '」เปิดค่ายกลพิทักษ์เขาและรับศิษย์รุ่นบุกเบิกเข้าสู่มรรคาเซียน',
-        involvedIds: founder ? [founder.id] : []
+        titleTh: 'ก่อตั้ง「' + (S.name || 'สำนักเมฆาหยก') + '」โดยปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 (#45)',
+        descTh: 'ในยุคที่ 100 ปีที่ 720 ปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 (#45) บุกเบิกยอดเขาอิสระเหนือเชิงเขาชิงซี วางค่ายกลพิทักษ์เขา และมอบตราหินเทาไร้ลักษณ์เป็นสัญลักษณ์สืบทอดสายสำนัก',
+        involvedIds: []
+      });
+      S.timeline.push({
+        id: 'TL_2',
+        day: 360,
+        year: 1,
+        month: 1,
+        eraLabelTh: 'ยุคที่ 101 ปีที่ 1',
+        generation: startGen,
+        milestoneType: 'SUCCESSION',
+        typeNameTh: SECT.TIMELINE_TYPES.SUCCESSION.nameTh,
+        reportFormatTh: '🕯️ จารึกศิลาหอบรรพชน',
+        originCauseTh: 'สืบทอดตราหินเทาไร้ลักษณ์และกระบี่ไม้ท้อจากเจ้าสำนักรุ่นที่ 6 เพื่อฟื้นฟูสำนักในรุ่งอรุณยุคที่ 101',
+        systemImpactTh: 'สถาปนาเจ้าสำนักรุ่นที่ ' + startGen + ' · เปิดยุคสมัยใหม่แห่งการฟื้นฟูสำนัก',
+        icon: '👑',
+        titleTh: 'สถาปนาเจ้าสำนักรุ่นที่ ' + startGen + ': ' + (curMaster ? HC.fullName(curMaster) : 'เจ้าสำนักรุ่นที่ 7'),
+        descTh: 'เจ้าสำนักรุ่นที่ ' + startGen + '「' + (curMaster ? HC.fullName(curMaster) : 'เจ้าสำนักรุ่นที่ 7') + '」รับมอบตราหินเทาไร้ลักษณ์และนำพาศิษย์เริ่มต้นเปิดประตูสำนักฟื้นฟูมรรคาเซียนในยุคที่ 101',
+        involvedIds: curMaster ? [curMaster.id] : []
       });
     }
     return { companions: S.companions, offspring: S.offspring, timeline: S.timeline };
@@ -7667,7 +7686,7 @@
     const cal = (g.SIM && g.SIM.calendar) ? g.SIM.calendar(day * 1440) : { year: Math.floor(day / 360) + 1, month: Math.floor(((day % 360) / 30)) + 1 };
     const mType = (entry.milestoneType && SECT.TIMELINE_TYPES[entry.milestoneType]) ? entry.milestoneType : 'FOUNDING';
     const tDef = SECT.TIMELINE_TYPES[mType];
-    const gen = entry.generation || Math.max(1, ((S.lineage && Array.isArray(S.lineage.successions) ? S.lineage.successions.length : 0) + 1));
+    const gen = entry.generation || Math.max(Number(S.masterGeneration) || 7, 7 + (S.lineage && Array.isArray(S.lineage.successions) ? S.lineage.successions.length : 0));
 
     const defaultFmtByMilestone = {
       FOUNDING: '🕯️ จารึกศิลาหอบรรพชน',
@@ -7719,7 +7738,8 @@
     // Synthesize any succession records not yet in S.timeline
     const succs = (S.lineage && Array.isArray(S.lineage.successions)) ? S.lineage.successions : [];
     succs.forEach((sc, idx) => {
-      const title = 'สถาปนาเจ้าสำนักรุ่นที่ ' + (idx + 2) + ': ' + (sc.toName || 'เจ้าสำนักคนใหม่');
+      const succGen = sc.generation || (7 + idx + 1);
+      const title = 'สถาปนาเจ้าสำนักรุ่นที่ ' + succGen + ': ' + (sc.toName || 'เจ้าสำนักคนใหม่');
       if (!seenTitles.has(title)) {
         seenTitles.add(title);
         const d = sc.day || 360;

@@ -49,7 +49,7 @@
     {
       id: 'EVT_E3_E4_01_ASHES_OF_DAQIAN_AND_SUN_CHARIOT',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 2112,
       yearLabelTh: 'ยุคที่ 3 ปีที่ 112 · เดือนอ้ายวสันต์ วันที่ 9 (ศ.ท. 2,112)',
       titleTh: 'ปฐมล้อสุริยันบนเถ้าถ่านต้าเฉียน — การสถาปนามหาอาณาจักรฉื่อหยางและราชรัฐเหยียนตู',
@@ -71,7 +71,7 @@
     {
       id: 'EVT_E3_E4_02_THREE_FORGES_ACCORD',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 2385,
       yearLabelTh: 'ยุคที่ 3 ปีที่ 385 · เดือนสี่คิมหันต์แรก วันที่ 15 (ศ.ท. 2,385)',
       titleTh: 'สัญญาสามเตาหลอมแห่งสันเขาเพลิง — กำเนิดทวนแสงทองอรุณรุ่งและเกล็ดมังกรเก้าสุริยัน',
@@ -87,7 +87,7 @@
     {
       id: 'EVT_E3_E4_03_WAR_OF_THE_MOLTEN_FORD',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 2690,
       yearLabelTh: 'ยุคที่ 3 ปีที่ 690 · เดือนห้าสุริยัน วันที่ 21 (ศ.ท. 2,690)',
       titleTh: 'มหาศึกท่าข้ามลาวา — ราชรถสุริยันปะทะกำแพงศิลาหลอม และสงครามตัวแทนสามสำนัก',
@@ -109,7 +109,7 @@
     {
       id: 'EVT_E3_E4_04_DUEL_OF_NINE_SUNS_AND_CLOUD_PIERCER',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 2944,
       yearLabelTh: 'ยุคที่ 3 ปีที่ 944 · เดือนแปดใบไม้ร่วง วันที่ 15 (ศ.ท. 2,944)',
       titleTh: 'ประลองเก้าตะวันเหนือปากปล่อง — คืนที่ศรสุริยันเจาะทะลุเตาหลอมมนุษย์',
@@ -125,7 +125,7 @@
     {
       id: 'EVT_E3_E4_05_AWAKENING_OF_CHILIN',
       eraGroup: 'ERA_4',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 3218,
       yearLabelTh: 'ยุคที่ 4 ปีที่ 218 · เดือนหกพิรุณร้อน วันที่ 3 (ศ.ท. 3,218)',
       titleTh: 'กิเลนเพลิงเก้าเขาตื่นนิทรา — เสียงคำรามจากแอ่งเก้าปล่องและสัญญาณวิบัติอุณหภูมิ',
@@ -146,7 +146,7 @@
     {
       id: 'EVT_E3_E4_06_FALL_OF_YANDU_AND_CHARIOT_COLLAPSE',
       eraGroup: 'ERA_4',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 3480,
       yearLabelTh: 'ยุคที่ 4 ปีที่ 480 · เดือนเก้าสารทปลาย วันที่ 27 (ศ.ท. 3,480)',
       titleTh: 'อวสานราชรัฐศิลาหลอมและราชรถล้อหัก — ความพินาศของสองอาณาจักรกลางทะเลเถ้า',
@@ -162,7 +162,7 @@
     {
       id: 'EVT_E3_E4_07_SEALING_THE_NINE_VENTS',
       eraGroup: 'ERA_4',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 3715,
       yearLabelTh: 'ยุคที่ 4 ปีที่ 715 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 18 (ศ.ท. 3,715)',
       titleTh: 'ศึกปิดเก้าปล่องลาวา — พันธมิตรหักทิฐิของสามสำนักและทั่งเหล็กสะกดเพลิง',
@@ -183,7 +183,7 @@
     {
       id: 'EVT_E3_E4_08_SCATTERING_OF_THE_SUN_FORGES',
       eraGroup: 'ERA_4',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 3890,
       yearLabelTh: 'ยุคที่ 4 ปีที่ 890 · เดือนสิบสองเหมันต์ลึก วันที่ 29 (ศ.ท. 3,890)',
       titleTh: 'ปิดม่านยุคเตาหลอมสุริยัน — การสลายตัวของสามสำนักและมรดกที่รอผู้สืบทอด',

@@ -86,7 +86,7 @@
     {
       id: 'EVT_E26L_01_ASHEN_CONCLAVE',
       eraGroup: 'ERA_26_LATE',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25512,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 512 (24 ปีหลังคืนวิบัติ)',
       titleTh: 'การชุมนุมใต้ต้นสนหัก — วันที่ผู้รอดชีวิตอวี้จิงแยกทางเป็นสามสาย',
@@ -100,7 +100,7 @@
     {
       id: 'EVT_E26L_02_FOUNDING_AZURE_BRUSH',
       eraGroup: 'ERA_26_LATE',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25535,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 535',
       titleTh: 'ปฐมตวัดพู่กันฟ้าคราม — กำเนิด "ศาลาค่ายกลพู่กันฟ้าคราม" และศาสตร์ค่ายกลแยกส่วน',
@@ -114,7 +114,7 @@
     {
       id: 'EVT_E26L_03_SHEN_CLAN_TRAGEDY',
       eraGroup: 'ERA_26_LATE',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25560,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 560',
       titleTh: 'คืนล่าล้างตระกูลเสิ่น และปริศนา "พ่อค้าหน้ากากไม้" ผู้นำดักแด้มาขาย',
@@ -128,7 +128,7 @@
     {
       id: 'EVT_E26L_04_INK_OATH_SHADOW_WAR',
       eraGroup: 'ERA_26_LATE',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25645,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 645',
       titleTh: 'สงครามเงาหมึกทมิฬ — ศึกตัดสินระหว่างศิษย์พี่น้องผู้รอดชีวิต',
@@ -142,7 +142,7 @@
     {
       id: 'EVT_E26L_05_SIEGE_OF_AZURE_BRUSH',
       eraGroup: 'ERA_26_LATE',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25790,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 790',
       titleTh: 'ศึกทลายค่ายกลสามสำนักผาหินคราม — วันที่ศาลาค่ายกลพู่กันฟ้าครามผงาดเป็น "สำนักมหาอำนาจ"',
@@ -156,7 +156,7 @@
     {
       id: 'EVT_E26L_06_THE_SEALED_LEDGER',
       eraGroup: 'ERA_26_LATE',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25940,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 940 (ปลายยุคที่ 26)',
       titleTh: 'คำสัตย์ปิดผนึกสมุดสิบสี่รัชทายาท — จุดเริ่มต้นความลับเจ็ดสิบห้ายุค',

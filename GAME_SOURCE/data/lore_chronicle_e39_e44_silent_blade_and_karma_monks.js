@@ -54,7 +54,7 @@
     {
       id: 'EVT_E39_01_IRON_SHEATH_AWAKENING',
       eraGroup: 'ERA_39_44',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 38019,
       yearLabelTh: 'ยุคที่ 39 ปีที่ 19 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 7 (ศ.ท. 38,019)',
       titleTh: 'หนึ่งคมดาบไร้ปราณใต้ลมเกลือ — กำเนิดสำนักดาบเหล็กไร้ปราณรุ่นปฐม',
@@ -72,7 +72,7 @@
     {
       id: 'EVT_E40_02_SIX_PATHS_KARMA_FOUNDING',
       eraGroup: 'ERA_39_44',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 39412,
       yearLabelTh: 'ยุคที่ 40 ปีที่ 412 · เดือนสี่คิมหันต์แรก วันที่ 15 (ศ.ท. 39,412)',
       titleTh: 'เสียงระฆังหกภพกลางทุ่งบัวทอง — สถาปนาวิหารกงล้อหกภพและสมุดบัญชีกรรม',
@@ -89,7 +89,7 @@
     {
       id: 'EVT_E40_03_RUST_PATINA_FORGING',
       eraGroup: 'ERA_39_44',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 39880,
       yearLabelTh: 'ยุคที่ 40 ปีที่ 880 · เดือนแปดใบไม้ร่วง วันที่ 23 (ศ.ท. 39,880)',
       titleTh: 'เตาหลอมลมเค็มและคราบสนิมศักดิ์สิทธิ์ — กำเนิดชุดสนิมเหล็กเก๋าผ่านศึก',
@@ -106,7 +106,7 @@
     {
       id: 'EVT_E41_04_SILENT_HUNDRED_PACES_DUEL',
       eraGroup: 'ERA_39_44',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 40615,
       yearLabelTh: 'ยุคที่ 41 ปีที่ 615 · เดือนเก้าสารทปลาย วันที่ 9 (ศ.ท. 40,615)',
       titleTh: 'การประลองร้อยก้าวไร้เสียง — ดาบอ่านช่องฟ้าและจังหวะกาลปะทะกงล้อหกภพ',
@@ -128,7 +128,7 @@
     {
       id: 'EVT_E42_05_DONGYA_JINLIAN_WAR',
       eraGroup: 'ERA_39_44',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 41320,
       yearLabelTh: 'ยุคที่ 42 ปีที่ 320 · เดือนห้าสุริยัน วันที่ 11 (ศ.ท. 41,320)',
       titleTh: 'ศึกชิงอ่าวเหล็กไหลและคลองบัวทอง — สงครามราชสำนักตงหยาปะทะจินเหลียน',
@@ -144,7 +144,7 @@
     {
       id: 'EVT_E42_06_FALL_OF_TWO_REALMS',
       eraGroup: 'ERA_39_44',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 41955,
       yearLabelTh: 'ยุคที่ 42 ปีที่ 955 · เดือนสิบสองเหมันต์ลึก วันที่ 28 (ศ.ท. 41,955)',
       titleTh: 'ผาถล่มและอุทกภัยบัวร่วง — กาลอวสานของแคว้นตงหยาและราชรัฐจินเหลียน',
@@ -161,7 +161,7 @@
     {
       id: 'EVT_E43_07_SCHISM_OF_IRON_AND_LOTUS',
       eraGroup: 'ERA_39_44',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 42740,
       yearLabelTh: 'ยุคที่ 43 ปีที่ 740 · เดือนหกพิรุณร้อน วันที่ 19 (ศ.ท. 42,740)',
       titleTh: 'ศึกสำนักโซ่กรรมมืด — เมื่อสมุดบัญชีกรรมถูกบิดเบือนเป็นเครื่องมือล่าสังหาร',
@@ -178,7 +178,7 @@
     {
       id: 'EVT_E44_08_SEALING_OF_SKY_GAP_STELE',
       eraGroup: 'ERA_39_44',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 43888,
       yearLabelTh: 'ยุคที่ 44 ปีที่ 888 · เดือนอ้ายวสันต์ วันที่ 1 (ศ.ท. 43,888)',
       titleTh: 'ปลดป้ายสำนักคืนสู่สายลม — ผนึก "ศิลาจารึกช่องฟ้า" รอคอยผู้มีวาสนา',

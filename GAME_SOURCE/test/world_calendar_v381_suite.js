@@ -6,8 +6,8 @@ console.log('=== JS2 v3.8.1 — Formal World Calendar & 1,000-Year Epoch System 
 
 // [1/5] Version, Schema & Backward-Compatible 3.8.0 Save Hydration
 {
-  assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.4');
-  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.4-grand-lore-44books-canon-events');
+  assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.6');
+  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.6-90book-grand-lore-archive');
   const W = g.SIM.create('v381_cal');
   const snap = JSON.parse(g.SIM.serialize(W));
   snap.schemaVersion = '3.8.0-master-lore-compendium';
@@ -37,11 +37,11 @@ console.log('=== JS2 v3.8.1 — Formal World Calendar & 1,000-Year Epoch System 
   assert.strictEqual(c0.month, 1);
   assert.strictEqual(c0.dom, 1);
   assert.strictEqual(c0.monthNameTh, 'เดือนอ้ายวสันต์');
-  const cNextYear = g.SIM.calendar(360 * 1440);
+  const cNextYear = g.SIM.calendar((360 + 360) * 1440);
   assert.strictEqual(cNextYear.epoch, 101);
   assert.strictEqual(cNextYear.yearInEpoch, 2);
   // Check epoch rollover: 1000 years later -> Epoch 102 Year 1
-  const cRollover = g.SIM.calendar(1000 * 360 * 1440);
+  const cRollover = g.SIM.calendar((360 + 1000 * 360) * 1440);
   assert.strictEqual(cRollover.epoch, 102);
   assert.strictEqual(cRollover.yearInEpoch, 1);
   assert(g.SIM.dateText(0).includes('ยุคที่ 101 ปีที่ 1'), 'SIM.dateText must format compact epoch + year');

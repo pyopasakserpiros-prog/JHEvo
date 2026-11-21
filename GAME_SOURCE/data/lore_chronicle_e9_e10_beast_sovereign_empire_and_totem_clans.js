@@ -41,7 +41,7 @@
     {
       id: 'EVT_E9_E10_01_HUANGYE_BLOOD_PACT',
       eraGroup: 'ERA_9',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 8045,
       yearLabelTh: 'ยุคที่ 9 ปีที่ 45 · เดือนอ้ายวสันต์ วันที่ 15 (ศ.ท. 8,045)',
       titleTh: 'แท่นศิลาหลั่งโลหิตแห่งทุ่งหญ้าแดง — ปฐมบทจักรวรรดิหวงเย่และสนธิสัญญาทุ่งล่าหมื่นลี้',
@@ -57,7 +57,7 @@
     {
       id: 'EVT_E9_E10_02_DRAGON_BONE_CONFEDERACY',
       eraGroup: 'ERA_9',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 8320,
       yearLabelTh: 'ยุคที่ 9 ปีที่ 320 · เดือนสามวสันต์ปลาย วันที่ 9 (ศ.ท. 8,320)',
       titleTh: 'ธงกระดูกมังกรชางหลงและสำนักจำแลงจตุรอสูร — ขั้วตรงข้ามแห่งศรัทธาสายเลือด',
@@ -73,7 +73,7 @@
     {
       id: 'EVT_E9_E10_03_TIGER_DRUM_AND_COLLAR',
       eraGroup: 'ERA_9',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 8680,
       yearLabelTh: 'ยุคที่ 9 ปีที่ 680 · เดือนห้าสุริยัน วันที่ 12 (ศ.ท. 8,680)',
       titleTh: 'กลองหนังพยัคฆ์ขาวและปลอกคอพันธะเลือดเก้าข้อ — รอยร้าวแห่งมหานิกายหมื่นอสูร',
@@ -89,7 +89,7 @@
     {
       id: 'EVT_E9_E10_04_TWIN_FRONTS_STEPPE_WAR',
       eraGroup: 'ERA_10',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 9015,
       yearLabelTh: 'ยุคที่ 10 ปีที่ 15 · เดือนแปดใบไม้ร่วง วันที่ 18 (ศ.ท. 9,015)',
       titleTh: 'สงครามสองสมรภูมิแห่งทุ่งกระดูกมังกร — ทัพอาณาจักรปะทะอาณาจักร สำนักประลองสำนัก',
@@ -105,7 +105,7 @@
     {
       id: 'EVT_E9_E10_05_DEVOURING_CULT_HERESY',
       eraGroup: 'ERA_10',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 9240,
       yearLabelTh: 'ยุคที่ 10 ปีที่ 240 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 24 (ศ.ท. 9,240)',
       titleTh: 'คืนบ่อโลหิตเขมือบสุสาน — ความคลุ้มคลั่งของลัทธิกลืนเลือดเนื้อบรรพกาล',
@@ -121,7 +121,7 @@
     {
       id: 'EVT_E9_E10_06_AWAKENING_OF_JUYUAN',
       eraGroup: 'ERA_10',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 9410,
       yearLabelTh: 'ยุคที่ 10 ปีที่ 410 · เดือนสี่คิมหันต์แรก วันที่ 7 (ศ.ท. 9,410)',
       titleTh: 'เสียงคำรามสะกดหมื่นพันธะ — การตื่นขึ้นของพญาวานรศิลาทลายเมฆ จวี๋หยวน',
@@ -137,7 +137,7 @@
     {
       id: 'EVT_E9_E10_07_SHATTERING_OF_THE_DRUM_AND_FALL',
       eraGroup: 'ERA_10',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 9635,
       yearLabelTh: 'ยุคที่ 10 ปีที่ 635 · เดือนสิบสองเหมันต์ลึก วันที่ 19 (ศ.ท. 9,635)',
       titleTh: 'ศึกยอดผาเมฆาแตกและการฉีกขาดของกลองพยัคฆ์ขาว — อวสานสามมหาสำนักแห่งยุค',
@@ -153,7 +153,7 @@
     {
       id: 'EVT_E9_E10_08_TWILIGHT_OF_TOTEM_EMPIRES',
       eraGroup: 'ERA_10',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 9920,
       yearLabelTh: 'ยุคที่ 10 ปีที่ 920 · เดือนยี่บุปผา วันที่ 28 (ศ.ท. 9,920)',
       titleTh: 'สนธยาแห่งจักรวรรดิพันธะอสูรและมรดกโทเท็มที่หลับใหล',

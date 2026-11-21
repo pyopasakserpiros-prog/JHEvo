@@ -48,7 +48,7 @@
     {
       id: 'EVT_E26_01_RISE_OF_YUJING',
       eraGroup: 'ERA_26',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25110,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 110 (ศ.ท. 25,110)',
       titleTh: 'กำเนิดมหานิกายอวี้จิง และกลยุทธ์ "สำนักบ่มเพาะว่าที่กษัตริย์"',
@@ -62,7 +62,7 @@
     {
       id: 'EVT_E26_02_LETTER_THAT_STOPPED_WAR',
       eraGroup: 'ERA_26',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25340,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 340 (ศ.ท. 25,340)',
       titleTh: 'จดหมายหยกหนึ่งฉบับหยุดทัพสามแสน — จุดสูงสุดของอำนาจเหนือราชสำนัก',
@@ -76,7 +76,7 @@
     {
       id: 'EVT_E26_03_THE_INK_COCOON_TRIBUTE',
       eraGroup: 'ERA_26',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25488,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 488 · เดือน 4 วันที่ 14 (หนึ่งวันก่อนงานชุมนุมใหญ่)',
       titleTh: 'บรรณาการดักแด้หยกหมึก — ของขวัญต้องคำสาปจากหุบเหวโบราณ',
@@ -90,7 +90,7 @@
     {
       id: 'EVT_E26_04_NIGHT_OF_SEVERED_OATHS',
       eraGroup: 'ERA_26',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25488,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 488 · เดือน 4 วันที่ 15 (คืนเดียวที่นิกายล่มสลาย)',
       titleTh: 'ราตรีพันธะขาดสะบั้น — คืนที่ผีเสื้อราตรีโม่หมิงล้างบางนิกายอวี้จิง',
@@ -104,7 +104,7 @@
     {
       id: 'EVT_E26_05_SHOCKWAVE_ACROSS_FOURTEEN_COURTS',
       eraGroup: 'ERA_26',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 25489,
       yearLabelTh: 'ยุคที่ 26 ปีที่ 489 (หนึ่งปีหลังคืนวิบัติ)',
       titleTh: 'คลื่นสุญญากาศแห่งสิบสี่ราชสำนัก — เมื่อรัชทายาทสิ้นชีพพร้อมกันในคืนเดียว',

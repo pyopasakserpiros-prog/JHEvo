@@ -57,7 +57,7 @@
     Object.freeze({
       id: 'EVT_E60_E62_01_PLUM_SNOW_OATH_AND_ZEN_SETS',
       eraGroup: 'ERA_60',
-      eraId: 'E60_E62',
+      eraId: 'ERA_3_MIDDLE_EPOCHS',
       worldYear: 59115,
       yearLabelTh: 'ยุคที่ 60 ปีที่ 115 · เดือนอ้ายวสันต์ วันที่ 14 (ศ.ท. 59,115)',
       titleTh: 'สุราอุ่นใต้เงาเหมยหิมะ — คำสัตย์สามสหายและการทอชุดปราชญ์เซนสุญตา',
@@ -87,7 +87,7 @@
     Object.freeze({
       id: 'EVT_E60_E62_02_LINGXI_ONE_FINGER_AT_MIRROR_LAKE',
       eraGroup: 'ERA_60',
-      eraId: 'E60_E62',
+      eraId: 'ERA_3_MIDDLE_EPOCHS',
       worldYear: 59480,
       yearLabelTh: 'ยุคที่ 60 ปีที่ 480 · เดือนสี่ต้นคิมหันต์ วันที่ 9 (ศ.ท. 59,480)',
       titleTh: 'ดัชนีใจสื่อใจสกัดพันคมกลางบึงกระจกฟ้า — สยบสามสิบหกกระบี่ไร้เลือด',
@@ -114,7 +114,7 @@
     Object.freeze({
       id: 'EVT_E60_E62_03_FENGLING_VS_YUEYING_STORM_AND_MOON_WAR',
       eraGroup: 'ERA_60',
-      eraId: 'E60_E62',
+      eraId: 'ERA_3_MIDDLE_EPOCHS',
       worldYear: 59890,
       yearLabelTh: 'ยุคที่ 60 ปีที่ 890 · เดือนเจ็ดสารทแรก วันที่ 21 (ศ.ท. 59,890)',
       titleTh: 'ศึกพัดมรสุมปะทะธนูเงาจันทร์ — สงครามสัมปทานแร่หยกสุญตาสองแคว้น',
@@ -141,7 +141,7 @@
     Object.freeze({
       id: 'EVT_E60_E62_04_QIANKUN_SHIFT_COMPLETION_AND_VOID_NEEDLES',
       eraGroup: 'ERA_61',
-      eraId: 'E60_E62',
+      eraId: 'ERA_3_MIDDLE_EPOCHS',
       worldYear: 60240,
       yearLabelTh: 'ยุคที่ 61 ปีที่ 240 · เดือนห้าสุริยัน วันที่ 5 (ศ.ท. 60,240)',
       titleTh: 'เคล็ดเคลื่อนย้ายจักรวาลพลิกผันสมบูรณ์ — และกำเนิดเข็มสุญตาแทรกมิติเจ็ดเล่ม',
@@ -166,7 +166,7 @@
     Object.freeze({
       id: 'EVT_E60_E62_05_GREAT_THREE_PATH_DUEL_AT_CLOUD_TERRACE',
       eraGroup: 'ERA_61',
-      eraId: 'E60_E62',
+      eraId: 'ERA_3_MIDDLE_EPOCHS',
       worldYear: 60660,
       yearLabelTh: 'ยุคที่ 61 ปีที่ 660 · เดือนแปดใบไม้ร่วง วันที่ 15 (ศ.ท. 60,660)',
       titleTh: 'ศึกประลองตัดสินฟ้าดินคืนเพ็ญสารท — มีดบินไร้พลาด ดัชนีใจสื่อใจ และเฉียนคุนพลิกผัน',
@@ -196,7 +196,7 @@
     Object.freeze({
       id: 'EVT_E60_E62_06_BIRTH_AND_CORRUPTION_OF_XINREN_AUTOMATON',
       eraGroup: 'ERA_62',
-      eraId: 'E60_E62',
+      eraId: 'ERA_3_MIDDLE_EPOCHS',
       worldYear: 61310,
       yearLabelTh: 'ยุคที่ 62 ปีที่ 310 · เดือนสิบเอ็ดเหมันต์หนาว วันที่ 27 (ศ.ท. 61,310)',
       titleTh: 'คืนวิปโยคหอเฉียนคุน — การตื่นขึ้นของหุ่นกระจกสะท้อนจิตมีดบิน · ซินเริ่น',
@@ -224,7 +224,7 @@
     Object.freeze({
       id: 'EVT_E60_E62_07_VANISHING_OF_NEEDLES_AND_TEMPEST_FAN',
       eraGroup: 'ERA_62',
-      eraId: 'E60_E62',
+      eraId: 'ERA_3_MIDDLE_EPOCHS',
       worldYear: 61720,
       yearLabelTh: 'ยุคที่ 62 ปีที่ 720 · เดือนเก้าปลายสารท วันที่ 18 (ศ.ท. 61,720)',
       titleTh: 'คืนพายุกลืนท่าเรือ — เข็มสุญตาและพัดพยากรณ์มรสุมสาบสูญสู่ตลาดมืดยุค 63',
@@ -251,7 +251,7 @@
     Object.freeze({
       id: 'EVT_E60_E62_08_SEALING_OF_XINREN_AND_TWILIGHT_OF_THREE_SECTS',
       eraGroup: 'ERA_62',
-      eraId: 'E60_E62',
+      eraId: 'ERA_3_MIDDLE_EPOCHS',
       worldYear: 61940,
       yearLabelTh: 'ยุคที่ 62 ปีที่ 940 · เดือนสิบสองเหมันต์ลึก วันที่ 29 (ศ.ท. 61,940)',
       titleTh: 'ผนึกกระจกด้วยจิตไร้คม — บทส่งท้ายสามสำนักและการหลับใหลของซินเริ่น',

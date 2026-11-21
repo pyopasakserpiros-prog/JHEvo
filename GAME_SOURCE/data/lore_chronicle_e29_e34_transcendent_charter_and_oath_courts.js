@@ -52,7 +52,7 @@
     {
       id: 'EVT_E29_01_CHARTER_OF_NINE_SCALES',
       eraGroup: 'ERA_29',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 28515,
       yearLabelTh: 'ยุคที่ 29 ปีที่ 515 · เดือนอ้ายวสันต์ วันที่ 15 (ศ.ท. 28,515)',
       titleTh: 'ธรรมนูญเก้าตาชั่ง ณ ชายขอบหุบเขาเงียบงัน — กำเนิดศาลธรรมนูญสัตย์สาบานและหอกุญแจทั้งเก้า',
@@ -67,7 +67,7 @@
     {
       id: 'EVT_E30_02_RISE_OF_YINHENG_AND_JINYU',
       eraGroup: 'ERA_30',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 29208,
       yearLabelTh: 'ยุคที่ 30 ปีที่ 208 · เดือนสี่คิมหันต์ต้น วันที่ 9 (ศ.ท. 29,208)',
       titleTh: 'กำเนิดราชอาณาจักรตราชั่งเงินอิ๋นเหิง และสหพันธ์แคว้นสัญญาจินอวี้',
@@ -82,7 +82,7 @@
     {
       id: 'EVT_E31_03_TWIN_STAR_AND_ARCHIVIST_FORGING',
       eraGroup: 'ERA_31',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 30142,
       yearLabelTh: 'ยุคที่ 31 ปีที่ 142 · เดือนเจ็ดสารทต้น วันที่ 21 (ศ.ท. 30,142)',
       titleTh: 'หอจดหมายเหตุเมฆาขาว และกำเนิด "ชุดอาลักษณ์บันทึกวีรกรรม" กับ "ชุดดาราคู่พันธะนิรันดร์"',
@@ -97,7 +97,7 @@
     {
       id: 'EVT_E31_04_SILVER_AND_JADE_TARIFF_WAR',
       eraGroup: 'ERA_31',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 30864,
       yearLabelTh: 'ยุคที่ 31 ปีที่ 864 · เดือนเก้าสารทลึก วันที่ 3 (ศ.ท. 30,864)',
       titleTh: 'สงครามภาษีเงินตราและยุทธการสามด่านจินอิ๋นระหว่างสองราชสำนัก',
@@ -112,7 +112,7 @@
     {
       id: 'EVT_E32_05_MOQI_HERESY_AND_STOLEN_KEYS',
       eraGroup: 'ERA_32',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 31419,
       yearLabelTh: 'ยุคที่ 32 ปีที่ 419 · เดือนสิบเหมันต์ต้น วันที่ 28 (ศ.ท. 31,419)',
       titleTh: 'กบฏสำนักพันธะหวนคืน (ม่อชี่เหมิน) และการโจรกรรมกุญแจดอกที่สามกับดอกที่เจ็ด',
@@ -127,7 +127,7 @@
     {
       id: 'EVT_E33_06_WAR_OF_THE_EQUAL_GROUND',
       eraGroup: 'ERA_33',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 32305,
       yearLabelTh: 'ยุคที่ 33 ปีที่ 305 · เดือนหกคิมหันต์ลึก วันที่ 12 (ศ.ท. 32,305)',
       titleTh: 'มหาสงครามลานเสมอภาค — พิพากษาสำนักม่อชี่เหมิน ณ หุบผาร้อยศิลา',
@@ -142,7 +142,7 @@
     {
       id: 'EVT_E34_07_COLLAPSE_OF_YINHENG_AND_JINYU',
       eraGroup: 'ERA_34',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 33290,
       yearLabelTh: 'ยุคที่ 34 ปีที่ 290 · เดือนสิบเอ็ดเหมันต์กลาง วันที่ 6 (ศ.ท. 33,290)',
       titleTh: 'ตราชั่งเงินหักสะบั้นและสัญญาจินอวี้แตกสลาย — อวสานสองมหาอำนาจราชสำนัก',
@@ -157,7 +157,7 @@
     {
       id: 'EVT_E34_08_SEALING_OF_PANGUANSHI_VAULT',
       eraGroup: 'ERA_34',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 33772,
       yearLabelTh: 'ยุคที่ 34 ปีที่ 772 · เดือนสิบสองเหมันต์ลึก วันที่ 30 (ศ.ท. 33,772)',
       titleTh: 'คืนสิ้นปีแห่งการปิดผนึกหอเก้ากุญแจ และกำเนิด "ตุลาการศิลาไร้หน้า · พ่านกวนสือ"',

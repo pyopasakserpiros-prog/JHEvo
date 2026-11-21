@@ -51,7 +51,7 @@
     {
       id: 'EVT_E15_E17_01_EDICT_OF_HUNDRED_INCENSE',
       eraGroup: 'ERA_15_17',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 14180,
       yearLabelTh: 'ยุคที่ 15 ปีที่ 180 · เดือนอ้ายวสันต์ วันที่ 15 (ศ.ท. 14,180)',
       titleTh: 'กฤษฎีกาธูปศรัทธาร้อยนคร และกำเนิดกำแพงเหล็กเถี่ยกวน',
@@ -65,7 +65,7 @@
     {
       id: 'EVT_E15_E17_02_PAGODA_SCHISM',
       eraGroup: 'ERA_15_17',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 14642,
       yearLabelTh: 'ยุคที่ 15 ปีที่ 642 · เดือนหกคิมหันต์ปลาย วันที่ 8 (ศ.ท. 14,642)',
       titleTh: 'มหาสังฆเภทเจดีย์ธาตุเก้าชั้น — รอยร้าวระหว่างเมตตาไร้ควันธูปกับศรัทธาอัญเชิญ',
@@ -79,7 +79,7 @@
     {
       id: 'EVT_E15_E17_03_VESSEL_HARVEST_AND_SCALE_TRIAL',
       eraGroup: 'ERA_15_17',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 15118,
       yearLabelTh: 'ยุคที่ 16 ปีที่ 118 · เดือนเก้าสารทปลาย วันที่ 21 (ศ.ท. 15,118)',
       titleTh: 'คืนคัดเลือกภาชนะศรัทธา และการไต่สวนแห่งตราชั่งวิญญาณทองสัมฤทธิ์',
@@ -93,7 +93,7 @@
     {
       id: 'EVT_E15_E17_04_IRON_WALL_VS_GOLDEN_BANNERS',
       eraGroup: 'ERA_15_17',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 15455,
       yearLabelTh: 'ยุคที่ 16 ปีที่ 455 · เดือนสิบเอ็ดเหมันต์กลาง วันที่ 3 (ศ.ท. 15,455)',
       titleTh: 'สงครามปราการเหล็กกับธงทองเสินตู — ยุทธการทุ่งเถ้าไร้ควัน',
@@ -107,7 +107,7 @@
     {
       id: 'EVT_E15_E17_05_SIEGE_OF_GOLDEN_SCALE_HALL',
       eraGroup: 'ERA_15_17',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 15789,
       yearLabelTh: 'ยุคที่ 16 ปีที่ 789 · เดือนสี่คิมหันต์ต้น วันที่ 19 (ศ.ท. 15,789)',
       titleTh: 'ศึกถล่มหอสื่อเทวบัญญัติตราชั่งทอง และเพลิงผลาญภพเหนือสันเขา',
@@ -121,7 +121,7 @@
     {
       id: 'EVT_E15_E17_06_AWAKENING_OF_SHIJIN',
       eraGroup: 'ERA_15_17',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 16112,
       yearLabelTh: 'ยุคที่ 17 ปีที่ 112 · เดือนเจ็ดสารทต้น วันที่ 15 (ศ.ท. 16,112)',
       titleTh: 'ค่ำคืนราชสีห์หินลืมตา — กำเนิด "ราชสีห์ศรัทธาแปรปรวน · ซือจิน"',
@@ -135,7 +135,7 @@
     {
       id: 'EVT_E15_E17_07_FALL_OF_NINE_TIER_PAGODA_AND_SEALING',
       eraGroup: 'ERA_15_17',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 16385,
       yearLabelTh: 'ยุคที่ 17 ปีที่ 385 · เดือนสิบสองเหมันต์ลึก วันที่ 29 (ศ.ท. 16,385)',
       titleTh: 'ศึกดับแท่นธูปเก้าทิศ และมหาสละชีพปิดเจดีย์ธาตุเก้าชั้น',
@@ -149,7 +149,7 @@
     {
       id: 'EVT_E15_E17_08_ASHES_OF_THEOCRACY_AND_RUSTED_BASTION',
       eraGroup: 'ERA_15_17',
-      eraId: 'ERA_2_ANCIENT_BLOOM',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 16740,
       yearLabelTh: 'ยุคที่ 17 ปีที่ 740 · เดือนสามวสันต์ปลาย วันที่ 10 (ศ.ท. 16,740)',
       titleTh: 'อวสานเทวราชเสินตู ปราการเหล็กเถี่ยกวนที่ร้างไร้ศัตรู และพันธสัญญาเถ้าธูปเย็น',

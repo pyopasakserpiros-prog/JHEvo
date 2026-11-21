@@ -20,7 +20,7 @@
     status: 'STANDALONE_UNBUNDLED_DRAFT',
     titleTh: 'มหากาพย์ยุคที่ 18–22: "เจ็ดกองเรือฝ่าทะเลหมอก และวิถีจอมพายุแห่งน่านน้ำใต้"',
     eraGroup: 'ERA_3',
-    eraId: 'ERA_3_MIDDLE_EPOCHS',
+    eraId: 'ERA_2_POST_TIANGU_CHAOS',
     eraSpanTh: 'ยุคที่ 18 ปีที่ 402 – ยุคที่ 22 ปีที่ 109 (ศ.ท. 17,402 – 21,109 · ช่วงเวลายาวนาน 3,707 ปี)',
     startWorldYear: 17402,
     endWorldYear: 21109,
@@ -54,7 +54,7 @@
     {
       id: 'EVT_E18_01_CHARTER_OF_LONGWAN_AND_PEARL_ISLE',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 17402,
       yearLabelTh: 'ยุคที่ 18 ปีที่ 402 · เดือนอ้ายวสันต์ วันที่ 15 (ศ.ท. 17,402)',
       titleTh: 'ปฐมสัญญาอ่าวหลงวาน — กำเนิดสมาพันธ์นาวาสมุทรไห่หลง และสองสำนักแห่งน่านน้ำใต้',
@@ -93,7 +93,7 @@
     {
       id: 'EVT_E19_02_WHITE_SALT_WAR_AND_FERRY_PACT',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 18188,
       yearLabelTh: 'ยุคที่ 19 ปีที่ 188 · เดือนเจ็ดสารทต้น วันที่ 9 (ศ.ท. 18,188)',
       titleTh: 'สงครามภาษีเกลือขาวแห่งเกาะไข่มุกหนานจู — และกำเนิดวิถีตำนาน "จอมคาราวานหยก"',
@@ -131,7 +131,7 @@
     {
       id: 'EVT_E19_03_SCHISM_OF_BEACON_AND_HELM',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 18745,
       yearLabelTh: 'ยุคที่ 19 ปีที่ 745 · เดือนเก้าสารทปลาย วันที่ 22 (ศ.ท. 18,745)',
       titleTh: 'ศึกประลองหางเสือปะทะแสงประภาคาร — ความแตกแยกของยุทธภพแดนใต้เหนือโขดหินเฮยเจียว',
@@ -169,7 +169,7 @@
     {
       id: 'EVT_E20_04_LAUNCH_OF_SEVEN_FOG_FLEETS',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 19312,
       yearLabelTh: 'ยุคที่ 20 ปีที่ 312 · เดือนสี่คิมหันต์ต้น วันที่ 1 (ศ.ท. 19,312)',
       titleTh: 'ปฐมฤกษ์เจ็ดกองเรือฝ่าทะเลหมอก — มหาขบวนสำเภามังกรสู่น่านน้ำนิรันดร์',
@@ -207,7 +207,7 @@
     {
       id: 'EVT_E20_05_RETURN_OF_THE_THIRD_FLEET_TIME_DRIFT',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 19323,
       yearLabelTh: 'ยุคที่ 20 ปีที่ 323 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 14 (ศ.ท. 19,323)',
       titleTh: 'การหวนคืนอันน่าสะพรึงของกองเรือที่สาม — สี่สิบเจ็ดวันในสมุดปูมเรือ กับสิบเอ็ดปีบนแผ่นดิน',
@@ -251,7 +251,7 @@
     {
       id: 'EVT_E21_06_AWAKENING_OF_WUBIAN_BONE_WHALE',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 20094,
       yearLabelTh: 'ยุคที่ 21 ปีที่ 94 · เดือนห้าสุริยัน วันที่ 27 (ศ.ท. 20,094)',
       titleTh: 'วาฬกระดูกหมอกหลงทิศตื่นนิทรา — และกำเนิดวิถีตำนาน "จอมพายุบัญชาฟ้า"',
@@ -291,7 +291,7 @@
     {
       id: 'EVT_E21_07_FALL_OF_HAILONG_AND_BAIYAN',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 20680,
       yearLabelTh: 'ยุคที่ 21 ปีที่ 680 · เดือนสิบสองเหมันต์ลึก วันที่ 18 (ศ.ท. 20,680)',
       titleTh: 'คืนหอประภาคารดับแสง — การล่มสลายของสมาพันธ์ไห่หลง ราชรัฐเกลือขาว และสำนักนายท้ายมังกรคลื่น',
@@ -328,7 +328,7 @@
     {
       id: 'EVT_E22_08_LAST_CHART_OF_THE_FOG_EDGE',
       eraGroup: 'ERA_3',
-      eraId: 'ERA_3_MIDDLE_EPOCHS',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 21109,
       yearLabelTh: 'ยุคที่ 22 ปีที่ 109 · เดือนสามวสันต์ปลาย วันที่ 30 (ศ.ท. 21,109)',
       titleTh: 'แผนที่ฉบับสุดท้ายแห่งขอบทะเลหมอก — คำสัตย์ปิดน่านน้ำลึกและมรดกสองวิถีตำนาน',

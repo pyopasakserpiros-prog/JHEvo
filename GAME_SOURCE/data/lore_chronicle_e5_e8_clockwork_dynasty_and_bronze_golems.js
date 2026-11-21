@@ -38,7 +38,7 @@
     {
       id: 'EVT_E5_E8_01_XUANJI_FOUNDING',
       eraGroup: 'ERA_5',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 4210,
       yearLabelTh: 'ยุคที่ 5 ปีที่ 210 · เดือนห้าสุริยัน วันที่ 9 (ศ.ท. 4,210)',
       titleTh: 'ปล่องแร่สำริดตะวันตก — ปฐมบทจักรวรรดิเฟืองดาราเสวียนจีและสัญญาสัมปทานเทียนกง',
@@ -54,7 +54,7 @@
     {
       id: 'EVT_E5_E8_02_CONCESSION_WAR',
       eraGroup: 'ERA_5',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 4890,
       yearLabelTh: 'ยุคที่ 5 ปีที่ 890 · เดือนแปดใบไม้ร่วง วันที่ 18 (ศ.ท. 4,890)',
       titleTh: 'สงครามสองสมรภูมิแห่งทุ่งทรายแดง — ราชสำนักรบราชสำนัก สำนักรบสำนัก',
@@ -70,7 +70,7 @@
     {
       id: 'EVT_E5_E8_03_BIRTH_OF_TAI_SUI_JI',
       eraGroup: 'ERA_6',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 5520,
       yearLabelTh: 'ยุคที่ 6 ปีที่ 520 · เดือนอ้ายวสันต์ วันที่ 3 (ศ.ท. 5,520)',
       titleTh: 'กำเนิดไท่สุ่ยจี — หุ่นยักษ์สำริดสามสิบหกจั้งผู้เดินตามชีพจรดารา',
@@ -86,7 +86,7 @@
     {
       id: 'EVT_E5_E8_04_SHATTERED_GEAR_VALLEY',
       eraGroup: 'ERA_7',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 6180,
       yearLabelTh: 'ยุคที่ 7 ปีที่ 180 · เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 24 (ศ.ท. 6,180)',
       titleTh: 'ยุทธการหุบเขาเฟืองแตก — อวสานแคว้นศิลาทรายหวงซาและหอถ่วงดาราแตกทัพ',
@@ -102,7 +102,7 @@
     {
       id: 'EVT_E5_E8_05_NIGHT_OF_MADDENED_GEARS',
       eraGroup: 'ERA_7',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 6740,
       yearLabelTh: 'ยุคที่ 7 ปีที่ 740 · เดือนหกพิรุณร้อน วันที่ 15 (ศ.ท. 6,740)',
       titleTh: 'ราตรีเฟืองคลั่ง — รอยร้าวสัมปทานและการตื่นขึ้นของเจตจำนงกลไกวิปลาส',
@@ -118,7 +118,7 @@
     {
       id: 'EVT_E5_E8_06_DECAPITATION_OF_TAI_SUI_JI',
       eraGroup: 'ERA_8',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 7115,
       yearLabelTh: 'ยุคที่ 8 ปีที่ 115 · เดือนเก้าสารทปลาย วันที่ 29 (ศ.ท. 7,115)',
       titleTh: 'ศึกตัดเศียรไท่สุ่ยจี — สามวิถีร่วมใจสยบยักษ์สำริดกลางปล่องหลอมตะวันตก',
@@ -134,7 +134,7 @@
     {
       id: 'EVT_E5_E8_07_STASIS_SEAL_AND_EMPIRE_COLLAPSE',
       eraGroup: 'ERA_8',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 7290,
       yearLabelTh: 'ยุคที่ 8 ปีที่ 290 · เดือนสิบสองเหมันต์ลึก วันที่ 12 (ศ.ท. 7,290)',
       titleTh: 'ผนึกกาลเวลาก้นปล่อง และอวสานจักรวรรดิเฟืองดาราเสวียนจี',
@@ -150,7 +150,7 @@
     {
       id: 'EVT_E5_E8_08_FORGE_CITY_FOUNDATION',
       eraGroup: 'ERA_8',
-      eraId: 'ERA_2_ANCIENT_RISE',
+      eraId: 'ERA_2_POST_TIANGU_CHAOS',
       worldYear: 7640,
       yearLabelTh: 'ยุคที่ 8 ปีที่ 640 · เดือนสี่คิมหันต์แรก วันที่ 7 (ศ.ท. 7,640)',
       titleTh: 'เตาหลอมบนหลุมศพยักษ์ — กำเนิดรากฐาน "นครรัฐเตาหลอมฉื่อเยี่ยน"',
