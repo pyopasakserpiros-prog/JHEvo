@@ -36,42 +36,29 @@ Do NOT duplicate what already exists. Existing death/occult/puppet paths in `JD.
 
 ---
 
-## 3. Creative Design Mandate (>= 3 Paths, >= 4 Subpaths Each)
+## 3. Creative Design Mandate (Opus Full Creative Ownership)
 
-Design **>= 3 deeply differentiated Necro Paths** (suggest `maxStage: 8`, matching all Grand Dao paths outside `XIAN`/`DEMON`/`HEART_SOUL`/`BODY`/`GOD`), **>= 4 distinct Subpaths per Path** (e.g., 4–5 each => 12–15 new subpaths total):
+**Do NOT wait for sub-ideas — Opus has 100% creative ownership** over path identities, >= 4 subpath concepts per path, mechanics, custom/reused keywords, thematic acquisition sources, and weapon/element design within these exact user requirements:
 
-### Path 1 — Physical Corpse Control (`ควบคุมศพจริง — NPC & สัตว์อสูร`)
-- **Core Distinction:** A controlled Corpse is a **persistent physical body** (`npc.corpseThralls`, capped by stage/comprehension/subpath) harvested from slain **NPCs** or **Slain Spirit Beasts / Bosses (`WILD` / raiders)**.
-- **Required Mechanics:**
-  - **Retains Original Body Identity:** Carries source tier/physique/element, inherits **corpse techniques** (`skl` derived from fallen NPC's known `cult.techs` / weapon moves OR fallen beast's species natural abilities from `JD.BEASTS`), and **CAN equip real `WEAPON` / `ARMOR` / `ACCESSORY` items** (`thrall.equip` for NPC corpses, or beast talisman/claw-plate/collar accessories or adapted gear for Beast corpses!).
-  - **Stats & Combat Integration (`combat.js` + `stats.js`):** Deployable alongside caster in fight (`f.A`/`f.B`, stepping via `C.foeStep` + using `STATS.get(thrall)` that computes stats from corpse base tier + preservation/refinement quality + **real equipped gear via `MARTIAL`/stat sums + corpse `techs`** — NOTE: in `stats.js:1284`, `computeFoe` uses `u.summonStats` statically; give Corpse Thralls a proper live gear+tech stat evaluation or recompute helper so equipped weapons/armor/accessories truly boost ATK/MATK/DEF/MDEF/HP/CRIT/PEN and unlock weapon tactics/procs!).
-  - **Persistence vs Destruction:** Thralls persist after battle (unlike temporary `isSummon` deleted at `combat.js:4198`). Maintain corpse preservation/decay/repair (e.g., Yin talismans, preservation Qi, repair during `cultivate`/`duty`), and handle destruction cleanly (drop/recover non-broken gear back to owner or sect stock per durability rules).
-- **Suggested 4+ Subpaths:** e.g., Battlefield Corpse-General (multi-thrall NPC formation + tactical gear), Beast-Carcass Refiner (beast/boss corpses + mutated anatomy parts), Living-Jade Coffin Bearer (single apex perfected immortal corpse inheriting full high-tier arts & Legendary gear), Shifting-Bone Chimerist (sutured multi-beast/human grafts).
-
-### Path 2 — Soul Manipulation (`ควบคุมวิญญาณ — แยกขาดจากศพกายภาพโดยสิ้นเชิง`)
-- **Core Distinction (Opus to flesh out):** **Incorporeal, bodiless Soul Entities** — CANNOT wear physical weapons/armor/accessories, rely on **Soul Vessel / Soul Banner / Soul Furnace / Mental Sea (`npc.soulBound` / `soulSpirits`)** instead of physical corpses!
-- **Distinct Mechanical Pillars (Ideas for Opus to choose/evolve):**
-  - Captured remnant souls from fallen foes (`f.slain`, `COMBAT.slay`), tormented battlefield ghosts, or ancient wandering spirit echoes.
-  - Combat behavior: Intangibility/high evasion vs physical strikes (`atk` mitigation / phase dodge), **direct soul attacks (`type: 'm'`, bypassing partial physical DEF / draining target Qi / inflicting `soulFractured`/`fear`/`silence`)**, **Hostile Possession / Spirit Disruption** (temporarily hijacking/confusing weak-willed foes or disrupting casting), **Soul-Link Buffing** (merging a sage/martial soul temporarily into caster or allies to lend passive stat/crit/comprehension echoes), or **Autonomous Sect Spirit Lantern Patrol / Archive Divination** out of combat!
-- **Suggested 4+ Subpaths:** e.g., Soul-Banner Shepherd (wraith swarm + soul-chill/Qi drain), Possession Medium (temporary enemy control / self-empowering soul-fusion), Memory/Will Extractor (extracts temporary insight/mastery echoes or weakness reads from fallen cultivators' memories), Soul-Lantern Judicator (purifying/reaping souls into astral/yin lantern constructs).
-
-### Path 3 — Third+ Distinct Necro Dao (Opus to Design)
-- Make it mechanically distinct from BOTH Path 1 (dressed physical corpses) and Path 2 (incorporeal souls). Strong non-overlapping concepts:
-  - **Option A — Revenant Soul-In-Corpse Vessel Alchemy (`หลอมวิญญาณประทับร่างศพ / คืนชีพจักรพรรดิซาก`):** Binds a *Soul* (spirit/beast intent) into a *separately prepared Corpse Vessel*, unlocking cross-resonance when soul element/archetype matches corpse body/weapon (e.g., Sword-Soul inside a Giant Beast/Vajra Corpse!), or burning vessel charges for explosive Awakening bursts.
-  - **Option B — Ossuary & Marrow-Relic Necromancy (`วิถีอัฐิธาตุและศาสตรากระดูก`):** Harvests bones/marrow/relic fragments to grow/assemble an evolving external Ossuary Weapon/Armor/Tower (`skeleton carapace`, `bone-blade swarm`, marrow-tempering) and turns battlefield casualties into bone spires/domains.
-  - **Option C — Nether Plague, Rot & Life-Death Inversion (`วิถีวัฏจักรเสื่อมสลายและบุปผาซากศพ`):** Turns decay, rot, healing-inversion (`healBlock` / stealing `hot`/regen into DoT), and necrotic spore/blooms on fallen corpses into sustain and AoE attrition.
-  - *(Note: Opus may also add a 4th path if inspired, as long as quality/test parity stays 100%.)*
-
-### Weapon, Element, Keywords & Techniques Rules
-- **Weapons & Elements (User Explicitly Allows Full Flexibility):**
-  - No need to force every path into rigid single-weapon or single-element locks! Use what fits best per path/subpath: e.g., `element: 'YIN_SHADOW'` or `'NEUTRAL'` (`EXPLICIT_NON_ELEMENTAL` / `ROOT_AGNOSTIC_UTILITY`), `weaponTypes: ['ALL']` or multi-weapon lists or `requiresWeapon: false` unarmed/talisman/soul-arts, with optional **synergy bonuses** (`bonusWeapon` / `bonusElement` / `elementProfile`) rather than hard lockouts where appropriate.
-- **Keywords & Composable Mechanics:**
-  - Can reuse existing `COMBAT.KEYWORDS_CATALOG` (`KW_*`), `COMBAT.COMPOSABLE_ENGINE` actions/triggers, and `SK.ARCH` archetypes **AND/OR create new Necro Keywords & Composable Actions/Statuses** (e.g., `KW_NECRO_THRALL_SYNC`, `KW_SOUL_SEVER`, `KW_CORPSE_HARVEST`, `KW_INCORPOREAL_PHASE`, `KW_VESSEL_RESONANCE`, etc.).
-  - **CRITICAL:** If adding to `COMBAT.KEYWORDS_CATALOG`, update `test/v240_composable_keywords_and_tactical_combat_suite.js:39` (currently asserts `kwKeys.length === 16`)! Every new `effectId` MUST be in `CE.IMPLEMENTED_EFFECT_IDS`, every new status MUST be in `SK.STATUS` (`js/skills.js:65`), and every buff MUST be in `STATS.BUFF_CATALOG` (`js/stats.js`).
-- **Techniques & Acquisition Sources:**
-  - Each path needs: `MP_BASE_<PATH>` (T1), subpath actives (T1–T6), passives, **>= 2 valid Qi Mantras** (finite `.power` & `.cat` so `CULT.bestMantra` succeeds), and **1 Tier-7 Legendary Apex Art (`legendary: true`)**.
-  - Add **universal / cross-path Necro-themed techniques (`path: 'ANY'` or broad `compatiblePaths` + bonus synergy for Necro paths)** per user request (*"วิชาเฉพาะ หรือวิชาที่เหมาะแต่ใช้ได้กับทุกวิถี"*).
-  - Author **thematic acquisition sources** matching the paths: e.g., `MANUAL_PATH_*` & `CRYSTAL_PATH_*` & `SUBPATH_CRYSTAL_*`, recipes/equipment/relics, tomb/ruin/sect crypt discovery hooks, `EXPED` / `EXPLORE` Nine-Dao Pagoda floors (`RES_NINE_DAO_<PATH>`), `SECT.ARCHETYPES`, and zero orphan materials!
+1. **Quantity & Completeness:** Add **>= 3 genuinely distinct Necromancy Major Paths** (suggest `maxStage: 8` to match standard Grand Dao paths) with **>= 4 distinct Subpaths per Path**, each with full components (`stages`, `subPaths`, `realmTraits`, `subpathTraits`, `lore`, tracks, gauges, passives, mantras, actives, Tier-7 Legendary, Pagoda floors, archetypes, VFX, UI, etc.) and distinct gameplay identities (no overlap with Section 2).
+2. **Path 1 — Physical Corpse Control (`ควบคุมศพจริง — NPC & สัตว์อสูร`):**
+   - Controls real **physical corpses** harvested from fallen **NPCs** or **Spirit Beasts / Monsters** (via real deaths/hunt/graveyard/crypts).
+   - **Must have real body semantics:**
+     - Retains/adapts **corpse techniques** (inherited/derived from the fallen NPC's `cult.techs` or slain beast's species natural moves in `JD.BEASTS`).
+     - **Can equip real equipment** (`WEAPON` / `ARMOR` / `ACCESSORY`) that genuinely feeds into combat stats & martial logic (`STATS` / `MARTIAL`). *(Technical note: `stats.js:1284` `computeFoe` uses static `u.summonStats` for `isSummon`; persistent Corpse Thralls need live stat calculation from body + equipped gear + corpse techniques, and must persist across fights cleanly instead of being purged like temporary `isSummon` at `combat.js:4198`, while recovering/handling gear safely if destroyed without item duplication.)*
+   - **>= 4 Subpaths:** Invented freely by Opus around different physical-corpse philosophies/specializations.
+3. **Path 2 — Soul Control (`ควบคุมวิญญาณ — แยกจากศพกายภาพโดยสิ้นเชิง`):**
+   - Fundamentally distinct from Path 1 (incorporeal soul/spirit entities, no physical body/equipment slots).
+   - **All concepts, mechanics, soul resources, combat/sect/world roles, and >= 4 subpaths are 100% up to Opus to invent.**
+4. **Path 3+ — Third (or more) Distinct Necro Dao:**
+   - Must be mechanically and thematically distinct from BOTH Path 1 (physical corpses) and Path 2 (souls), and distinct from Section 2 (`NETHER_GRAVE`, `SOUL_PUPPETRY`, `OCCULT_MAGE`, `ANCESTRAL_RITUAL`).
+   - **All concepts, mechanics, resources, and >= 4 subpaths are 100% up to Opus to invent.**
+5. **Weapons & Elements (Flexible by Design):**
+   - Do **NOT** feel forced to lock every path to one weapon or element. Choose freely per path/subpath: strict element/weapon lock where thematic, or multi-weapon / `'ALL'` / `requiresWeapon: false` / `'NEUTRAL'` (`EXPLICIT_NON_ELEMENTAL` / `ROOT_AGNOSTIC_UTILITY`), or open-to-all with conditional synergy bonuses (`bonusWeapon` / `bonusElement`).
+6. **Keywords, Techniques & Thematic Acquisition Sources:**
+   - **Keywords & Mechanics:** Feel free to reuse existing `COMBAT.KEYWORDS_CATALOG` / `COMBAT.COMPOSABLE_ENGINE` / `SK.ARCH`, create **brand-new Necro keywords/actions/statuses/buffs**, or combine both. *(Technical note: if adding to `COMBAT.KEYWORDS_CATALOG`, update `test/v240_composable_keywords_and_tactical_combat_suite.js:39` which asserts `=== 16`; register every `effectId` in `CE.IMPLEMENTED_EFFECT_IDS`, every status in `SK.STATUS` at `js/skills.js:65`, and every buff in `STATS.BUFF_CATALOG`.)*
+   - **Techniques:** Author path-exclusive techniques (`MP_BASE_*`, actives, passives, **>= 2 valid Qi Mantras** with finite `.power` & `.cat` for `CULT.bestMantra`, and **1 Tier-7 `legendary: true` art** per path) **plus** Necro-themed techniques usable by **all paths** (`path: 'ANY'` or broad `compatiblePaths` with optional extra synergy for Necro practitioners).
+   - **Acquisition Sources:** Design thematic discovery/acquisition channels matching each path (recipes/items/relics, expedition/ruin/tomb/crypt/sect routes, manuals/crystals, Pagoda floors `RES_NINE_DAO_<PATH>`, `SECT.ARCHETYPES`, zero orphan materials).
 
 ---
 
@@ -90,7 +77,7 @@ Follow the pattern used by `NETHER_GRAVE` + `LEG_*` / `TRANS_*` paths in `data/d
 | **`js/sect.js`** | `SECT.ARCHETYPES` & `SECT.ARCHETYPE_WEAPON` (`17245` — `v210` asserts ALL paths are selectable via archetypes!), `PEAKS.PATH_SANCTUARY_BLESSINGS` (`13197`), `UNIVERSAL_EQUITY_V235` (`13830`), dark/orthodox sect policy reactions if raising corpses in sect, `EDITOR.catalog` & `PATH_LIBRARY` compatibility. |
 | **`js/ai.js` & `js/cognition.js`** | Autonomous NPC corpse/soul harvesting, autonomous equipment assignment from necromancer's bag/spare gear onto Corpse Thrall, upkeep/healing/cultivation routing (`A.cultivate`), utility awareness in `COG`. |
 | **`js/explore.js`** | Add 1 floor per new path to `EXPLORE.NINE_DAO_PAGODA.floors` (`8011-8067`) + `pagodaSetPieces` (`RES_NINE_DAO_<PATH>`). |
-| **`js/sim.js`** | Ensure `SIM.serialize`/`deserialize` preserves `npc.corpseThralls` (including nested `equip` & `techs`), `npc.soulVessels`/`soulSpirits`, and world/sect corpse caches cleanly; check `inferArchetype`/graveyard interactions (`1125`, `1618`). |
+| **`js/sim.js`** | Ensure `SIM.serialize`/`deserialize` preserves all new corpse/soul state fields on `npc`, `W.sect`, or `W.world` (including nested `equip` & `techs`), adding any new top-level `W.*` keys to `knownKeys` (`1463`) or `_saveExtras`; check `inferArchetype`/graveyard interactions (`1125`, `1618`). |
 | **`js/render.js`** | Add each path to `PATH_COL` (`451`), `R.PATH_VISUAL_SIGNATURES` (`1692`), aura switch (`6221-6485`), `pMap` (`10563`), and render **visibly distinct Canvas ascendant crown shapes** (`apexCrownShape`) so `signature_vfx_catalog_browser_audit.js` pixel-hashes stay 100% unique! Render corpse thrall / soul spirit units visibly on battlefield canvas. |
 | **`js/ui.js`** | **Read-only** NPC inspector details showing bound Corpse Thralls (name/species, inherited skills, equipped WEAPON/ARMOR/ACCESSORY) & Bound Souls, plus Thai path map (`PATH_NAMES` if duplicated in `ui.js`). Zero control buttons! |
 
