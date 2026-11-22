@@ -80,17 +80,23 @@
     return Math.max(1, path.length * 2 / Math.max(0.3, AI.walkSpeed(W, n)));
   };
   WILD.awardLandQi = (W, f, b) => {
-    const contributors = Object.keys(f.ctx.landContributions || {}).map(id => W.byId[id])
-      .filter(n => n && !n.dead && !n.away && n.cult && Math.hypot(n.x-b.x,n.y-b.y) <= 12);
+    if (!W || !f || !f.ctx || !b) return;
+    const contribs = f.ctx.landContributions || {};
+    const contributors = Object.keys(contribs).map(id => W.byId[id])
+      .filter(n => n && !n.dead && !n.away && n.cult && Math.hypot(n.x - b.x, n.y - b.y) <= 12);
     if (!contributors.length) return;
     const elapsed = Math.min(180, Math.max(1, W.t - (f.ctx.huntStartedAt ?? f.t0)));
     const travel = Math.min(120, f.ctx.expectedTravel || 0);
     const rate = Math.max(0, f.ctx.baseCultRate || 0);
     const total = rate / 60 * (elapsed + travel) * 1.2 * (WILD.raidProfile(b)?.qiMult || 1);
-    const weight = contributors.reduce((a,n)=>a+f.ctx.landContributions[n.id],0);
+    const weight = contributors.reduce((a, n) => a + Math.max(0, Number(contribs[n.id]) || 0), 0);
+    if (!(weight > 0) || !(total > 0)) return;
     for (const n of contributors) {
+      const w = Math.max(0, Number(contribs[n.id]) || 0);
+      if (!(w > 0)) continue;
       const fit = U.clamp(b.power / Math.max(1, CULT.power(n)), .02, 1);
-      const gain = total * f.ctx.landContributions[n.id] / weight * fit * landQiAffinity(n, b);
+      const gain = total * w / weight * fit * landQiAffinity(n, b);
+      if (!Number.isFinite(gain) || gain <= 0) continue;
       CULT.gain(n, gain, W, 'wild_land_qi');
       W.log('cultivation', HC.fullName(n) + ' รับปราณหุบเขาจาก ' + b.name + ' ' + gain.toFixed(2) + ' หน่วย', [n.id]);
     }
@@ -214,7 +220,7 @@
     const terrain = Array.isArray(s.terrain) ? s.terrain : [s.terrain];
     return s.archetype !== 'AQUATIC' && s.family !== 'AQUATIC' &&
       terrain.some(t => ['plains','forest','mountain','desert','ruin','ruins'].includes(t)) &&
-      Number.isFinite(s.cp) && s.cp > 0 && s.elementProfile &&
+      Number.isFinite(s.cp) && s.cp > 0 && !!(s.elementProfile || s.element) &&
       Array.isArray(s.drops) && s.drops.some(id => ECO.matById[id]);
   };
   function isRiverSpecies(s) {
@@ -260,7 +266,7 @@
 
   WILD.DEN_SPECS = Object.freeze([
     { id: 'DEN_SOUTH_MEADOW_WOLF', nameTh: 'โพรงหมาป่าหมอกวายุ', zone: 'meadow', x: 76, y: 224, minTier: 1, maxTier: 2, radius: 14 },
-    { id: 'DEN_SOUTH_MEADOW_STAG', nameTh: 'ดงกวางหมอกมรกต', zone: 'meadow', x: 98, y: 234, minTier: 1, maxTier: 2, radius: 14 },
+    { id: 'DEN_SOUTH_MEADOW_STAG', nameTh: 'ดงกวางหมอกมรกต', zone: 'meadow', x: 98, y: 234, minTier: 1, maxTier: 3, radius: 14 },
     { id: 'DEN_SOUTH_RIDGE_SERPENT', nameTh: 'ถ้ำอสรพิษสันผาใต้', zone: 'ridge', x: 268, y: 222, minTier: 3, maxTier: 5, radius: 16 },
     { id: 'DEN_SOUTH_RIDGE_THUNDER', nameTh: 'รังอสูรอัสนีผาใต้', zone: 'ridge', x: 298, y: 234, minTier: 3, maxTier: 5, radius: 16 },
     { id: 'DEN_WEST_BAMBOO_HOUND', nameTh: 'ดงไผ่หมาป่าโลหิตประจิม', zone: 'west_grove', x: 32, y: 88, minTier: 1, maxTier: 4, radius: 18 },
@@ -330,11 +336,12 @@
     }
 
     if (opts.ordinary && (z.legendary || pool?.legendary)) return null;
-    if (opts.legendary && !z.legendary && !pool?.legendary) return null;
+    if (opts.legendary && !z.legendary && !pool?.legendary && !(requestedSpecies && legendSpecies(requestedSpecies))) return null;
     const minTier = pool ? (pool.min == null ? z.min : pool.min) : z.min;
     const maxTier = pool ? (pool.max == null ? z.max : pool.max) : z.max;
     const isValidCandidate = s => {
       if (!s || (opts.tier && s.tier !== opts.tier) || (huntType === 'miniboss' && s.tier >= 7)) return false;
+      if ((huntType === 'normal' || huntType === 'miniboss') && String(s.id).startsWith('KING_')) return false;
       const definition = WILD.speciesDefinition(s.id);
       if (z.aquatic ? !isRiverSpecies(definition) : !WILD.isLandSpecies(definition)) return false;
       if (pool && pool.speciesIds && pool.speciesIds.length && !pool.speciesIds.includes(s.id)) return false;
@@ -410,11 +417,18 @@
     if (!placed) return null;
     const id = 'wild_' + (++W.wildlife.seq);
 
+    const isKingOrBoss = String(species.id).startsWith('KING_') || !!combat.grade || huntType === 'miniboss';
+    const isNonTameable = String(species.id).startsWith('KING_') || (species.tier >= 7 && species.tameable !== true) || !!combat.grade || species.tameable === false;
     const b = Object.assign(copy(species), {
       id,
       kind: 'beast',
       sp: species.id,
-      fleeAt: Math.max(0, Math.min(1, (species.flee || 0) / 100)),
+      fleeAt: isKingOrBoss ? 0 : Math.max(0, Math.min(1, (species.flee || 0) / 100)),
+      fleeRate: isKingOrBoss ? 0 : undefined,
+      canFlee: isKingOrBoss ? false : undefined,
+      tameable: isNonTameable ? false : species.tameable,
+      boss: isKingOrBoss ? true : species.boss,
+      isBoss: isKingOrBoss ? true : species.isBoss,
       combatKeywords: [...(species.combatKeywords || []), ...(species.specialAbility?.combatKeywords || [])],
       foe: true,
       wild: true,
@@ -449,6 +463,7 @@
     b.skl = g.SK.foeSkills(b);
     b.hp = b.hpMax;
     W.wildlife.beasts.push(b);
+    if (chosenDen) chosenDen.activeSpawns = (chosenDen.activeSpawns || 0) + 1;
 
     if (b.legendary || combat.grade) {
       const notice = combat.grade ? ' (' + combat.nameTh + ') พำนักสงบและจะป้องกันตัวเมื่อถูกท้าทาย' : ' และอาจจากไปเมื่อใดก็ได้';
@@ -534,7 +549,10 @@
       prepared: lead.h.state.satiety >= 50 && lead.h.state.energy >= 45 && lead.h.state.rest >= 40,
       landContributions: {} }, opts);
     for (const n of team) delete n.landHuntTrip;
-    const f = COMBAT.startFight(W, team.map(n => n.id), [b.id], 'wild', { serious: true, ctx });
+    const fOpts = { serious: !ctx.nonLethalSubdue, ctx };
+    if (ctx.nonLethalSubdue) fOpts.nonLethalSubdue = true;
+    if (ctx.tameIntent) fOpts.tameIntent = true;
+    const f = COMBAT.startFight(W, team.map(n => n.id), [b.id], 'wild', fOpts);
     b.fighting = f.id;
     return f;
   }
@@ -668,12 +686,18 @@
   }
 
   WILD.evadeRaidPulse = (W, f, n) => {
-    if (!f.ctx?.valleyRaid) return false;
+    if (!W || !f || !n || !f.ctx?.valleyRaid) return false;
     const b = W.foeById[f.ctx.beastId], pulse = b?.raidPulse;
     if (!pulse || pulse.at - W.t > 4 || pulse.at < W.t) return false;
-    const dx = n.x - pulse.x, dy = n.y - pulse.y, distance = Math.hypot(dx, dy);
-    if (distance < .05 || distance > pulse.radius || n.act.ctx.channeling ||
+    let dx = n.x - pulse.x, dy = n.y - pulse.y, distance = Math.hypot(dx, dy);
+    if (distance > pulse.radius || n.act?.ctx?.channeling ||
         HC.eff(n, 'personality.caution') + HC.eff(n, 'intellect.tactics') < 92) return false;
+    if (distance < 0.05) {
+      const angle = W.rng ? W.rng.next() * Math.PI * 2 : 0.7854;
+      dx = Math.cos(angle);
+      dy = Math.sin(angle);
+      distance = 1;
+    }
     const step = Math.min(1.6, AI.walkSpeed(W, n));
     const dest = COMBAT.projectSafePosition(W, n.x, n.y, n.x + dx * step / distance, n.y + dy * step / distance);
     if (dest.x === n.x && dest.y === n.y) return false;
@@ -682,9 +706,23 @@
   };
 
   WILD.captureEligibility = (n, b) => {
+    if (!n || !b) return { allowed: false, reason: 'เป้าหมายไม่ถูกต้อง' };
+    const spId = String(b.speciesId || b.id || b.sp || '');
+    if (spId.startsWith('KING_') || b.boss || b.isBoss) {
+      return { allowed: false, reason: 'ราชันอสูรไม่ยอมรับการฝึก' };
+    }
+    if ((b.tier || 1) >= 7 && b.tameable !== true) {
+      return { allowed: false, reason: 'อสูรบรรพกาลระดับ 7 ไม่ยอมรับการฝึก' };
+    }
     if (WILD.raidProfile(b) || b.tameable === false) return { allowed:false, reason:'อสูรชนิดนี้ไม่ยอมรับการฝึก' };
     const rule = b.captureRule || '';
-    const skill = g.MARTIAL && g.MARTIAL.skillRead ? g.MARTIAL.skillRead(n,'BEAST_TAMING') : (n.h.skills.BEAST_TAMING || 0);
+    const skill = g.MARTIAL && g.MARTIAL.skillRead ? g.MARTIAL.skillRead(n,'BEAST_TAMING') : (n.h?.skills?.BEAST_TAMING || 0);
+    if (rule.includes('PACT')) {
+      const hasSpiritPact = !!(n.pacts && n.pacts.SPIRIT_PACT);
+      const hasAncestralPact = !!(n.pacts && n.pacts.ANCESTRAL_PACT);
+      if (rule.startsWith('SPIRIT_PACT') && hasSpiritPact) return { allowed: true };
+      if (rule.startsWith('ANCESTRAL_PACT') && hasAncestralPact) return { allowed: true };
+    }
     const minSkill = /BEAST_TAMING_(\d+)/.exec(rule);
     if (!rule || (minSkill && skill >= Number(minSkill[1]))) return {allowed:true};
     const weak = /WEAKEN_BELOW_(\d+)_PCT/.exec(rule);
@@ -697,7 +735,7 @@
   };
 
   WILD.startTameFight = (W, n, b, opts) => {
-    return WILD.startFight(W, n, b, Object.assign({ tameIntent: true }, opts || {}));
+    return WILD.startFight(W, n, b, Object.assign({ tameIntent: true, nonLethalSubdue: true }, opts || {}));
   };
 
   WILD.finish = (W, f, winner) => {
@@ -719,7 +757,10 @@
       b.hp = Math.min(b.hp || 1, Math.max(1, Math.round(b.hpMax * 0.15)));
       const capture = f.ctx.forceTame ? {allowed:true} : WILD.captureEligibility(n,b);
       if (capture.allowed) {
-        if (capture.offeringMatId) n.inv.mats[capture.offeringMatId]--;
+        if (capture.offeringMatId) {
+          n.inv.mats[capture.offeringMatId]--;
+          if (n.inv.mats[capture.offeringMatId] <= 0) delete n.inv.mats[capture.offeringMatId];
+        }
         CULT.attemptTameBeast(W, n, b, { force: !!f.ctx.forceTame });
       } else W.log('explore',HC.fullName(n) + ' ไม่อาจผูกพันกับ ' + b.name + ': ' + capture.reason,[n.id]);
     }
@@ -744,16 +785,32 @@
       n.inv.mats = n.inv.mats || {};
       const drops = species ? (species.drops || []).filter(id => ECO.matById[id]) : [];
       let dropName = '';
+      const dropNames = [];
       const raid = WILD.raidProfile(b);
       const bestDrop = drops.reduce((best, id) => !best || (ECO.matById[id].value || 0) > (ECO.matById[best].value || 0) ? id : best, null);
       const firstOrdinaryKill = (W.wildlife.kills || 0) === 0 && WILD.DROP_CHANCE > 0;
       const dropChance = raid ? (raid.grade === 'MINIBOSS' ? .72 : .94)
         : b.legendary ? .38 : firstOrdinaryKill ? 1 : WILD.DROP_CHANCE;
       if (drops.length && W.rng.chance(dropChance)) {
-        const id = raid ? bestDrop : W.rng.weighted(drops, id => drops.length > 1 && id === bestDrop ? .25 : 1);
-        n.inv.mats[id] = (n.inv.mats[id] || 0) + 1;
-        dropName = ECO.name(id);
+        if (raid || b.boss || b.huntType === 'miniboss') {
+          const primaryId = bestDrop || drops[0];
+          n.inv.mats[primaryId] = (n.inv.mats[primaryId] || 0) + 1;
+          dropNames.push(ECO.name(primaryId));
+          const secChance = raid && raid.grade !== 'MINIBOSS' ? 0.35 : 0.22;
+          for (const secId of drops) {
+            if (secId === primaryId) continue;
+            if (W.rng.chance(secChance)) {
+              n.inv.mats[secId] = (n.inv.mats[secId] || 0) + 1;
+              dropNames.push(ECO.name(secId));
+            }
+          }
+        } else {
+          const id = W.rng.weighted(drops, id => drops.length > 1 && id === bestDrop ? .25 : 1);
+          n.inv.mats[id] = (n.inv.mats[id] || 0) + 1;
+          dropNames.push(ECO.name(id));
+        }
       }
+      dropName = dropNames.join(' และ ');
       let organName = '';
       if (W.rng.chance(raid ? .72 : b.legendary ? .22 : .05) && species && g.CONTENT && g.CONTENT.organByBeastId && g.CONTENT.organByBeastId[species.id]) {
         const out = {};
@@ -805,6 +862,19 @@
     }
     if (b.dead) {
       b.gone = true;
+    } else if (!b.captured && b.fled) {
+      if (b.legendary || WILD.raidProfile(b)) {
+        b.hp = Math.min(b.hpMax, Math.round((b.hp || 1) + b.hpMax * 0.35));
+        b.fled = false;
+        b.yield = false;
+        b.act = null;
+        b.fleeCooldownUntil = W.t + 360;
+      } else {
+        b.gone = true;
+        b.fled = false;
+        b.yield = false;
+        b.act = null;
+      }
     } else {
       b.fled = false;
       b.yield = false;
@@ -888,7 +958,7 @@
           if (zone) WILD.spawn(W, zone.id, null, { huntType: 'miniboss', tier });
         }
       }
-      // T7 and its two rarer forms share the same rare encounter slot.
+      // T7, Beast Kings, and rarer forms share the same rare encounter slot.
       if (W.t % 60 === 0 && W.t >= (state.rareReadyAt || 0) &&
           !state.beasts.some(b => b.legendary && !b.gone && !b.dead) && W.rng.chance(.008)) {
         const roll = W.rng.next();
@@ -896,6 +966,13 @@
           const grade = roll < .04 ? 'TRANSCENDENT' : 'LEGENDARY';
           WILD.spawn(W, 'legend', null, { legendary: true, raidGrade: grade,
             speciesId: W.rng.pick(Object.keys(raidVariants[grade])) });
+        } else if (roll < .48 && Array.isArray(JD.BEASTS.kings) && JD.BEASTS.kings.length) {
+          const king = W.rng.pick(JD.BEASTS.kings);
+          const kingZone = king.id === 'KING_FROST_BEAR_NORTH' || king.id === 'KING_FROST_SOVEREIGN_BEAR' ? 'north_peak'
+            : king.id === 'KING_EMERALD_SERPENT_SOUTH' ? 'east_crag' : 'legend';
+          if (!WILD.spawn(W, kingZone, null, { legendary: true, speciesId: king.id })) {
+            WILD.spawn(W, 'legend', null, { legendary: true, tier: 7 });
+          }
         } else {
           WILD.spawn(W, 'legend', null, { legendary: true, tier: 7 });
         }
@@ -954,6 +1031,11 @@
       }
     }
     state.beasts = state.beasts.filter(b => !b.gone && !b.dead);
+    if (Array.isArray(state.dens)) {
+      for (const den of state.dens) {
+        if (den) den.activeSpawns = state.beasts.filter(b => b.denId === den.id).length;
+      }
+    }
   };
 
   const regionalBySource = new Map((JD.CORE.regionalCompanions || []).map(sp => [sp.sourceId, sp]));
@@ -1015,7 +1097,7 @@
     nameTh: 'ล่าอสูรใกล้สำนัก',
     icon: '🐺',
     color: '#b67862',
-    can: (n, W) => { const bs = W.wildlife && W.wildlife.beasts; if (!(bs && bs.length && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > (n._nd ? n._nd.hpMax : CULT.hpMax(n)) * 0.6)) return false; let minP = Infinity; for (let i = 0; i < bs.length; i++) { const b = bs[i]; if (!b.dead && !b.gone && !b.fighting && !WILD.raidProfile(b) && b.power < minP) minP = b.power; } if (minP === Infinity) return false; return CULT.power(n) >= minP * 0.8; },
+    can: (n, W) => { const bs = W.wildlife && W.wildlife.beasts; if (!(bs && bs.length && n.rank >= 1 && !n.dead && !n.away && !(n.inj && n.inj.length) && n.h.state.hp > (n._nd ? n._nd.hpMax : CULT.hpMax(n)) * 0.6)) return false; let minP = Infinity; for (let i = 0; i < bs.length; i++) { const b = bs[i]; if (!b.dead && !b.gone && !b.fighting && !(b.fleeCooldownUntil > W.t) && !WILD.raidProfile(b) && b.power < minP) minP = b.power; } if (minP === Infinity) return false; return CULT.power(n) >= minP * 0.8; },
     score(n, W, S) {
       if ((n.pets || []).length < CULT.maxActivePets(n) && (!n.regionalBondReadyAt || n.regionalBondReadyAt <= W.t)) {
         const interest = HC.eff(n, 'interests.beasts');
@@ -1030,7 +1112,7 @@
         const power = CULT.power(n);
         let material = false, training = false;
         for (const b of W.wildlife.beasts) {
-          if (b.dead || b.gone || b.fighting || WILD.raidProfile(b) || power < b.power * .8 ||
+          if (b.dead || b.gone || b.fighting || (b.fleeCooldownUntil > W.t) || WILD.raidProfile(b) || power < b.power * .8 ||
               (n.x - b.x) ** 2 + (n.y - b.y) ** 2 > 90 ** 2) continue;
           if (WILD.needsHuntMaterial(W, n, b)) { material = true; break; }
           if (b.tier >= stage - .75) training = true;
@@ -1045,7 +1127,7 @@
       if (n.rank <= 2) S.add('ฝึกฝนความกล้า', 0.2);
     },
     where(W, n) {
-      const npw = CULT.power(n); const candidates = (W.wildlife.beasts || []).filter(b => !b.dead && !b.gone && !b.fighting && !WILD.raidProfile(b) && npw >= b.power * 0.8);
+      const npw = CULT.power(n); const candidates = (W.wildlife.beasts || []).filter(b => !b.dead && !b.gone && !b.fighting && !(b.fleeCooldownUntil > W.t) && !WILD.raidProfile(b) && npw >= b.power * 0.8);
       // Bound A* work: inspect nearby, realm-appropriate opportunities first.
       const nearby = candidates.map(beast => ({ beast, distance: Math.hypot(n.x-beast.x,n.y-beast.y) *
         (1 + Math.abs(Math.log(Math.max(0.05,npw/Math.max(1,beast.power)))) + WILD.overmatchGap(n, beast) * .22) *
@@ -1068,7 +1150,13 @@
         ctx.raidAssembly === b.raidAssembly.startedAt && !b.fighting && !b.gone;
       if (ctx.supportFightId != null) return !!b && joinLandHunt(W, n, b, ctx.supportFightId);
       if (b?.fighting) return joinLandHunt(W, n, b, b.fighting);
-      return !!b && (tryRegionalBond(W, n, b) || WILD.startFight(W, n, b));
+      const livePets = (n.pets || []).filter(p => p && !p.dead);
+      const petCap = CULT.maxActivePets(n) + CULT.maxReservePets(n);
+      const wantsTame = livePets.length < petCap && !livePets.some(p => p.speciesId === b?.speciesId) &&
+        ((n.cult && n.cult.path === 'BEAST_SOVEREIGN') || HC.eff(n, 'interests.beasts') >= 58 ||
+         (g.MARTIAL && g.MARTIAL.skillRead ? g.MARTIAL.skillRead(n, 'BEAST_TAMING') : (n.h?.skills?.BEAST_TAMING || 0)) >= 12) &&
+        WILD.captureEligibility(n, b).allowed;
+      return !!b && (tryRegionalBond(W, n, b) || (wantsTame ? WILD.startTameFight(W, n, b) : WILD.startFight(W, n, b)));
     },
     dur: (n, W, ctx) => ctx.raidAssembly != null ? 720 : 1,
     tick(n, W, ctx) {

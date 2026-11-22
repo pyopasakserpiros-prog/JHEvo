@@ -109,7 +109,10 @@
   };
   EXT.quotePrice = (W, id, side, skillOrNpc) => {
     if (!EXT.isTradable(id)) return 0;
-    const base = (EXT.basePrice(W, id) || ECO.price(W, id)) * ((W.market && W.market.mult[id]) || 1);
+    const liMod = (g.EXPED && g.EXPED.LIVING_INSTITUTIONS && g.EXPED.LIVING_INSTITUTIONS.getMarketPriceModifier)
+      ? g.EXPED.LIVING_INSTITUTIONS.getMarketPriceModifier(W, id)
+      : 1;
+    const base = (EXT.basePrice(W, id) || ECO.price(W, id)) * ((W.market && W.market.mult[id]) || 1) * (Number.isFinite(liMod) && liMod > 0 ? liMod : 1);
     if (!Number.isFinite(base) || base <= 0) return 0;
     const npcObj = (skillOrNpc && typeof skillOrNpc === 'object') ? skillOrNpc : null;
     const abacusBonus = (npcObj && npcObj.equip && npcObj.equip.WEAPON && (npcObj.equip.WEAPON.gearType === 'ABACUS' || npcObj.equip.WEAPON.weaponType === 'ABACUS')) ? 8 : 0;
@@ -119,7 +122,10 @@
     const skill = clamp(Number.isFinite(rawSkill) ? rawSkill : 40, 0, 100);
     const isAppraiserSub = !!(npcObj && npcObj.cult && npcObj.cult.sub === 'TREASURE_APPRAISER_SAGE');
     const isMerchantPath = !!(npcObj && npcObj.cult && npcObj.cult.path === 'MERCANTILE_DAO');
-    const treatyList = (W && W.world && W.world.politics && Array.isArray(W.world.politics.treaties)) ? W.world.politics.treaties : ((W && W.world && Array.isArray(W.world.treaties)) ? W.world.treaties : []);
+    const rawPolTreaties = W && W.world && W.world.politics ? W.world.politics.treaties : null;
+    const polTreatyList = Array.isArray(rawPolTreaties) ? rawPolTreaties : (rawPolTreaties && typeof rawPolTreaties === 'object' ? Object.values(rawPolTreaties) : []);
+    const worldTreatyList = (W && W.world && Array.isArray(W.world.treaties)) ? W.world.treaties : [];
+    const treatyList = polTreatyList.length ? polTreatyList : worldTreatyList;
     const hasFreeTrade = treatyList.some(t => t && t.active !== false && (t.type === 'FREE_TRADE_TREATY' || t.kind === 'TRADE' || t.id === 'FREE_TRADE_TREATY'));
     let tollDisc = 0, shortageBoost = 0;
     const _pl = W && W.world && W.world.politicalLives;
@@ -133,11 +139,13 @@
       const _severeShortages = Object.values(_pl.cityDistricts || {}).filter(cd => cd && cd.shortageLevel >= 50).length;
       if (_severeShortages > 0) shortageBoost = Math.min(0.05, _severeShortages * 0.015);
     }
+    const sectBuyMult = (1.15 - skill / 850) * (hasFreeTrade ? 0.96 : 1) * (1 - tollDisc) * (1 + shortageBoost);
+    const memberBuyMult = (1.18 - (skill - 40) / 900) * (isAppraiserSub ? 0.92 : (isMerchantPath ? 0.96 : 1)) * (1 - tollDisc * 0.6);
     let mult = 1;
-    if (side === 'sect-buy') mult = (1.15 - skill / 850) * (hasFreeTrade ? 0.96 : 1) * (1 - tollDisc) * (1 + shortageBoost);
-    else if (side === 'sect-sell') mult = (0.78 + skill / 900) * (hasFreeTrade ? 1.04 : 1) * (1 + tollDisc * 0.75) * (1 + shortageBoost);
-    else if (side === 'member-buy') mult = (1.18 - (skill - 40) / 900) * (isAppraiserSub ? 0.92 : (isMerchantPath ? 0.96 : 1)) * (1 - tollDisc * 0.6);
-    else if (side === 'member-sell') mult = (0.76 + (skill - 40) / 950) * (isAppraiserSub ? 1.10 : (isMerchantPath ? 1.05 : 1)) * (1 + tollDisc * 0.6);
+    if (side === 'sect-buy') mult = sectBuyMult;
+    else if (side === 'sect-sell') mult = Math.min(sectBuyMult * 0.92, (0.78 + skill / 900) * (hasFreeTrade ? 1.04 : 1) * (1 + tollDisc * 0.75) * (1 + shortageBoost));
+    else if (side === 'member-buy') mult = memberBuyMult;
+    else if (side === 'member-sell') mult = Math.min(memberBuyMult * 0.92, (0.76 + (skill - 40) / 950) * (isAppraiserSub ? 1.10 : (isMerchantPath ? 1.05 : 1)) * (1 + tollDisc * 0.6));
     return Math.max(1, Math.round(base * clamp(mult, 0.65, 1.2)));
   };
 
@@ -159,7 +167,7 @@
     });
     if (!used.has('grain')) { addStock(W, stock, 'grain', 12, 34); used.add('grain'); }
     if (W.rng.chance(0.42) && !used.has('meal')) { addStock(W, stock, 'meal', 6, 18); used.add('meal'); }
-    const maxT = subtype === 'rare' ? 6 : subtype === 'caravan' ? 4 : 3;
+    const maxT = subtype === 'rare' ? 7 : subtype === 'caravan' ? 4 : 3;
     while (used.size < 4) {
       const id = pickMaterial(W, used, maxT); if (!id) break;
       addStock(W, stock, id, 2, 7); used.add(id);
@@ -290,7 +298,7 @@
       arriveDay: W.day,
       untilDay: Number.isFinite(options.untilDay) ? options.untilDay : W.day + clamp(Math.round(options.stayDays || 2), 1, 4),
       stones: allocatedStones,
-      _backedByPool: !!usePool,
+      backedByPool: !!usePool,
       stock, gearStock, wants, sectTradeDay: null, sectBuyDone: false, tradeCount: 0
     };
     W.world.visitors.push(visitor);
@@ -989,7 +997,7 @@
     const pool = W.world && W.world.resourcePool;
     W.world.visitors = W.world.visitors.filter(v => {
       if (!v || v.kind !== 'trader' || v.untilDay >= W.day) return true;
-      if (v._backedByPool && pool && Number.isFinite(pool.stones) && Number.isFinite(v.stones) && v.stones > 0) {
+      if ((v.backedByPool || v._backedByPool) && pool && Number.isFinite(pool.stones) && Number.isFinite(v.stones) && v.stones > 0) {
         pool.stones += v.stones;
         v.stones = 0;
       }

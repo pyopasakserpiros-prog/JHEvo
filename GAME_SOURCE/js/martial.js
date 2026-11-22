@@ -278,7 +278,7 @@ M.innateStats=n=>{
   return EMPTY_INNATE_STATS;
  }
  const p={},f={},pp={},life={};
- let qiMaxFlat=0,qiMaxPct=0,qiCostMult=1,cultRatePct=0;
+ let qiMaxFlat=0,qiMaxPct=0,qiCostMult=1,qiRegenPct=0,cultRatePct=0;
  const ib=t.innateBonus||{};
  for(const k in ib.p)p[k]=(p[k]||0)+ib.p[k];
  for(const k in ib.f)f[k]=(f[k]||0)+ib.f[k];
@@ -368,11 +368,12 @@ for(const _id of [
 ]){const _bt=CULT.tech(_id);if(_bt){delete _bt.weaponTypes;delete _bt.weapon;_bt.requiresWeapon=false;}}
 M.classifyTechniqueAccess=tOrId=>{
  const t=typeof tOrId==='string'?CULT.tech(tOrId):tOrId;
+ const hasSub=s=>!!(s&&s!=='NONE'&&s!=='ANY');
  if(!t)return {accessClass:'INVALID',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'ไม่พบข้อมูลวิชา'};
  if(t.innateOnly||M.isInnateTech(t))return {accessClass:'EXCLUSIVE_INNATE',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'วิชาเฉพาะสายย่อยติดตัว (ตื่นรู้ตามสายย่อย ไม่ใช่คัมภีร์หอคัมภีร์)'};
- if(t.legendary)return {accessClass:'UNIVERSAL_LEGENDARY',learnableAcrossPaths:true,learnableAcrossSubpaths:true,reasonTh:'คัมภีร์ระดับตำนาน ศึกษาและสำแดงอานุภาพได้ทุกวิถีและสายย่อย'};
- if(/FORBIDDEN/.test(t.cat||'')||(t.sub&&['VENOM_GU_SOVEREIGN','CORPSE_PUPPET_MASTER'].includes(t.sub)&&/GU_|CORPSE_|PARASITE/.test(t.id||'')))return {accessClass:'EXCLUSIVE_PARASITE_FORBIDDEN',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'ต้องใช้กู่พิษ ซากศพ หรือพิธีกรรมต้องห้ามเฉพาะทาง'};
- if(typeof t.id==='string'&&t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&t.sub))return {accessClass:'EXCLUSIVE_SUBPATH_PASSIVE',learnableAcrossPaths:false,learnableAcrossSubpaths:!t.sub,reasonTh:'รากฐานวิชาติดตัวเฉพาะสายบำเพ็ญ'};
+ if(t.legendary||t.transcendent)return {accessClass:'UNIVERSAL_LEGENDARY',learnableAcrossPaths:true,learnableAcrossSubpaths:true,reasonTh:'คัมภีร์ระดับตำนาน ศึกษาและสำแดงอานุภาพได้ทุกวิถีและสายย่อย'};
+ if(/FORBIDDEN/.test(t.cat||'')&&t.cat!=='FORBIDDEN_GRAND_DAO'||(hasSub(t.sub)&&['VENOM_GU_SOVEREIGN','CORPSE_PUPPET_MASTER'].includes(t.sub)&&/GU_|CORPSE_|PARASITE/.test(t.id||'')))return {accessClass:'EXCLUSIVE_PARASITE_FORBIDDEN',learnableAcrossPaths:false,learnableAcrossSubpaths:false,reasonTh:'ต้องใช้กู่พิษ ซากศพ หรือพิธีกรรมต้องห้ามเฉพาะทาง'};
+ if(typeof t.id==='string'&&t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&hasSub(t.sub)))return {accessClass:'EXCLUSIVE_SUBPATH_PASSIVE',learnableAcrossPaths:false,learnableAcrossSubpaths:!hasSub(t.sub),reasonTh:'รากฐานวิชาติดตัวเฉพาะสายบำเพ็ญ'};
  return {accessClass:'CROSS_PATH_MANUAL',learnableAcrossPaths:true,learnableAcrossSubpaths:true,reasonTh:'คัมภีร์ยุทธภพ เปิดกว้างให้ศึกษาข้ามสายย่อยและวิถีได้ (ปรับความเร็วเรียนและอานุภาพตามความสอดคล้อง)'};
 };
 M.weaponCompatibility=(n,tOrId)=>{
@@ -401,12 +402,14 @@ M.resolveTechCompatibility=(n,tOrId)=>{
      return {ok:false,studySpeedMult:0,combatPowerMult:0,qiCostMult:0,weaponMult:0,accessClass:'BUSHIDO_RESTRICTED',summaryTh:'วิถีซามูไรไร้ปราณใช้ได้เฉพาะวิชาหมวดดาบ (BLADE) และกระบี่ (SWORD) เท่านั้น'};
    }
  }
+ const hasSub=s=>!!(s&&s!=='NONE'&&s!=='ANY');
+ const isUni=!!(t.legendary||t.transcendent);
  const pathExact=t.path==='ANY'||t.path===c.path||(Array.isArray(t.compatiblePaths)&&t.compatiblePaths.includes(c.path));
- const subExact=!t.sub||t.sub===c.sub||(Array.isArray(t.preferredSubs)&&t.preferredSubs.includes(c.sub));
- const pathStudy=t.legendary?(pathExact&&t.path!=='ANY'?1.08:1.0):(pathExact?1.0:0.80);
- const subStudy=t.legendary?(subExact&&t.sub?1.12:1.0):(subExact?(t.sub?1.12:1.0):0.90);
- const pathCombat=t.legendary?(pathExact&&t.path!=='ANY'?1.10:1.0):(pathExact?1.0:0.88);
- const subCombat=t.legendary?(subExact&&t.sub?1.08:1.0):(subExact?(t.sub?1.08:1.0):0.94);
+ const subExact=!hasSub(t.sub)||t.sub===c.sub||(Array.isArray(t.preferredSubs)&&t.preferredSubs.includes(c.sub));
+ const pathStudy=isUni?(pathExact&&t.path!=='ANY'?1.08:1.0):(pathExact?1.0:0.80);
+ const subStudy=isUni?(subExact&&hasSub(t.sub)?1.12:1.0):(subExact?(hasSub(t.sub)?1.12:1.0):0.90);
+ const pathCombat=isUni?(pathExact&&t.path!=='ANY'?1.10:1.0):(pathExact?1.0:0.88);
+ const subCombat=isUni?(subExact&&hasSub(t.sub)?1.08:1.0):(subExact?(hasSub(t.sub)?1.08:1.0):0.94);
  const studySpeedMult=+(pathStudy*subStudy).toFixed(3);
  const combatPowerMult=+(pathCombat*subCombat).toFixed(3);
  const qiCostMult=+(wpn.qiCostMult*(t.legendary?1:(pathExact?1:1.12))).toFixed(3);
@@ -461,7 +464,7 @@ M.isTechCompatible=(n,t)=>{
  if(M.isInnateTech(t)){
   return c.path===t.path&&c.sub===t.innateSubpath&&(t.reqTier||t.tier||1)<=effSt;
  }
- if(t.legendary||t.isSectHeritage)return (t.reqTier||t.tier||1)<=effSt;
+ if(t.legendary||t.transcendent||t.isSectHeritage)return (t.reqTier||t.tier||1)<=effSt;
  const isExcl=CULT.isExclusiveSubpathTech?CULT.isExclusiveSubpathTech(t):(t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&!!t.sub));
  if(t.reqPath&&t.reqPath!=='ANY'){
   const rp=Array.isArray(t.reqPath)?t.reqPath:[t.reqPath];
@@ -512,17 +515,20 @@ M.reconcilePassives=n=>{
  const current=Array.isArray(n.passiveLoadout)?n.passiveLoadout:[];
  const next=[];
  const usedFamilies=new Map();
+ let slottedCount=0;
 
- // 1. Keep valid existing loadout order first
+ // 1. Keep valid existing loadout order first (zeroSlotPassive does not consume maxSlots)
  for(const id of current){
-  if(next.length>=maxSlots)break;
   if(!learnedPassives.includes(id)||unequipped.has(id))continue;
   const t=CULT.tech(id);
-  if(!M.isTechCompatible(n,t))continue;
+  if(!t||!M.isTechCompatible(n,t))continue;
+  const isZeroSlot=!!t.zeroSlotPassive;
+  if(!isZeroSlot&&slottedCount>=maxSlots)continue;
   const fam=M.passiveFamilyOf(t);
   if(usedFamilies.has(fam))continue;
   usedFamilies.set(fam,id);
   next.push(id);
+  if(!isZeroSlot)slottedCount++;
  }
 
  // 2. Evaluate all compatible learned passives (sorted by tier DESC, power DESC) for auto-upgrade of same family (if not pinned) or filling open slots
@@ -540,13 +546,20 @@ M.reconcilePassives=n=>{
    const prevId=usedFamilies.get(fam),prevT=CULT.tech(prevId);
    if(!pinned.has(prevId)&&prevT&&((t.tier>prevT.tier)||(t.tier===prevT.tier&&(t.power||0)>(prevT.power||0)))){
     const idx=next.indexOf(prevId);
-    if(idx>=0){next[idx]=id;usedFamilies.set(fam,id);}
+    if(idx>=0){
+     if(!!prevT.zeroSlotPassive&&!t.zeroSlotPassive&&slottedCount>=maxSlots)continue;
+     if(!!prevT.zeroSlotPassive&&!t.zeroSlotPassive)slottedCount++;
+     if(!prevT.zeroSlotPassive&&!!t.zeroSlotPassive)slottedCount=Math.max(0,slottedCount-1);
+     next[idx]=id;usedFamilies.set(fam,id);
+    }
    }
    continue;
   }
-  if(next.length<maxSlots){
+  const isZeroSlot=!!(t&&t.zeroSlotPassive);
+  if(isZeroSlot||slottedCount<maxSlots){
    usedFamilies.set(fam,id);
    next.push(id);
+   if(!isZeroSlot)slottedCount++;
   }
  }
 
@@ -672,23 +685,24 @@ M.conditionMatches=(n,t)=>{
  if(n&&n.cult&&n.cult.path==='SHADOW_SAMURAI'&&(t.path==='SHADOW_SAMURAI'||t.requiresWeapon)){
   const eqType=M.equippedType?M.equippedType(n):(M.gearType(n&&n.equip&&n.equip.WEAPON)||'FIST');
   if(!['SWORD','BLADE'].includes(eqType))return false;
-  return M.weaponConditionMatches(n,t);
+  return !t.weaponTypes||!t.weaponTypes.length||t.weaponTypes.includes(eqType);
  }
  if(t.legendary&&!t.requiresWeapon)return true;
  return M.weaponConditionMatches(n,t);
 };
 M.skillEfficiency=(n,p)=>{
  const t=CULT.tech(p.tech||p.id)||p;
+ const eqType=M.equippedType?M.equippedType(n):(M.gearType(n&&n.equip&&n.equip.WEAPON)||'FIST');
+ const wpnOnlyOk=!t.weaponTypes||!t.weaponTypes.length||t.weaponTypes.includes(eqType);
  if(n&&n.cult&&n.cult.path==='SHADOW_SAMURAI'&&(t.path==='SHADOW_SAMURAI'||t.requiresWeapon)){
-  const eqType=M.equippedType?M.equippedType(n):(M.gearType(n&&n.equip&&n.equip.WEAPON)||'FIST');
   if(!['SWORD','BLADE'].includes(eqType))return 0;
-  if(!M.weaponConditionMatches(n,t))return 0;
+  if(!wpnOnlyOk)return 0;
  }
  let equipmentMult=1;
  if(t.weaponTypes||t.armorTypes){
   if(M.weaponConditionMatches(n,t))equipmentMult=1.15;
   else if(t.legendary&&!t.requiresWeapon&&!p.requiresWeapon)equipmentMult=1.0;
-  else if(t.requiresWeapon||p.requiresWeapon)return 0;
+  else if((t.requiresWeapon||p.requiresWeapon)&&!wpnOnlyOk)return 0;
   else if(t.legendary)equipmentMult=1.0;
   else equipmentMult=0.65;
  }
@@ -790,7 +804,7 @@ M.itemMatchesResonanceSet=(n,it,rs)=>{
  if(!allowedTypes||!(allowedTypes.includes(gType)||(slot==='ACCESSORY'&&gType==='SHOES')))return false;
  const elKey=it.elementalRole==='EXPLICIT_NON_ELEMENTAL'?'EXPLICIT_NON_ELEMENTAL':(it.element||'NEUTRAL');
  if(Array.isArray(rs.elementFamily)&&(rs.elementFamily.includes(elKey)||(elKey==='NEUTRAL'&&rs.elementFamily.includes('EXPLICIT_NON_ELEMENTAL'))))return true;
- if((elKey==='NEUTRAL'||elKey==='EXPLICIT_NON_ELEMENTAL')&&n&&n.cult&&Array.isArray(rs.subpaths)&&rs.subpaths.includes(n.cult.sub))return true;
+ if((elKey==='NEUTRAL'||elKey==='EXPLICIT_NON_ELEMENTAL')&&n&&n.cult&&Array.isArray(rs.subpaths)&&(rs.subpaths.includes(n.cult.sub)||rs.subpaths.includes(n.cult.path)))return true;
  return false;
 };
 
@@ -821,8 +835,13 @@ M.evaluateResonanceSet=(n,overrideEquip)=>{
    if(usable[sl]&&M.itemMatchesResonanceSet(n,usable[sl],rs))matched.push(sl);
   }
   if(matched.length<2)continue;
-  const explicitPieces=matched.reduce((count,sl)=>count+(usable[sl].resonanceSetId===rs.id?1:0),0);
-  const subMatch=Array.isArray(rs.subpaths)&&rs.subpaths.includes(c.sub);
+  const isExplicitSingle=(it,id)=>{
+   if(!it)return false;
+   if(Array.isArray(it.resonanceSetIds)&&it.resonanceSetIds.length>1)return false;
+   return it.resonanceSetId===id||(Array.isArray(it.resonanceSetIds)&&it.resonanceSetIds.length===1&&it.resonanceSetIds[0]===id);
+  };
+  const explicitPieces=matched.reduce((count,sl)=>count+(isExplicitSingle(usable[sl],rs.id)?1:0),0);
+  const subMatch=Array.isArray(rs.subpaths)&&(rs.subpaths.includes(c.sub)||rs.subpaths.includes(c.path));
   const pathMatch=rs.path==='ANY'||rs.path===c.path;
   const score=matched.length*100+explicitPieces*60+(subMatch?35:0)+(pathMatch?12:0);
   if(score>bestScore){
@@ -839,7 +858,7 @@ M.evaluateResonanceSet=(n,overrideEquip)=>{
  const sumTier=bestSlots.reduce((s,sl)=>s+(usable[sl].tier||3),0);
  const avgTier=Math.round((sumTier/pieces)*10)/10;
  const tierScale=Math.round((1+Math.max(0,avgTier-3)*0.12)*100)/100;
- const subMatch=Array.isArray(bestSet.subpaths)&&bestSet.subpaths.includes(c.sub);
+ const subMatch=Array.isArray(bestSet.subpaths)&&(bestSet.subpaths.includes(c.sub)||bestSet.subpaths.includes(c.path));
  const subScale=subMatch?1.10:1.0;
  const totalScale=tierScale*subScale;
  const rawBonus=pieces>=3?bestSet.bonus3:bestSet.bonus2;
@@ -976,7 +995,7 @@ M.combatTargetBonus=(attacker,target)=>{
  return {critAdd,critDmgAdd,penAdd,dmgMult};
 };
 
-const EMPTY_PASSIVE_STATS=Object.freeze({p:{},f:{},pp:{},qiMaxFlat:0,qiMaxPct:0,qiCostMult:1,cultRatePct:0,life:{},procs:[],activeIds:[]});
+const EMPTY_PASSIVE_STATS=Object.freeze({p:{},f:{},pp:{},qiMaxFlat:0,qiMaxPct:0,qiCostMult:1,qiRegenPct:0,cultRatePct:0,life:{},procs:[],activeIds:[]});
 M.passiveStats=n=>{
  if(!n||!n.cult)return EMPTY_PASSIVE_STATS;
  const c=n.cult,eq=n.equip||{},effSt=CULT.effectiveTechStage?CULT.effectiveTechStage(n):c.stage,tl=c.techs.length,tLast=tl?c.techs[tl-1]:'',tFirst=tl?c.techs[0]:'';
@@ -988,7 +1007,7 @@ M.passiveStats=n=>{
  const active=M.activePassives(n);
  const p0=active.length?active[0]:'',p1=active.length>1?active[1]:'',p2=active.length>2?active[2]:'',p3=active.length>3?active[3]:'';
  const p={},f={},pp={},life={},procs=[],activeIds=[];
- let qiMaxFlat=0,qiMaxPct=0,qiCostMult=1,cultRatePct=0;
+ let qiMaxFlat=0,qiMaxPct=0,qiCostMult=1,qiRegenPct=0,cultRatePct=0;
  const seenFamilies=new Set();
  const hpPct=(n._hpf!=null?n._hpf:1)*100;
  for(const id of active){
@@ -999,11 +1018,16 @@ M.passiveStats=n=>{
   seenFamilies.add(fam);
   activeIds.push(id);
   const ps=t.passive;
-  const legMatchMult=(t.legendary&&t.weaponTypes&&t.weaponTypes.length&&M.weaponConditionMatches(n,t))?1.15:1.0;
+  const legMatchMult=((t.legendary||t.transcendent)&&t.weaponTypes&&t.weaponTypes.length&&M.weaponConditionMatches(n,t))?1.15:1.0;
   for(const k in ps.p)p[k]=(p[k]||0)+ps.p[k]*legMatchMult;
   for(const k in ps.f)f[k]=(f[k]||0)+ps.f[k]*legMatchMult;
   for(const k in ps.pp)pp[k]=(pp[k]||0)+ps.pp[k]*legMatchMult;
   for(const k in ps.life)life[k]=(life[k]||0)+ps.life[k];
+  if(ps.atkPct)p.atk=(p.atk||0)+ps.atkPct*legMatchMult;
+  if(ps.defPct)p.def=(p.def||0)+ps.defPct*legMatchMult;
+  if(ps.hpMaxPct)p.hp=(p.hp||0)+ps.hpMaxPct*legMatchMult;
+  if(ps.critAdd)f.crit=(f.crit||0)+ps.critAdd*legMatchMult;
+  if(ps.qiRecPct)qiRegenPct+=ps.qiRecPct;
   if(ps.qiMaxFlat)qiMaxFlat+=ps.qiMaxFlat;
   if(ps.qiMaxPct)qiMaxPct+=ps.qiMaxPct;
   if(ps.qiCostMult)qiCostMult*=ps.qiCostMult;
@@ -1048,7 +1072,7 @@ M.passiveStats=n=>{
   }
  }
  qiCostMult=clamp(qiCostMult,.45,1.5);
- const out={p,f,pp,qiMaxFlat,qiMaxPct,qiCostMult,cultRatePct,life,procs,activeIds};
+ const out={p,f,pp,qiMaxFlat,qiMaxPct,qiCostMult,qiRegenPct,cultRatePct,life,procs,activeIds};
  n._passStatsCache={path:c.path,sub:c.sub,stage:effSt,mantra:c.mantra,tl,tLast,tFirst,al:active.length,p0,p1,p2,p3,eqW:eq.WEAPON,eqA:eq.ARMOR,hpBand,ver:n._passVer||0,out};
  return out;
 };
@@ -1398,7 +1422,7 @@ M.applyEquipmentSkillModifiers = (n, moveProf) => {
   if (!Array.isArray(mods) || !mods.length) continue;
   for (const mod of mods) {
    if (!mod) continue;
-   const mArch = mod.matchArch || mod.arch;
+   const mArch = mod.matchArch || mod.arch || mod.targetArch;
    if (mArch && (!Array.isArray(mArch) ? mArch !== moveProf.arch : !mArch.includes(moveProf.arch))) continue;
    const mElem = mod.matchElement || mod.element;
    if (mElem && (!Array.isArray(mElem) ? mElem !== moveProf.element : !mElem.includes(moveProf.element))) continue;
@@ -1415,6 +1439,7 @@ M.applyEquipmentSkillModifiers = (n, moveProf) => {
    if (mod.hitsAdd && cloned.M > 0) cloned.hits = Math.max(1, (cloned.hits || 1) + mod.hitsAdd);
    if (mod.cdDelta) cloned.cd = Math.max(3, (cloned.cd || 10) + mod.cdDelta);
    if (mod.penAdd) cloned.pen = (cloned.pen || 0) + mod.penAdd;
+   if (mod.poiseAdd) cloned.poiseAdd = (cloned.poiseAdd || 0) + mod.poiseAdd;
    if (mod.critAdd) cloned.critAdd = (cloned.critAdd || 0) + mod.critAdd;
    if (mod.costMult) cloned.costPct = +((cloned.costPct || 4) * mod.costMult).toFixed(1);
    if (mod.addRider && !cloned.rider) cloned.rider = mod.addRider;

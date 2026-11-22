@@ -191,9 +191,10 @@ for (const fam of FAMILIES) {
     const valA = MAT_VALUES[t.t] + Math.round((t.t * 3));
     const valB = MAT_VALUES[t.t] - Math.round((t.t * 1));
 
+    const joinBeastName = (lbl, nm) => (lbl.endsWith('อสูร') && nm.startsWith('อสูร')) ? (lbl + nm.slice(4)) : (lbl + nm);
     const matA = {
       id: matAId,
-      nameTh: `${fam.partA.labelTh}${t.name}`,
+      nameTh: joinBeastName(fam.partA.labelTh, t.name),
       category: 'BEAST_PART',
       tier: t.t,
       craft: fam.partA.craft,

@@ -103,56 +103,75 @@
     if (!n || !n.h) return [{ id: 'peaceful_companion', score: 1, reasonTh: 'ใช้ชีวิตเรียบง่าย' }];
     const r = COG.role(W, n);
     const sk = n.h.skills || {};
+    const ful = n.h.fulfil || {};
+    const hasGrudge = !!(n.h.mind && Array.isArray(n.h.mind.grudges) && n.h.mind.grudges.length > 0);
+    const hasVengeance = !!((n.h.traits && n.h.traits.some(t => t && t.id === 'TR_AC_MASTER_VENGEANCE')) || (Array.isArray(n.acquiredTraits) && n.acquiredTraits.includes('TR_AC_MASTER_VENGEANCE')));
+    const hd = (n.h.state && n.h.state.heartDemon) || 0;
+    const grief = n.grief || 0;
+    const lifeRatio = (HC.ageYears && n.lifespanMax) ? (HC.ageYears(n) / Math.max(1, n.lifespanMax)) : 0;
+    const traumaShift = (hasGrudge ? 10 : 0) + (hasVengeance ? 18 : 0) + (grief > 0 ? Math.min(12, grief * 2) : 0);
+    const ageUrgency = lifeRatio >= 0.72 ? (lifeRatio - 0.70) * 45 : 0;
     const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.ZITHER || 0, sk.BRUSH || 0, sk.WHIP || 0, sk.ROSARY || 0, sk.CLAW || 0, sk.NEEDLE || 0, sk.FAN || 0, sk.ASTROLABE || 0, sk.ABACUS || 0);
     const scores = [
       {
         id: 'martial_master',
-        score: E(n, 'values.martialPeak') * 0.40 + E(n, 'interests.combat') * 0.35 + E(n, 'aptitudes.combat') * 0.25 + wpnSk * 0.35 + (E(n, 'personality.courage') - 45) * 0.2,
-        reasonTh: 'รักการต่อสู้และปรารถนาความเชี่ยวชาญเชิงอาวุธ'
+        score: E(n, 'values.martialPeak') * 0.40 + E(n, 'interests.combat') * 0.35 + E(n, 'aptitudes.combat') * 0.25 + wpnSk * 0.35 + (E(n, 'personality.courage') - 45) * 0.2 + traumaShift + (100 - (ful.martialPeak ?? 50)) * 0.08,
+        reasonTh: hasVengeance || hasGrudge ? 'ความแค้นและแรงขับผลักให้ขัดเกลาวิชายุทธ์' : 'รักการต่อสู้และปรารถนาความเชี่ยวชาญเชิงอาวุธ'
       },
       {
         id: 'realm_ascendant',
-        score: (n.cult ? 18 : -20) + E(n, 'values.martialPeak') * 0.45 + E(n, 'personality.ambition') * 0.35 + E(n, 'aptitudes.cultivation') * 0.25 + E(n, 'interests.meditation') * 0.2,
-        reasonTh: 'มุ่งหวังทะลวงขอบเขตตบะและอายุขัยที่สูงขึ้น'
+        score: (n.cult ? 18 : -20) + E(n, 'values.martialPeak') * 0.45 + E(n, 'personality.ambition') * 0.35 + E(n, 'aptitudes.cultivation') * 0.25 + E(n, 'interests.meditation') * 0.2 + ageUrgency + (hd >= 55 ? 10 : 0) + (100 - (ful.martialPeak ?? 50)) * 0.07,
+        reasonTh: lifeRatio >= 0.78 ? 'อายุขัยร่อยหรอจึงเร่งทะลวงขอบเขตต่อชะตา' : 'มุ่งหวังทะลวงขอบเขตตบะและอายุขัยที่สูงขึ้น'
       },
       {
         id: 'master_alchemist',
-        score: E(n, 'interests.alchemy') * 0.50 + E(n, 'interests.herbs') * 0.25 + E(n, 'values.knowledgeCraft') * 0.30 + (sk.ALCHEMY || 0) * 0.45 + (r.id === 'alchemy' || r.id === 'herbal' ? 22 : 0),
+        score: E(n, 'interests.alchemy') * 0.50 + E(n, 'interests.herbs') * 0.25 + E(n, 'values.knowledgeCraft') * 0.30 + (sk.ALCHEMY || 0) * 0.45 + (r.id === 'alchemy' || r.id === 'herbal' ? 22 : 0) + (100 - (ful.knowledgeCraft ?? 50)) * 0.06,
         reasonTh: 'หลงใหลศาสตร์การปรุงโอสถและสมุนไพรวิญญาณ'
       },
       {
         id: 'master_artificer',
-        score: E(n, 'interests.forging') * 0.50 + E(n, 'values.knowledgeCraft') * 0.30 + Math.max(sk.FORGING || 0, sk.ARRAY || 0, sk.TALISMAN || 0) * 0.45 + E(n, 'aptitudes.crafting') * 0.2 + (r.id === 'forge' ? 22 : 0),
+        score: E(n, 'interests.forging') * 0.50 + E(n, 'values.knowledgeCraft') * 0.30 + Math.max(sk.FORGING || 0, sk.ARRAY || 0, sk.TALISMAN || 0) * 0.45 + E(n, 'aptitudes.crafting') * 0.2 + (r.id === 'forge' ? 22 : 0) + (100 - (ful.knowledgeCraft ?? 50)) * 0.06,
         reasonTh: 'ถนัดงานหลอมศาสตราและค่ายกล'
       },
       {
         id: 'benevolent_healer',
-        score: E(n, 'personality.empathy') * 0.50 + (sk.MEDICINE || 0) * 0.50 + E(n, 'values.familyClan') * 0.25 + E(n, 'personality.integrity') * 0.15 + (r.id === 'healer' ? 25 : 0),
+        score: E(n, 'personality.empathy') * 0.50 + (sk.MEDICINE || 0) * 0.50 + E(n, 'values.familyClan') * 0.25 + E(n, 'personality.integrity') * 0.15 + (r.id === 'healer' ? 25 : 0) + (100 - (ful.familyClan ?? 50)) * 0.05,
         reasonTh: 'มีจิตเมตตาและต้องการช่วยเหลือผู้บาดเจ็บ'
       },
       {
         id: 'respected_mentor',
-        score: (n.rank >= 3 ? 16 : -10) + E(n, 'social.teaching') * 0.40 + E(n, 'interests.teaching') * 0.35 + E(n, 'interests.scholarship') * 0.25 + E(n, 'values.honorLegacy') * 0.25 + ((n.h.life.family.disciples || []).length * 8) + (r.id === 'scripture' || r.id === 'martial' ? 15 : 0),
+        score: (n.rank >= 3 ? 16 : -10) + E(n, 'social.teaching') * 0.40 + E(n, 'interests.teaching') * 0.35 + E(n, 'interests.scholarship') * 0.25 + E(n, 'values.honorLegacy') * 0.25 + ((n.h.life.family.disciples || []).length * 8) + (r.id === 'scripture' || r.id === 'martial' ? 15 : 0) + (100 - (ful.honorLegacy ?? 50)) * 0.06,
         reasonTh: 'ต้องการถ่ายทอดวิชาและสร้างศิษย์สืบทอด'
       },
       {
         id: 'wealthy_trader',
-        score: E(n, 'values.wealthResource') * 0.55 + E(n, 'interests.trade') * 0.35 + E(n, 'aptitudes.socialCommerce') * 0.25 + (sk.trading || 0) * 0.35 - E(n, 'personality.empathy') * 0.1,
+        score: E(n, 'values.wealthResource') * 0.55 + E(n, 'interests.trade') * 0.35 + E(n, 'aptitudes.socialCommerce') * 0.25 + (sk.trading || 0) * 0.35 - E(n, 'personality.empathy') * 0.1 + (100 - (ful.wealthResource ?? 50)) * 0.07,
         reasonTh: 'ให้ความสำคัญกับทรัพย์สินและการค้าแลกเปลี่ยน'
       },
       {
         id: 'sect_pillar',
-        score: (r.id !== 'member' ? 24 : 0) + E(n, 'values.sectDuty') * 0.45 + E(n, 'personality.loyalty') * 0.30 + E(n, 'personality.discipline') * 0.25 + E(n, 'values.powerStatus') * 0.25,
+        score: (r.id !== 'member' ? 24 : 0) + E(n, 'values.sectDuty') * 0.45 + E(n, 'personality.loyalty') * 0.30 + E(n, 'personality.discipline') * 0.25 + E(n, 'values.powerStatus') * 0.25 + (100 - (ful.sectDuty ?? 50)) * 0.06,
         reasonTh: 'ยึดมั่นในหน้าที่และการบริหารสำนัก'
       },
       {
         id: 'peaceful_companion',
-        score: E(n, 'values.freedom') * 0.42 + E(n, 'values.familyClan') * 0.35 + Math.max(E(n, 'interests.arts'), E(n, 'interests.solitude'), E(n, 'interests.cuisine')) * 0.30 + (100 - E(n, 'personality.ambition')) * 0.35 + (100 - E(n, 'personality.aggression')) * 0.15,
+        score: E(n, 'values.freedom') * 0.42 + E(n, 'values.familyClan') * 0.35 + Math.max(E(n, 'interests.arts'), E(n, 'interests.solitude'), E(n, 'interests.cuisine')) * 0.30 + (100 - E(n, 'personality.ambition')) * 0.35 + (100 - E(n, 'personality.aggression')) * 0.15 - (hasVengeance || hasGrudge || hd >= 55 || grief > 2 ? 28 : 0),
         reasonTh: 'รักอิสระ มิตรภาพ และความสงบสุขมากกว่าการแก่งแย่ง'
       }
     ];
     scores.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
     return scores;
+  };
+
+  COG.triggerAspirationReview = (W, n, reason) => {
+    if (!n || !n.h) return null;
+    const c = COG.ensure(n);
+    if (c.aspiration) {
+      const day = W ? (W.day || 0) : 0;
+      c.aspiration.lastReviewDay = day - 60;
+      c.aspiration.sinceDay = Math.min(c.aspiration.sinceDay || 0, day - 60);
+    }
+    return COG.ensureAspiration(W, n);
   };
 
   COG.ensureAspiration = (W, n) => {
@@ -427,8 +446,8 @@
       const roleId = COG.role(W, n).id;
       if (['treasury', 'master', 'deputy', 'quartermaster', 'provision', 'alchemy', 'herbal', 'forge'].includes(roleId)) return true;
       const k = n.cognition && n.cognition.knowledge;
-      if (k && Array.isArray(k.knownShortageIds) && k.knownShortageIds.length > 0) return k.knownShortageIds.includes(itemId);
-      return true;
+      if (k && k.updatedAt > -9999 && Array.isArray(k.knownShortageIds)) return k.knownShortageIds.includes(itemId);
+      return (W.t || 0) <= 0;
     }
     return true;
   };
@@ -499,8 +518,9 @@
     const maxErr = clamp(0.28 - acuity / 380, 0.03, 0.26);
     const tKey = String((target && (target.id || target.zone || target.nameTh)) || 'tgt');
     const u01 = _detHash01(String(observer.id || 'o') + ':' + tKey + ':' + String(W ? (W.day || 0) : 0));
-    const egoShift = (E(observer, 'personality.pride') - E(observer, 'personality.caution')) / 700;
-    const mult = clamp(1 + (u01 * 2 - 1) * maxErr + concealShift - egoShift * 0.5, 0.65, 1.45);
+    const judgeAcc = clamp(1 - E(observer, 'intellect.judgement') / 140, 0.35, 1.0);
+    const egoShift = ((E(observer, 'personality.pride') - E(observer, 'personality.caution')) / 240) * judgeAcc;
+    const mult = clamp(1 + (u01 * 2 - 1) * maxErr + concealShift - egoShift * 0.6, 0.55, 1.55);
     return Math.max(1, Math.round(trueP * mult));
   };
 
@@ -532,6 +552,12 @@
   // Social word-of-mouth knowledge propagation during pair/festival interactions
   COG.shareKnowledgeOnInteract = (W, a, b, mode) => {
     if (!W || !W.sect || !a || !b || a.dead || b.dead) return;
+    if (mode === 'argue') return;
+    const ra = a.h && a.h.mind && a.h.mind.relations && a.h.mind.relations[b.id];
+    const rb = b.h && b.h.mind && b.h.mind.relations && b.h.mind.relations[a.id];
+    const aGrudge = a.h && a.h.mind && Array.isArray(a.h.mind.grudges) && a.h.mind.grudges.some(gr => gr && gr.targetId === b.id);
+    const bGrudge = b.h && b.h.mind && Array.isArray(b.h.mind.grudges) && b.h.mind.grudges.some(gr => gr && gr.targetId === a.id);
+    if (aGrudge || bGrudge || (ra && (ra.bond === 'ศัตรู' || (ra.a || 0) < -20 || (ra.v || 0) > 60)) || (rb && (rb.bond === 'ศัตรู' || (rb.a || 0) < -20 || (rb.v || 0) > 60))) return;
     const ca = COG.ensure(a), cb = COG.ensure(b);
     const ka = ca.knowledge || COG.perceive(W, a, false);
     const kb = cb.knowledge || COG.perceive(W, b, false);
@@ -586,7 +612,7 @@
       }
       const daysInSect = Math.max(1, (W.day || 1) - (n.joinDay || 0));
       const observedRate = (n.cpEarned || 0) > 10 ? (n.cpEarned / daysInSect) : (6 + n.rank * 3.5 + E(n, 'personality.discipline') * 0.06);
-      const dailyNet = Math.max(1.5, observedRate * (0.85 + E(n, 'personality.optimism' in (n.h.temperament || {}) ? 'temperament.optimism' : 'personality.ambition') / 400));
+      const dailyNet = Math.max(1.5, observedRate * (0.85 + E(n, 'optimism' in (n.h.temperament || {}) ? 'temperament.optimism' : 'personality.ambition') / 400));
       const deficit = price - cp;
       const daysNeeded = Math.round((deficit / dailyNet) * 10) / 10;
       const confidence = clamp(0.45 + Math.min(0.35, daysInSect / 90) + E(n, 'intellect.numeracy') / 400, 0.35, 0.9);
@@ -670,10 +696,10 @@
       const eqW = n.equip ? n.equip.WEAPON : null, eqA = n.equip ? n.equip.ARMOR : null, pLen = n.pets ? n.pets.length : 0;
       const emVer = (n.ext && n.ext.elementalSystem && n.ext.elementalSystem._mVer) || 0;
       tpc = TP_CACHE.get(n);
-      const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0;
-      if (!tpc || tpc.rat !== rat0 || tpc.mLen !== mLen0 || tpc.emVer !== emVer || tpc.st !== n.cult.stage || tpc.sub !== n.cult.sub || tpc.path !== n.cult.path || tpc.tl !== n.cult.techs.length || tpc.post !== n.post || tpc.eqW !== eqW || tpc.eqA !== eqA || tpc.pVer !== (n._passVer || 0) || tpc.pLen !== pLen) {
+      const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0, hdBand0 = ((n.h.state?.heartDemon || 0) / 15) | 0;
+      if (!tpc || tpc.ver !== n._ver || tpc.hdBand !== hdBand0 || tpc.rat !== rat0 || tpc.mLen !== mLen0 || tpc.emVer !== emVer || tpc.st !== n.cult.stage || tpc.sub !== n.cult.sub || tpc.path !== n.cult.path || tpc.tl !== n.cult.techs.length || tpc.post !== n.post || tpc.eqW !== eqW || tpc.eqA !== eqA || tpc.pVer !== (n._passVer || 0) || tpc.pLen !== pLen) {
         const elemMap = (tpc && tpc.emVer === emVer && tpc.root === n.h.root && tpc.st === n.cult.stage) ? tpc.elemMap : Object.create(null);
-        tpc = { rat: rat0, mLen: mLen0, emVer, root: n.h.root, st: n.cult.stage, sub: n.cult.sub, path: n.cult.path, tl: n.cult.techs.length, post: n.post, eqW, eqA, pVer: n._passVer || 0, pLen, map: Object.create(null), elemMap };
+        tpc = { ver: n._ver, hdBand: hdBand0, rat: rat0, mLen: mLen0, emVer, root: n.h.root, st: n.cult.stage, sub: n.cult.sub, path: n.cult.path, tl: n.cult.techs.length, post: n.post, eqW, eqA, pVer: n._passVer || 0, pLen, map: Object.create(null), elemMap };
         TP_CACHE.set(n, tpc);
       } else {
         const hit = tpc.map[t.id];
@@ -726,9 +752,9 @@
     }
     if (t.cat === 'FORBIDDEN_ART' || t.role === 'FORBIDDEN_BLOOD_SOUL' || t.forbiddenArchetype) {
       const amb = E(n, 'personality.ambition') / 100, hd = ((n.h && n.h.state && n.h.state.heartDemon) || 0) / 100;
-      const integ = E(n, 'personality.integrity') / 100, comp = E(n, 'personality.compassion') / 100;
-      const isDarkPath = ['DEMON', 'DEVOURING_FLESH', 'ABYSSAL_CORRUPTION', 'VENOM_GU'].includes(n.cult?.path);
-      roleFit += (amb * 0.55 + hd * 0.75 + (isDarkPath ? 0.65 : 0)) - (integ * 0.85 + comp * 0.65);
+      const integ = E(n, 'personality.integrity') / 100, emp = E(n, 'personality.empathy') / 100, will = E(n, 'intellect.willpower') / 100;
+      const isDarkPath = ['DEMON', 'DEVOURING_FLESH', 'ABYSSAL_CORRUPTION', 'VENOM_GU', 'CORPSE_SOVEREIGN', 'WRAITH_GRIEVANCE', 'DEATHLESS_CADAVER'].includes(n.cult?.path);
+      roleFit += (amb * 0.55 + hd * 0.75 + (isDarkPath ? 0.65 : 0)) - (integ * 0.85 + emp * 0.65 + will * 0.25);
     }
     let elemFit = 0;
     if (g.ELEM && n.h) {
@@ -774,7 +800,10 @@
         }
       }
     }
-    const res = condMatch + openPass + roleFit + elemFit + buildFit + rational * Math.log2(Math.max(1, t.power || 1)) + (1 - rational) * (subMatch + (t.path === n.cult?.path ? 1 : 0)) + E(n, 'personality.curiosity') / 100 * (t.tier || 1) * 0.2;
+    const discMod = (E(n, 'personality.discipline') - 50) / 100 * (isPass ? 0.25 : 0.15) * (t.tier || 1) * 0.2;
+    const solMod = (E(n, 'interests.solitude') - 50) / 100 * ((t.cat === 'LIGHTNESS_ART' || t.cat === 'AUXILIARY_ART' || isPass) ? 0.28 : -0.08);
+    const prideMod = (E(n, 'personality.pride') - 50) / 100 * ((t.legendary || isPrimarySub) ? 0.42 : (!isCompatSub && t.path !== n.cult?.path ? -0.25 : 0));
+    const res = condMatch + openPass + roleFit + elemFit + buildFit + discMod + solMod + prideMod + rational * Math.log2(Math.max(1, t.power || 1)) + (1 - rational) * (subMatch + (t.path === n.cult?.path ? 1 : 0)) + E(n, 'personality.curiosity') / 100 * (t.tier || 1) * 0.2;
     if (tpc && t.id) tpc.map[t.id] = res;
     return res;
   };
@@ -873,7 +902,10 @@
     const hasPreferredWeapon = !!(eqType && profWpn.includes(eqType));
     const hasPrimaryWeapon = !!(eqType && profWpn[0] === eqType);
     const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage;
-    const allGearPool = ((n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : []).concat(W.sect.gear || []).filter(g2 => g2 && g2.slot === 'WEAPON' && (g2.minStage || 1) <= effSt);
+    const kn = n.cognition && n.cognition.knowledge;
+    const visGearSet = (kn && kn.updatedAt > -9999 && Array.isArray(kn.visibleGearIds)) ? new Set(kn.visibleGearIds) : null;
+    const sectGearPool = visGearSet ? (W.sect.gear || []).filter(g2 => g2 && visGearSet.has(g2.uid || g2.id)) : (W.sect.gear || []);
+    const allGearPool = ((n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : []).concat(sectGearPool).filter(g2 => g2 && g2.slot === 'WEAPON' && (g2.minStage || 1) <= effSt);
     const availPrefGear = allGearPool.filter(g2 => profWpn.includes(M.gearType(g2)));
     const availFallbackGear = allGearPool.filter(g2 => !profWpn.includes(M.gearType(g2)));
     const knownForgeRecs = (ECO && ECO.recipesFor) ? ECO.recipesFor(W, ['FORGING', 'ARRAY', 'TALISMAN']).filter(r => {
@@ -882,7 +914,8 @@
       return gt && profWpn.includes(gt) && (r.tier || 1) <= effSt + 1;
     }) : [];
     const craftablePrefRec = knownForgeRecs.find(r => ECO.inputsOk(W, r)) || knownForgeRecs[0] || null;
-    const learnableIds = CULT.learnable(n, W.sect.library || []);
+    const visLib = (kn && kn.updatedAt > -9999 && Array.isArray(kn.visibleTechIds) && kn.visibleTechIds.length > 0) ? kn.visibleTechIds : COG.visibleLibraryFor(W, n);
+    const learnableIds = CULT.learnable(n, visLib);
     const learnableTechs = learnableIds.map(id => CULT.tech(id)).filter(Boolean);
     const prefTechs = learnableTechs.filter(t => Array.isArray(t.weaponTypes) && t.weaponTypes.some(w => profWpn.includes(w)) && subElems.includes(t.elementProfile?.primary || t.element));
     const fallbackTechs = learnableTechs.filter(t => !prefTechs.includes(t));
@@ -967,31 +1000,37 @@
     const minCooldown = curWpnIsFallback ? 180 : 720;
     if (n._lastGearSwapAt && W.t - n._lastGearSwapAt < minCooldown) return null;
     let best = null, bestDelta = 0;
+    const sentimentalWpn = !!(curWpn && curWpn.slot === 'WEAPON' && (curWpn.weaponSpirit || (n._lastGearSwapAt != null && W.t - n._lastGearSwapAt > 30 * 1440)));
     // 1. Check personal bag first (free immediate equip if useful-now or completes resonance set)
     const bagGear = (n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : [];
     for (const eq of bagGear) {
       if (!eq || !eq.slot) continue;
-      const cl = M.classifyGearForNpc(null, n, eq, 0);
+      const cl = M.classifyGearForNpc(W, n, eq, 0);
       const resPrev = M.resonanceUpgradePreview ? M.resonanceUpgradePreview(n, eq) : null;
       const resBonus = (resPrev && resPrev.completes) ? (resPrev.nextPieces >= 3 ? 45 : 22) : 0;
       const effDelta = cl.deltaScore + resBonus;
-      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > 4)) && effDelta > bestDelta) {
+      const minDelta = (sentimentalWpn && eq.slot === 'WEAPON') ? 18 : 4;
+      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > minDelta)) && effDelta > bestDelta && !(sentimentalWpn && eq.slot === 'WEAPON' && effDelta < 18)) {
         bestDelta = effDelta;
         best = { source: 'bag', gear: eq, price: 0, deltaScore: effDelta, reasons: cl.suit.reasons, reasonTh: cl.reasonTh, resonancePreview: resPrev };
       }
     }
     if (best) return best;
-    // 2. Check sect shop / armory gear
+    // 2. Check sect shop / armory gear (bounded by visibleGearIds when perceived)
+    const kn = n.cognition && n.cognition.knowledge;
+    const visGearSet = (kn && kn.updatedAt > -9999 && Array.isArray(kn.visibleGearIds)) ? new Set(kn.visibleGearIds) : null;
     const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
     for (const eq of (W.sect.gear || [])) {
       if (!eq || !eq.slot || (eq.minStage || 1) > effSt) continue;
+      if (visGearSet && !visGearSet.has(eq.uid || eq.id)) continue;
       if (!SECT.canAccessItem(W, n, eq)) continue;
       const price = (g.CPE && g.CPE.gearPrice) ? g.CPE.gearPrice(W, eq) : 20;
-      const cl = M.classifyGearForNpc(null, n, eq, price);
+      const cl = M.classifyGearForNpc(W, n, eq, price);
       const resPrev = M.resonanceUpgradePreview ? M.resonanceUpgradePreview(n, eq) : null;
       const resBonus = (resPrev && resPrev.completes) ? (resPrev.nextPieces >= 3 ? 45 : 22) : 0;
       const effDelta = cl.deltaScore + resBonus;
-      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > 4)) && effDelta > bestDelta) {
+      const minDelta = (sentimentalWpn && eq.slot === 'WEAPON') ? 18 : 4;
+      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > minDelta)) && effDelta > bestDelta && !(sentimentalWpn && eq.slot === 'WEAPON' && effDelta < 18)) {
         bestDelta = effDelta;
         best = { source: 'shop', gear: eq, price, deltaScore: effDelta, reasons: cl.suit.reasons, reasonTh: cl.reasonTh, resonancePreview: resPrev };
       }
@@ -1101,7 +1140,7 @@
       if (ECO.inputsOk(W, r)) {
         return { step: 'hall_craft', stepTitle: 'ผลิต「' + r.outNameTh + '」ตามวัตถุดิบคลัง', missingPrereq: null, actions: [r.craft === 'ALCHEMY' ? 'brew' : 'forge', 'brewBasic', 'personalBrew'] };
       }
-      return { step: 'gather_input', stepTitle: 'รวบรวมวัตถุดิบสำหรับ「' + r.outNameTh + '」', missingPrereq: 'ขาดวัตถุดิบหรือแต้มแลกส่วนผสม', actions: ['forage', 'farm', 'mine', 'personalBrew', 'donate'] };
+      return { step: 'gather_input', stepTitle: 'รวบรวมวัตถุดิบสำหรับ「' + r.outNameTh + '」', missingPrereq: 'ขาดวัตถุดิบหรือแต้มแลกส่วนผสม', actions: ['forage', 'farm', 'mine', 'wildHunt', 'personalBrew', 'donate'] };
     }
     if (goal.id === 'track_bottleneck') {
       if (n.inj && n.inj.some(i => (i.sev || 1) >= 2)) {
@@ -1141,8 +1180,20 @@
       return { step: 'perform_duty', stepTitle: 'ปฏิบัติงานในหน้าที่และกำกับดูแลหอ', missingPrereq: null, actions: Array.from(new Set(['duty'].concat(planActs || []))) };
     }
     if (goal.id === 'crisis') {
-      const acts = goal.targetId === 'meal' ? ['cook', 'farm'] : goal.targetId === 'grain' ? ['farm'] : goal.source === 'alchemy' ? ['brew', 'brewBasic', 'forage'] : ['forage', 'donate', 'mine', 'farm'];
+      const acts = goal.targetId === 'meal' ? ['cook', 'farm'] : goal.targetId === 'grain' ? ['farm'] : goal.source === 'alchemy' ? ['brew', 'brewBasic', 'forage'] : ['forage', 'donate', 'mine', 'farm', 'wildHunt'];
       return { step: 'resolve_shortage', stepTitle: 'เร่งผลิต/จัดหาของที่สำนักขาดแคลน', missingPrereq: null, actions: acts };
+    }
+    if (goal.id === 'accumulate_wealth') {
+      return { step: 'earn_wealth', stepTitle: 'สะสมศิลาวิญญาณและแต้มคุณูปการ', missingPrereq: null, actions: ['forage', 'mine', 'outsideTrade', 'donate', 'personalBrew'] };
+    }
+    if (goal.id === 'martial_tempering') {
+      return { step: 'temper_martial', stepTitle: 'เคี่ยวกรำฝีมือยุทธ์และล่าอสูร', missingPrereq: null, actions: ['practice', 'skillDrill', 'wildHunt', 'pair'] };
+    }
+    if (goal.id === 'ascetic_retreat') {
+      return { step: 'retreat_meditate', stepTitle: 'ปลีกวิเวกบำเพ็ญตบะอย่างเคร่งครัด', missingPrereq: null, actions: ['cultivate', 'consolidate', 'pray'] };
+    }
+    if (goal.id === 'hedonic_craft') {
+      return { step: 'enjoy_craft', stepTitle: 'สำราญใจและสร้างสรรค์ตามอิสระ', missingPrereq: null, actions: ['leisure', 'cook', 'personalBrew', 'forage'] };
     }
     if (goal.id === 'help_friend') {
       const p = helpCandidate(W, n, goal.targetId);
@@ -1201,6 +1252,10 @@
       const inst = W.world && W.world.clues && W.world.clues.active && W.world.clues.active[goal.targetId];
       return !inst || ['claimed', 'disproven', 'abandoned', 'expired'].includes(inst.status) || (inst.currentNodeIdx || 0) > (goal.startNodeIdx || 0);
     }
+    if (goal.id === 'accumulate_wealth') return (n.cp || 0) >= (goal.startCp || 0) + 60 || ((n.inv && n.inv.stones) || 0) >= (goal.startStones || 0) + 40;
+    if (goal.id === 'martial_tempering') return (n.merit || 0) >= (goal.startMerit || 0) + 6;
+    if (goal.id === 'ascetic_retreat') return !n.cult || n.cult.prog >= (goal.startProg || 0) + Math.max(8, CULT.threshold(n) * 0.08);
+    if (goal.id === 'hedonic_craft') return (n.h.state.mood || 0) >= 45 && (n.h.state.stress || 0) <= 15;
     return false;
   }
 
@@ -1228,6 +1283,10 @@
       const inst = W.world && W.world.clues && W.world.clues.active && W.world.clues.active[goal.targetId];
       return !!(inst && (inst.status === 'claimed' || (inst.currentNodeIdx || 0) > (goal.startNodeIdx || 0)));
     }
+    if (goal.id === 'accumulate_wealth') return (n.cp || 0) >= (goal.startCp || 0) + 60 || ((n.inv && n.inv.stones) || 0) >= (goal.startStones || 0) + 40;
+    if (goal.id === 'martial_tempering') return (n.merit || 0) >= (goal.startMerit || 0) + 6;
+    if (goal.id === 'ascetic_retreat') return !!(n.cult && n.cult.prog >= (goal.startProg || 0) + Math.max(8, CULT.threshold(n) * 0.08));
+    if (goal.id === 'hedonic_craft') return (n.h.state.mood || 0) >= 45 && (n.h.state.stress || 0) <= 15;
     return false;
   }
 
@@ -1298,7 +1357,7 @@
       if (n._bagChkLen !== gLen || n._bagChkLast !== gLast || n._bagChkSt !== cSt) {
         n._bagChkLen = gLen; n._bagChkLast = gLast; n._bagChkSt = cSt;
         for (const eq of n.inv.gear.slice()) {
-          const cl = g.MARTIAL && g.MARTIAL.classifyGearForNpc ? g.MARTIAL.classifyGearForNpc(null, n, eq, 0) : null;
+          const cl = g.MARTIAL && g.MARTIAL.classifyGearForNpc ? g.MARTIAL.classifyGearForNpc(W, n, eq, 0) : null;
           if (cl && cl.category === 'useful-now') {
             SECT.EDITOR.equipPersonalGear(W, n.id, eq.uid || eq.id);
             n._lastGearSwapAt = W.t;
@@ -1392,13 +1451,23 @@
       if (r.id !== 'member') {
         add('service', 'รับผิดชอบงาน' + r.title, 0.2 + (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 200 + roleNeed(W, n), r.id);
       }
-      const crisis = (W.sect.shortageDirectives || []).find(d => d.priority === 'critical' && d.deficit > 0);
+      const crisis = (W.sect.shortageDirectives || []).find(d => d.priority === 'critical' && d.deficit > 0 && COG.isAwareOf(W, n, 'shortage', d.id));
       if (crisis) {
         add('crisis', 'ช่วยสำนักแก้การขาด ' + (crisis.nameTh || ECO.name(crisis.id)), Math.max(0, (E(n, 'values.sectDuty') + E(n, 'personality.empathy') + E(n, 'personality.loyalty') - 130) / 100), crisis.id, { source: crisis.source });
       }
-      // Help injured friend goal (check empathy first, and relationScore before hpMax!)
+      // Help injured friend goal (check empathy, bounded awareness/proximity <= 35, and relationScore before hpMax!)
       if (E(n, 'personality.empathy') >= 48) {
-        const relMap = n.h.mind.relations || {}; const injuredFriend = W.npcs.find(x => x && x.id !== n.id && !x.dead && !x.away && relMap[x.id] && SECT.relationScore(n, x) >= 25 && x.h.state.hp < CULT.hpMax(x) * 0.55);
+        const relMap = n.h.mind.relations || {};
+        const myBid = (n.act && n.act.st != null && W.map && W.map.stations && W.map.stations[n.act.st]) ? W.map.stations[n.act.st].bid : null;
+        const memList = (n.cognition && Array.isArray(n.cognition.memory)) ? n.cognition.memory : [];
+        const injuredFriend = W.npcs.find(x => {
+          if (!x || x.id === n.id || x.dead || x.away || !relMap[x.id]) return false;
+          if (SECT.relationScore(n, x) < 25 || x.h.state.hp >= CULT.hpMax(x) * 0.72) return false;
+          const near = Math.hypot((x.x || 0) - (n.x || 0), (x.y || 0) - (n.y || 0)) <= 35;
+          const sameHall = myBid != null && x.act && x.act.st != null && W.map.stations[x.act.st] && W.map.stations[x.act.st].bid === myBid;
+          const heardRumor = memList.some(m => m && m.subjectId === x.id && (W.t - (m.at || 0)) < 720);
+          return near || sameHall || heardRumor;
+        });
         if (injuredFriend) {
           add('help_friend', 'หาโอสถช่วยรักษา ' + injuredFriend.h.name.given, 0.25 + (E(n, 'personality.empathy') + Math.max(0, SECT.relationScore(n, injuredFriend))) / 180, injuredFriend.id);
         }
@@ -1444,8 +1513,8 @@
         const eqW0 = n.equip ? n.equip.WEAPON : null;
         let blc = BLT_CACHE.get(n);
         let bestTech = null;
-        const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0;
-        if (blc && blc.libLen === visibleLib.length && blc.cap === cap && blc.sub === n.cult.sub && blc.tl === n.cult.techs.length && blc.rat === rat0 && blc.mLen === mLen0 && blc.eqW === eqW0 && (!blc.bestTech || !n.cult.techs.includes(blc.bestTech.id))) {
+        const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0, hdBand0 = ((n.h.state?.heartDemon || 0) / 15) | 0;
+        if (blc && blc.ver === n._ver && blc.hdBand === hdBand0 && blc.libLen === visibleLib.length && blc.cap === cap && blc.sub === n.cult.sub && blc.tl === n.cult.techs.length && blc.rat === rat0 && blc.mLen === mLen0 && blc.eqW === eqW0 && (!blc.bestTech || !n.cult.techs.includes(blc.bestTech.id))) {
           bestTech = blc.bestTech;
         } else {
           const eligible = CULT.learnable(n, visibleLib).map(CULT.tech).filter(t => t && (t.reqTier || t.tier) <= cap && g.CPE.techPrice(W, t) > 0);
@@ -1454,7 +1523,7 @@
             const p = COG.techPreference(n, eligible[i]);
             if (p > bestPref) { bestPref = p; bestTech = eligible[i]; }
           }
-          BLT_CACHE.set(n, { libLen: visibleLib.length, cap, sub: n.cult.sub, tl: n.cult.techs.length, rat: rat0, mLen: mLen0, eqW: eqW0, bestTech });
+          BLT_CACHE.set(n, { ver: n._ver, hdBand: hdBand0, libLen: visibleLib.length, cap, sub: n.cult.sub, tl: n.cult.techs.length, rat: rat0, mLen: mLen0, eqW: eqW0, bestTech });
         }
         const eligible = [bestTech];
         if (eligible[0]) {
@@ -1481,8 +1550,32 @@
           add('rival', 'ฝึกฝนเพื่อก้าวข้าม ' + W.byId[rival[0]].h.name.given, Math.max(0, (E(n, 'personality.pride') + E(n, 'personality.ambition') - 100) / 65), rival[0]);
         }
       }
+      if (E(n, 'values.wealthResource') >= 58) {
+        add('accumulate_wealth', 'สั่งสมศิลาวิญญาณและทรัพย์สิน', (E(n, 'values.wealthResource') - 45) / 130 + E(n, 'interests.trade') / 320, null, { startCp: n.cp || 0, startStones: (n.inv && n.inv.stones) || 0 });
+      }
+      if (E(n, 'values.martialPeak') >= 58) {
+        add('martial_tempering', 'เคี่ยวกรำวิชายุทธ์ให้แกร่งกล้า', (E(n, 'values.martialPeak') + E(n, 'personality.courage') - 95) / 145, null, { startMerit: n.merit || 0 });
+      }
+      if (E(n, 'personality.discipline') >= 60 && E(n, 'interests.solitude') >= 50 && n.cult) {
+        add('ascetic_retreat', 'ปลีกวิเวกบำเพ็ญตบะ', (E(n, 'personality.discipline') + E(n, 'interests.meditation') - 95) / 145, null, { startProg: n.cult.prog || 0 });
+      }
+      if (E(n, 'values.freedom') >= 55 || E(n, 'interests.arts') >= 60) {
+        add('hedonic_craft', 'ใช้ชีวิตอิสระและเสพย์สุขงานศิลป์', (E(n, 'values.freedom') + Math.max(E(n, 'interests.arts'), E(n, 'interests.cuisine')) - 95) / 145, null);
+      }
     }
-    options.push({ id: 'none', weight: options.length > 0 ? (0.18 + E(n, 'values.freedom') / 350) : 1.0 });
+    // Periodic autonomous petitions for severe injury or missing weapon
+    if (W && n._lastPetDay !== W.day && COG.submitPetition) {
+      const s = n.h.state, hm = CULT.hpMax(n);
+      const hasHealPill = !!(n.inv && n.inv.pills && Object.keys(n.inv.pills).some(k => ECO.pillInfo(k)?.effect?.healHealth));
+      if (((n.inj && n.inj.some(i => (i.sev || 1) >= 2)) || s.hp < hm * 0.45) && !hasHealPill) {
+        COG.submitPetition(W, n, 'medicine', 'บาดเจ็บหนักและขาดโอสถรักษา');
+        n._lastPetDay = W.day;
+      } else if (n.rank >= 1 && n.cult && !(n.equip && n.equip.WEAPON)) {
+        COG.submitPetition(W, n, 'equipment', 'ขาดศาสตราคู่กายในการฝึกยุทธ์');
+        n._lastPetDay = W.day;
+      }
+    }
+    options.push({ id: 'none', weight: options.length > 0 ? (0.08 + E(n, 'values.freedom') / 600) : 1.0 });
     const chosen = options.length === 1 ? options[0] : W.rng.weighted(options, x => x.weight);
     if (chosen.id !== 'none') {
       const gObj = {
@@ -1502,6 +1595,10 @@
         startRelN: chosen.startRelN ?? null,
         startRelA: chosen.startRelA ?? null,
         startNodeIdx: chosen.startNodeIdx ?? 0,
+        startCp: chosen.startCp ?? null,
+        startStones: chosen.startStones ?? null,
+        startMerit: chosen.startMerit ?? null,
+        startProg: chosen.startProg ?? null,
         blocked: 0
       };
       const stInfo = computeGoalStep(W, n, gObj);
@@ -1526,6 +1623,53 @@
     registry: ['duty'], discipline: ['duty'], disciples: ['duty', 'pair'], master: ['duty'], deputy: ['duty'],
     envoy: ['duty'], spymaster: ['duty', 'investigateClueLocal'], beastmaster: ['duty', 'guard'], arraymaster: ['duty', 'forge'], censor: ['duty'], quartermaster: ['duty']
   };
+  const TRAIT_ACT_CATS = {
+    solo: ['cultivate', 'consolidate', 'pray', 'study'],
+    conflict: ['practice', 'skillDrill', 'wildHunt', 'guard'],
+    arts: ['brew', 'brewBasic', 'personalBrew', 'forge', 'leisure'],
+    explore: ['forage', 'errand', 'wildHunt', 'gatherWildResource', 'investigateClueLocal'],
+    sect: ['duty', 'guard', 'donate'],
+    social: ['pair', 'festival', 'flatter'],
+    trade: ['outsideTrade', 'shop', 'errand'],
+    virtue: ['shareMedicine', 'giftItem', 'heal', 'supportBless', 'pray'],
+    covert: ['investigateClueLocal', 'hide', 'flatter'],
+    mission: ['errand', 'wildHunt', 'guard'],
+    family: ['pair', 'shareMedicine', 'giftItem']
+  };
+  COG.traitActionWeight = (n, actionId) => {
+    if (!n || !n.h || !Array.isArray(n.h.traits) || !n.h.traits.length || !HC.traitDef) return 0;
+    let sum = 0;
+    for (let i = 0; i < n.h.traits.length; i++) {
+      const def = HC.traitDef(n.h.traits[i].id);
+      const aw = def && def.behaviorMods && def.behaviorMods.actionWeights;
+      if (!aw) continue;
+      for (const cat in aw) {
+        const list = TRAIT_ACT_CATS[cat];
+        if (list && list.includes(actionId)) sum += aw[cat];
+      }
+    }
+    return clamp(sum, -0.6, 0.6);
+  };
+  COG.decisionBias = (n, key) => {
+    if (!n || !n.h || !Array.isArray(n.h.traits) || !n.h.traits.length || !HC.traitDef) return 0;
+    let sum = 0;
+    for (let i = 0; i < n.h.traits.length; i++) {
+      const def = HC.traitDef(n.h.traits[i].id);
+      const db = def && def.behaviorMods && def.behaviorMods.decisionBias;
+      if (db && Number.isFinite(db[key])) sum += db[key];
+    }
+    return sum;
+  };
+  COG.hasUnlockTag = (n, tag) => {
+    if (!n || !n.h || !Array.isArray(n.h.traits) || !n.h.traits.length || !HC.traitDef) return false;
+    for (let i = 0; i < n.h.traits.length; i++) {
+      const def = HC.traitDef(n.h.traits[i].id);
+      const tags = def && def.behaviorMods && def.behaviorMods.unlockTags;
+      if (Array.isArray(tags) && tags.includes(tag)) return true;
+    }
+    return false;
+  };
+
   COG.modifiers = (W, n, id, SAcc) => {
     const isFast = !!(SAcc && SAcc._fast), out = SAcc ? null : [], s = n.h.state, c = n.cognition; const push = isFast ? ((_, x) => { if (x > 0.025 || x < -0.025) SAcc.u += (x < -2 ? -2 : x > 2 ? 2 : x); }) : ((why, x) => { if (x > 0.025 || x < -0.025) { const v = x < -2 ? -2 : x > 2 ? 2 : x; if (SAcc) SAcc.add(why, v); else out.push([why, v]); } });
     let mc = n._cogModCtx;
@@ -1548,7 +1692,7 @@
         goalActs = curGoal.id === 'scripture' ? (cpNow >= price ? ['study', 'guidedStudy'] : INCOME)
           : curGoal.id === 'gear_upgrade' ? (cpNow >= price ? ['shop'] : INCOME)
           : curGoal.id === 'service' ? ['duty']
-          : curGoal.id === 'craft' ? ['personalBrew', 'forage', 'donate', 'brew', 'brewBasic', 'forge']
+          : curGoal.id === 'craft' ? ['personalBrew', 'forage', 'donate', 'brew', 'brewBasic', 'forge', 'wildHunt']
           : curGoal.id === 'rival' ? TRAIN
           : curGoal.id === 'track_bottleneck' ? ((CULT.inspectProgressionBottleneck && CULT.inspectProgressionBottleneck(W, n).feasibleActions) || ['skillDrill', 'practice', 'pair', 'shop', 'mine', 'forage'])
           : curGoal.id === 'breakthrough' ? ((CULT.inspectProgressionBottleneck && CULT.inspectProgressionBottleneck(W, n).feasibleActions.concat(['cultivate', 'breakthrough', 'consolidate', 'shop', 'pray'])) || ['cultivate', 'breakthrough', 'consolidate', 'shop', 'pray', 'paidTraining'])
@@ -1556,7 +1700,11 @@
           : curGoal.id === 'mentor_disciple' ? ['pair', 'duty']
           : curGoal.id === 'social_bond' ? ['pair', 'leisure', 'giftItem']
           : curGoal.id === 'investigate_clue' ? ['investigateClueLocal', 'meetVisitor', 'practice', 'study', 'cultivate']
-          : curGoal.id === 'crisis' ? (curGoal.targetId === 'meal' ? ['cook', 'farm'] : curGoal.targetId === 'grain' ? ['farm'] : curGoal.source === 'alchemy' ? ['brew', 'brewBasic'] : ['forage', 'donate', 'mine'])
+          : curGoal.id === 'crisis' ? (curGoal.targetId === 'meal' ? ['cook', 'farm'] : curGoal.targetId === 'grain' ? ['farm'] : curGoal.source === 'alchemy' ? ['brew', 'brewBasic'] : ['forage', 'donate', 'mine', 'wildHunt'])
+          : curGoal.id === 'accumulate_wealth' ? ['forage', 'mine', 'outsideTrade', 'donate', 'personalBrew']
+          : curGoal.id === 'martial_tempering' ? ['practice', 'skillDrill', 'wildHunt', 'pair']
+          : curGoal.id === 'ascetic_retreat' ? ['cultivate', 'consolidate', 'pray']
+          : curGoal.id === 'hedonic_craft' ? ['leisure', 'cook', 'personalBrew', 'forage']
           : REST;
         goalVal = 0.35 + E(n, 'intellect.planning') / 180 + disc0 / 2.5;
         if (curGoal.id === 'scripture' && cpNow < price) goalShopPen = -disc0 * (100 / 140);
@@ -1627,7 +1775,7 @@
       if ((lowRest && id === 'sleep') || (lowFood && id === 'eat') || (lowHp && ['heal', 'personalPillUse', 'shop', 'sleep'].includes(id))) {
         push('ร่างกายเร่งด่วนสำคัญกว่างานหรือความชอบ', 2.4);
       }
-      if (['wildHunt', 'paidTraining', 'practice', 'skillDrill', 'personalBrew', 'duty', 'flatter', 'giftItem'].includes(id)) push('ต้องรักษาตัวก่อน', -1.6);
+      if (['wildHunt', 'paidTraining', 'practice', 'skillDrill', 'personalBrew', 'duty', 'flatter', 'giftItem', 'opportunity'].includes(id)) push('ต้องรักษาตัวก่อน', -1.6);
       return out;
     }
     const duty = mc.duty;
@@ -1658,7 +1806,8 @@
       push('ขับพิษโอสถสะสมในเส้นลมปราณ', 0.62);
     }
     if ((s.heartDemon || 0) >= 45 && (id === 'pray' || id === 'consolidate' || id === 'personalPillUse') && (!n.cult || n.cult.path !== 'DEMON' || s.heartDemon >= 68)) {
-      push('สงบจิตมารที่รบกวนตบะ', 0.62);
+      const hdShield = COG.hasUnlockTag(n, 'HEART_DEMON_SHIELD') ? 0.5 : 1.0;
+      push('สงบจิตมารที่รบกวนตบะ', 0.62 * hdShield);
     }
     if (id === 'forge' && (mc.hasRefineCand !== undefined ? mc.hasRefineCand : (mc.hasRefineCand = !!(mc.safe && n.rank >= 2 && W.sect && W.sect.catalysts && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n))))) {
       push('ขัดเกลาศาสตรา T4–T6 ด้วยผลึกโบราณ', 0.52);
@@ -1689,8 +1838,36 @@
       if (REST.includes(id)) push('ผ่อนคลายความเครียด', (s.stress - 60) / 70 * (0.5 + mc.freeVal));
       if (id === 'duty') push('เหนื่อยล้าแต่ยังชั่งใจเรื่องหน้าที่', -(s.stress - 60) / 120 * (1 - duty));
     }
-    if ((n.grief || 0) > 0 && (id === 'pray' || id === 'leisure')) push('กำลังโศกเศร้าและต้องการสงบใจ', Math.min(0.6, n.grief / 10));
-    if (s.anger > 45 && id === 'pair') push('อารมณ์ร้อนอยากพูดคุยหรือระบาย', Math.min(0.3, (s.anger - 45) / 180));
+    if ((n.grief || 0) > 0) {
+      if (id === 'pray') push('กำลังโศกเศร้าและต้องการสงบใจ', Math.min(0.75, n.grief / 8));
+      else if (id === 'leisure') push('โศกเศร้าเกินกว่าจะสำราญ', -Math.min(0.8, n.grief / 7));
+    }
+    if ((s.fear || 0) > 30) {
+      if (['errand', 'wildHunt', 'breakthrough', 'outsideTrade'].includes(id)) push('หวาดกลัวภัยอันตราย', -clamp((s.fear - 30) / 80, 0.15, 0.9));
+      else if (['hide', 'pray', 'heal', 'sleep'].includes(id)) push('หวาดกลัวต้องการที่พึ่งหรือหลบภัย', clamp((s.fear - 30) / 90, 0.15, 0.75));
+    }
+    if ((s.pain || 0) > 40) {
+      if (['cultivate', 'practice', 'paidTraining', 'skillDrill', 'mine', 'forage', 'wildHunt'].includes(id)) push('บาดเจ็บปวดร้าวรบกวนสมาธิ', -clamp((s.pain - 40) / 70, 0.15, 0.85));
+      else if (['heal', 'sleep', 'personalPillUse'].includes(id)) push('ปวดแผลต้องการพักรักษา', clamp((s.pain - 40) / 75, 0.2, 0.85));
+    }
+    if ((s.anger || 0) > 45) {
+      if (id === 'pair') push('อารมณ์ร้อนอยากเผชิญหน้าหรือระบาย', Math.min(0.65, (s.anger - 45) / 85));
+      else if (['cultivate', 'study', 'guidedStudy'].includes(id)) push('โทสะพลุ่งพล่านไม่อาจสงบจิต', -clamp((s.anger - 45) / 80, 0.15, 0.85));
+    }
+    const trW = COG.traitActionWeight(n, id);
+    if (trW !== 0) push('นิสัยจากพรสวรรค์/สายเลือด', trW);
+    if ((id === 'heal' || id === 'personalPillUse') && (mc.injLen > 0 || s.hp < CULT.hpMax(n) * 0.75)) {
+      const sh = COG.decisionBias(n, 'seekHealing');
+      if (sh > 0) push('สัญชาตญาณรักษาตัว', Math.min(0.45, sh / 80));
+    }
+    if ((id === 'investigateClueLocal' || id === 'meetVisitor')) {
+      const ic = COG.decisionBias(n, 'investigateClues');
+      if (ic > 0) push('สัญชาตญาณสืบค้นเบาะแส', Math.min(0.45, ic / 80));
+    }
+    if (id === 'breakthrough' && s.hp < CULT.hpMax(n) * 0.65) {
+      const cb = COG.decisionBias(n, 'crisisBreakthrough');
+      if (cb > 0) push('วิกฤตกระตุ้นการทะลวงขั้น', Math.min(0.5, cb / 75));
+    }
     if (mc.weatherPen && (id === 'farm' || id === 'mine' || id === 'wildHunt' || id === 'forage')) push('อากาศทำให้งานกลางแจ้งไม่น่าสบาย', mc.weatherPen);
     return out;
   };
@@ -1727,7 +1904,11 @@
       (gId === "gear_upgrade" && id === "shop") ||
       (gId === "track_bottleneck" && ["skillDrill", "practice", "pair", "shop", "mine", "forage"].includes(id)) ||
       (gId === "breakthrough" && (id === "cultivate" || id === "breakthrough" || id === "paidTraining")) ||
-      (gId === "craft" && (id === "personalBrew" || id === "brew" || id === "brewBasic" || id === "forge")) ||
+      (gId === "craft" && (id === "personalBrew" || id === "brew" || id === "brewBasic" || id === "forge" || id === "wildHunt")) ||
+      (gId === "accumulate_wealth" && ["forage", "mine", "outsideTrade", "donate"].includes(id)) ||
+      (gId === "martial_tempering" && ["practice", "skillDrill", "wildHunt"].includes(id)) ||
+      (gId === "ascetic_retreat" && ["cultivate", "consolidate", "pray"].includes(id)) ||
+      (gId === "hedonic_craft" && ["leisure", "cook", "personalBrew"].includes(id)) ||
       (gId === "service" && id === "duty") ||
       (gId === "rival" && TRAIN.includes(id));
     if (!isGoalAct) return;
@@ -1795,12 +1976,16 @@
       return ['cultivate', 'breakthrough', 'paidTraining', 'shop', 'pray'].includes(actionId) && (n.cult && (n.cult.stage > (snap.stage || 0) || n.cult.prog > (snap.prog || 0) || actionId === 'pray' || actionId === 'shop'));
     }
     if (goal.id === 'craft') {
-      return ['personalBrew', 'brew', 'brewBasic', 'forge', 'forage', 'farm', 'mine'].includes(actionId);
+      return ['personalBrew', 'brew', 'brewBasic', 'forge', 'forage', 'farm', 'mine', 'wildHunt'].includes(actionId);
     }
     if (goal.id === 'crisis') {
-      const valid = goal.targetId === 'meal' ? ['cook', 'farm'] : goal.targetId === 'grain' ? ['farm'] : goal.source === 'alchemy' ? ['brew', 'brewBasic', 'forage'] : ['forage', 'donate', 'mine', 'farm'];
+      const valid = goal.targetId === 'meal' ? ['cook', 'farm'] : goal.targetId === 'grain' ? ['farm'] : goal.source === 'alchemy' ? ['brew', 'brewBasic', 'forage'] : ['forage', 'donate', 'mine', 'farm', 'wildHunt'];
       return valid.includes(actionId);
     }
+    if (goal.id === 'accumulate_wealth') return ['forage', 'mine', 'outsideTrade', 'donate', 'personalBrew'].includes(actionId);
+    if (goal.id === 'martial_tempering') return ['practice', 'skillDrill', 'wildHunt', 'pair'].includes(actionId);
+    if (goal.id === 'ascetic_retreat') return ['cultivate', 'consolidate', 'pray'].includes(actionId);
+    if (goal.id === 'hedonic_craft') return ['leisure', 'cook', 'personalBrew', 'forage'].includes(actionId);
     if (goal.id === 'help_friend') {
       return ['shareMedicine', 'giftItem', 'personalBrew', 'brewBasic', 'shop'].includes(actionId);
     }
@@ -1834,17 +2019,29 @@
 
   COG.remember = (W, n, event, zoneIdArg, sevArg, noteArg) => {
     const evObj = (event && typeof event === 'object') ? event : { kind: String(event || ''), zoneId: zoneIdArg || null, severity: sevArg || 0.5, noteTh: noteArg || '' };
+    const permKinds = ['blood_feud', 'life_debt', 'bereavement', 'betrayal'];
+    const isPerm = !!(evObj.permanent || permKinds.includes(evObj.kind));
+    const sev = clamp(evObj.severity || (isPerm ? 0.95 : 0.5), 0.05, 1);
+    const sal = evObj.salience != null ? evObj.salience : (isPerm ? 10 : (evObj.kind === 'bt_backlash' || evObj.kind === 'unfair_allocation' || evObj.kind === 'qi_deviation' ? 5 : sev * 2));
     const c = COG.ensure(n), e = {
       kind: evObj.kind,
       zoneId: evObj.zoneId || null,
       subjectId: evObj.subjectId || null,
       at: W ? W.t : 0,
-      severity: clamp(evObj.severity || 0.5, 0.05, 1)
+      severity: sev,
+      permanent: isPerm,
+      salience: sal
     };
     const old = c.memory.find(x => x.kind === e.kind && x.zoneId === e.zoneId && x.subjectId === e.subjectId);
     if (old) Object.assign(old, e);
     else c.memory.push(e);
-    if (c.memory.length > 24) c.memory.shift();
+    if (c.memory.length > 24) {
+      // Salience-pinned eviction: protect top 8 high-salience/permanent core slots
+      const ranked = c.memory.map((m, idx) => ({ m, idx, sal: (m.permanent ? 100 : (m.salience || (m.severity || 0.5) * 2)) })).sort((a, b) => b.sal - a.sal || b.m.at - a.m.at);
+      const protectedSet = new Set(ranked.slice(0, 8).map(x => x.m));
+      const dropIdx = c.memory.findIndex(m => !protectedSet.has(m));
+      c.memory.splice(dropIdx >= 0 ? dropIdx : 0, 1);
+    }
   };
 
   COG.huntValue = (W, n, b) => {
@@ -1887,11 +2084,17 @@
     for (const m of a.cognition?.memory || []) {
       if (m.subjectId !== bId) continue;
       const nowT = (W && Number.isFinite(W.t)) ? W.t : ((g.STATS && Number.isFinite(g.STATS.now)) ? g.STATS.now : m.at);
-      const fade = clamp(1 - Math.max(0, nowT - m.at) / (30 * 1440), 0, 1);
+      const ageT = Math.max(0, nowT - m.at);
+      const isPerm = !!(m.permanent || ['blood_feud', 'life_debt', 'bereavement', 'betrayal'].includes(m.kind));
+      const decayWin = isPerm ? Infinity : (['unfair_allocation', 'bt_backlash', 'qi_deviation'].includes(m.kind) ? 360 * 1440 : 30 * 1440);
+      const fade = isPerm ? 1 : clamp(1 - ageT / decayWin, 0, 1);
       if (m.kind === 'received_help') { memGratitude += 18 * m.severity * fade; memTrust += 8 * m.severity * fade; }
+      else if (m.kind === 'life_debt') { memGratitude += 45 * m.severity; memTrust += 25 * m.severity; }
       else if (m.kind === 'kept_commitment' || m.kind === 'shared_danger') { memTrust += 10 * m.severity * fade; }
       else if (m.kind === 'broken_commitment') { memTrust -= 14 * m.severity * fade; }
-      else if (m.kind === 'unfair_allocation') { memTrust -= 16 * m.severity * fade; memResent += 18 * m.severity * fade; }
+      else if (m.kind === 'suspected_flattery') { memTrust -= 8 * m.severity * fade; memResent += 6 * m.severity * fade; }
+      else if (m.kind === 'unfair_allocation' || m.kind === 'betrayal') { memTrust -= 16 * m.severity * fade; memResent += 18 * m.severity * fade; }
+      else if (m.kind === 'blood_feud' || m.kind === 'bereavement') { memTrust -= 35 * m.severity; memResent += 45 * m.severity; }
     }
     const affection = clamp(r.a || 0, -100, 100);
     const trust = clamp((r.t ?? 40) + memTrust, 0, 100);
@@ -1899,8 +2102,35 @@
     const gratitude = clamp((r.g || 0) + memGratitude, 0, 100);
     const fear = clamp(r.f || 0, 0, 100);
     const rivalry = clamp(r.v || 0, 0, 100);
-    const isKin = !!(b && (a.mentor === b.id || b.mentor === a.id || a.h.life.family.spouse === b.id));
+    const fam = (a.h && a.h.life && a.h.life.family) || {};
+    const isKin = !!(b && (
+      a.mentor === b.id || b.mentor === a.id || a.mentorId === b.id || b.mentorId === a.id ||
+      a.companionId === b.id || b.companionId === a.id ||
+      (Array.isArray(a.apprenticeIds) && a.apprenticeIds.includes(b.id)) ||
+      (Array.isArray(b.apprenticeIds) && b.apprenticeIds.includes(a.id)) ||
+      fam.spouse === b.id ||
+      (Array.isArray(fam.parents) && fam.parents.includes(b.id)) ||
+      (Array.isArray(fam.children) && fam.children.includes(b.id)) ||
+      r.bond === 'LIFE_SAVIOR' || (r.lifeAndDeathCount || 0) > 0
+    ));
     return { affection, trust, respect, gratitude, fear, rivalry, bond: r.bond || '', isKin, memResent };
+  };
+
+  COG.agePsychProfile = n => {
+    if (!n || !n.h) return { ageYears: 20, bioAge: 20, impulsiveness: 0, gravitas: 0, cautionMod: 0, composureMod: 0, ambitionMod: 0 };
+    const ageYears = HC.ageYears ? HC.ageYears(n) : 20;
+    const bioAge = HC.bioAge ? HC.bioAge(n) : ageYears;
+    const impulsiveness = bioAge < 24 ? clamp((24 - bioAge) / 14, 0, 1) : 0;
+    const gravitas = bioAge > 38 ? clamp((bioAge - 38) / 32, 0, 1) : 0;
+    return {
+      ageYears: Math.round(ageYears * 10) / 10,
+      bioAge: Math.round(bioAge * 10) / 10,
+      impulsiveness,
+      gravitas,
+      cautionMod: Math.round((gravitas * 10 - impulsiveness * 8) * 10) / 10,
+      composureMod: Math.round((gravitas * 12 - impulsiveness * 6) * 10) / 10,
+      ambitionMod: Math.round((impulsiveness * 6 - gravitas * 8) * 10) / 10
+    };
   };
 
   // Contextual deference, respect, fear and resentment toward elders/leaders
@@ -2051,11 +2281,13 @@
     let best = null, score = 0;
     for (let i = 0; i < candidates.length; i++) {
       const x = candidates[i];
-      if (!x || x.id === n.id || x.dead || x.away || x.exiled || x.hidden || x.act?.id === 'fight' || Math.abs(x.x - n.x) > 12 || Math.abs(x.y - n.y) > 12 || !COG.available(x, W) || Math.hypot(x.x - n.x, x.y - n.y) > 12 || x.h.state.hp >= (x._nd ? x._nd.hpMax : CULT.hpMax(x)) * 0.55 || (x.inv.pills[key] || 0) >= 1) continue;
+      if (!x || x.id === n.id || x.dead || x.away || x.exiled || x.hidden || x.act?.id === 'fight' || Math.abs(x.x - n.x) > 36 || Math.abs(x.y - n.y) > 36 || !COG.available(x, W) || Math.hypot(x.x - n.x, x.y - n.y) > 36 || x.h.state.hp >= (x._nd ? x._nd.hpMax : CULT.hpMax(x)) * 0.72 || (x.inv.pills[key] || 0) >= 1) continue;
       const ri = COG.relInfo(W, n, x);
+      const hasGrudge = !!(n.h.mind && Array.isArray(n.h.mind.grudges) && n.h.mind.grudges.some(gr => gr && gr.targetId === x.id));
+      if (ri.bond === 'ศัตรู' || ri.affection < -20 || ri.rivalry > 60 || hasGrudge) continue;
       const empathy = E(n, 'personality.empathy');
-      const v = empathy / 100 + Math.max(0, ri.affection) / 100 + ri.gratitude / 140 + (ri.isKin ? 0.4 : 0) - (E(n, 'values.wealthResource') / 200);
-      if (v > 0.55 && v > score) {
+      const v = empathy / 100 + ri.affection / 100 + ri.gratitude / 140 + (ri.isKin ? 0.4 : 0) - (E(n, 'values.wealthResource') / 200);
+      if (v >= 0.55 && v > score) {
         score = v;
         best = { id: x.id, key, score: v };
       }
@@ -2112,7 +2344,7 @@
     if (!M || !M.classifyGearForNpc) return null;
     for (const eq of n.inv.gear) {
       if (!eq) continue;
-      const cl = M.classifyGearForNpc(null, n, eq, 0);
+      const cl = M.classifyGearForNpc(W, n, eq, 0);
       if (cl.category === 'gift-worthy' && cl.targetNpcId) {
         const rec = W.byId[cl.targetNpcId];
         if (rec && COG.available(rec, W) && !rec.hidden) {
@@ -2176,9 +2408,9 @@
   COG.flatteryCandidate = (W, n) => {
     if (!W || !W.sect || !n || n.rank >= 6 || (n.cool?.flatter || 0) > W.t || !COG.available(n, W) || !safe(n)) return null;
     if (W.t > 0 && n._flatCache && n._flatCache.until >= W.t) return n._flatCache.val;
-    // Only ambitious, status/wealth-seeking, or manipulative NPCs choose to flatter
-    const motive = (E(n, 'personality.ambition') * 0.35 + E(n, 'values.powerStatus') * 0.35 + E(n, 'values.wealthResource') * 0.2 + E(n, 'social.deception') * 0.25 - E(n, 'personality.integrity') * 0.45 - E(n, 'personality.pride') * 0.25);
-    if (motive < 14) {
+    // Only ambitious, status/wealth-seeking, or manipulative NPCs choose to flatter (centered around 50)
+    const motive = ((E(n, 'personality.ambition') - 50) * 0.40 + (E(n, 'values.powerStatus') - 50) * 0.40 + (E(n, 'values.wealthResource') - 50) * 0.25 + (E(n, 'social.deception') - 50) * 0.25 + (E(n, 'temperament.sociability') - 50) * 0.20 - (E(n, 'personality.integrity') - 50) * 0.50 - (E(n, 'personality.pride') - 50) * 0.35);
+    if (motive < 10) {
       if (W.t > 0) n._flatCache = { until: W.t + 180, val: null };
       return null;
     }
@@ -2218,6 +2450,8 @@
       rT.r = clamp((rT.r ?? 30) - 3, 0, 100);
       rT.a = clamp((rT.a || 0) - 2, -100, 100);
       hist.favor = clamp((hist.favor || 0) - 6, -20, 20);
+      HC.feel(target, { anger: 5, mood: -3 });
+      if (E(actor, 'personality.pride') > 60) HC.feel(actor, { anger: 8, mood: -4 });
       COG.remember(W, target, { kind: 'suspected_flattery', subjectId: actor.id, severity: 0.45 });
       if (W.log) W.log('politics', actor.h.name.given + ' เข้าพบกล่าวคำยกยอ ' + target.h.name.given + ' แต่กลับถูกมองว่าไม่จริงใจ', [actor.id, target.id]);
     } else if (skill + (E(target, 'personality.pride') - 45) * 0.4 >= discern - 4) {
@@ -2294,6 +2528,9 @@
       const req = W.byId && W.byId[pet.npcId];
       if (!req || req.dead || req.exiled) {
         pet.status = 'closed';
+        continue;
+      }
+      if ((pet.accusedId && pet.accusedId === officer.id) || (pet.kind === 'complaint' && pet.npcId === officer.id)) {
         continue;
       }
       if (pet.kind === 'medicine' && ['healer', 'alchemy', 'master', 'deputy'].includes(roleId)) {
@@ -2606,7 +2843,20 @@
     return 0;
   };
 
-  COG.choiceTemperature = n => clamp(0.2 + (E(n, 'temperament.sensationSeeking') + E(n, 'personality.creativity')) / 1100 - (E(n, 'personality.rationality') + E(n, 'intellect.judgement') + E(n, 'personality.discipline')) / 1800 + E(n, 'temperament.emotionalReactivity') / 1400, 0.06, 0.4);
+  COG.choiceTemperature = n => {
+    const s = (n && n.h && n.h.state) || {};
+    const ap = COG.agePsychProfile ? COG.agePsychProfile(n) : { impulsiveness: 0, gravitas: 0 };
+    const base = 0.30
+      + (E(n, 'temperament.sensationSeeking') - 50) / 360
+      + (E(n, 'personality.creativity') - 50) / 550
+      + (E(n, 'temperament.emotionalReactivity') - 50) / 600
+      - (E(n, 'personality.discipline') - 50) / 380
+      - (E(n, 'personality.rationality') - 50) / 480
+      - (E(n, 'intellect.judgement') - 50) / 650
+      + ap.impulsiveness * 0.05 - ap.gravitas * 0.04;
+    const emoHeat = ((s.stress || 0) + (s.anger || 0) * 1.2 + (s.fear || 0) * 1.1 + (s.heartDemon || 0) * 0.9) / 1400;
+    return clamp(base + emoHeat, 0.14, 0.56);
+  };
 
   COG.rallyLeader = (W, f) => {
     if (f.over) return null;
@@ -2823,8 +3073,8 @@
       commitment: c?.commitment ? { ...c.commitment } : null,
       deferenceToMaster: defMaster,
       estimates,
-      actionId: last?.actionId || n.act?.id || null,
-      reasons: (last?.reasons || n.why || []).map(x => x.slice()),
+      actionId: (n.act && n.act.id && n.act.id !== 'idle') ? n.act.id : (last?.actionId || n.act?.id || null),
+      reasons: (n.act && n.act.id && n.act.id !== 'idle' && Array.isArray(n.why) && n.why.length) ? n.why.map(x => x.slice()) : (last?.reasons || n.why || []).map(x => x.slice()),
       bottleneck: (n && n.cult && CULT.inspectProgressionBottleneck) ? CULT.inspectProgressionBottleneck(W, n) : null,
       situational: COG.evaluateSituationalAwareness(W, n),
       buildImprovisation: COG.evaluateBuildImprovisation ? COG.evaluateBuildImprovisation(W, n) : null,
@@ -2868,7 +3118,7 @@
   const E = (n, p) => HC.eff(n, p), clamp = U.clamp;
 
   const MAX_KNOWN_FACTS = 32;
-  const MAX_EVIDENCE_LINEAGES = 6;
+  const MAX_EVIDENCE_LINEAGES = 16;
   const MAX_ACTIVE_LEADS = 8;
 
   const ACCOUNT_WEIGHT_BASE = Object.freeze({
@@ -3046,7 +3296,10 @@
           return entry && entry.status !== 'verified' && (!entry.storyId || !L.activeLeads.includes(entry.storyId));
         });
         const dropId = evictIdx >= 0 ? L.factOrder.splice(evictIdx, 1)[0] : L.factOrder.shift();
-        if (dropId) delete L.knownFacts[dropId];
+        if (dropId) {
+          delete L.knownFacts[dropId];
+          L.verifiedCount = Object.values(L.knownFacts).filter(x => x && x.status === 'verified').length;
+        }
       }
 
       const initStatus = (incomingAccount === 'VERIFIED_CHRONICLE' || (opts.physicalProof && incomingAccount !== 'FOLK_ORAL'))
@@ -3214,25 +3467,29 @@
     La.debatesCount = (La.debatesCount || 0) + 1;
     Lb.debatesCount = (Lb.debatesCount || 0) + 1;
 
+    const origAccA = ea.accountId;
+    const origAccB = eb.accountId;
+    const origStoryA = ea.storyId;
+    const origStoryB = eb.storyId;
     const linA = ea.evidenceLineages[ea.evidenceLineages.length - 1] || ('debate:' + a.id);
     const linB = eb.evidenceLineages[eb.evidenceLineages.length - 1] || ('debate:' + b.id);
 
-    // Each side hears the other's account with its existing originEventId
+    // Each side hears the other's account with its existing originEventId (snapshotted before mutation)
     const resB = COG.learnLoreFact(W, b, factId, {
-      accountId: ea.accountId,
+      accountId: origAccA,
       originEventId: linA,
       sourceKind: 'conversation',
       fromId: a.id,
       fromNameTh: HC.fullName(a),
-      storyId: ea.storyId
+      storyId: origStoryA
     });
     const resA = COG.learnLoreFact(W, a, factId, {
-      accountId: eb.accountId,
+      accountId: origAccB,
       originEventId: linB,
       sourceKind: 'conversation',
       fromId: b.id,
       fromNameTh: HC.fullName(b),
-      storyId: eb.storyId
+      storyId: origStoryB
     });
 
     if (g.AI && g.AI.mem && factDef) {

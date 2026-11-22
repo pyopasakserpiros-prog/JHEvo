@@ -102,6 +102,10 @@
       YANG: 'LIGHT_YANG',
       LIGHT: 'LIGHT_YANG',
       BLOOD: 'BLOOD_DEMON',
+      SOUL: 'YIN_SHADOW',
+      DARK_YIN: 'YIN_SHADOW',
+      POISON_CORROSION: 'WOOD_LIFE',
+      POISON: 'WOOD_LIFE',
       ไฟ: 'FIRE',
       น้ำ: 'WATER_ICE',
       น้ำแข็ง: 'WATER_ICE',
@@ -249,7 +253,20 @@
     }
     if (def.elementalRole === 'EXPLICIT_NON_ELEMENTAL') return NEUTRAL_PROFILE;
     if (def.elementProfile && typeof def.elementProfile === "object") {
-      const ep = def.elementProfile;
+      let ep = def.elementProfile;
+      if (!ep.mode && ep.primary) {
+        const pNorm = ELEM.normalizeTag(ep.primary);
+        const pEl = pNorm.ok ? pNorm.element : 'NEUTRAL';
+        if (pEl === 'NEUTRAL') return NEUTRAL_PROFILE;
+        if (ep.secondary) {
+          const sNorm = ELEM.normalizeTag(ep.secondary);
+          const sEl = sNorm.ok ? sNorm.element : pEl;
+          const w1 = Number.isFinite(ep.affinityWeight) ? clamp(ep.affinityWeight, 0.1, 0.95) : 0.7;
+          ep = { mode: 'INTRINSIC_WEIGHTED', primary: pEl, weights: sEl !== pEl ? { [pEl]: w1, [sEl]: +(1 - w1).toFixed(4) } : { [pEl]: 1.0 } };
+        } else {
+          ep = { mode: ELEM.isValidSpecialElement(pEl) ? 'SPECIAL_ELEMENT' : 'INTRINSIC_SINGLE', primary: pEl, weights: { [pEl]: 1.0 } };
+        }
+      }
       if (!ELEM.VALID_MODES.includes(ep.mode)) {
         return { valid: false, mode: "UNKNOWN", primary: "UNKNOWN", weights: {}, error: "Invalid profile mode: " + ep.mode };
       }
@@ -2887,9 +2904,9 @@
       // Natural realm progression unlocks
       if (stg >= 1 && (moveSkill >= 5 || stg >= 2)) modes.add('SWIFT_STRIDE');
       if (stg >= 2 && (moveSkill >= 12 || stg >= 3 || path === 'BODY' || path === 'XIAN')) modes.add('LEAP_BOUND');
-      if (stg >= 2 && (sub === 'CLOUD_WIND' || path === 'XIAN' || moveSkill >= 18)) modes.add('WATER_LOTUS_DRIFT');
-      if (stg >= 3 && (sub === 'LIGHTNESS_SHADOW' || sub === 'BLOOD_SHADOW' || path === 'DEMON' || moveSkill >= 26)) modes.add('SHADOW_BLINK');
-      if (stg >= 3 && (path === 'SWORD' || sub === 'SWORD_FLIGHT' || (stg >= 4 && (path === 'XIAN' || !!(n.equip && n.equip.WEAPON))))) {
+      if (stg >= 2 && (['CLOUD_WIND', 'CLOUD_WIND_STEP', 'WIND_CHASER', 'GALE_STEP'].includes(sub) || ['XIAN', 'WANDERING_DAO', 'CELESTIAL_WEATHER'].includes(path) || moveSkill >= 18)) modes.add('WATER_LOTUS_DRIFT');
+      if (stg >= 3 && (['LIGHTNESS_SHADOW', 'BLOOD_SHADOW', 'SHADOW_ASSASSIN', 'PHANTOM_SOUL'].includes(sub) || ['DEMON', 'NINPO_SHADOW'].includes(path) || moveSkill >= 26)) modes.add('SHADOW_BLINK');
+      if (stg >= 3 && (['SWORD', 'LEG_READ_FORM_BLADE'].includes(path) || ['SWORD_FLIGHT', 'SWORD_IMMORTAL', 'MIND_SWORD_TELEKINESIS'].includes(sub) || (stg >= 4 && (path === 'XIAN' || !!(n.equip && n.equip.WEAPON))))) {
         modes.add('SWORD_FLIGHT');
       }
       if (stg >= 6) {
@@ -3695,12 +3712,13 @@
       const s = (n.h && n.h.state) || n.state;
       const stressPen = (s && s.stress > 70) ? 0.5 : 1.0;
       const wTick = (W && typeof W.t === 'number') ? W.t : -1;
+      const awbLen = n.buffs ? n.buffs.length : 0, awPill = n.cult.pillT > 0 ? 1 : 0;
       let baseRate;
-      if (wTick >= 0 && n._autoWalkRateC && wTick - n._autoWalkRateC.t < 15 && n._autoWalkRateC.ver === n._ver) {
+      if (wTick >= 0 && n._autoWalkRateC && wTick - n._autoWalkRateC.t < 15 && n._autoWalkRateC.ver === n._ver && n._autoWalkRateC.bLen === awbLen && n._autoWalkRateC.pill === awPill) {
         baseRate = n._autoWalkRateC.r;
       } else {
         baseRate = CULT.rate(n, 1);
-        if (wTick >= 0) n._autoWalkRateC = { t: wTick, ver: n._ver, r: baseRate };
+        if (wTick >= 0) n._autoWalkRateC = { t: wTick, ver: n._ver, bLen: awbLen, pill: awPill, r: baseRate };
       }
       const autoGain = +((baseRate / 60) * mr.autonomousWalkRatio * stressPen * Math.min(1.2, Math.max(0.4, distMoved))).toFixed(4);
       if (autoGain > 0) {
@@ -5554,24 +5572,31 @@
     HC.bump(npc);
     return ch;
   };
-  CULT.mantraPool = path => JD.TECH.mantras.filter(m => m.path === path).concat(JD.TECH.techniques.filter(t => (/_MANTRA$|^QI_MANTRA$/.test(t.cat || '')) && t.path === path).map(t => ({ id: t.id, nameTh: t.nameTh, path: t.path, tier: t.tier, power: t.power, element: t.element, elementProfile: t.elementProfile, legendary: !!t.legendary })));
+  CULT.mantraPool = path => JD.TECH.mantras.filter(m => m && m.path === path && (!m.cat || /MANTRA/.test(m.cat)))
+    .concat(JD.TECH.techniques.filter(t => (/_MANTRA$|^QI_MANTRA$/.test(t.cat || '')) && t.path === path).map(t => ({ id: t.id, nameTh: t.nameTh, path: t.path, tier: t.tier, reqTier: t.reqTier || t.tier, power: t.power || 0, element: t.element, elementProfile: t.elementProfile, legendary: !!t.legendary, transcendent: !!t.transcendent })))
+    .concat((JD.TECH.extraMantras || []).filter(t => t && t.path === path).map(t => ({ id: t.id, nameTh: t.nameTh, path: t.path, tier: t.tier || 1, reqTier: t.reqTier || t.tier || 1, power: t.power || 0, element: t.element, elementProfile: t.elementProfile, legendary: !!t.legendary, transcendent: !!t.transcendent, isExtraMantra: true })));
   CULT.bestMantra = (path, maxTier, npc) => {
     const unlocked = npc && npc.cult && Array.isArray(npc.cult.unlockedMantras) ? npc.cult.unlockedMantras : [];
     const effMax = (npc && npc.cult && npc.cult.path === path && CULT.effectiveTechStage) ? Math.max(maxTier || 1, CULT.effectiveTechStage(npc)) : (maxTier || 1);
-    let pool = CULT.mantraPool(path).filter(m => m.tier <= effMax && (!m.legendary || unlocked.includes(m.id)));
-    if (!pool.length && path === 'GOD') {
-      pool = CULT.mantraPool(path).filter(m => m.tier <= 2 && (!m.legendary || unlocked.includes(m.id)));
+    const allForPath = CULT.mantraPool(path);
+    let pool = allForPath.filter(m => (m.reqTier || m.tier || 1) <= effMax && (!m.legendary || unlocked.includes(m.id)) && (!m.transcendent || unlocked.includes(m.id)) && (!m.isExtraMantra || unlocked.includes(m.id)));
+    if (!pool.length) {
+      const nonLeg = allForPath.filter(m => (!m.legendary || unlocked.includes(m.id)) && (!m.transcendent || unlocked.includes(m.id)) && (!m.isExtraMantra || unlocked.includes(m.id)));
+      if (nonLeg.length) {
+        const minTier = Math.min(...nonLeg.map(m => m.reqTier || m.tier || 1));
+        pool = nonLeg.filter(m => (m.reqTier || m.tier || 1) <= Math.max(2, minTier));
+      }
     }
     if (npc && npc.h) {
       pool.sort((a, b) => {
         const ca = ELEM.resolveCompatibility(npc, TECH_BY_ID[a.id] || a, 'MANTRA_PRACTICE').cultivationMultiplier;
         const cb = ELEM.resolveCompatibility(npc, TECH_BY_ID[b.id] || b, 'MANTRA_PRACTICE').cultivationMultiplier;
-        const effA = (a.tier * 100 + a.power) * (0.75 + 0.25 * ca);
-        const effB = (b.tier * 100 + b.power) * (0.75 + 0.25 * cb);
+        const effA = ((a.tier || 1) * 100 + (a.power || 0)) * (0.75 + 0.25 * ca);
+        const effB = ((b.tier || 1) * 100 + (b.power || 0)) * (0.75 + 0.25 * cb);
         return effB - effA;
       });
     } else {
-      pool.sort((a, b) => b.tier - a.tier || b.power - a.power);
+      pool.sort((a, b) => (b.tier || 1) - (a.tier || 1) || (b.power || 0) - (a.power || 0));
     }
     return pool[0] || null;
   };
@@ -5637,7 +5662,7 @@
         const civicApt = (HC.eff(npc, 'intellect.planning') * 0.25 + HC.eff(npc, 'intellect.judgement') * 0.20 + HC.eff(npc, 'social.leadership') * 0.20 + HC.eff(npc, 'values.sectDuty') * 0.15 + civicSkill * 0.25) / 54;
         base = 0.99 * clamp(civicApt, 0.40, 2.38) * (0.90 + 0.16 * root.cultivationMult);
       } else {
-        base = 0.94 * clamp((HC.eff(npc, 'social.charisma') * 0.35 + HC.eff(npc, 'intellect.willpower') * 0.35 + HC.eff(npc, 'aptitudes.cultivation') * 0.30) / 54, 0.38, 2.35) * (0.88 + 0.18 * root.cultivationMult);
+        base = 0.96 * clamp((HC.eff(npc, 'aptitudes.cultivation') * 0.45 + HC.eff(npc, 'intellect.comprehension') * 0.30 + HC.eff(npc, 'intellect.willpower') * 0.25) / 54, 0.38, 2.35) * (0.88 + 0.18 * root.cultivationMult);
       }
       const m = c.mantra ? TECH_BY_ID[c.mantra] : null;
       const mantraK = m ? 1 + 0.11 * (m.tier - 1) : 0.9;
@@ -5677,9 +5702,11 @@
     }
     const hasFocusWin = rc ? !!rc.hasFocusWin : !!((g.COMBAT && g.COMBAT.keywordsOf && g.COMBAT.keywordsOf(npc) || {}).focusWindow);
     let toxic, dev;
-    if (c.path === 'DEMON') {
-      toxic = 1 - clamp(c.toxic / (c.sub === 'VENOM_GU_SOVEREIGN' ? 360 : 240), 0, 0.28);
-      dev = hd <= 60 ? (1 + (hd / 60) * 0.22) : Math.max(0.55, 1.22 - ((hd - 60) / 40) * 0.65);
+    if (c.path === 'DEMON' || c.path === 'VENOM_GU') {
+      toxic = 1 - clamp(c.toxic / ((c.path === 'VENOM_GU' || c.sub === 'VENOM_GU_SOVEREIGN') ? 360 : 240), 0, 0.28);
+      dev = c.path === 'DEMON'
+        ? (hd <= 60 ? (1 + (hd / 60) * 0.22) : Math.max(0.55, 1.22 - ((hd - 60) / 40) * 0.65))
+        : (1 - clamp(hd / 200, 0, 0.4));
     } else if (c.path === 'HEART_SOUL') {
       toxic = 1 - clamp(c.toxic / 140, 0, 0.5);
       const stressPen = clamp(Math.max(0, (npc.h.state.stress || 0) - 45) / 150, 0, 0.25);
@@ -5958,14 +5985,15 @@
       p += Math.min(0.08, equipTribBonus * 0.5);
     }
     const hd = npc.h.state.heartDemon || 0;
+    const tox = c.toxic || 0;
     if (c.path === 'DEMON') {
       p += (HC.eff(npc, 'personality.ambition') - 50) / 50 * 0.05;
-      p -= (hd <= 55 ? hd / 100 * 0.10 : (0.055 + (hd - 55) / 100 * 0.38)) + c.toxic / 100 * 0.08;
+      p -= (hd <= 55 ? hd / 100 * 0.10 : (0.055 + (hd - 55) / 100 * 0.38)) + tox / 100 * 0.08;
     } else if (c.path === 'HEART_SOUL') {
       p += (HC.eff(npc, 'intellect.comprehension') - 50) / 50 * 0.06 + (HC.eff(npc, 'personality.composure') - 50) / 50 * 0.04;
-      p -= hd / 100 * 0.32 + c.toxic / 100 * 0.15;
+      p -= hd / 100 * 0.32 + tox / 100 * 0.15;
     } else {
-      p -= hd / 100 * 0.25 + c.toxic / 100 * 0.15;
+      p -= hd / 100 * 0.25 + tox / 100 * 0.15;
     }
     if (g.BN) p += g.BN.chanceMod(npc);
     if (CULT.isAncestralBlessingActive(npc, prep && Number.isFinite(prep.now) ? prep.now : null)) p += (npc.ancestralBlessing.breakthroughBonus || 0);
@@ -5980,6 +6008,9 @@
     }
     const sealBt = (npc.ext && Number.isFinite(npc.ext.btBonusPct)) ? npc.ext.btBonusPct : (Number.isFinite(npc.btBonusPct) ? npc.btBonusPct : (Number.isFinite(npc._btBonusPct) ? npc._btBonusPct : 0));
     if (sealBt > 0) p += Math.min(0.35, sealBt);
+    if (Number.isFinite(c.btBonus) && c.btBonus !== 0) p += c.btBonus;
+    if (m && m.mantraBonus && Number.isFinite(m.mantraBonus.btBonus)) p += m.mantraBonus.btBonus;
+    else if (m && Number.isFinite(m.breakthroughBonus)) p += m.breakthroughBonus;
     if (npc.closedDoorSeclusion && Number.isFinite(npc.closedDoorSeclusion.insightBonusPct) && !(prep && prep._seclusionIncluded)) {
       p += Math.min(0.30, npc.closedDoorSeclusion.insightBonusPct);
     }
@@ -6063,10 +6094,11 @@
     const st = (W && W.sect) ? CULT.ensureFaithState(W) : null;
     const ext = npc && npc.ext;
     if (ext && Number.isFinite(ext.divineFaith)) {
-      if (st && ext._syncedSectFaith === ext.divineFaith && ext._lastPool !== st.pool) {
+      if (st && ext._lastPool !== st.pool) {
         const sin = (npc.karmicLedger && npc.karmicLedger.sinKarma) || 0;
         const stg = (npc.cult && npc.cult.stage) || 1;
-        return +clamp(st.pool + Math.min(8, (stg - 1) * 2.5) - Math.min(35, sin * 0.35), 0, 100).toFixed(2);
+        const personalOffset = Number.isFinite(ext._syncedSectFaith) ? (ext.divineFaith - ext._syncedSectFaith) : 0;
+        return +clamp(st.pool + Math.min(8, (stg - 1) * 2.5) - Math.min(35, sin * 0.35) + personalOffset, 0, 100).toFixed(2);
       }
       return clamp(ext.divineFaith, 0, 100);
     }
@@ -6087,11 +6119,13 @@
       const sin = (n.karmicLedger && n.karmicLedger.sinKarma) || 0;
       const stg = n.cult.stage || 1;
       const df = +clamp(st.pool + Math.min(8, (stg - 1) * 2.5) - Math.min(35, sin * 0.35), 0, 100).toFixed(2);
+      const personalOffset = (Number.isFinite(n.ext.divineFaith) && Number.isFinite(n.ext._syncedSectFaith)) ? (n.ext.divineFaith - n.ext._syncedSectFaith) : 0;
+      const finalDf = +clamp(df + personalOffset, 0, 100).toFixed(2);
       const prevWaning = !!n.divineWaning;
-      n.ext.divineFaith = df;
+      n.ext.divineFaith = finalDf;
       n.ext._syncedSectFaith = df;
       n.ext._lastPool = st.pool;
-      n.divineWaning = df < 20;
+      n.divineWaning = finalDf < 20;
       n._cultRateBase = null;
       if (prevWaning !== n.divineWaning && g.STATS && g.STATS.dirty) g.STATS.dirty(n);
     }
@@ -6246,7 +6280,8 @@
       if (m && (!c.mantra || !TECH_BY_ID[c.mantra] || TECH_BY_ID[c.mantra].tier < m.tier) && effSt >= m.tier - 1) c.mantra = m.id;
       ELEM.syncSpecialAccess(npc);
       c.pillT = 0; c.pillBoost = 0; if (g.BN) g.BN.onResult(W, npc, true);
-      if (npc.originArc && !npc.originArc.completed && [3, 5, 7].includes(c.stage) && g.SECT && g.SECT.ORIGIN_ARCS && g.SECT.ORIGIN_ARCS.advanceOriginChapter) {
+      const eqStOrigin = CULT.equivalentStage ? Math.floor(CULT.equivalentStage(npc)) : c.stage;
+      if (npc.originArc && !npc.originArc.completed && [3, 5, 7].includes(eqStOrigin) && g.SECT && g.SECT.ORIGIN_ARCS && g.SECT.ORIGIN_ARCS.advanceOriginChapter) {
         g.SECT.ORIGIN_ARCS.advanceOriginChapter(W, npc, 'PROTECT', { autoFromBreakthrough: true, quiet: true });
       }
     } else {
@@ -6336,22 +6371,24 @@
 
   /* ----- เรียนวิชา (รวมถึงวิชาต้องห้ามภายใต้เงื่อนไขเข้มงวด) ----- */
   // Accepts either (tech, npcSub, strictPrimarySub) or (npcSub, tech, strictPrimarySub)
+  const _hasRealSub = s => !!(s && s !== 'NONE' && s !== 'ANY');
   CULT.isExclusiveSubpathTech = t => {
     if (!t) return false;
     if (t.innateOnly || (g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t))) return true;
-    if (t.legendary) return false;
+    if (t.legendary || t.transcendent) return false;
     if (typeof t.id === 'string' && t.id.startsWith('MP_')) return true;
-    if ((t.passive || t.cat === 'PASSIVE') && t.sub) return true;
-    if (/FORBIDDEN/.test(t.cat || '')) return true;
-    if (t.sub && ['VENOM_GU_SOVEREIGN', 'CORPSE_PUPPET_MASTER'].includes(t.sub) && /GU_|CORPSE_|PARASITE/.test(t.id || '')) return true;
+    if (/_MANTRA$|^QI_MANTRA$/.test(t.cat || '')) return false;
+    if ((t.passive || t.cat === 'PASSIVE') && _hasRealSub(t.sub)) return true;
+    if (/FORBIDDEN/.test(t.cat || '') && t.cat !== 'FORBIDDEN_GRAND_DAO') return true;
+    if (_hasRealSub(t.sub) && ['VENOM_GU_SOVEREIGN', 'CORPSE_PUPPET_MASTER'].includes(t.sub) && /GU_|CORPSE_|PARASITE/.test(t.id || '')) return true;
     return false;
   };
 
   CULT.isSubCompatible = (a, b, strictPrimarySub) => {
     const tech = (a && typeof a === 'object') ? a : (b && typeof b === 'object' ? b : null);
     const npcSub = typeof a === 'string' ? a : (typeof b === 'string' ? b : null);
-    if (!tech || !tech.sub) return true;
-    if (tech.legendary) return true;
+    if (!tech || !_hasRealSub(tech.sub)) return true;
+    if (tech.legendary || tech.transcendent) return true;
     const tSub = CULT.resolveSubId ? CULT.resolveSubId(tech.sub) : tech.sub;
     const nSub = CULT.resolveSubId ? CULT.resolveSubId(npcSub) : npcSub;
     if (tech.sub === npcSub || tSub === nSub || tech.sub === nSub || tSub === npcSub) return true;
@@ -6371,7 +6408,7 @@
     if (t.path !== 'ANY' && t.path !== c.path) return { ok: false, reason: 'ต่างวิถีหลัก' };
     if (!CULT.isSubCompatible(t, c.sub, false)) return { ok: false, reason: 'ต้องมีสายย่อยตรงกัน' };
     const allowFlag = !!(opts && (opts.allowForbidden || opts.libraryStudy)) || !!npc.allowForbiddenStudy;
-    const demonPath = c.path === 'DEMON';
+    const demonPath = ['DEMON', 'VOID_HERETIC_PACT', 'OCCULT_MAGE', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'VENOM_GU'].includes(c.path);
     const darkDrive = HC.eff(npc, 'personality.ambition') >= 62 && HC.eff(npc, 'personality.integrity') <= 48;
     const heartDemonDrive = !!(npc.h && npc.h.state && (npc.h.state.heartDemon || 0) >= 25);
     if (!allowFlag && !demonPath && !darkDrive && !heartDemonDrive) {
@@ -6388,7 +6425,14 @@
     return library.filter(id => {
       const t = TECH_BY_ID[id];
       if (!t || t.innateOnly || (t.reqTier || t.tier) > effSt || c.techs.includes(id)) return false;
-      const pathOk = t.legendary || t.isSectHeritage || t.path === 'ANY' || t.path === c.path || (!strictPrimary && (allowCrossPath || !CULT.isExclusiveSubpathTech(t)));
+      if (t.reqPath && t.reqPath !== 'ANY' && t.reqPath !== c.path) return false;
+      if (t.reqSubpath && t.reqSubpath !== 'NONE' && t.reqSubpath !== 'ANY' && c.sub !== t.reqSubpath && (!CULT.resolveSubId || CULT.resolveSubId(c.sub) !== CULT.resolveSubId(t.reqSubpath))) return false;
+      if (t.reqElement && npc.h && npc.h.root) {
+        const rEls = Array.isArray(npc.h.root.elements) ? npc.h.root.elements : (npc.h.root.element ? [npc.h.root.element] : []);
+        if (!rEls.includes(t.reqElement)) return false;
+      }
+      const compatPath = Array.isArray(t.compatiblePaths) && t.compatiblePaths.includes(c.path);
+      const pathOk = t.legendary || t.transcendent || t.isSectHeritage || t.path === 'ANY' || t.path === c.path || compatPath || (!strictPrimary && (allowCrossPath || !CULT.isExclusiveSubpathTech(t)));
       if (!pathOk || !CULT.isSubCompatible(t, c.sub, strictPrimary)) return false;
       if (/_MANTRA$|^QI_MANTRA$/.test(t.cat)) {
         return !!t.transcendent && !(c.unlockedMantras || []).includes(id);
@@ -7727,7 +7771,7 @@
       p.hunger = clamp(Number.isFinite(p.hunger) ? p.hunger : (Number.isFinite(p.satisfaction) ? p.satisfaction : 85), 0, 100);
       p.fatigue = clamp(Number.isFinite(p.fatigue) ? p.fatigue : 10, 0, 100);
       p.loyalty = p.bond;
-      p.satisfaction = p.hunger;
+      p.satisfaction = Number.isFinite(p.satisfaction) ? clamp(p.satisfaction, 0, 100) : p.hunger;
       p.bondXp = Number.isFinite(p.bondXp) ? p.bondXp : (p.exp || 0);
       p.exp = p.bondXp;
       p.hpMax = Math.max(60, Math.round(80 * Math.pow(1.45, (p.tier || 1) - 1) * (1 + ((p.level || 1) - 1) * 0.1)));
@@ -7832,6 +7876,14 @@
     3: [0.55, 0.45, 0.35],
     4: [0.50, 0.40, 0.32, 0.28]
   });
+
+  CULT.petCommandAllocation = (npc, activePets) => {
+    const list = Array.isArray(activePets) ? activePets : (CULT.activePets ? CULT.activePets(npc) : []);
+    if (!list.length) return [];
+    const n = Math.min(4, list.length);
+    const weights = COMMAND_WEIGHTS[n] || COMMAND_WEIGHTS[4];
+    return list.slice(0, 4).map((pet, idx) => ({ pet, share: weights[idx] != null ? weights[idx] : 0.25 }));
+  };
 
   CULT.petPowerSingle = (npc, pet) => {
     if (!pet || pet.dead) return 0;
@@ -8038,6 +8090,8 @@
       npc.h.state.energy = Math.max(5, (npc.h.state.energy || 50) - 8);
       return { ok: false, failedRoll: true, chance, reason: 'สัตว์อสูรดิ้นหลุดพันธสัญญา (โอกาส ' + Math.round(chance * 100) + '%)' };
     }
+    const res = CULT.bindPet(W, npc, beastOrSpecies, { provenance: 'wild_tame', force: !!opts.force });
+    if (!res || !res.ok) return res || { ok: false, reason: 'ผูกพันธสัญญาไม่สำเร็จ' };
     if (beastOrSpecies && typeof beastOrSpecies === 'object') {
       beastOrSpecies.captured = true;
       beastOrSpecies.capturedBy = npc.id;
@@ -8050,8 +8104,7 @@
         }
       }
     }
-    const res = CULT.bindPet(W, npc, beastOrSpecies, { provenance: 'wild_tame', force: !!opts.force });
-    if (res.ok && W && W.log && !opts.quiet) {
+    if (W && W.log && !opts.quiet) {
       W.log('explore', '🐾 ' + npc.h.name.given + ' ทำพันธสัญญาสยบ「' + res.pet.nameTh + '」(T' + res.pet.tier + ') เป็นอสูรคู่สัญญาสำเร็จ!', [npc.id]);
     }
     return res;
@@ -8286,6 +8339,7 @@
   CULT.resolveFourSymbolForBeast = (pet, catalystId) => {
     if (!pet) return null;
     if (pet.fourSymbol && FOUR_SYMBOL_BLOODLINES[pet.fourSymbol]) return FOUR_SYMBOL_BLOODLINES[pet.fourSymbol];
+    if ((pet.speciesId || pet.id) === 'BEAST_ABYSSAL_LEVIATHAN_TURTLE') return FOUR_SYMBOL_BLOODLINES.BLACK_TORTOISE;
     const sp = CULT.beastSpeciesById(pet.speciesId || pet.id);
     const fam = String(pet.family || (sp && sp.family) || CULT.inferSpeciesFamily(sp || pet)).toUpperCase();
     const idNm = String((pet.speciesId || '') + ' ' + (pet.nameTh || '') + ' ' + (sp ? sp.nameTh : '')).toUpperCase();
@@ -8300,7 +8354,7 @@
     if (fam === 'FELINE' || fam === 'CANINE' || /พยัคฆ์|เสือ|หมาป่า|ราชสีห์|จิ้งจอก/.test(idNm)) {
       return FOUR_SYMBOL_BLOODLINES.WHITE_TIGER;
     }
-    if (fam === 'AVIAN' || /วิหค|หงส์|อินทรี|เหยี่ยว|กระเรียน|นก/.test(idNm)) {
+    if (fam === 'AVIAN' || /วิหค|หงส์|อินทรี|เหยี่ยว|กระเรียน/.test(idNm) || (/นก/.test(idNm) && !/กิเลน/.test(idNm))) {
       return FOUR_SYMBOL_BLOODLINES.VERMILION_PHOENIX;
     }
     if (fam === 'SHELL_GUARDIAN' || fam === 'SHELL' || fam === 'URSINE_BOAR' || fam === 'URSINE' || fam === 'BOAR' || /เต่า|กระดอง|เสวียนอู่|หมี|หมูป่า|ปู/.test(idNm)) {
@@ -8730,12 +8784,9 @@
     for (const tid of npc.cult.techs) {
       const def = sk && sk.get ? sk.get(tid) : null;
       if (!def) continue;
-      if (def.passive && def.passive.life && typeof def.passive.life[domainKey] === 'number') {
-        total += def.passive.life[domainKey];
-      }
-      if (def.auxiliarySpec && def.auxiliarySpec.bonuses && typeof def.auxiliarySpec.bonuses[domainKey] === 'number') {
-        total += def.auxiliarySpec.bonuses[domainKey];
-      }
+      const pVal = (def.passive && def.passive.life && typeof def.passive.life[domainKey] === 'number') ? def.passive.life[domainKey] : 0;
+      const aVal = (def.auxiliarySpec && def.auxiliarySpec.bonuses && typeof def.auxiliarySpec.bonuses[domainKey] === 'number') ? def.auxiliarySpec.bonuses[domainKey] : 0;
+      total += Math.max(pVal, aVal);
     }
     // Also check equipped exploration/training/crafting tools
     const eq = npc.equip || ((npc.eq && typeof npc.eq === 'object') ? npc.eq : ((npc.h && npc.h.eq) || null));
@@ -8780,7 +8831,7 @@
       const dueDay = mp.triggerDay != null ? mp.triggerDay : (mp.startedDay || 0) + (mp.delayDays || 1);
       const dueMin = mp.triggerMin != null ? mp.triggerMin : 0;
       const isDueByTick = mp.triggerTick != null && tNow >= mp.triggerTick;
-      const isDueByDay = (dayNow > dueDay) || (dayNow === dueDay && minNow >= dueMin);
+      const isDueByDay = (mp.triggerTick == null) && ((dayNow > dueDay) || (dayNow === dueDay && minNow >= dueMin));
       if (!isDueByTick && !isDueByDay) {
         remaining.push(mp);
         continue;
@@ -8979,22 +9030,27 @@
     } else if (extPets.length && !basePets.length) {
       npc.pets = extPets.slice();
     }
-    const allPets = (Array.isArray(npc.ext.pets) && npc.ext.pets.length) ? npc.ext.pets : (Array.isArray(npc.pets) ? npc.pets : []);
+    const tNow = (W && W.t != null) ? W.t : ((g.STATS && g.STATS.now) || 0);
+    if (npc._possessionCdUntil && tNow < npc._possessionCdUntil) {
+      return { ok: false, reason: 'possession-on-cooldown', cdUntil: npc._possessionCdUntil };
+    }
+    const allPets = (Array.isArray(npc.pets) && npc.pets.length) ? npc.pets : (Array.isArray(npc.ext.pets) ? npc.ext.pets : []);
+    const isLivePet = p => p && !p.dead && p.active !== false && (p.hp == null || p.hp > 0);
     let pet = null;
-    if (typeof petUidOrIdx === 'number' && allPets[petUidOrIdx]) {
+    if (typeof petUidOrIdx === 'number' && isLivePet(allPets[petUidOrIdx])) {
       pet = allPets[petUidOrIdx];
     } else if (petUidOrIdx != null) {
-      pet = allPets.find(p => p && (p.uid === petUidOrIdx || p.id === petUidOrIdx || p.speciesId === petUidOrIdx));
+      pet = allPets.find(p => isLivePet(p) && (p.uid === petUidOrIdx || p.id === petUidOrIdx || p.speciesId === petUidOrIdx));
     } else {
-      pet = allPets.find(p => p && (p.bond != null ? p.bond : (p.loyalty || 0)) >= 80) || allPets[0] || null;
+      pet = allPets.find(p => isLivePet(p) && (p.bond != null ? p.bond : (p.loyalty || 0)) >= 80) || allPets.find(isLivePet) || null;
     }
     const petBond = pet ? (pet.bond != null ? pet.bond : (pet.loyalty != null ? pet.loyalty : 0)) : 0;
     if (!pet || petBond < 80) {
       return { ok: false, reason: !pet ? 'no-pet' : 'insufficient-bond', requiredBond: 80, currentBond: petBond };
     }
-    const tNow = (W && W.t != null) ? W.t : ((g.STATS && g.STATS.now) || 0);
     const cleanDur = clamp(Number(dur) || 36, 8, 120);
     const until = tNow + cleanDur;
+    npc._possessionCdUntil = until + 24;
     const snap = {
       petUid: pet.uid || pet.id || 'PET_BONDED',
       nameTh: pet.nameTh || 'อสูรคู่สัญญา',
@@ -9022,12 +9078,12 @@
       W = g.W || (g.G && g.G.W) || null;
     }
     if (!npc) return { ok: false, reason: 'no-npc' };
-    coreSpec = coreSpec || { id: 'CORE_THUNDER_ROC', nameTh: 'เนยในพญาครุฑอสนี', tier: 5, element: 'LIGHTNING', passiveId: 'PASSIVE_THUNDER_WINGS', p: { atk: 0.10, matk: 0.10 }, f: { move: 14, crit: 6 } };
+    coreSpec = coreSpec || { id: 'CORE_THUNDER_ROC', nameTh: 'แก่นในพญาครุฑอสนี', tier: 5, element: 'LIGHTNING', passiveId: 'PASSIVE_THUNDER_WINGS', p: { atk: 0.10, matk: 0.10 }, f: { move: 14, crit: 6 } };
     npc.ingestedBeastCores = Array.isArray(npc.ingestedBeastCores) ? npc.ingestedBeastCores : [];
     if (npc.ingestedBeastCores.length >= 3) npc.ingestedBeastCores.shift();
     const entry = {
       id: coreSpec.id || 'CORE_BEAST',
-      nameTh: coreSpec.nameTh || 'เนยในอสูรบรรพกาล',
+      nameTh: coreSpec.nameTh || 'แก่นในอสูรบรรพกาล',
       tier: coreSpec.tier || 4,
       element: coreSpec.element || 'FIRE',
       passiveId: coreSpec.passiveId || 'PASSIVE_BEAST_CORE',
@@ -9328,12 +9384,12 @@
 
   /* ---------- Patch v3.4.0 [PROP-03]: Path-Specific Secondary Combat Resource Gauges ---------- */
   CULT.PATH_GAUGES = Object.freeze({
-    XIAN: { id: 'SWORD_INTENT', path: 'XIAN', nameTh: 'เจตจำนงกระบี่ (Sword Intent)', max: 100, gainOnHit: 25, gainOnHurt: 12, finisherNameTh: 'กระบี่หมื่นดาราผ่าสวรรค์', finisherMult: 1.65 },
-    BODY: { id: 'BLOOD_FURNACE', path: 'BODY', nameTh: 'เตาหลอมโลหิตปราณ (Blood Furnace)', max: 100, gainOnHit: 18, gainOnHurt: 28, finisherNameTh: 'หมัดราชันบรรพกาลทลายขุนเขา', finisherMult: 1.65 },
-    GOD: { id: 'DIVINE_FAITH', path: 'GOD', nameTh: 'ศรัทธาเทวะศักดิ์สิทธิ์ (Divine Faith)', max: 100, gainOnHit: 22, gainOnHurt: 18, finisherNameTh: 'ทัณฑ์สวรรค์เทวะจุติ', finisherMult: 1.65 },
-    DEMON: { id: 'DEMONIC_FRENZY', path: 'DEMON', nameTh: 'คลั่งโลหิตอสูร (Demonic Frenzy)', max: 100, gainOnHit: 25, gainOnHurt: 20, finisherNameTh: 'อสูรกลืนสวรรค์ผลาญวิญญาณ', finisherMult: 1.70 },
-    HEART_SOUL: { id: 'SOUL_RESONANCE', path: 'HEART_SOUL', nameTh: 'คลื่นสั่นพ้องจิตวิญญาณ (Soul Resonance)', max: 100, gainOnHit: 22, gainOnHurt: 16, finisherNameTh: 'มายาฝันนิรันดร์ดับจิต', finisherMult: 1.60 },
-    MECH_PUPPET: { id: 'PUPPET_HEAT', path: 'MECH_PUPPET', nameTh: 'พลังงานแกนกลไก (Core Overcharge)', max: 100, gainOnHit: 25, gainOnHurt: 15, finisherNameTh: 'ปืนใหญ่กลไกถล่มดารา', finisherMult: 1.65 },
+    XIAN: { id: 'SWORD_INTENT', path: 'XIAN', nameTh: 'เจตจำนงกระบี่', max: 100, gainOnHit: 25, gainOnHurt: 12, finisherNameTh: 'กระบี่หมื่นดาราผ่าสวรรค์', finisherMult: 1.65 },
+    BODY: { id: 'BLOOD_FURNACE', path: 'BODY', nameTh: 'เตาหลอมโลหิตปราณ', max: 100, gainOnHit: 18, gainOnHurt: 28, finisherNameTh: 'หมัดราชันบรรพกาลทลายขุนเขา', finisherMult: 1.65 },
+    GOD: { id: 'DIVINE_FAITH', path: 'GOD', nameTh: 'ศรัทธาเทวะศักดิ์สิทธิ์', max: 100, gainOnHit: 22, gainOnHurt: 18, finisherNameTh: 'ทัณฑ์สวรรค์เทวะจุติ', finisherMult: 1.65 },
+    DEMON: { id: 'DEMONIC_FRENZY', path: 'DEMON', nameTh: 'คลั่งโลหิตอสูร', max: 100, gainOnHit: 25, gainOnHurt: 20, finisherNameTh: 'อสูรกลืนสวรรค์ผลาญวิญญาณ', finisherMult: 1.70 },
+    HEART_SOUL: { id: 'SOUL_RESONANCE', path: 'HEART_SOUL', nameTh: 'คลื่นสั่นพ้องจิตวิญญาณ', max: 100, gainOnHit: 22, gainOnHurt: 16, finisherNameTh: 'มายาฝันนิรันดร์ดับจิต', finisherMult: 1.60 },
+    MECH_PUPPET: { id: 'PUPPET_HEAT', path: 'MECH_PUPPET', nameTh: 'พลังงานแกนกลไก', max: 100, gainOnHit: 25, gainOnHurt: 15, finisherNameTh: 'ปืนใหญ่กลไกถล่มดารา', finisherMult: 1.65 },
     KARMA_SAMSARA: { id: 'KARMIC_WHEEL', path: 'KARMA_SAMSARA', nameTh: 'กงล้อวัฏสงสาร (Karmic Wheel)', max: 100, gainOnHit: 20, gainOnHurt: 25, finisherNameTh: 'กงล้อพิพากษาหกภพภูมิ', finisherMult: 1.65 },
     BEAST_SOVEREIGN: { id: 'GU_SWARM', path: 'BEAST_SOVEREIGN', nameTh: 'ฝูงกู่และจิตอสูร (Gu Swarm & Beast Fury)', max: 100, gainOnHit: 25, gainOnHurt: 15, finisherNameTh: 'หมื่นอสูรคำรามกลืนฟ้า', finisherMult: 1.65 },
     SAGE_SUPPORT: { id: 'NECTAR_HARMONY', path: 'SAGE_SUPPORT', nameTh: 'น้ำทิพย์แห่งเต๋า (Nectar Harmony)', max: 100, gainOnHit: 22, gainOnHurt: 18, finisherNameTh: 'พิรุณทิพย์ชุบชีวิตหมื่นบุปผา', finisherMult: 1.50, healPct: 0.25 },
@@ -10517,15 +10573,13 @@
         const isBoss = !!(target.isBoss || target.boss || target.rank === 'BOSS' || (target.tier && target.tier >= 7 && target.foe));
         if (isBoss) {
           bossImmune = true;
-          target.slow = Math.max(target.slow || 0, 2);
           if (g.STATS && g.STATS.addStatus) g.STATS.addStatus(target, 'slow', 6, { src: caster.id }, nowT);
         } else {
-          target.gravityCrush = Math.max(target.gravityCrush || 0, 4);
-          target.slow = Math.max(target.slow || 0, 4);
           if (g.STATS && g.STATS.addStatus) {
             g.STATS.addStatus(target, 'gravityCrush', 10, { src: caster.id }, nowT);
             g.STATS.addStatus(target, 'slow', 10, { src: caster.id }, nowT);
           }
+          target.gravityCrush = 4;
           targetCrushed = true;
         }
       }
@@ -10552,7 +10606,7 @@
       if (!npc || !npc.cult) return { ok: false, reason: "no-cultivator" };
       if (opts.strictPath && npc.cult.path !== 'CHRONO_EPOCH') return { ok: false, reason: 'requires-chrono-epoch-path' };
       const nowT = (W && W.t != null) ? W.t : -1;
-      if (!opts.ignoreCooldown && nowT >= 0 && npc._temporalRewindCdUntil != null && npc._temporalRewindCdUntil > nowT && npc._temporalRewindLastTick === nowT) {
+      if (!opts.ignoreCooldown && nowT >= 0 && npc._temporalRewindCdUntil != null && npc._temporalRewindCdUntil > nowT) {
         return { ok: false, reason: 'temporal-rewind-on-cooldown', cdUntil: npc._temporalRewindCdUntil };
       }
       if (nowT >= 0) {
@@ -10577,7 +10631,7 @@
           if (nowT >= 0 && s.t != null && (nowT - s.t) > 16) continue;
           if (!bestSnap || s.hp > bestSnap.hp) bestSnap = s;
         }
-        if (bestSnap && bestSnap.hp > curHp && (!st._lastHpRewindAt || nowT < 0 || (nowT - st._lastHpRewindAt) >= 12)) {
+        if (bestSnap && bestSnap.hp > curHp && (st._lastHpRewindAt == null || nowT < 0 || (nowT - st._lastHpRewindAt) >= 12)) {
           const maxRestore = Math.max(1, Math.round(hm * 0.20));
           const targetHp = Math.min(hm, bestSnap.hp, curHp + maxRestore);
           if (targetHp > curHp) {
@@ -10702,14 +10756,22 @@
     invokeAncestralRite(W, npc) {
       if (!npc || !npc.cult) return { ok: false, reason: 'no-cultivator' };
       const st = this.ensureNpcState(W, npc);
-      const ancCount = (W && W.sect && Array.isArray(W.sect.ancestors)) ? W.sect.ancestors.length : 0;
+      const fallenList = (W && W.sect && Array.isArray(W.sect.fallen)) ? W.sect.fallen : [];
+      const graveList = (W && Array.isArray(W.graveyard)) ? W.graveyard : [];
+      const ancList = (W && W.sect && Array.isArray(W.sect.ancestors)) ? W.sect.ancestors : (fallenList.length ? fallenList : graveList);
+      const ancCount = ancList.length;
+      const latestAnc = ancList[ancList.length - 1];
+      const elderNameTh = (latestAnc && (latestAnc.nameTh || latestAnc.name || (latestAnc.h && latestAnc.h.name && latestAnc.h.name.full))) || 'บูรพาจารย์ผู้ล่วงลับ';
       const ancFervorBonus = Math.min(18, ancCount * 3);
       st.riteFervor = clamp((st.riteFervor || 0) + 28 + ancFervorBonus, 0, 100);
       const tNow = (W && W.t) || ((g.STATS && g.STATS.now) || 0);
       const dayNow = (W && W.day) || 1;
+      const studySpeedMult = +Math.min(1.30, 1.08 + Math.min(0.15, ancCount * 0.02)).toFixed(2);
       npc.ancestralBlessing = {
         active: true,
         ancestorCount: ancCount,
+        elderNameTh,
+        studySpeedMult,
         breakthroughBonus: +Math.min(0.22, 0.06 + (npc.cult.stage || 1) * 0.012 + Math.min(0.06, ancCount * 0.01)).toFixed(3),
         injuryShield: true,
         until: tNow + 2880,
@@ -10779,7 +10841,7 @@
         } else if (p === 'MERCANTILE_DAO') {
           CULT.gainPathGauge(n, 20);
           actions++; pathsProcessed.push(p);
-        } else if (p === 'DRAGON_VEIN_GEOMANCY' && canSpendSectStones && (W.sect.stones || 0) >= 900 && Object.keys(W.sect.geomancyState.anchoredNodes || {}).length < 2) {
+        } else if (p === 'DRAGON_VEIN_GEOMANCY' && canSpendSectStones && (W.sect.stones || 0) >= 900 && !(W.sect.geomancyState.anchoredNodes && W.sect.geomancyState.anchoredNodes[n.peakId || 'MAIN_PEAK']) && Object.keys(W.sect.geomancyState.anchoredNodes || {}).length < 2) {
           this.anchorDragonVeinNode(W, n, n.peakId || 'MAIN_PEAK', 60);
           actions++; pathsProcessed.push(p);
         } else if (p === 'DRAGON_VEIN_GEOMANCY') {
@@ -14378,44 +14440,58 @@
   CULT.allMantras = () => (JD.TECH.mantras || []).concat(extraM);
   CULT.allTechniques = () => (JD.TECH.techniques || []).concat(extraNC);
 
-  // Enrich Qinggong, Defensive, Support, Forbidden, and Passive Constellation metadata on expansionNonCombatArts
-  if (CULT.QINGGONG_SYSTEM && typeof CULT.QINGGONG_SYSTEM.mapTechToQinggongMode === 'function') {
+  // Enrich Qinggong, Defensive, Support, Forbidden, Mantra, and Passive Constellation metadata on expansionNonCombatArts & extraMantras
+  const qgMod = CULT.QINGGONG_SYSTEM || CULT.QINGGONG;
+  if (qgMod && typeof qgMod.mapTechToQinggongMode === 'function') {
     extraNC.forEach(t => {
       if (!t || (t.cat !== 'LIGHTNESS_ART' && t.cat !== 'MOVEMENT_TECHNIQUE')) return;
-      const mId = t.qinggongMode || CULT.QINGGONG_SYSTEM.mapTechToQinggongMode(t);
-      if (mId && CULT.QINGGONG_SYSTEM.MODES[mId]) {
+      const mId = t.qinggongMode || qgMod.mapTechToQinggongMode(t);
+      if (mId && qgMod.MODES && qgMod.MODES[mId]) {
         t.qinggongMode = mId;
-        t.qinggongSpec = CULT.QINGGONG_SYSTEM.MODES[mId];
+        t.qinggongSpec = qgMod.MODES[mId];
       }
     });
   }
-  if (CULT.DEFENSIVE_SYSTEM && typeof CULT.DEFENSIVE_SYSTEM.classifyDefensiveTech === 'function') {
+  const defMod = CULT.DEFENSIVE_SYSTEM || CULT.DEFENSIVE_ARTS;
+  if (defMod && typeof defMod.classifyDefensiveTech === 'function') {
     extraNC.forEach(t => {
       if (!t || t.cat !== 'DEFENSIVE_TECHNIQUE') return;
-      const aId = t.defensiveArchetype || CULT.DEFENSIVE_SYSTEM.classifyDefensiveTech(t);
-      if (aId && CULT.DEFENSIVE_SYSTEM.ARCHETYPES[aId]) {
+      const aId = t.defensiveArchetype || defMod.classifyDefensiveTech(t);
+      if (aId && defMod.ARCHETYPES && defMod.ARCHETYPES[aId]) {
         t.defensiveArchetype = aId;
-        t.defensiveSpec = CULT.DEFENSIVE_SYSTEM.ARCHETYPES[aId];
+        t.defensiveSpec = defMod.ARCHETYPES[aId];
       }
     });
   }
-  if (CULT.SUPPORT_SYSTEM && typeof CULT.SUPPORT_SYSTEM.classifySupportTech === 'function') {
+  const supMod = CULT.SUPPORT_SYSTEM || CULT.SUPPORT_ARTS;
+  if (supMod && typeof supMod.classifySupportTech === 'function') {
     extraNC.forEach(t => {
       if (!t || (t.cat !== 'SUPPORT_TECHNIQUE' && t.cat !== 'AUXILIARY_ART')) return;
-      const aId = t.supportArchetype || CULT.SUPPORT_SYSTEM.classifySupportTech(t);
-      if (aId && CULT.SUPPORT_SYSTEM.ARCHETYPES[aId]) {
+      const aId = t.supportArchetype || supMod.classifySupportTech(t);
+      if (aId && supMod.ARCHETYPES && supMod.ARCHETYPES[aId]) {
         t.supportArchetype = aId;
-        t.supportSpec = CULT.SUPPORT_SYSTEM.ARCHETYPES[aId];
+        t.supportSpec = supMod.ARCHETYPES[aId];
       }
     });
   }
-  if (CULT.FORBIDDEN_SYSTEM && typeof CULT.FORBIDDEN_SYSTEM.classifyForbiddenTech === 'function') {
+  const frbMod = CULT.FORBIDDEN_SYSTEM || CULT.FORBIDDEN_ARTS;
+  if (frbMod && typeof frbMod.classifyForbiddenTech === 'function') {
     extraNC.forEach(t => {
       if (!t || (t.cat !== 'FORBIDDEN_ART' && t.cat !== 'FORBIDDEN_TECHNIQUE')) return;
-      const aId = t.forbiddenArchetype || CULT.FORBIDDEN_SYSTEM.classifyForbiddenTech(t);
-      if (aId && CULT.FORBIDDEN_SYSTEM.ARCHETYPES[aId]) {
+      const aId = t.forbiddenArchetype || frbMod.classifyForbiddenTech(t);
+      if (aId && frbMod.ARCHETYPES && frbMod.ARCHETYPES[aId]) {
         t.forbiddenArchetype = aId;
-        t.forbiddenSpec = CULT.FORBIDDEN_SYSTEM.ARCHETYPES[aId];
+        t.forbiddenSpec = frbMod.ARCHETYPES[aId];
+      }
+    });
+  }
+  if (CULT.MANTRA_SYSTEM && typeof CULT.MANTRA_SYSTEM.classifyMantra === 'function') {
+    extraM.forEach(m => {
+      if (!m) return;
+      const aId = m.mantraArchetype || CULT.MANTRA_SYSTEM.classifyMantra(m);
+      if (aId && CULT.MANTRA_SYSTEM.ARCHETYPES && CULT.MANTRA_SYSTEM.ARCHETYPES[aId]) {
+        m.mantraArchetype = aId;
+        m.mantraSpec = CULT.MANTRA_SYSTEM.ARCHETYPES[aId];
       }
     });
   }
@@ -15052,7 +15128,7 @@
       const subList = (CULT.PATHS[pathId] && CULT.PATHS[pathId].subPaths) || [];
       const pickSub = subList.length ? subList[detHash370(String(W.seed || 's') + ':' + npc.id + ':' + pathId) % subList.length] : null;
       const nextStage = Math.max(1, Math.min(8, Math.round(eqStage * 0.85)));
-      if (!npc.cult) npc.cult = { path: pathId, sub: pickSub ? pickSub.id : 'NONE', stage: nextStage, prog: 0, techs: [] };
+      if (!npc.cult) npc.cult = { path: pathId, sub: pickSub ? pickSub.id : 'NONE', stage: nextStage, prog: 0, techs: [], toxic: 0, attempts: 0 };
       else {
         npc.cult.prevPath = npc.cult.path;
         npc.cult.path = pathId;

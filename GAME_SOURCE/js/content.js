@@ -68,12 +68,13 @@
     POLITICS_STAT_KEYS.forEach(k=>{if(!Number.isFinite(pol.stats[k])||pol.stats[k]<0) pol.stats[k]=0;});
 
     if(g.EXPED&&g.EXPED.ensureWorldTopology&&(!W.world||!W.world.mapTopology||!Array.isArray(W.world.allSects)||W.world.allSects.length<19)) g.EXPED.ensureWorldTopology(W);
-    if(Array.isArray(W.world.sects) && factions.length) {
-      W.world.sects.forEach((s,i)=>{
+    const _allSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+    if(Array.isArray(_allSects) && factions.length) {
+      _allSects.forEach((s,i)=>{
         if(!s) return;
         const f= (s.factionId && factionById[s.factionId]) || factions[i % factions.length];
         if(!f) return;
-        s.factionId=s.factionId||f.id;
+        s.factionId=(s.factionId && factionById[s.factionId])?s.factionId:f.id;
         s.code=s.code||f.code;
         s.factionNameTh=s.canonicalId?(s.nameTh||f.nameTh):f.nameTh;
         s.shortTh=s.shortTh||f.shortTh;
@@ -85,13 +86,15 @@
           s.specialtyTh=f.specialtyTh;
           s.leaderNameTh=f.leaderNameTh;
           s.specialtyMatIds=Array.isArray(f.specialtyMatIds)?f.specialtyMatIds.slice():[];
+          s.treatyPref=f.treatyPref||'NONE';
+          s.doctrineBonus=Object.assign({},f.doctrineBonus||{});
         } else {
           s.leaderNameTh=(s.figures&&s.figures.master&&(s.figures.master.titleAndNameTh||s.figures.master.fullNameTh))||s.leaderNameTh||f.leaderNameTh;
           const mergedMats=(Array.isArray(s.specialtyMatIds)?s.specialtyMatIds:[]).concat(Array.isArray(f.specialtyMatIds)?f.specialtyMatIds:[]);
           s.specialtyMatIds=Array.from(new Set(mergedMats));
+          if(!s.treatyPref) s.treatyPref=s.alignment==='DEMONIC'?'NON_AGGRESSION':'TRADE_PACT';
+          if(!s.doctrineBonus || typeof s.doctrineBonus!=='object') s.doctrineBonus={};
         }
-        s.treatyPref=f.treatyPref||'NONE';
-        s.doctrineBonus=Object.assign({},f.doctrineBonus||{});
         if(!s.treaty) s.treaty=(pol.treaties[s.id] && pol.treaties[s.id].type) || 'NONE';
         if(!Number.isFinite(s.influence)) s.influence=Math.round(50+(s.power||1)*20);
       });
@@ -119,7 +122,7 @@
     if(!Array.isArray(W.sect.gateBeasts)) W.sect.gateBeasts=[];
     else if(W.sect.gateBeasts.length>4) W.sect.gateBeasts.length=4;
     if(g.EXPLORE&&g.EXPLORE.ensureTrials&&(!W.explore||!W.explore.trials)) g.EXPLORE.ensureTrials(W);
-    if(g.SECT&&g.SECT.WORLD_MARTIAL_CONFERENCE&&g.SECT.WORLD_MARTIAL_CONFERENCE.ensure&&(!W.sect||!W.sect.conference)) g.SECT.WORLD_MARTIAL_CONFERENCE.ensure(W);
+    if(g.SECT&&g.SECT.WORLD_MARTIAL_CONFERENCE&&g.SECT.WORLD_MARTIAL_CONFERENCE.ensure) g.SECT.WORLD_MARTIAL_CONFERENCE.ensure(W);
     return m;
   };
 
@@ -269,7 +272,7 @@
       W.world.contentMetrics.formulasTraded++;
       if(Array.isArray(W.world.tradeHistory)) {
         W.world.tradeHistory.push({day:W.day,side:'member-sell-formula',itemId:'FORMULA:'+id,qty:1,unitPrice:total,total,traderId:buyer.id,traderName:buyer.nameTh,npcId:seller.id,npcName:seller.h.name.given});
-        if(W.world.tradeHistory.length>60) W.world.tradeHistory.splice(0,W.world.tradeHistory.length-60);
+        if(W.world.tradeHistory.length>80) W.world.tradeHistory.splice(0,W.world.tradeHistory.length-80);
       }
       W.log('finance',seller.h.name.given+' ขายม้วนตำรับ「'+r.nameTh+'」ให้'+buyer.nameTh+' '+total+' ศิลา',[seller.id]);
       return {ok:true,price:total,id,sellerId:seller.id,buyerId:buyer.id};
@@ -602,10 +605,12 @@
   C.TREATY_TH=TREATY_TH;
   C.SECT_TREATIES=TREATY_TH;
 
+  const getAllSects = W => (W && W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W && W.world && Array.isArray(W.world.sects)) ? W.world.sects : []);
   C.signTreaty=(W,sectOrId,treatyType,opts)=>{
     opts=opts||{};
     C.ensure(W);
-    const s=typeof sectOrId==='string'?(W.world.sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)||(W.world.allSects&&W.world.allSects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId))):sectOrId;
+    const allSects=getAllSects(W);
+    const s=typeof sectOrId==='string'?allSects.find(x=>x&&(x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)):sectOrId;
     if(!s||!TREATY_TH[treatyType]) return {ok:false,reason:'invalid-sect-or-treaty'};
     if(!opts.force && !opts.ignoreCooldown && s.treatyCooldownUntil!=null && (W.day||0)<s.treatyCooldownUntil && s.treaty===treatyType) {
       return {ok:false,reason:'cooldown',cooldownUntilDay:s.treatyCooldownUntil};
@@ -643,7 +648,8 @@
 
   C.forceVassalTreaty=(W,sectOrId,opts)=>{
     opts=opts||{}; C.ensure(W);
-    const s=typeof sectOrId==='string'?((W.world.sects||[]).find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)||(W.world.allSects&&W.world.allSects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId))):sectOrId;
+    const allSects=getAllSects(W);
+    const s=typeof sectOrId==='string'?allSects.find(x=>x&&(x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)):sectOrId;
     if(!s) return {ok:false,reason:'invalid-sect'};
     if(s.treaty==='VASSAL_TREATY') return {ok:true,unchanged:true,sectId:s.id,treaty:s.treaty};
     const wonMajorDispute=!!opts.majorDispute||s.treaty==='RIVAL_FEUD'||(s.attitude||0)<=-40;
@@ -662,7 +668,8 @@
   C.exchangeWithAlly=(W,sectOrId,opts)=>{
     opts=opts||{};
     C.ensure(W);
-    const s=typeof sectOrId==='string'?(W.world.sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)||(W.world.allSects&&W.world.allSects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId))):sectOrId||(W.world.sects||[]).find(x=>['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(x.treaty))||(W.world.allSects||[]).find(x=>['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(x.treaty));
+    const allSects=getAllSects(W);
+    const s=typeof sectOrId==='string'?allSects.find(x=>x&&(x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)):sectOrId||allSects.find(x=>x&&['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(x.treaty));
     if(!s) return {ok:false,reason:'no-ally-sect'};
     const isAllied=['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE','TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(s.treaty) || s.attitude>=30;
     if(!opts.force && !isAllied) return {ok:false,reason:'not-allied',treaty:s.treaty,attitude:s.attitude};
@@ -710,9 +717,9 @@
   C.spawnPoliticalEvent=(W,kind,sectOrId)=>{
     C.ensure(W);
     const pol=W.world.politics;
-    const sects=W.world.sects||[];
+    const sects=getAllSects(W);
     if(!sects.length) return null;
-    let s=sectOrId?(typeof sectOrId==='string'?sects.find(x=>x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId):sectOrId):null;
+    let s=sectOrId?(typeof sectOrId==='string'?sects.find(x=>x&&(x.id===sectOrId||x.factionId===sectOrId||x.code===sectOrId||x.canonicalId===sectOrId)):sectOrId):null;
     if(!kind) {
       const hostile=sects.find(x=>x.attitude<-25 || x.alignment==='DEMONIC');
       const friendly=sects.find(x=>x.attitude>=20 || x.treaty==='TRADE_PACT' || x.treaty==='ALLIANCE');
@@ -769,7 +776,8 @@
     C.ensure(W);
     const pol=W.world.politics, ev=pol.activeEvent;
     if(!ev||ev.resolved) return {ok:false,reason:'no-active-event'};
-    const s=W.world.sects.find(x=>x.id===ev.sectId)||W.world.sects[0];
+    const allSects=getAllSects(W);
+    const s=allSects.find(x=>x&&x.id===ev.sectId)||allSects[0];
     const lead=actor||SECT.holder(W,'mission')||W.byId[W.sect.masterId]||W.npcs.find(n=>!n.dead);
     let outcome='RESOLVED', summaryTh='', deltaAtt=0, stonesDelta=0, matAdded=0;
 
@@ -798,7 +806,10 @@
       } else {
         deltaAtt=-10; outcome='DEFIED';
         W.fame(2);
-        if(s.attitude-10<=-55) s.treaty='EMBARGO';
+        if(s.attitude-10<=-55){
+          s.treaty='EMBARGO';
+          pol.treaties[s.id]={type:'EMBARGO',signedDay:W.day,expiresDay:W.day+60};
+        }
         summaryTh='ปฏิเสธคำขาดของ'+s.nameTh+' ยืนหยัดรักษาศักดิ์ศรีสำนัก';
       }
     } else if(ev.kind==='DOCTRINE_SUMMIT') {
@@ -1072,7 +1083,9 @@
     C.ensure(W);
     origDiplomacyResult(W,ex,alive,out);
     if(!alive||!alive.length) return;
-    const contacted=W.world.sects.filter(s=>s.contact===W.day)[0] || W.world.sects.slice().sort((a,b)=>b.attitude-a.attitude)[0];
+    const allSects=getAllSects(W);
+    const targetId=(out&&out.sectId)||(ex&&ex.targetSectId);
+    const contacted=(targetId&&allSects.find(s=>s&&s.id===targetId))||allSects.filter(s=>s&&s.contact===W.day)[0]||allSects.slice().sort((a,b)=>b.attitude-a.attitude)[0];
     if(!contacted) return;
     const minReserve=(W.sect.reserveDirectives && W.sect.reserveDirectives.minStoneReserve)||120;
     if(contacted.attitude>=45 && contacted.treaty!=='ALLIANCE' && W.sect.stones>=minReserve+80) {
@@ -1095,8 +1108,9 @@
     C.ensure(W);
     const base=origRaidChance(W);
     let mod=0;
-    (W.world.sects||[]).forEach(s=>{
-      if(s.treaty==='ALLIANCE' || s.treaty==='NON_AGGRESSION') mod-=0.0015;
+    getAllSects(W).forEach(s=>{
+      if(!s||s.collapsed) return;
+      if(s.treaty==='ALLIANCE' || s.treaty==='ALLIANCE_PACT' || s.treaty==='NON_AGGRESSION' || s.treaty==='VASSAL_TREATY') mod-=0.0015;
       else if(s.treaty==='EMBARGO') mod+=0.0025;
     });
     return clamp(base+mod,0,0.06);
@@ -1105,7 +1119,7 @@
   const origSpawnRaid=X.spawnRaid;
   X.spawnRaid=(W,kind,strength)=>{
     C.ensure(W);
-    const allies=(W.world.sects||[]).filter(s=>s.treaty==='ALLIANCE');
+    const allies=getAllSects(W).filter(s=>s&&!s.collapsed&&(s.treaty==='ALLIANCE'||s.treaty==='ALLIANCE_PACT'||s.treaty==='VASSAL_TREATY'));
     const adjStrength=allies.length ? (strength||0.45)*Math.max(0.72,1-allies.length*0.10) : strength;
     const f=origSpawnRaid(W,kind,adjStrength);
     if(f && allies.length) {

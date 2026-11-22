@@ -1,6 +1,14 @@
 {
   "observe": [
     "npc",
+    "set-lore-era",
+    "set-lore-emp-group",
+    "set-lore-fig-group",
+    "set-lore-chaos-sub",
+    "set-lore-chaos-era",
+    "set-lore-surv-filter",
+    "set-lore-chronicle-book",
+    "set-lore-chronicle-cat",
     "chronicle-filter",
     "chronicle-person",
     "chronicle-clear-person",

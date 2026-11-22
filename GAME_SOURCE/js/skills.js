@@ -289,6 +289,7 @@
     const A = SK.ARCH[arch], tier = t.tier || 1;
     const el = SK.ELEM[t.element] || SK.ELEM.NEUTRAL;
     const isPrimary = Array.isArray(t.moveDefs) && t.moveDefs[0] === m;
+    const isOffOrCounter = !!(A.off || arch === 'counter');
     const prof = {
       id: isPrimary ? t.id : m.id,
       moveId: m.id,
@@ -310,13 +311,13 @@
       elemTh: el.nameTh,
       cd: m.cd || A.cd,
       wind: m.wind || A.wind,
-      hits: !A.off ? 0 : (m.hits != null ? m.hits : A.hits),
-      M: !A.off ? 0 : (m.M != null ? m.M : (m.mult != null ? m.mult : 1.2)),
+      hits: !isOffOrCounter ? 0 : (m.hits != null ? m.hits : A.hits),
+      M: !isOffOrCounter ? 0 : (m.M != null ? m.M : (m.mult != null ? m.mult : 1.2)),
       costPct: m.costPct != null ? m.costPct : (m.qiCost != null ? Math.round(m.qiCost * 0.45 * 10) / 10 : Math.round(4 * A.cost * (1 + 0.45 * (tier - 1)) * 10) / 10),
-      pen: !A.off ? 0 : (m.pen != null ? m.pen : (m.penAdd != null ? m.penAdd : (A.penAdd || 0))),
+      pen: !isOffOrCounter ? 0 : (m.pen != null ? m.pen : (m.penAdd != null ? m.penAdd : (A.penAdd || 0))),
       critAdd: m.critAdd || 0,
       aoe: m.aoe != null ? !!m.aoe : !!A.aoe,
-      steal: m.steal != null ? m.steal : (A.steal || 0),
+      steal: m.steal != null ? m.steal : (m.lifesteal != null ? m.lifesteal : (A.steal || 0)),
       dot: m.dot || (arch === 'dot' ? Math.round((0.45 + 0.12 * (tier - 1)) * 100) / 100 : 0),
       dotKind: m.dotKind || (({ FIRE: 'burn', BLOOD_DEMON: 'bleed', WOOD_LIFE: 'poison' })[t.element] || 'bleed'),
       recoil: m.recoil != null ? m.recoil : (A.recoil || 0),
@@ -326,10 +327,13 @@
       shield: m.shield || ((arch === 'guard' || arch === 'shield') ? Math.round((0.14 + 0.035 * (tier - 1)) * 100) / 100 : 0),
       heal: m.heal || (arch === 'heal' ? Math.round((0.16 + 0.04 * (tier - 1)) * 100) / 100 : 0),
       grantBuff: m.grantBuff || t.grantBuff || null,
-      support: m.support || ((arch === 'support' || arch === 'buff') ? { kind: m.grantBuff || t.grantBuff || (m.sx && m.sx.k) || 'morale', dur: (m.sx && m.sx.dur) || (12 + tier * 2) } : null),
+      support: m.support || ((arch === 'support' || arch === 'buff') ? { kind: (m.grantBuff && (!g.STATS || !g.STATS.BUFF_CATALOG || !g.STATS.BUFF_CATALOG[m.grantBuff] || g.STATS.BUFF_CATALOG[m.grantBuff].kind !== 'debuff')) ? m.grantBuff : (t.grantBuff && (!g.STATS || !g.STATS.BUFF_CATALOG || !g.STATS.BUFF_CATALOG[t.grantBuff] || g.STATS.BUFF_CATALOG[t.grantBuff].kind !== 'debuff')) ? t.grantBuff : ((m.sx && m.sx.k && g.STATS && g.STATS.BUFF_CATALOG && g.STATS.BUFF_CATALOG[m.sx.k] && g.STATS.BUFF_CATALOG[m.sx.k].kind !== 'debuff') ? m.sx.k : 'morale'), dur: (m.sx && m.sx.dur) || (12 + tier * 2) } : null),
       summon: m.summon || (arch === 'summon' ? { dur: 14 + tier * 2, hpPct: Math.round((0.35 + 0.05 * (tier - 1)) * 100) / 100, statPct: Math.round((0.50 + 0.05 * (tier - 1)) * 100) / 100, nameSuffix: 'ร่างอวตาร' } : null),
-      rider: m.rider !== undefined ? m.rider : (m.status && !A.ctrl ? m.status : ((m.sx && m.sx.k && !A.self && !A.team) ? m.sx.k : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null))),
+      rider: m.rider !== undefined ? m.rider : (m.status && !A.ctrl ? m.status : ((m.sx && m.sx.k && ((!A.self && !A.team) || arch === 'counter')) ? m.sx.k : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null))),
       ctrl: m.ctrl !== undefined ? m.ctrl : (A.ctrl ? (m.status || (m.sx && m.sx.k) || el.ctrl) : null),
+      sx: m.sx || null,
+      statusChance: m.statusChance != null ? m.statusChance : null,
+      statusDur: m.statusDur != null ? m.statusDur : null,
       shatterShield: !!m.shatterShield,
       qiRestorePct: m.qiRestorePct || 0,
       cleanseDebuffs: !!m.cleanseDebuffs,
@@ -383,7 +387,8 @@
     };
     prof.explicitRange = m.range || t.range || null;
     prof.range = prof.explicitRange || SK.resolveMoveSpatialSpec(prof, null);
-    prof.summary = SK.summary(prof) + ((t.weaponTypes || t.armorTypes) ? ' · ' + g.JD.MARTIAL.types[(t.weaponTypes || t.armorTypes)[0]] + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : '');
+    const _wtM = (t.weaponTypes && t.weaponTypes.length) ? t.weaponTypes[0] : ((t.armorTypes && t.armorTypes.length) ? t.armorTypes[0] : null);
+    prof.summary = SK.summary(prof) + (_wtM ? ' · ' + (g.JD.MARTIAL.types[_wtM] || _wtM) + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : '');
     return (moveCache[key] = prof);
   };
 
@@ -400,16 +405,16 @@
       const isBuff = /ปลุกขวัญ|อวยพร|หนุน|ประสาน|คุ้มกัน|กำลังใจ|ศรัทธา|เชื่อมใจ/.test(t.nameTh || '');
       arch = isBuff ? 'support' : 'heal';
     }
-    else if (t.cat === 'COMBAT_TECHNIQUE') {
+    else if (Array.isArray(t.moveDefs) && t.moveDefs.length) {
+      const m0 = SK.moveProfile(t, t.moveDefs[0]);
+      const prof = Object.assign({}, m0, { id: t.id, tech: t.id, moveId: t.moveDefs[0].id, nameTh: t.nameTh, moves: t.moves || t.moveDefs.map(x => x.nameTh) });
+      return (cache[t.id] = prof);
+    } else if (t.cat === 'COMBAT_TECHNIQUE') {
       const w = Object.assign({}, SUBW[subId] || { strike: 3, flurry: 1, sweep: 1 });
       if (t.tier < 3) { delete w.burst; delete w.summon; }
       if (t.tier < 2) { delete w.control; delete w.counter; delete w.channel; }
       const ks = Object.keys(w), tot = ks.reduce((s, k) => s + w[k], 0); let r = rnd(h, 1) * tot; arch = ks[ks.length - 1];
       for (const k of ks) { r -= w[k]; if (r <= 0) { arch = k; break; } }
-    } else if (Array.isArray(t.moveDefs) && t.moveDefs.length) {
-      const m0 = SK.moveProfile(t, t.moveDefs[0]);
-      const prof = Object.assign({}, m0, { id: t.id, tech: t.id, moveId: t.moveDefs[0].id, nameTh: t.nameTh, moves: t.moves || t.moveDefs.map(x => x.nameTh) });
-      return (cache[t.id] = prof);
     } else if ((t.cat === 'QI_MANTRA' || t.cat === 'BODY_MANTRA' || t.cat === 'FAITH_MANTRA') && Array.isArray(t.moves) && t.moves.length) {
       const nm = (t.nameTh || '') + ' ' + (t.moves[0] || '');
       if (/ฟื้น|น้ำพุ|อายุวัฒนะ|เมตตา|โอสถ|เยียวยา/.test(nm)) arch = 'heal';
@@ -427,9 +432,9 @@
     const cd = Math.round(A.cd * (0.85 + 0.3 * rnd(h, 2)));
     const wind0 = Math.max(2, Math.round(A.wind * (0.9 + 0.2 * rnd(h, 4)))), hits = A.hits;
     const fill = (cd - wind0) / 4, tot = A.e * (cd / 4) * tierMult - fill;
-    let M = hits ? Math.max(0.9, tot / hits) : 0, dotTot = 0;
-    if (arch === 'dot') { M = 0.9; dotTot = Math.max(0.5, tot - 0.9); }
-    if (arch === 'counter') M = Math.max(1.5, A.e * (cd / 4) * tierMult * 0.8);
+    let M = hits ? Math.min(4.8, Math.max(0.9, tot / hits)) : 0, dotTot = 0;
+    if (arch === 'dot') { M = 0.9; dotTot = Math.min(4.0, Math.max(0.5, tot - 0.9)); }
+    if (arch === 'counter') M = Math.min(4.2, Math.max(1.5, A.e * (cd / 4) * tierMult * 0.8));
     const el = SK.ELEM[t.element] || SK.ELEM.NEUTRAL;
     let type = 'm'; const P = t.path;
     if (P === 'BODY') type = 'p';
@@ -501,7 +506,8 @@
     prof.weaponTypes = t.weaponTypes; prof.armorTypes = t.armorTypes; prof.requiresWeapon = t.requiresWeapon;
     prof.explicitRange = t.range || m0.range || null;
     prof.range = prof.explicitRange || SK.resolveMoveSpatialSpec(prof, null);
-    prof.summary = SK.summary(prof) + ((t.weaponTypes || t.armorTypes) ? ' · ' + g.JD.MARTIAL.types[(t.weaponTypes || t.armorTypes)[0]] + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : ''); return (cache[t.id] = prof);
+    const _wtM = (t.weaponTypes && t.weaponTypes.length) ? t.weaponTypes[0] : ((t.armorTypes && t.armorTypes.length) ? t.armorTypes[0] : null);
+    prof.summary = SK.summary(prof) + (_wtM ? ' · ' + (g.JD.MARTIAL.types[_wtM] || _wtM) + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : ''); return (cache[t.id] = prof);
   };
 
   SK.summary = p => {
@@ -905,8 +911,11 @@
       /SCORPION|MOTH|SPIDER/.test(id) ? 'ARTHROPOD' : /STAG|KIRIN|QILIN/.test(id) ? 'UNGULATE' : 'CHIMERA')).toUpperCase();
   };
   SK.foeSkills = u => {
-    const species = u && JD.BEASTS && JD.BEASTS.species
-      ? JD.BEASTS.species.find(s => s.id === u.speciesId || s.id === u.sp || s.nameTh === u.name)
+    const allBeasts = (g.CULT && typeof g.CULT.allBeastSpecies === 'function')
+      ? g.CULT.allBeastSpecies()
+      : ((JD.BEASTS && JD.BEASTS.species) || []).concat((JD.BEASTS && JD.BEASTS.kings) || []);
+    const species = u && allBeasts.length
+      ? allBeasts.find(s => s.id === u.speciesId || s.id === u.sp || s.nameTh === u.name)
       : null;
     const sourceProfile = (u && u.elementProfile) || (species && species.elementProfile) || null;
     const rawElement = (u && u.element) || (species && species.element) || null;
@@ -975,7 +984,7 @@
       if (t >= 4) L.push(mk('burst', 'พลังอสูรบรรพกาลปะทุ', t, 'm', { aoe: true, range: { min: 0, max: 3.6, shape: 'CIRCLE_TARGET', radius: 2.5 } }));
     } else {
       const wType = wProf.weaponType || 'SWORD';
-      if (wType === 'BOW' || wType === 'FOCUS' || wType === 'ZITHER' || wType === 'BRUSH') {
+      if (wType === 'BOW' || wType === 'FOCUS' || wType === 'ZITHER' || wType === 'BRUSH' || wType === 'ABACUS' || wType === 'FAN') {
         L.push(mk('snipe', wType === 'BOW' ? 'ศรทะลวงใจ' : 'คลื่นปราณจู่โจมไกล', t, wType === 'BOW' ? 'p' : 'm', { range: { min: 1.2, max: wType === 'BOW' ? 5.2 : 4.2, shape: 'SINGLE', requiresLoS: true } }));
         L.push(mk('strike', 'ซัดปราณป้องกันตัวระยะประชิด', Math.max(1, t - 1), 'p', { knockback: { dist: 1.4 }, range: { min: 0, max: 1.4, shape: 'SINGLE' } }));
         if (t >= 2) L.push(mk('barrage', 'ระดมซัดศรปราณ', t, wType === 'BOW' ? 'p' : 'm', { aoe: true, range: { min: 1.0, max: 4.5, shape: 'CIRCLE_TARGET', radius: 2.4, requiresLoS: true } }));

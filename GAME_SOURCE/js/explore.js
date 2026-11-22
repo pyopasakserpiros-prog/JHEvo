@@ -7085,13 +7085,23 @@
   function lootRoll(W, ex, alive, out, site, d, label) {
     const rng = W.rng, cdx = dex(W).codex; const pool = site.loot; const luck = alive.reduce((s, m) => s + E(m, 'destiny.luck'), 0) / alive.length;
     const mult = site.tide ? site.tide.loot : 1;
-    const e = rng.weighted(pool, l => Math.max(0.05, l[1] * (1 + (luck - 45) / 60 * (l[5] - 1)) * (l[0] === 'relic' ? mult : 1)));
+    const gt = site.gateType;
+    const e = rng.weighted(pool, l => {
+      let w = l[1] * (1 + (luck - 45) / 60 * (l[5] - 1)) * (l[0] === 'relic' ? mult : 1);
+      if (gt) {
+        if (l[0] === 'beast' && gt.bonusBeastDropChance) w *= (1 + gt.bonusBeastDropChance);
+        else if (l[0] === 'tech' && gt.bonusTechDropChance) w *= (1 + gt.bonusTechDropChance);
+        else if (l[0] === 'gear' && gt.bonusGearDropChance) w *= (1 + gt.bonusGearDropChance);
+        else if (l[0] === 'herb' && gt.bonusHerbDropChance) w *= (1 + gt.bonusHerbDropChance);
+      }
+      return Math.max(0.05, w);
+    });
     const finder = rng.weighted(alive, a => 1 + E(a, 'intellect.perceptiveness') / 60); const nm = finder.h.name.given;
     const k = e[0], p1 = e[3], p2 = e[4]; let txt = null;
     const per = alive.reduce((s, m) => Math.max(s, E(m, 'intellect.perceptiveness')), 0);
     if (k === 'stones') { const v = Math.round((p1 + rng.next() * (p2 - p1)) * mult); out.stones += v; txt = e[2] + ' (' + v + ' ศิลา)'; }
-    else if (k === 'herb' || k === 'ore' || k === 'beast' || k === 'formation') {
-      const cat = { herb: 'HERB', ore: 'ORE', beast: 'BEAST_PART', formation: 'FORMATION_PART' }[k];
+    else if (k === 'herb' || k === 'ore' || k === 'beast' || k === 'formation' || k === 'catalyst' || k === 'artifact') {
+      const cat = { herb: 'HERB', ore: 'ORE', beast: 'BEAST_PART', formation: 'FORMATION_PART', catalyst: 'CATALYST', artifact: 'ARTIFACT_MAT' }[k];
       const worldDef = EX.WORLD_BY_ID[site.id];
       let m = null;
       if (cat === 'BEAST_PART' && worldDef && Array.isArray(worldDef.v222MatIds) && worldDef.v222MatIds.length) {
@@ -7100,7 +7110,7 @@
       }
       if (!m) {
         const themed = site.id === 'snow' && cat === 'HERB' ? JD.ITEMS.materials.filter(m2 => ['MAT_HERB_DEW_GRASS_1', 'MAT_HERB_JADE_LOTUS_2', 'MAT_HERB_MIST_ORCHID_2', 'MAT_HERB_SNOW_LOTUS_5'].includes(m2.id) && m2.tier <= p1 && m2.tier >= Math.max(1, p1 - 2)) : null;
-        m = themed && themed.length ? rng.weighted(themed, m2 => 1 / (m2.tier * m2.tier)) : matOf(cat, p1, rng, Math.max(1, p1 - 2));
+        m = themed && themed.length ? rng.weighted(themed, m2 => 1 / (m2.tier * m2.tier)) : (matOf(cat, p1, rng, Math.max(1, p1 - 2)) || matOf(cat, Math.max(1, p1 - 1), rng, Math.max(1, p1 - 3)));
       }
       if (m) {
         const q = Math.max(1, Math.round((1 + (per - 40) / 45 + rng.next() * 1.4) * mult));
@@ -7108,10 +7118,8 @@
         txt = 'พบ「' + m.nameTh + '」×' + q;
       }
       if (worldDef && Array.isArray(worldDef.v222RecipeIds) && worldDef.v222RecipeIds.length && rng.chance(0.45)) {
-        W.sect.knownRecipes = W.sect.knownRecipes || [];
         out.recipes = out.recipes || [];
         const rPick = rng.pick(worldDef.v222RecipeIds);
-        if (!W.sect.knownRecipes.includes(rPick)) W.sect.knownRecipes.push(rPick);
         if (!out.recipes.includes(rPick)) out.recipes.push(rPick);
       }
     }
@@ -7129,9 +7137,7 @@
     else if (k === 'tech') {
       const worldDef = EX.WORLD_BY_ID[site.id];
       if (worldDef && Array.isArray(worldDef.v222TechIds) && worldDef.v222TechIds.length && rng.chance(0.65)) {
-        W.sect.library = W.sect.library || [];
         const tId = rng.pick(worldDef.v222TechIds);
-        if (!W.sect.library.includes(tId)) W.sect.library.push(tId);
         if (!out.techs.includes(tId)) out.techs.push(tId);
         const tObj = CULT.tech ? CULT.tech(tId) : null;
         txt = e[2] + ' · คัมภีร์「' + (tObj ? tObj.nameTh : tId) + '」';
@@ -7143,7 +7149,20 @@
     else if (k === 'boon') { const b = p1; if (b === 'qi' && finder.cult) CULT.gain(finder, CULT.threshold(finder) * 0.14); else if (b === 'body') { HC.trainBody(finder, 'strength', 4); HC.trainBody(finder, 'endurance', 4); } else if (b === 'mind') { HC.trainMind(finder, 'comprehension', 3); HC.trainMind(finder, 'willpower', 3); } else if (b === 'luck') { finder.h.destiny.luck = Math.min(100, finder.h.destiny.luck + 3); HC.touch(finder); } else if (finder.cult) CULT.gain(finder, CULT.threshold(finder) * 0.08); HC.experience(finder, 'insight', 0.8); txt = e[2] + ' (ผู้รับ: ' + nm + ')'; }
     else if (k === 'curse') { finder.h.state.heartDemon = clamp(finder.h.state.heartDemon + 8, 0, 100); HC.feel(finder, { stress: 8, mood: -4 }); if (rng.chance(0.25)) AI.injure(W, finder, 1, 'ถูกพลังมารกัดกร่อน'); txt = e[2] + ' — ' + nm + ' ได้รับผลกระทบ'; }
     else if (k === 'person') { const q = clamp(rng.gauss(1.1, 0.5), 0, 2.5); const nn = W.makeNpc({ quality: q, ageYears: rng.int(16, 30), rank: 0, rootBias: 1, fromExped: true }); if (nn) { nn.x = (ex.px || MAP.EXIT.x) + .5; nn.y = (ex.py || MAP.EXIT.y) + .5; nn.travel = null; nn.h.origin.region = site.nameTh; nn.joinDay = W.day; txt = e[2] + ' ' + nn.h.name.given + ' ขอติดตามเข้าสำนัก'; W.log('recruit', nn.h.name.given + ' ผู้พเนจรจาก' + site.nameTh + ' ตามคณะสำรวจมาเข้าสำนัก', [nn.id]); } }
-    else if (k === 'relic') { const r = EX.RELICS[p1]; if (r) { if (dex(W).relics.includes(p1)) { out.stones += 220; txt = 'พบ' + r.nameTh + 'อีกชิ้น (ซ้ำกับที่มี) แปลงเป็นศิลา 220'; } else { dex(W).relics.push(p1); dex(W).codex.relics.push({ id: p1, d: W.day, from: site.nameTh }); out.rep += 4; txt = '★ ได้ของวิเศษ「' + r.nameTh + '」— ' + r.desc; W.log('explore', '★ ' + ex.partyNames + ' ได้ของวิเศษ「' + r.nameTh + '」จาก' + site.nameTh + ' — ' + r.desc, ex.party); note(W, 'ได้ของวิเศษ ' + r.nameTh); } } }
+    else if (k === 'relic') {
+      const r = EX.RELICS[p1];
+      if (r) {
+        out.relics = out.relics || [];
+        if (dex(W).relics.includes(p1) || out.relics.some(x => x.id === p1)) {
+          out.stones += 220;
+          txt = 'พบ' + r.nameTh + 'อีกชิ้น (ซ้ำกับที่มี) แปลงเป็นศิลา 220';
+        } else {
+          out.relics.push({ id: p1, from: site.nameTh, guardFloor: null });
+          out.rep += 4;
+          txt = '★ ได้ของวิเศษ「' + r.nameTh + '」— ' + r.desc;
+        }
+      }
+    }
     if (txt) { const c = cdx.found[e.id] = cdx.found[e.id] || { n: 0, d: W.day, by: nm }; c.n++; ex.journal.push(txt); if (e[5] >= 3) out.notes.push(txt); out.rep += 0.15 * e[5]; }
     if (label !== '_pocketBonus' && ex && (ex._pocketLootRolls || 0) < 2 && Array.isArray(alive) && alive.some(m => m && m.cult && m.cult.sub === 'POCKET_REALM_ARCHITECT')) {
       ex._pocketLootRolls = (ex._pocketLootRolls || 0) + 1;
@@ -7232,7 +7251,7 @@
       exSubpool = subpool;
     }
     const b = W.map.byId[site === 'gate' ? 'gate_zone' : 'cave']; const food = party.length * Math.min(Math.ceil(days) + 1, 5); const taken = Math.min(food, ECO.count(W, 'meal')); ECO.take(W, 'meal', taken);
-    const ex = { id: ++w.seq, kind, region: kind, placeTh, party: party.map(p => p.id), partyRank, rankArea: partyRank, subpoolId: exSubpool ? exSubpool.id : null, subpoolNameTh: exSubpool ? exSubpool.nameTh : null, t0: W.t, ret: W.t + Math.round(days * 1440) + 40, days: Math.round(days * 10) / 10, journal: [], carry: [], supplies: taken, done: false, state: 'leaving', lost: false, target, world: world && world.id, px: b.door.x, py: b.door.y, tide: e.gate.tide };
+    const ex = { id: ++w.seq, kind, region: kind, placeTh, party: party.map(p => p.id), partyRank, rankArea: partyRank, subpoolId: exSubpool ? exSubpool.id : null, subpoolNameTh: exSubpool ? exSubpool.nameTh : null, t0: W.t, ret: W.t + Math.round(days * 1440) + 40, days: Math.round(days * 10) / 10, journal: [], carry: [], supplies: taken, done: false, state: 'leaving', lost: false, target, world: world && world.id, gateType: site === 'gate' ? (e.gate.gateType || 'GATE_STANDARD') : null, px: b.door.x, py: b.door.y, tide: e.gate.tide };
     w.expeds.push(ex);
     party.forEach(p => { AI.interruptFor(W, p); p.expId = ex.id; p.lastTrip = W.day; p.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; p.travel = { to: 'spot', ex: ex.id, x: b.door.x, y: b.door.y + 1 }; p.path = null; p.run = false; });
     W.log('explore', party.map(p => p.h.name.given).join('、') + (kind === 'delve' ? ' ลงสำรวจ' : ' ก้าวเข้าประตูมิติสู่') + placeTh, party.map(p => p.id));
@@ -7275,7 +7294,7 @@
           const bp = foePower(gd.d) * (cv.guard[f] ? 0.7 : 1) * (0.9 + rng.next() * 0.3), pw = alive.reduce((s, m) => s + PW(m), 0) * (0.85 + rng.next() * 0.3), p = pw / (pw + bp);
           if (p < 0.4 && !cv.guard[f]) { ex.journal.push('ชั้น ' + f + ': พบ' + gd.nameTh + ' แต่แข็งแกร่งเกิน จึงถอย'); reached = f; break; }
           if (rng.next() < clamp((p - 0.25) * 1.8, 0.03, 0.96)) { ex.journal.push('ชั้น ' + f + ': ล้ม' + gd.nameTh + ' ได้!'); dmgOne(W, alive, clamp((1 - p) * 0.5, 0.05, 0.5), 'ถูก' + gd.nameTh + 'ทำร้าย'); alive.forEach(m => HC.experience(m, 'duel_win', 0.7));
-            if (!cv.guard[f]) { cv.guard[f] = W.day; out.stones += gd.stones; const r = EX.RELICS[gd.relic]; if (r && !e.relics.includes(gd.relic)) { e.relics.push(gd.relic); cdx.relics.push({ id: gd.relic, d: W.day, from: 'ถ้ำหมื่นสายหมอก' }); out.notes.push('★ ได้ของวิเศษ「' + r.nameTh + '」'); W.log('explore', '★ ' + ex.partyNames + ' ล้ม' + gd.nameTh + 'ที่ชั้น ' + f + ' ได้ของวิเศษ「' + r.nameTh + '」— ' + r.desc, ex.party); note(W, 'ล้ม' + gd.nameTh + ' ได้ ' + r.nameTh); } out.rep += 3; if (f === 5) cv.cap = 10; }
+            if (!cv.guard[f]) { cv.guard[f] = W.day; out.stones += gd.stones; const r = EX.RELICS[gd.relic]; if (r && !e.relics.includes(gd.relic)) { out.relics = out.relics || []; if (!out.relics.some(x => x.id === gd.relic)) out.relics.push({ id: gd.relic, from: 'ถ้ำหมื่นสายหมอก', guardFloor: f, nameTh: r.nameTh, desc: r.desc }); out.notes.push('★ ได้ของวิเศษ「' + r.nameTh + '」'); } out.rep += 3; if (f === 5) cv.cap = 10; }
             else { out.stones += Math.round(gd.stones * 0.15); } }
           else { const v = rng.pick(alive); ex.journal.push('ชั้น ' + f + ': พ่ายต่อ' + gd.nameTh); if (rng.chance(0.12 * (1 - E(v, 'destiny.luck') / 250))) { out.notes.push(v.h.name.given + ' เสียชีวิตที่ถ้ำ'); cv.deaths++; AI.kill(W, v, 'เสียชีวิตจากผู้พิทักษ์ถ้ำ'); alive.splice(alive.indexOf(v), 1); } else { AI.injure(W, v, 2, 'ถูก' + gd.nameTh + 'ทำร้ายสาหัส'); v.h.state.hp = Math.max(1, CULT.hpMax(v) * 0.12); } reached = f; break; }
         }
@@ -7297,6 +7316,8 @@
       const rank = ex.partyRank || ex.rankArea || 1;
       const rankArea = (world && world.areas && world.areas[rank]) || (world && world.areas && world.areas[1]) || { nameTh: 'ชานแดน', enc: world.enc, loot: world.loot };
       const subpool = (rankArea.subpools && (rankArea.subpools.find(p => p.id === ex.subpoolId) || rng.pick(rankArea.subpools))) || null;
+      const baseTide = TIDES[ex.tide || 0] || TIDES[0];
+      const gt = EX.GATE_TYPES[ex.gateType || (e.gate && e.gate.gateType)] || EX.GATE_TYPES.GATE_STANDARD;
       const site = {
         id: world.id,
         nameTh: world.nameTh + ' — ' + (subpool ? subpool.nameTh : rankArea.nameTh),
@@ -7304,7 +7325,12 @@
         enc: (subpool && subpool.enc) || rankArea.enc || world.enc,
         loot: (subpool && subpool.loot) || rankArea.loot || world.loot,
         rank: rank,
-        tide: TIDES[ex.tide || 0]
+        gateType: gt,
+        tide: {
+          nameTh: baseTide.nameTh,
+          loot: (baseTide.loot || 1) * (gt.lootMult || 1),
+          danger: (baseTide.danger || 1) * (gt.dangerMult || 1)
+        }
       };
       const wd = cdx.worlds[world.id] = cdx.worlds[world.id] || { visits: 1, lore: 0 };
       ex.journal.push('ก้าวเข้าสู่' + site.nameTh + ' (' + site.tide.nameTh + ')');
@@ -7322,12 +7348,41 @@
     }
     ex.done = true; ex.out = out;
     const ppl = members.map(m => m.h.name.given).join('、');
-    if (alive.length) X.handover(W, ex, alive, out);
-    const ret = (ex.stranded ? 2 + rng.int(0, 4) : 0);
-    alive.forEach(m => { m.away = false; m.hidden = false; m.x = ex.px + .5 + rng.gauss(0, 0.6); m.y = ex.py + 1.5; m.travel = null; m.expId = null; m.path = null; m.run = false; m.h.state.satiety = Math.max(30, m.h.state.satiety); HC.experience(m, 'adventure', 0.6); m.merit += 6 + (ex.kind === 'realm' ? 8 : ex.target || 1); AI.mem(W, m, 'กลับจาก' + X.MISSIONS[ex.kind].nameTh, 0.5); });
+    if (alive.length) {
+      if (Array.isArray(out.recipes) && out.recipes.length) {
+        W.sect.knownRecipes = W.sect.knownRecipes || [];
+        for (const rId of out.recipes) {
+          if (!W.sect.knownRecipes.includes(rId)) W.sect.knownRecipes.push(rId);
+        }
+      }
+      if (Array.isArray(out.techs) && out.techs.length) {
+        W.sect.library = W.sect.library || [];
+        for (const tId of out.techs) {
+          if (!W.sect.library.includes(tId)) W.sect.library.push(tId);
+        }
+      }
+      if (Array.isArray(out.relics) && out.relics.length) {
+        for (const rl of out.relics) {
+          if (!rl || !rl.id || e.relics.includes(rl.id)) continue;
+          const rObj = EX.RELICS[rl.id];
+          e.relics.push(rl.id);
+          cdx.relics.push({ id: rl.id, d: W.day, from: rl.from });
+          if (rObj) {
+            const msg = rl.guardFloor
+              ? ('★ ' + ex.partyNames + ' ล้ม' + (CAVE_GUARD[rl.guardFloor]?.nameTh || 'ผู้พิทักษ์') + 'ที่ชั้น ' + rl.guardFloor + ' ได้ของวิเศษ「' + rObj.nameTh + '」— ' + rObj.desc)
+              : ('★ ' + ex.partyNames + ' ได้ของวิเศษ「' + rObj.nameTh + '」จาก' + rl.from + ' — ' + rObj.desc);
+            W.log('explore', msg, ex.party);
+            note(W, 'ได้ของวิเศษ ' + rObj.nameTh);
+          }
+        }
+      }
+      X.handover(W, ex, alive, out);
+    }
+    const strandedPenalty = (ex.stranded ? 2 + rng.int(0, 4) : 0);
+    alive.forEach(m => { m.away = false; m.hidden = false; m.x = ex.px + .5 + rng.gauss(0, 0.6); m.y = ex.py + 1.5; m.travel = null; m.expId = null; m.path = null; m.run = false; m.h.state.satiety = Math.max(30, m.h.state.satiety); if (strandedPenalty > 0 && m.h?.state) m.h.state.energy = Math.max(5, m.h.state.energy - strandedPenalty * 2); HC.experience(m, 'adventure', 0.6); m.merit += 6 + (ex.kind === 'realm' ? 8 : ex.target || 1); AI.mem(W, m, 'กลับจาก' + X.MISSIONS[ex.kind].nameTh, 0.5); });
     const brief = Object.keys(out.mats).length || out.stones || out.gear.length || out.techs.length || Object.keys(out.pills).length ? ('ได้ ' + summaryOf(out)) : 'ไม่ได้อะไรมากนัก';
     W.log('explore', ppl + ' ' + headline + ' — ' + brief + (out.notes.length ? ' · ' + out.notes.slice(0, 2).join(' / ') : ''), members.map(m => m.id));
-    W.fame(out.rep);
+    if (alive.length && out.rep) W.fame(out.rep);
   };
 
   /* ======================= อาสา (ต่อจากหอภารกิจ) ======================= */
@@ -7395,7 +7450,7 @@
 
   /* ======================= รายวัน ======================= */
   const origRaid = X.raidChance;
-  X.raidChance = W => { const r = origRaid(W); const wards = W.explore ? W.explore.relics.filter(id => EX.RELICS[id].fx === 'ward').length : 0; return r * Math.pow(0.8, wards); };
+  X.raidChance = W => { const r = origRaid(W); const wards = W.explore ? W.explore.relics.filter(id => EX.RELICS[id] && EX.RELICS[id].fx === 'ward').length : 0; return r * Math.pow(0.8, wards); };
   EX.daily = W => {
     const e = dex(W), rng = W.rng, g = e.gate, day = W.day;
     e.cave.fresh = Math.min(1, (e.cave.fresh == null ? 1 : e.cave.fresh) + 0.07);
@@ -7409,7 +7464,7 @@
       EX.openDimensionalGate(W, w.id, chosenGT.id);
     }
     const cv = e.cave; Object.keys(cv.guard).forEach(f => { if (cv.guard[f] && day - cv.guard[f] > 70 && f !== '10') { cv.guard[f] = 0; } });
-    e.relics.forEach(id => { const r = EX.RELICS[id]; if (r.fx === 'fame') W.fame(r.val); else if (r.fx === 'stones') { if (ECO.earnFromPool) ECO.earnFromPool(W, r.val, 'ของวิเศษ: ' + r.nameTh); else ECO.earn(W, r.val, 'ของวิเศษ: ' + r.nameTh); } else if (r.fx === 'grain') ECO.add(W, 'grain', r.val); else if (r.fx === 'qi') W.npcs.forEach(n => { if (!n.dead && !n.away && n.cult) CULT.gain(n, CULT.threshold(n) * 0.0015); }); });
+    e.relics.forEach(id => { const r = EX.RELICS[id]; if (!r) return; if (r.fx === 'fame') W.fame(r.val); else if (r.fx === 'stones') { if (ECO.earnFromPool) ECO.earnFromPool(W, r.val, 'ของวิเศษ: ' + r.nameTh); else ECO.earn(W, r.val, 'ของวิเศษ: ' + r.nameTh); } else if (r.fx === 'grain') ECO.add(W, 'grain', r.val); else if (r.fx === 'qi') W.npcs.forEach(n => { if (!n.dead && !n.away && n.cult) CULT.gain(n, CULT.threshold(n) * 0.0015); }); });
   };
 
   /* ======================= วิหารโบราณหลายชั้นและผู้พิทักษ์ชุดสัจธรรม (v2.0.6 Pillar B) ======================= */
@@ -7600,8 +7655,8 @@
 
     if (effectiveTierId === 'RECIPE_SCROLL') {
       W.sect.knownRecipes = W.sect.knownRecipes || [];
-      const maxRecTier = Math.min(5, 3 + floor);
-      const recPool = (JD.ITEMS.recipes || []).filter(r => r && r.id && (r.tier || 1) >= 3 && (r.tier || 1) <= maxRecTier && !W.sect.knownRecipes.includes(r.id));
+      const maxRecTier = Math.min(7, 3 + floor);
+      const recPool = (JD.ITEMS.recipes || []).filter(r => r && r.id && (r.tier || 1) >= 2 && (r.tier || 1) <= maxRecTier && !W.sect.knownRecipes.includes(r.id));
       if (recPool.length) {
         const rPick = recPool[((W.day || 0) + floor) % recPool.length];
         W.sect.knownRecipes.push(rPick.id);
@@ -7847,7 +7902,9 @@
       }
       if (!alive.length || fl.floor > maxTargetFloor) break;
       const lead = alive.slice().sort((a, b) => CULT.power(b) - CULT.power(a))[0];
-      const resSetDef = (g.MARTIAL && g.MARTIAL.RESONANCE_SETS && g.MARTIAL.RESONANCE_SETS[fl.subPath]) || { nameTh: 'ชุดสัจธรรม' + fl.subPath };
+      const resSetDef = (g.MARTIAL && Array.isArray(g.MARTIAL.RESONANCE_SETS) &&
+        g.MARTIAL.RESONANCE_SETS.find(s => Array.isArray(s.subpaths) && s.subpaths.includes(fl.subPath))) ||
+        { id: null, nameTh: 'ชุดสัจธรรมโบราณ' };
       const guardian = {
         id: 'GUARD_' + sc.id + '_F' + fl.floor,
         foe: true,
@@ -7855,7 +7912,7 @@
         power: fl.basePower,
         tier: fl.tier,
         subPath: fl.subPath,
-        resonanceSetId: resSetDef.id || ('RES_' + fl.subPath),
+        resonanceSetId: resSetDef.id || null,
         resonancePieces: 3,
         equip: { WEAPON: { slot: 'WEAPON', gearType: fl.weaponType, nameTh: fl.weaponType, tier: fl.tier } }
       };
@@ -8144,7 +8201,10 @@
       { slot: 'ARMOR', gearType: (set.slots.ARMOR || ['ROBE'])[0] },
       { slot: 'ACCESSORY', gearType: (set.slots.ACCESSORY || ['CHARM'])[0] }
     ];
-    return slots.map(s => ({ uid: 'PAGODA_' + path + '_' + s.slot, id: 'PAGODA_' + path + '_' + s.slot, nameTh: set.nameTh + '·' + ({ WEAPON: 'อาวุธ', ARMOR: 'อาภรณ์', ACCESSORY: 'เครื่องราง' }[s.slot]), slot: s.slot, gearType: s.gearType, tier: 5, q: 1.1, resonanceSetId: setId, ownerPath: path, source: 'NINE_DAO_PAGODA', acquiredDay: day || 0, combatMult: 1.12, defMult: 1.08, st: s.slot === 'WEAPON' ? { atk: 12, matk: 12, pen: 4 } : s.slot === 'ARMOR' ? { def: 12, mdef: 10, hp: 0.08 } : { crit: 4, cast: 4 } }));
+    return slots.map(s => {
+      const baseSt = s.slot === 'WEAPON' ? { atk: 12, matk: 12, pen: 4 } : s.slot === 'ARMOR' ? { def: 12, mdef: 10, hp: 380 } : { crit: 4, cast: 4 };
+      return { uid: 'PAGODA_' + path + '_' + s.slot, id: 'PAGODA_' + path + '_' + s.slot, nameTh: set.nameTh + '·' + ({ WEAPON: 'อาวุธ', ARMOR: 'อาภรณ์', ACCESSORY: 'เครื่องราง' }[s.slot]), slot: s.slot, gearType: s.gearType, tier: 5, baseTier: 5, q: 1.1, baseQ: 1.1, dur: 100, maxDur: 100, repairCount: 0, broken: false, retired: false, resonanceSetId: setId, ownerPath: path, source: 'NINE_DAO_PAGODA', acquiredDay: day || 0, combatMult: 1.12, defMult: 1.08, baseSt: Object.assign({}, baseSt), st: Object.assign({}, baseSt) };
+    });
   };
   EX.matchedRealmElement = (n, realmOrElement) => {
     if (!n || !realmOrElement) return null;
@@ -8329,7 +8389,7 @@
         const pm = g.CULT.PROFESSION_ARTS.getModifiers(n);
         mods.supplySavePct += pm.supplySavePct || 0;
       }
-      if (Array.isArray(n.pets) && n.pets.some(p => p && p.active !== false)) {
+      if (Array.isArray(n.pets) && n.pets.some(p => p && !p.dead && p.active !== false && (p.hp == null || p.hp > 0))) {
         mods.speedMult += 0.12;
         mods.supplySavePct += 0.08;
       }
@@ -8882,7 +8942,9 @@
           bw.localPressure = Math.max(0, (bw.localPressure || 0) - 2);
           bw.ritualLegitimacy = (bw.ritualLegitimacy || 0) + 1;
         }
-        if (W.sect) W.sect.rep = (W.sect.rep || 0) + (hasRopeBearer ? 6 : 4);
+        const repGain = hasRopeBearer ? 6 : 4;
+        W.sect.rep = (W.sect.rep || 0) + repGain;
+        if (typeof W.fame === 'function') W.fame(repGain);
       }
 
       // Special Shard #13 Dao Zhi Shadow Archive: recovers a lost technique manual into sect library!
@@ -8893,16 +8955,18 @@
           W.sect.library.push(missing.id);
           out.manualUnlocked = missing.id;
         }
-        if (W.sect) W.sect.rep = (W.sect.rep || 0) + 3;
+        if (typeof W.fame === 'function') W.fame(3);
       }
 
-      // Special Shard #10 Tiangu Folded Treasury: roll procedural gear into sect stock/leader
+      // Special Shard #10 Tiangu Folded Treasury: roll procedural gear into sect gear
       if (cfg.id === 'TIANGU_FOLDED_TREASURY' && g.ECO && g.ECO.rollProceduralGear) {
         try {
           const gear = g.ECO.rollProceduralGear(W, { minTier: 3, maxTier: 5, source: 'rift_shard:TIANGU_FOLDED_TREASURY' });
           if (gear && W.sect) {
+            W.sect.gear = W.sect.gear || [];
+            W.sect.gear.push(gear);
             W.sect.armory = W.sect.armory || [];
-            W.sect.armory.push(gear);
+            if (W.sect.armory !== W.sect.gear) W.sect.armory.push(gear);
           }
         } catch (_) {}
       }

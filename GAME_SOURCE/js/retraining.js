@@ -81,7 +81,7 @@ M.evaluateRetraining=(W,n,key)=>{
  if(!structure.ok)return Object.assign(base,{reason:structure.reason,reasons:[structure.reason]});
  if(!quote.ok)return Object.assign(base,{reason:quote.reason,reasons:[quote.reason]});
  const k=structure.knowledge,profile=M.PROFILES[k.id],current=M.PROFILES[n.cult.sub],preferred=profile?profile[3]:M.PATHS[k.path].weapons,oldPreferred=current?current[3]:M.PATHS[n.cult.path].weapons;
- const targetSkill=Math.max(...preferred.map(type=>M.weaponSkill(n,type))),currentSkill=Math.max(...oldPreferred.map(type=>M.weaponSkill(n,type))),ambition=HC.eff(n,'personality.ambition'),caution=HC.eff(n,'personality.caution'),rational=HC.eff(n,'personality.rationality'),curiosity=HC.eff(n,'personality.curiosity');
+ const targetSkill=Math.max(...preferred.map(type=>M.weaponSkill(n,type))),currentSkill=Math.max(...oldPreferred.map(type=>M.weaponSkill(n,type))),ambition=HC.eff(n,'personality.ambition'),caution=HC.eff(n,'personality.caution'),rational=HC.eff(n,'personality.rationality'),curiosity=HC.eff(n,'personality.curiosity'),pride=HC.eff(n,'personality.pride'),honorLegacy=HC.eff(n,'values.honorLegacy'),loyalty=HC.eff(n,'personality.loyalty'),martialPeak=HC.eff(n,'values.martialPeak');
  const isSubOk=(t,subId)=>CULT.isSubCompatible?CULT.isSubCompatible(t,subId,false):(!t.sub||t.sub===subId);
  const oldActive=M.activeTechs(n).map(CULT.tech).filter(Boolean),lost=oldActive.filter(t=>t.path!=='ANY'&&t.path!==k.path||!isSubOk(t,k.id)),compatible=oldActive.filter(t=>(t.path==='ANY'||t.path===k.path)&&isSubOk(t,k.id));
  const invTechs=(n.inv&&Array.isArray(n.inv.techs))?n.inv.techs:[],invCrys=(n.inv&&n.inv.crystals)||{},sectLib=(W.sect&&Array.isArray(W.sect.library))?W.sect.library:[];
@@ -92,8 +92,17 @@ M.evaluateRetraining=(W,n,key)=>{
  const tgtElem=g.ELEM?g.ELEM.resolveCompatibility(n,tgtSubDef,'pathChoice').multiplier:1;
  const curElem=g.ELEM?g.ELEM.resolveCompatibility(n,curSubDef,'pathChoice').multiplier:1;
  const elemAdv=clamp((tgtElem-curElem)*32,-12,14);
- const skillAdv=(targetSkill-currentSkill)*.35,investment=quote.lostStages*(5+caution*.20+rational*.07)+lost.reduce((s,t)=>s+t.tier,0)*(1+caution/70),prepared=(gearReady?11:0)+Math.min(18,sourcePool.length*9);
- const advantage=affinityAdv+elemAdv+skillAdv+(ambition-50)*.3+(curiosity-50)*.1+prepared+(compatible.length?3:0);
+ const curStage=n.cult.stage||1,mId=n.mentorId||n.mentor,mObj=mId&&W&&W.byId?W.byId[mId]:null,samePathMentor=!!(mObj&&mObj.cult&&mObj.cult.path===n.cult.path);
+ const curGrade=CULT.LEGENDARY_DAO?CULT.LEGENDARY_DAO.gradeOf(n.cult.path):'ORDINARY',tgtGrade=CULT.LEGENDARY_DAO?CULT.LEGENDARY_DAO.gradeOf(k.path):'ORDINARY';
+ const curMaxSt=CULT.maxStage?CULT.maxStage(n):9,tgtMaxSt=CULT.maxStage?CULT.maxStage({cult:{path:k.path,sub:k.id,stage:1}}):9;
+ const higherCeiling=(tgtMaxSt>curMaxSt)||(curGrade==='ORDINARY'&&tgtGrade!=='ORDINARY');
+ const peakDrive=(higherCeiling||(n.cult.attempts||0)>=2)?((martialPeak-50)/50)*8:0;
+ const pathInertiaMult=quote.pathChanged?1.0:0.45;
+ const prideInertia=((pride-50)/50)*(3.5+curStage*1.1)*pathInertiaMult+((honorLegacy-50)/50)*(2.5+curStage*0.8)*pathInertiaMult;
+ const mentorLoyaltyInertia=(samePathMentor&&quote.pathChanged)?(loyalty/100)*(6+curStage*1.4):((loyalty-50)/100)*(2.5+curStage*0.6)*pathInertiaMult;
+ const daoIdentityInertia=prideInertia+mentorLoyaltyInertia;
+ const skillAdv=(targetSkill-currentSkill)*.35,investment=quote.lostStages*(5+caution*.20+rational*.07)+lost.reduce((s,t)=>s+t.tier,0)*(1+caution/70)+daoIdentityInertia,prepared=(gearReady?11:0)+Math.min(18,sourcePool.length*9);
+ const advantage=affinityAdv+elemAdv+skillAdv+(ambition-50)*.3+(curiosity-50)*.1+peakDrive+prepared+(compatible.length?3:0);
  const curLifeMax=CULT.lifespan?CULT.lifespan(n):(((CULT.PATHS[n.cult.path]&&CULT.PATHS[n.cult.path].stages[n.cult.stage-1]&&CULT.PATHS[n.cult.path].stages[n.cult.stage-1].lifespanMax)||70)+(n.cult.lifeBonus||0));
  const projBaseLife=(CULT.PATHS[k.path]&&CULT.PATHS[k.path].stages[quote.newStage-1]&&CULT.PATHS[k.path].stages[quote.newStage-1].lifespanMax)||70;
  const projDelta=Math.max(0,curLifeMax-projBaseLife);

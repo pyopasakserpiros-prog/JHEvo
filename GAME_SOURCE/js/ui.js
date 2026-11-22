@@ -12,12 +12,12 @@
   const LOG_GROUPS = {
     all: ['ทั้งหมด', null],
     tracked: ['⭐ ที่ติดตาม', null],
-    people: ['👥 ผู้คน', ['relation', 'marriage', 'recruit', 'death', 'injury', 'heal', 'awaken', 'desert', 'disciple', 'punish', 'expel']],
-    combat: ['⚔️ ต่อสู้/ล่า', ['combat', 'hunt', 'beast', 'explore', 'raid', 'duel', 'spar', 'tournament', 'conflict', 'challenge']],
-    craft: ['⚗️ การผลิต/ตกปลา', ['craft', 'harvest', 'fish', 'legend', 'alchemy', 'forge', 'organ', 'learn', 'research', 'insight', 'breakthrough']],
+    people: ['👥 ผู้คน', ['relation', 'marriage', 'recruit', 'death', 'injury', 'heal', 'awaken', 'desert', 'disciple', 'punish', 'expel', 'care']],
+    combat: ['⚔️ ต่อสู้/ล่า', ['combat', 'hunt', 'beast', 'explore', 'raid', 'duel', 'spar', 'tournament', 'conflict', 'challenge', 'mission', 'exped']],
+    craft: ['⚗️ การผลิต/ตกปลา', ['craft', 'harvest', 'fish', 'legend', 'alchemy', 'forge', 'organ', 'learn', 'research', 'insight', 'breakthrough', 'cultivation', 'cult', 'train']],
     economy: ['🪙 เศรษฐกิจ', ['economy', 'trade', 'finance', 'shop', 'gear', 'welfare', 'donation', 'surplus', 'shortage', 'salary']],
-    building: ['🏯 อาคาร', ['build', 'building', 'decision', 'appoint', 'dismiss', 'promote', 'demote', 'succession', 'politics', 'scandal', 'crisis', 'banquet', 'seclusion', 'system']],
-    major: ['⭐ สำคัญ', ['death', 'breakthrough', 'legend', 'succession', 'crisis', 'raid', 'challenge', 'tournament', 'marriage', 'expel', 'build']]
+    building: ['🏯 อาคาร', ['build', 'building', 'decision', 'appoint', 'dismiss', 'promote', 'demote', 'succession', 'politics', 'scandal', 'crisis', 'banquet', 'seclusion', 'system', 'sect', 'policy', 'world', 'event', 'diplomacy', 'chronicle']],
+    major: ['⭐ สำคัญ', ['death', 'breakthrough', 'legend', 'succession', 'crisis', 'raid', 'challenge', 'tournament', 'marriage', 'expel', 'build', 'chronicle']]
   };
   const LOG_SUBFILTERS = {
     all: 'ทุกประเภทย่อย',
@@ -984,7 +984,7 @@
 
   function R_SHADERS_HAS(k) { return !!(g.Render && g.Render.CELESTIAL_SHADERS && g.Render.CELESTIAL_SHADERS[k]); }
   // Only observation and explicit state editing cross the player interaction boundary.
-  const OBSERVER_ACTIONS = new Set(["npc","chronicle-filter","chronicle-person","chronicle-clear-person","sect-chronicle-more","world-chronicle-cat","world-chronicle-fmt","world-chronicle-sev","world-chronicle-epistemic","world-chronicle-days","world-chronicle-unread","world-chronicle-include-digest","chronicle-thread","reset-archive-filters","news-preset","toggle-news-toast","set-critical-policy","set-toast-severity","toggle-tracked-toast","cycle-cat-channel","set-digest-interval","digest-window","record-digest-now","mark-all-news-read","mark-news-read","world-chronicle-more","timeline-filter","timeline-more","toggle-audio","play-audio-demo","cycle-celestial-preview","toggle-vfx-opt","cycle-ceremony-preview","focus-plaza-ceremony","focus-martial-arena","set-diorama-pose","set-sect-subtab","set-sect-posts-subtab","set-stock-subtab","set-shop-subtab","set-npc-subtab","set-exp-subtab","set-disc-subtab","set-content-subtab","set-building-subtab","set-edit-char-subtab","set-edit-pet-subtab","focus-raid","focus-wild-fight","focus-tribulation","preview-signature-vfx","open-sect-peaks","select-peak-tab","focus-peak-camera","set-post-dir-filter","editnpc","spawnnpc","open-spawn-sect","deselect","locate","follow","goto-npc","toggle-track-npc","untrack-npc","clear-all-tracked","open-log-tracked","open-menu-tracked","open-people","locb","locv","toggle-clue-debug","open-visitor","open-clue","save","load","export","import","new","tool","cmp","logfilter","logsubfilter","spawn-page","set-inv-mode","bag-cat","bag-page","bag-sel","bag-close-detail","bag-toggle-more","stock-cat","stock-page","library-detail","stock-sel","stock-close-detail","stock-toggle-more","shop-cat","shop-page","shop-sel","shop-close-detail","shop-toggle-more","set-lib-cat","open-world-map","atlas-event","world-polity","atlas-select","atlas-group","atlas-close","atlas-filter","atlas-layer","atlas-zoom","atlas-home","atlas-fit","atlas-open-discovery","atlas-open-realms","atlas-open-legends","select-world-node","set-world-subtab","set-chronicle-filter"]);
+  const OBSERVER_ACTIONS = new Set(["npc","set-lore-era","set-lore-emp-group","set-lore-fig-group","set-lore-chaos-sub","set-lore-chaos-era","set-lore-surv-filter","set-lore-chronicle-book","set-lore-chronicle-cat","chronicle-filter","chronicle-person","chronicle-clear-person","sect-chronicle-more","world-chronicle-cat","world-chronicle-fmt","world-chronicle-sev","world-chronicle-epistemic","world-chronicle-days","world-chronicle-unread","world-chronicle-include-digest","chronicle-thread","reset-archive-filters","news-preset","toggle-news-toast","set-critical-policy","set-toast-severity","toggle-tracked-toast","cycle-cat-channel","set-digest-interval","digest-window","record-digest-now","mark-all-news-read","mark-news-read","world-chronicle-more","timeline-filter","timeline-more","toggle-audio","play-audio-demo","cycle-celestial-preview","toggle-vfx-opt","cycle-ceremony-preview","focus-plaza-ceremony","focus-martial-arena","set-diorama-pose","set-sect-subtab","set-sect-posts-subtab","set-stock-subtab","set-shop-subtab","set-npc-subtab","set-exp-subtab","set-disc-subtab","set-content-subtab","set-building-subtab","set-edit-char-subtab","set-edit-pet-subtab","focus-raid","focus-wild-fight","focus-tribulation","preview-signature-vfx","open-sect-peaks","select-peak-tab","focus-peak-camera","set-post-dir-filter","editnpc","spawnnpc","open-spawn-sect","deselect","locate","follow","goto-npc","toggle-track-npc","untrack-npc","clear-all-tracked","open-log-tracked","open-menu-tracked","open-people","locb","locv","toggle-clue-debug","open-visitor","open-clue","save","load","export","import","new","tool","cmp","logfilter","logsubfilter","spawn-page","set-inv-mode","bag-cat","bag-page","bag-sel","bag-close-detail","bag-toggle-more","stock-cat","stock-page","library-detail","stock-sel","stock-close-detail","stock-toggle-more","shop-cat","shop-page","shop-sel","shop-close-detail","shop-toggle-more","set-lib-cat","open-world-map","atlas-event","world-polity","atlas-select","atlas-group","atlas-close","atlas-filter","atlas-layer","atlas-zoom","atlas-home","atlas-fit","atlas-open-discovery","atlas-open-realms","atlas-open-legends","select-world-node","set-world-subtab","set-chronicle-filter"]);
   const STATE_EDIT_ACTIONS = new Set(["apply-char-edit","undo-char-edit","edit-pet-spawn","edit-pet-awaken","edit-pet-release","edit-gate-beast","edit-cast-buff","edit-clear-buffs","edit-save-mech","edit-save-karma","edit-save-doctrine","edit-upgrade-facility","heal-char-edit","spawn-item","spawn-equip-item","spawn-teach-item","edit-dip-attitude","edit-dip-treaty","edit-dip-cleartreaty","edit-dip-resetcd","edit-sanctum-setfloor","edit-sanctum-spawncat","edit-pet-four-symbol","equip-personal","unequip-bag","unequip-sect","equip-passive","unequip-passive","switch-mantra"]);
   const OBSERVER_TOOLS = new Set(['stones', 'food', 'heal']);
   UI.playerActionKind = action => OBSERVER_ACTIONS.has(action) ? 'observe' : STATE_EDIT_ACTIONS.has(action) ? 'edit' : 'blocked';
@@ -1810,7 +1810,7 @@
       UI.render();
     }
     else if (a === 'set-chronicle-filter') {
-      UI.chronicleFilter = String(arg || 'ALL');
+      UI.worldSectsChronicleFilter = String(arg || 'ALL');
       UI.render();
     }
   };
@@ -2098,12 +2098,18 @@
         const isDish = !!(g.FISHING && g.FISHING.isFishDish && g.FISHING.isFishDish(id));
         const isFish = !!(g.FISHING && g.FISHING.isFish && g.FISHING.isFish(id));
         const reward = (isContainer || isTrash) ? 0 : ((g.CPE && g.CPE.reward) ? Math.round(g.CPE.reward(W, id, 1)) : tier * 5);
+        const isManual = id.startsWith("TECH_MANUAL:") || id.startsWith("SUB_MANUAL:");
+        const isCrystal = id.startsWith("CRYSTAL:") || id.startsWith("SUBPATH_CRYSTAL_");
+        const isRecipe = id.startsWith("RECIPE_SCROLL:") || id.startsWith("FORMULA:");
+        const rowKind = isManual ? "PATH_MANUAL" : isCrystal ? "PATH_CRYSTAL" : isRecipe ? "RECIPE" : isContainer ? "CONTAINER" : isTrash ? "TRASH" : isDish ? "FOOD" : "MATERIAL";
+        const rowBroad = (isManual || isCrystal || isRecipe) ? "KNOWLEDGE" : (isContainer || isTrash || isDish) ? "OTHER" : "MATERIAL";
+        const rowKindTh = isManual ? "คัมภีร์วิชา" : isCrystal ? "ผลึกสายย่อย" : isRecipe ? "ม้วนตำรับ" : isContainer ? "หีบปริศนาใต้น้ำ" : isTrash ? "ขยะใต้น้ำไร้ค่า" : isDish ? "อาหารปราณ" : isFish ? "ปลาปราณ" : "วัตถุดิบ";
         rows.push({
           selKey: "ST:" + id,
-          kind: isContainer ? "CONTAINER" : isTrash ? "TRASH" : isDish ? "FOOD" : "MATERIAL",
-          rawKind: isContainer ? "CONTAINER" : isTrash ? "TRASH" : isDish ? "FOOD" : "MATERIAL",
-          broadCat: (isContainer || isTrash || isDish) ? "OTHER" : "MATERIAL",
-          kindTh: isContainer ? "หีบปริศนาใต้น้ำ" : isTrash ? "ขยะใต้น้ำไร้ค่า" : isDish ? "อาหารปราณ" : isFish ? "ปลาปราณ" : "วัตถุดิบ",
+          kind: rowKind,
+          rawKind: rowKind,
+          broadCat: rowBroad,
+          kindTh: rowKindTh,
           id,
           templateId: id,
           nameTh: ECO.name(id),
@@ -3859,12 +3865,13 @@
       }
     });
     (W.logs || []).forEach(l => {
-      if (l && Array.isArray(l.ids) && l.ids.includes(id) && relatedEvents.length < 20) {
+      if (l && Array.isArray(l.ids) && l.ids.includes(id)) {
         const k = 'lg:' + l.id;
         if (!seenKeys.has(k)) { seenKeys.add(k); relatedEvents.push({ t: l.t || 0, text: l.text, causeTh: (l.meta && l.meta.originCauseTh) || '', impactTh: (l.meta && l.meta.consequenceTh) || '' }); }
       }
     });
     relatedEvents.sort((a, b) => (b.t || 0) - (a.t || 0));
+    if (relatedEvents.length > 20) relatedEvents.length = 20;
 
     let h = '<div class="card" style="border-color:var(--gold);background:rgba(233,205,133,0.06)">';
     h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">';
@@ -5363,10 +5370,10 @@
         h += '<div class="muted" style="font-size:12px;margin:8px 0 4px 0"><b>📜 เหตุการณ์หลัก (' + evList.length + ' บท)</b></div>';
         for (const ev of evList) {
           h += '<div class="card" style="border-left:3px solid #f59e0b;margin-bottom:8px">'
-            + '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap"><b style="font-size:13px">' + esc(ev.titleTh || ev.nameTh || '') + '</b>'
-            + '<span class="chip">' + esc(ev.yearLabelTh || ev.eraTh || '') + '</span></div>'
+            + '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap"><b style="font-size:13px">' + esc(ev.titleTh || ev.nameTh || ev.festivalNameTh || '') + '</b>'
+            + '<span class="chip">' + esc(ev.yearLabelTh || ev.dateTh || ev.eraTh || '') + '</span></div>'
             + (ev.locationTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">📍 ' + esc(ev.locationTh) + '</div>') : '')
-            + '<div style="font-size:12px;line-height:1.65;margin-top:6px;white-space:pre-line">' + esc(ev.novelNarrativeTh || ev.narrativeTh || ev.storyTh || ev.summaryTh || '') + '</div>'
+            + '<div style="font-size:12px;line-height:1.65;margin-top:6px;white-space:pre-line">' + esc(ev.novelNarrativeTh || ev.narrativeTh || ev.storyTh || ev.summaryTh || ev.descriptionTh || ev.loreTh || '') + '</div>'
             + (ev.aftermathTh ? ('<div class="muted" style="font-size:11.5px;margin-top:5px">➡️ <b>ผลสืบเนื่อง:</b> ' + esc(ev.aftermathTh) + '</div>') : '')
             + '</div>';
         }
@@ -5379,7 +5386,7 @@
             + '<b>' + esc((fg.num ? ('#' + fg.num + ' ') : '') + (fg.nameTh || fg.titleTh || '')) + '</b>'
             + (fg.titleTh && fg.nameTh ? (' <span class="muted" style="font-size:11.5px">— ' + esc(fg.titleTh) + '</span>') : '')
             + (fg.definingDateTh || fg.eraSpanTh || fg.eraTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">⏳ ' + esc(fg.definingDateTh || fg.eraSpanTh || fg.eraTh) + '</div>') : '')
-            + '<div style="font-size:12px;line-height:1.6;margin-top:4px">' + esc(fg.novelBiographyTh || fg.biographyTh || fg.bioTh || fg.summaryTh || fg.storyTh || '') + '</div>'
+            + '<div style="font-size:12px;line-height:1.6;margin-top:4px">' + esc(fg.novelBiographyTh || fg.biographyTh || fg.bioTh || fg.roleSummaryTh || fg.personalityAndCraftTh || fg.summaryTh || fg.storyTh || '') + '</div>'
             + (fg.currentLocationAndHookTh || fg.possibleLocationTh ? ('<div class="muted" style="font-size:11px;margin-top:4px">📍 ' + esc(fg.currentLocationAndHookTh || fg.possibleLocationTh) + '</div>') : '')
             + '</div>';
         }
@@ -5411,16 +5418,36 @@
         ['👤 บุคคลร่วมสมัยในเหตุการณ์คู่ขนาน', D.SIDE_FIGURES],
         ['🕸️ จุดตัดลับระหว่างเหตุการณ์', D.HIDDEN_INTERSECTIONS]
       ];
+      const renderedArrs = new Set([evList, figList]);
       for (const [secTitle, arr] of extraLists) {
         if (!Array.isArray(arr) || !arr.length) continue;
+        renderedArrs.add(arr);
         h += '<div class="muted" style="font-size:12px;margin:10px 0 4px 0"><b>' + esc(secTitle) + ' (' + arr.length + ')</b></div>';
         for (const it of arr) {
-          const bodyTxt = it.originStoryTh || it.originAndHistoryTh || it.originAndMysteryTh || it.chronicleTh || it.loreChronicleTh || it.historicalRecordTh || it.narrativeTh || it.storyTh || it.causeOfFallTh || it.descriptionTh || it.loreTh || it.summaryTh || it.roleInBalanceTh || it.rulesAndFormatTh || '';
+          const bodyTxt = it.originStoryTh || it.originAndHistoryTh || it.originAndMysteryTh || it.originTh || it.riseAndFallTh || it.chronicleTh || it.loreChronicleTh || it.historicalRecordTh || it.novelNarrativeTh || it.narrativeTh || it.storyTh || it.causeOfFallTh || it.descriptionTh || it.loreTh || it.summaryTh || it.secretConnectionTh || it.roleInBalanceTh || it.rulesAndFormatTh || '';
           const cycBadge = (it.cycleYears !== undefined && it.cycleYears !== null) ? (' <span class="chip b">รอบ ' + esc(String(it.cycleYears)) + ' ปี</span>') : (it.cycleOrTriggerTh ? (' <span class="chip b">' + esc(it.cycleOrTriggerTh) + '</span>') : '');
-          h += '<div class="card" style="margin-bottom:7px"><b>' + esc(it.nameTh || it.titleTh || it.id || '') + '</b>' + cycBadge
-            + (it.foundedDateTh || it.fallenDateTh || it.lastContactDateTh || it.firstHeldEraTh || it.firstRecordedOpeningTh || it.firstRecordedEraTh || it.firstEstablishedEraTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">⏳ ' + esc([it.foundedDateTh, it.fallenDateTh, it.lastContactDateTh, it.firstHeldEraTh, it.firstRecordedOpeningTh, it.firstRecordedEraTh, it.firstEstablishedEraTh].filter(Boolean).join(' · ')) + '</div>') : '')
+          h += '<div class="card" style="margin-bottom:7px"><b>' + esc(it.nameTh || it.titleTh || it.festivalNameTh || it.id || '') + '</b>' + cycBadge
+            + (it.foundedDateTh || it.fallenDateTh || it.lastContactDateTh || it.firstHeldEraTh || it.firstRecordedOpeningTh || it.firstRecordedEraTh || it.firstEstablishedEraTh || it.dateTh ? ('<div class="muted" style="font-size:11px;margin-top:2px">⏳ ' + esc([it.foundedDateTh, it.fallenDateTh, it.lastContactDateTh, it.firstHeldEraTh, it.firstRecordedOpeningTh, it.firstRecordedEraTh, it.firstEstablishedEraTh, it.dateTh].filter(Boolean).join(' · ')) + '</div>') : '')
             + '<div style="font-size:12px;line-height:1.55;margin-top:4px;white-space:pre-line">' + esc(bodyTxt) + '</div>'
             + (it.systemBlueprint ? ('<details style="margin-top:5px"><summary style="cursor:pointer;font-size:11px;color:#fcd34d">⚙️ พิมพ์เขียวระบบเกมในอนาคต (System Blueprint)</summary><div class="muted" style="font-size:11px;margin-top:4px;line-height:1.5">' + Object.entries(it.systemBlueprint).map(([bk, bv]) => '<div><b>' + esc(bk) + ':</b> ' + esc(typeof bv === 'string' ? bv : JSON.stringify(bv)) + '</div>').join('') + '</div></details>') : '')
+            + '</div>';
+        }
+      }
+      const skipTopKeys = new Set(['META', 'EMPIRE_PROFILE', 'SECT_PROFILE', 'ERA_LIVING_CONTEXT', 'EVENTS', 'FIGURES', 'FIGURES_E0_E1', 'FIGURES_1_TO_25', 'FIGURES_32_TO_41', 'FIGURES_42_TO_45', 'FIGURES_46_TO_60', 'FIGURES_E99']);
+      for (const [k, val] of Object.entries(D)) {
+        if (skipTopKeys.has(k) || !Array.isArray(val) || !val.length || renderedArrs.has(val)) continue;
+        renderedArrs.add(val);
+        h += '<div class="muted" style="font-size:12px;margin:10px 0 4px 0"><b>📖 ' + esc(k.replace(/_/g, ' ')) + ' (' + val.length + ')</b></div>';
+        for (const it of val) {
+          if (!it || typeof it !== 'object') {
+            h += '<div class="card" style="margin-bottom:5px;font-size:12px">' + esc(String(it || '')) + '</div>';
+            continue;
+          }
+          const titleTxt = it.nameTh || it.titleTh || it.festivalNameTh || it.headlineTh || it.id || '';
+          const thVals = Object.entries(it).filter(([ik, iv]) => /Th$/.test(ik) && typeof iv === 'string' && iv.trim() && iv !== titleTxt).map(([, iv]) => iv);
+          const bodyTxt = it.novelNarrativeTh || it.narrativeTh || it.storyTh || it.biographyTh || it.originStoryTh || it.originTh || it.riseAndFallTh || it.descriptionTh || it.loreTh || it.summaryTh || thVals[0] || '';
+          h += '<div class="card" style="margin-bottom:7px"><b>' + esc(titleTxt) + '</b>'
+            + (bodyTxt ? ('<div style="font-size:12px;line-height:1.55;margin-top:4px;white-space:pre-line">' + esc(bodyTxt) + '</div>') : '')
             + '</div>';
         }
       }
@@ -5603,8 +5630,9 @@
         const ev = pol.activeEvent;
         h += '<h3>⚡ เหตุการณ์การเมืองยุทธภพปัจจุบัน</h3><div class="card" style="border-color:var(--gold)"><b>' + esc(ev.titleTh) + '</b><div class="muted">' + esc(ev.descTh) + '</div><div class="muted">ครบกำหนดวันที่ ' + ev.expiresDay + ' · ศิลาที่เกี่ยวข้อง ' + ev.demandStones + ' ก้อน</div></div>';
       }
-      h += '<h3>🏯 ขั้วอำนาจและสำนักเพื่อนบ้าน (' + W.world.sects.length + ')</h3>';
-      h += W.world.sects.map(s => {
+      const allWorldSects = (W.world.allSects && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      h += '<h3>🏯 ขั้วอำนาจและสำนักเพื่อนบ้าน (' + allWorldSects.length + ')</h3>';
+      h += allWorldSects.map(s => {
         const trLabel = (C && C.TREATY_TH && C.TREATY_TH[s.treaty || 'NONE']) || (s.treaty || 'NONE');
         const trChip = ['ALLIANCE','ALLIANCE_PACT','MARTIAL_EXCHANGE'].includes(s.treaty) ? 'ok' : ['TRADE_PACT','TRADE_CARAVAN_ACCORD'].includes(s.treaty) ? 'g' : s.treaty === 'NON_AGGRESSION' ? 'b' : ['EMBARGO','RIVAL_FEUD'].includes(s.treaty) ? 'r' : '';
         const specs = Array.isArray(s.specialtyMatIds) ? s.specialtyMatIds.map(id => esc(ECO.name(id))).join(' · ') : '';
@@ -5787,7 +5815,7 @@
           }
           h += '</div></div>';
         h += '<div class="subcat-pane" data-subcat="CHRONICLES"' + ((subTab === 'ALL' || subTab === 'CHRONICLES') ? '' : ' style="display:none"') + '>';
-          const cFilter = UI.chronicleFilter || 'ALL';
+          const cFilter = UI.worldSectsChronicleFilter || 'ALL';
           const filteredChrons = cFilter === 'ALL' ? chrons : chrons.filter(c => c && c.category === cFilter);
           h += '<h3>📜 จดหมายเหตุยุทธภพ & รายงานศึกนอกสำนักฉบับอรรถรส (' + filteredChrons.length + ' บันทึก)</h3>';
           h += '<div class="card">';
@@ -5889,7 +5917,7 @@
 
     if (vNews.length) {
       h += "<h3>📰 ข่าวสารและเหตุการณ์ยุทธภพจากผู้มาเยือน (" + vNews.length + ")</h3><div class=\"card\">";
-      h += vNews.map(nw => "<div class=\"logrow\"><span class=\"tm\">วันที่ " + nw.day + "</span><span><b>" + esc(nw.speakerNameTh || "ผู้มาเยือน") + ":</b> " + esc(nw.textTh) + "</span></div>").join("");
+      h += vNews.map(nw => "<div class=\"logrow\"><span class=\"tm\">วันที่ " + nw.day + "</span><span><b>" + esc(nw.visitorNameTh || nw.speakerNameTh || "ผู้มาเยือน") + ":</b> " + esc(nw.textTh) + "</span></div>").join("");
       h += "</div>";
     }
 
@@ -8918,7 +8946,8 @@
         let html = _origRNpcWS.apply(this, args);
         try {
           const W = (UI.G && UI.G.W) || (typeof G !== "undefined" && G.W) || UI.W;
-          const n = W && UI.sel && W.byId && W.byId[UI.sel];
+          const curNpcId = UI.npcId || UI.sel;
+          const n = W && curNpcId && W.byId && W.byId[curNpcId];
           if (!n || !html || html.includes("ws-secret-subpath-card")) return html;
           if (!n.secretSubPathId && !n.folkTraitId && !n.isExternalWitness) return html;
           const spNames = {

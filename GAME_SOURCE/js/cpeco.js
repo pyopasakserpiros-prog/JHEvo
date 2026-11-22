@@ -247,9 +247,9 @@
     const surplus = personalSurplusGear(n, W);
     return { equipped, retired, surplusCount: surplus.length, surplus };
   };
-  const personalDonateFrac = n => clamp(0.38 + E(n, 'personality.integrity') / 260 + E(n, 'personality.loyalty') / 360 - E(n, 'values.wealthResource') / 520, 0.25, 0.92);
+  const personalDonateFrac = n => clamp(0.38 + E(n, 'personality.integrity') / 260 + E(n, 'personality.loyalty') / 360 + E(n, 'personality.empathy') / 420 - E(n, 'values.wealthResource') / 240, 0.0, 0.92);
   const personalOrgansList = n => Object.keys((n && n.inv && n.inv.organs) || {}).filter(k => n.inv.organs[k] > 0);
-  const hasDonatableMats = n => { const m = n && n.inv && n.inv.mats; if (!m) return false; let f = -1; for (const k in m) { const q = m[k]; if (q > 0 && !ECO.REPAIR_STONES[k]) { if (q > 1) return true; if (f < 0) f = personalDonateFrac(n); if (f >= 0.68) return true; } } return false; };
+  const hasDonatableMats = n => { const m = n && n.inv && n.inv.mats; if (!m) return false; const f = personalDonateFrac(n); if (f <= 0.02) return false; for (const k in m) { const q = m[k]; if (q > 0 && !ECO.REPAIR_STONES[k]) { if (q > 1 && Math.floor(q * f) >= 1) return true; if (f >= 0.68) return true; } } return false; };
   A.donate = {
     nameTh: 'นำของส่วนตัวบริจาค', icon: '🎁', color: '#c6a4f5',
     can: (n, W) => n.h.state.energy > 15 && n.h.state.satiety > 15 && (hasDonatableMats(n) || personalOrgansList(n).length > 0 || personalTechs(n, W).length > 0 || personalRecipes(n).length > 0 || personalSurplusGear(n, W).length > 0),
@@ -263,11 +263,11 @@
       orgIds.forEach(oid => { const o = g.CONTENT && g.CONTENT.organById && g.CONTENT.organById[oid]; value += (o ? 12 * (o.tier || 1) : 15) * (n.inv.organs[oid] || 0); });
       gears.forEach(eq => { value += Math.floor(CPE.gearPrice(W, eq) * 0.55); });
       S.add('อยากได้แต้มไว้แลกของ', clamp((150 - (n.cp || 0)) / 150, -0.2, 0.8) * 0.65);
-      S.add('ซื่อสัตย์และภักดี', (E(n, 'personality.integrity') - 45) / 180 + (E(n, 'personality.loyalty') - 45) / 220);
+      S.add('ซื่อสัตย์และภักดี', (E(n, 'personality.integrity') - 45) / 180 + (E(n, 'personality.loyalty') - 45) / 220 + (E(n, 'personality.empathy') - 50) / 160);
       S.add('สำนักกำลังขาดวัตถุดิบ', ids.length ? clamp(shortage / ids.length, 0, 1) * 0.55 : 0);
       if (gears.length) S.add('บริจาคอุปกรณ์ส่วนเกินเข้าคลังแสง (' + gears.length + ' ชิ้น)', Math.min(0.85, 0.35 + gears.length * 0.2));
       S.add('มูลค่าของที่ถือ', clamp(value / 90, 0, 0.55));
-      S.add('หวงทรัพย์ส่วนตัว', -(E(n, 'values.wealthResource') - 50) / 190);
+      S.add('หวงทรัพย์ส่วนตัว', -(E(n, 'values.wealthResource') - 50) / 110);
       if (n.act && n.act.id === 'donate') S.add('กำลังจัดการของอยู่', -0.8);
     },
     where: (W, n) => {
@@ -284,7 +284,7 @@
       let total = 0, units = 0, scrolls = 0, formulas = 0, formulaCp = 0, gearCount = 0, gearCp = 0; const accepted = {};
       ids.forEach(k => {
         const held = n.inv.mats[k] || 0;
-        const give = held <= 1 ? (frac >= 0.68 ? held : 0) : Math.min(held - 1, Math.max(1, Math.floor(held * frac)));
+        const give = held <= 1 ? (frac >= 0.68 ? held : 0) : Math.min(held - 1, Math.floor(held * frac));
         if (give <= 0) return;
         const spawnedHeld = (n.inv.spawnedMats && n.inv.spawnedMats[k]) || 0;
         const spawnedUsed = Math.min(give, spawnedHeld);
@@ -413,11 +413,13 @@
       if (e.insight && c && have(k) < 1 && (c.learning || E(n, 'personality.curiosity') > 65)) consider(it, 0.65 + E(n, 'personality.curiosity') / 250, 'เพิ่มความเข้าใจคัมภีร์');
       if (!c) continue;
       if (e.btFor) {
-        if (((e.btFor.path === c.path && e.btFor.stage === c.stage) || k === mappedBtKey) && have(k) < 1 && (c.bn || c.prog >= th0 * 0.75)) consider(it, c.bn ? 3.5 : 2.6, 'โอสถทะลวงขั้น');
+        const btDrive = (E(n, 'values.martialPeak') - 50) / 120 + (E(n, 'personality.ambition') - 50) / 150;
+        if (((e.btFor.path === c.path && e.btFor.stage === c.stage) || k === mappedBtKey) && have(k) < 1 && (c.bn || c.prog >= th0 * 0.75)) consider(it, (c.bn ? 3.5 : 2.6) + btDrive, 'โอสถทะลวงขั้น');
         continue;
       }
       if (e.breakthroughBonus && !e.btFor && have(k) < 1 && (c.bn || c.prog >= th0 * 0.75) && info.tier <= eqSt0 + 1) {
-        consider(it, c.bn ? 2.8 : 2.0, 'โอสถหนุนทะลวงด่าน');
+        const btDrive = (E(n, 'values.martialPeak') - 50) / 120 + (E(n, 'personality.ambition') - 50) / 150;
+        consider(it, (c.bn ? 2.8 : 2.0) + btDrive, 'โอสถหนุนทะลวงด่าน');
         continue;
       }
       if (e.cbBuff) {
@@ -569,7 +571,13 @@
   A.shop = {
     nameTh: 'ร้านค้าสำนัก', icon: '🛒', color: '#e0b84a',
     can: (n, W) => (n.cp || 0) >= 4 && !!CPE.pickPurchase(W, n),
-    score(n, W, S) { const p = CPE.pickPurchase(W, n); if (!p) return S.add('ไม่มีของที่อยากได้', -3); S.add('อยากได้ ' + (p.kind === 'gear' ? p.gear.nameTh : p.nameTh || ECO.name(p.key)) + ' (' + p.price + ' คป. · ' + p.why + ')', 0.55 + p.s * 0.35 + (E(n, 'values.wealthResource') - 50) / 300); },
+    score(n, W, S) {
+      const p = CPE.pickPurchase(W, n);
+      if (!p) return S.add('ไม่มีของที่อยากได้', -3);
+      const isEssential = p.s >= 1.5;
+      const wealthTerm = isEssential ? 0 : -(E(n, 'values.wealthResource') - 50) / 170;
+      S.add('อยากได้ ' + (p.kind === 'gear' ? p.gear.nameTh : p.nameTh || ECO.name(p.key)) + ' (' + p.price + ' คป. · ' + p.why + ')', 0.55 + p.s * 0.35 + wealthTerm);
+    },
     where: (W, n) => { const s = AI.freeStation(W, n, 'browse', 'market'); return s ? { st: s } : null; },
     dur: () => 25,
     done(n, W) { CPE.buy(W, n, CPE.pickPurchase(W, n)); }
@@ -578,7 +586,13 @@
 
   /* ----- บริการชี้แนะจากหอคัมภีร์: ใช้แต้มเป็นค่าครูและเผาออกจากระบบ ----- */
   CPE.guidanceTeacher = (W, n) => {
-    const eligible = t => !!(t && t !== n && !t.dead && !t.away && !t.exiled && !(t.jail && t.jail > W.t) && (!t.act || (t.act.id !== 'sleep' && t.act.id !== 'fight')) && !(g.COMBAT && g.COMBAT.isUnitInActiveFight && g.COMBAT.isUnitInActiveFight(W, t)) && !(t.guidanceUntil > W.t) && (t.rank > n.rank || (t.cult && n.cult && (CULT.equivalentStage ? CULT.equivalentStage(t) > CULT.equivalentStage(n) : t.cult.stage > n.cult.stage))));
+    const eligible = t => {
+      if (!(t && t !== n && !t.dead && !t.away && !t.exiled && !(t.jail && t.jail > W.t) && (!t.act || (t.act.id !== 'sleep' && t.act.id !== 'fight')) && !(g.COMBAT && g.COMBAT.isUnitInActiveFight && g.COMBAT.isUnitInActiveFight(W, t)) && !(t.guidanceUntil > W.t) && (t.rank > n.rank || (t.cult && n.cult && (CULT.equivalentStage ? CULT.equivalentStage(t) > CULT.equivalentStage(n) : t.cult.stage > n.cult.stage))))) return false;
+      const rel = n.h && n.h.mind && n.h.mind.relations && n.h.mind.relations[t.id];
+      if (rel && (rel.bond === 'ศัตรู' || (rel.a || 0) < -20 || (rel.v || 0) > 60)) return false;
+      if (n.h && n.h.mind && Array.isArray(n.h.mind.grudges) && n.h.mind.grudges.some(gr => gr && gr.targetId === t.id)) return false;
+      return true;
+    };
     const head = SECT.holder(W, 'scripture'); if (eligible(head)) return head;
     const master = W.byId[W.sect.masterId]; if (eligible(master)) return master;
     return W.npcs.find(eligible) || null;
@@ -602,6 +616,8 @@
       S.add('มีอาจารย์ที่เหมาะสม', teacher ? 0.25 + Math.min(0.25, (teacher.h.skills.SCRIPTURE || 0) / 300) : -1);
       S.add('เหลือแต้มพอจ่าย', clamp(((n.cp || 0) - fee) / Math.max(1, fee), 0, 3) * 0.22);
       S.add('หวงทรัพย์ไว้ซื้อของ', -(E(n, 'values.wealthResource') - 50) / 280);
+      const pride = E(n, 'personality.pride');
+      if (pride > 55) S.add('ถือศักดิ์ศรีไม่อยากก้มหัวขอคำชี้แนะ', -(pride - 55) / 130);
     },
     where: (W, n) => { const st = AI.freeStation(W, n, 'read', 'scripture'); return st ? { st } : null; },
     dur: () => 30,
@@ -648,10 +664,12 @@
     },
     score(n, W, S) {
       const fee = CPE.trainingFee(W, n);
-      S.add('อยากเร่งตบะ', 0.72 + (E(n, 'personality.ambition') - 50) / 170);
+      S.add('อยากเร่งตบะ', 0.35 + (E(n, 'personality.ambition') - 50) / 200);
+      S.add('มีวินัยและใจรักบำเพ็ญ', (E(n, 'personality.discipline') - 50) / 160 + (E(n, 'interests.meditation') - 50) / 220 - (E(n, 'values.freedom') - 50) / 200);
       S.add('ให้ความสำคัญกับวิถียุทธ์', (E(n, 'values.martialPeak') - 45) / 190);
-      S.add('มีแต้มเหลือจ่าย', clamp(((n.cp || 0) - fee) / Math.max(1, fee), 0, 3) * 0.28);
+      S.add('มีแต้มเหลือจ่าย', clamp(((n.cp || 0) - fee) / Math.max(1, fee), 0, 2.5) * 0.14);
       S.add('หวงแต้มไว้ซื้อของ', -(E(n, 'values.wealthResource') - 50) / 260);
+      if ((n.h.state.pain || 0) > 40) S.add('เจ็บปวดรบกวนสมาธิ', -clamp((n.h.state.pain - 40) / 60, 0.2, 0.9));
       S.add('ฝึกปกติก็พอ', -Math.max(0, (n.cult.prog / Math.max(1, CULT.threshold(n))) - 0.65) * 0.8);
     },
     where(W, n) {
@@ -812,8 +830,13 @@
   CPE.fightUse = (W, n, ctx, thresholds) => {
     if (!n.inv || (ctx.pillAt || 0) > W.t || (CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n))) return false; const s = n.h.state, R = JD.CP.RECOVERY; let k;
     const isZeroQi = !!(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(n));
-    const needsHp = s.hp < CULT.hpMax(n) * (thresholds?.hpThreshold ?? .38);
-    const needsQi = n.cult && !isZeroQi && s.qi != null && s.qi < CULT.qiMax(n) * (thresholds?.qiThreshold ?? .20);
+    const isNonLethal = !!(ctx && (ctx.serious === false || ctx.kind === 'spar' || ctx.isSpar));
+    const caut = E(n, 'personality.caution'), pride = E(n, 'personality.pride'), wealth = E(n, 'values.wealthResource');
+    if (isNonLethal && wealth > 65 && !(thresholds && thresholds.hpThreshold != null)) return false;
+    const baseHpT = isNonLethal ? 0.14 : clamp(0.36 + (caut - 50) / 350 - (pride - 50) / 500 - (wealth - 50) / 600, 0.22, 0.52);
+    const baseQiT = isNonLethal ? 0.08 : clamp(0.20 + (caut - 50) / 500, 0.12, 0.32);
+    const needsHp = s.hp < CULT.hpMax(n) * (thresholds?.hpThreshold ?? baseHpT);
+    const needsQi = n.cult && !isZeroQi && s.qi != null && s.qi < CULT.qiMax(n) * (thresholds?.qiThreshold ?? baseQiT);
     const owned = needsHp && pickCrafted(n, 'healHealth') || needsQi && pickCrafted(n, 'qiRestore');
     if (owned && CPE.consumeCrafted(W, n, owned)) { ctx.pillAt = W.t + 6; n.fx = {t:W.t,text:'💊'}; return true; }
     if (!n.inv.pills) return false;
@@ -1047,7 +1070,8 @@
       const quote = ECO.personalCraftQuote(W, n, r); if (!quote || !quote.owned.length) continue;
       const key = r.outItemId || 'P:' + r.id, info = ECO.pillInfo(key); if (!info) continue;
       const need = (n.h.state.hp < CULT.hpMax(n) * 0.75 && info.effect.healHealth) || ((n.inj && n.inj.length > 0) && info.effect.healInjury) || (n.cult.toxic > 25 && info.effect.clearToxic) || (n.h.state.heartDemon > 30 && info.effect.clearHeartDemon);
-      const intent = need ? 'keep' : 'donate';
+      const donateDrive = (E(n, 'personality.loyalty') + E(n, 'values.sectDuty')) * 0.5 - E(n, 'values.wealthResource') * 0.55;
+      const intent = (need || donateDrive < 10) ? 'keep' : 'donate';
       const value = Math.min(CPE.reward(W, key, r.yield || 1), quote.cost + quote.ownValue * 1.2);
       if (!need && value <= quote.cost) continue;
       const score = need ? 2.0 : 0.8 + Math.min(0.9, (value - quote.cost) / 40);
@@ -1082,7 +1106,10 @@
   A.personalPillDonation = {
     nameTh:'บริจาคโอสถส่วนตัว',icon:'🎁',color:'#c6a4f5',
     can:n => !!(n.inv && (n.inv.craftedPills||[]).some(p=>p.intent==='donate')),
-    score(n,W,S) { S.add('นำโอสถที่ผลิตไปบริจาค',1.8); },
+    score(n,W,S) {
+      const donateDrive = (E(n, 'personality.loyalty') + E(n, 'values.sectDuty')) * 0.5 - E(n, 'values.wealthResource') * 0.55;
+      S.add('นำโอสถที่ผลิตไปบริจาค', clamp(0.6 + donateDrive / 55, 0.15, 1.9));
+    },
     where(W,n) { const st=AI.freeStation(W,n,'browse','market') || AI.freeStation(W,n,'desk','treasury'); return st ? {st} : null; },
     dur:()=>20,
     done(n,W) { for (const p of [...(n.inv.craftedPills||[])]) if(p.intent==='donate') { const result=ECO.donatePersonalProduct(W,n,p.id); if(result.ok) W.log('finance',n.h.name.given+' บริจาคโอสถส่วนตัว ได้ '+Math.round(result.reward)+' คป.',[n.id]); } }

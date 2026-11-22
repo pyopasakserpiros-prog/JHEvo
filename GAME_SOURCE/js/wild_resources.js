@@ -64,7 +64,7 @@
       return 'MAT_ORE_COPPER_1';
     }
     // OTHER natural gatherable materials (excluding manufactured goods such as formation flags)
-    const allOthers = (JD.ITEMS.materials || []).filter(m => (!m.sourcePack || m.sourcePack === 'V230_EXPANSION') && (m.category === 'WOOD' || m.category === 'STONE' || m.category === 'FORMATION_PART' || m.category === 'SPIRIT_ESSENCE') && !m.id.includes('FLAG') && m.tier <= 2);
+    const allOthers = (JD.ITEMS.materials || []).filter(m => (!m.sourcePack || m.sourcePack === 'V230_EXPANSION') && (m.category === 'WOOD' || m.category === 'STONE' || m.category === 'FORMATION_PART' || m.category === 'SPIRIT_ESSENCE' || m.category === 'CATALYST' || m.category === 'ARTIFACT_MAT') && !m.id.includes('FLAG') && m.tier <= 2);
     if (allOthers.length) return rng.pick(allOthers).id;
     return 'MAT_HERB_DEW_GRASS_1';
   }
@@ -216,7 +216,7 @@
     // Units awarded: smooth gradual extraction scaling with skill and life-path
     const isOre = node.category === 'ORE';
     const lifePath = isOre ? 'mining' : 'herbalism';
-    const skillVal = isOre ? (npc.h.skills.mining || 0) : (npc.h.skills.herbalism || 0);
+    const skillVal = isOre ? (npc.h?.skills?.mining || 0) : (npc.h?.skills?.herbalism || 0);
     const lifeMult = (g.MARTIAL && g.MARTIAL.lifeMult) ? g.MARTIAL.lifeMult(npc, lifePath) : 1.0;
     let requestedUnits = 1;
     if (node.remaining >= 2) {

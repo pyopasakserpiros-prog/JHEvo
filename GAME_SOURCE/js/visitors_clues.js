@@ -4439,7 +4439,7 @@
       tier: 7,
       rarity: 'Legendary',
       unique: true,
-      regionId: 'swamp',
+      regionId: 'SRC110_MW_ENV_02_MIASMA_MANGROVE',
       visitorRoles: ['herbalist', 'scholar', 'wanderer'],
       rumorTextTh: 'หมอยาพเนจรเผยเบาะแสศาลาหมอเทวดาในบึงหมอกร้อยบุปผา ซึ่งซ่อน「เข็มเทวะร้อยบุปผาสะกดวิญญาณ」',
       steps: [
@@ -4447,7 +4447,7 @@
           nodeId: 'navigate_hundred_flower_miasma',
           type: 'skill_trial',
           titleTh: 'จำแนกไอพิษร้อยบุปผาและเปิดทางสู่ศาลาเร้นลับ',
-          locationId: 'swamp',
+          locationId: 'SRC110_MW_ENV_02_MIASMA_MANGROVE',
           scope: 'party_any',
           skill: 'MEDICINE',
           statPath: 'intellect.perceptiveness',
@@ -4460,7 +4460,7 @@
           nodeId: 'thread_soul_needle_trial',
           type: 'skill_trial',
           titleTh: 'เดินปราณร้อยด้ายวิญญาณผ่านรูเข็มทองคำไร้เงา',
-          locationId: 'swamp',
+          locationId: 'SRC110_MW_ENV_02_MIASMA_MANGROVE',
           scope: 'personal',
           skill: 'NEEDLE',
           statPath: 'physiology.dexterity',
@@ -4607,7 +4607,7 @@
     scholar: { id: 'scholar', nameTh: 'บัณฑิตท่องยุทธภพ', icon: '📜', bkey: 'tea_garden', stationKind: 'chat' },
     herbalist: { id: 'herbalist', nameTh: 'หมอยาแดนไกล', icon: '🌿', bkey: 'infirmary', stationKind: 'treat' },
     artisan: { id: 'artisan', nameTh: 'ช่างฝีมือเร่ร่อน', icon: '🔨', bkey: 'forge', stationKind: 'work' },
-    envoy: { id: 'envoy', nameTh: 'ทูตสำนักพันธมิตร', icon: '🤝', bkey: 'main_hall', stationKind: 'throne' }
+    envoy: { id: 'envoy', nameTh: 'ทูตสำนักพันธมิตร', icon: '🤝', bkey: 'main_hall', stationKind: 'audience' }
   };
   VC.VISITOR_ROLES = VISITOR_ROLES;
 
@@ -4840,6 +4840,9 @@
       }
     }
 
+    for (const k of Object.keys(w.uniqueArtifacts)) {
+      if (!seen.has(k)) delete w.uniqueArtifacts[k];
+    }
     return w.uniqueArtifacts;
   };
 
@@ -5168,7 +5171,11 @@
         rank: 0,
         stage
       });
-      const sectAffil = ( role === 'envoy' && W.world.sects && W.world.sects.length ) ? W.rng.pick(W.world.sects) : null;
+      const sectPoolRaw = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      const friendlySects = sectPoolRaw.filter(s => s && !s.collapsed && s.treaty !== 'EMBARGO' && s.treaty !== 'RIVAL_FEUD' && (s.attitude || 0) >= -20);
+      const nonCollapsedSects = friendlySects.length ? friendlySects : sectPoolRaw.filter(s => s && !s.collapsed);
+      const sectAffil = (role === 'envoy' && nonCollapsedSects.length) ? W.rng.pick(nonCollapsedSects) : null;
+      const guestStones = opts.stones != null ? opts.stones : W.rng.int(120, isNotable ? 950 : 420);
       guest = {
         id,
         kind: role === 'merchant' ? 'trader' : 'guest',
@@ -5179,10 +5186,10 @@
         h: npcLike.h,
         cult: npcLike.cult,
         equip: npcLike.equip || {},
-        inv: { stones: opts.stones != null ? opts.stones : W.rng.int(120, isNotable ? 950 : 420), mats: {}, pills: {} },
+        inv: { stones: guestStones, mats: {}, pills: {} },
         arriveDay: W.day,
         untilDay: opts.untilDay != null ? opts.untilDay : W.day + clamp(Math.round(opts.stayDays || W.rng.int(2, 3)), 1, 5),
-        stones: opts.stones != null ? opts.stones : W.rng.int(120, isNotable ? 950 : 420),
+        stones: guestStones,
         state: 'admission_pending',
         accessLevel: 'public_courtyard',
         hostileRisk: opts.hostileRisk != null ? opts.hostileRisk : Math.max(0, Math.round(100 - E(npcLike, 'personality.integrity') * 0.65 - E(npcLike, 'personality.empathy') * 0.25 + (W.rng.next() * 20 - 10))),
@@ -5322,6 +5329,11 @@
         kind: v.kind,
         role: v.role,
         roleTitleTh: v.roleTitleTh,
+        sectId: v.sectId || null,
+        hostileRisk: v.hostileRisk,
+        targetBkey: v.targetBkey,
+        isDeceptive: !!v.isDeceptive,
+        notable: !!v.notable,
         nameTh: v.nameTh,
         h: v.h,
         cult: v.cult,
@@ -5331,7 +5343,7 @@
         purposeTh: v.purposeTh,
         admissionBy: v.admissionBy,
         admissionReasonTh: v.admissionReasonTh,
-        interactions: v.interactions || [],
+        interactions: (v.interactions || []).slice(-24),
         hospitalityScore: v.hospitalityScore || 50,
         lastDepartDay: W.day,
         state: 'offsite'
@@ -5543,6 +5555,7 @@
     const cs = VC.ensure(W);
     const inst = typeof instOrId === 'string' ? cs.active[instOrId] : instOrId;
     if (!inst || !npc) return false;
+    const alreadyReported = inst.reportedToSect && W.sect.clueArchive.includes(inst.instanceId) && (inst.sectKnownNodeIdx ?? -1) >= (inst.currentNodeIdx || 0);
     if (!W.sect.clueArchive.includes(inst.instanceId)) {
       W.sect.clueArchive.push(inst.instanceId);
     }
@@ -5552,7 +5565,9 @@
     officers.forEach(off => {
       if (!off.dead) VC.learnClueFragment(W, off, inst, { fromId: npc.id, rootRumorId: inst.rootRumorId, baseConfidence: (inst.knownBy[npc.id]?.confidence || 65), knownNodeIdx: inst.sectKnownNodeIdx });
     });
-    VC.pushClueHistory(inst, { day: W.day, t: W.t, text: npc.h.name.given + ' รายงานเบาะแสเข้าสู่บันทึกสำนัก' });
+    if (!alreadyReported) {
+      VC.pushClueHistory(inst, { day: W.day, t: W.t, text: npc.h.name.given + ' รายงานเบาะแสเข้าสู่บันทึกสำนัก' });
+    }
     return true;
   };
 
@@ -6556,6 +6571,8 @@
       (M && M.skillPractice ? M.skillPractice : HC.practice)(n, topic.skill, 0.35, 1.0);
     }
     W.world.visitorNews = Array.isArray(W.world.visitorNews) ? W.world.visitorNews : [];
+    const existingNews = W.world.visitorNews.find(nw => nw && nw.day === W.day && nw.visitorId === v.id && nw.kind === topic.kind);
+    if (existingNews) return existingNews;
     const newsEntry = {
       day: W.day,
       t: W.t,
@@ -6586,6 +6603,15 @@
     v.hospitalityScore = clamp((v.hospitalityScore || 50) + 3, 0, 100);
     HC.feel(n, { social: 10, mood: 3, novelty: 5 });
     (M && M.skillPractice ? M.skillPractice : HC.practice)(n, 'diplomacy', 0.4, 1);
+    if (v.role === 'envoy' && v.sectId) {
+      const sectList = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      const affSect = sectList.find(sx => sx && sx.id === v.sectId);
+      if (affSect && !affSect.collapsed) {
+        const attBoost = rel.n === 1 ? 2 : 1;
+        affSect.attitude = clamp((affSect.attitude || 0) + attBoost, -100, 100);
+        affSect.contact = W.day;
+      }
+    }
 
     // If visitor carries a clue lead and trusts/likes the member enough, share the clue!
     let clueShared = null;
@@ -6616,6 +6642,7 @@
     }
     v.interactions = Array.isArray(v.interactions) ? v.interactions : [];
     v.interactions.push({ day: W.day, t: W.t, npcId: n.id, textTh: n.h.name.given + ' สนทนาแลกเปลี่ยนข่าวสารกับ ' + v.nameTh + (clueShared ? ' (ได้รับเบาะแส「' + clueShared.titleTh + '」)' : (newsShared ? ' (' + newsShared.textTh + ')' : '')) });
+    if (v.interactions.length > 24) v.interactions.shift();
     W.world.visitorHistory = Array.isArray(W.world.visitorHistory) ? W.world.visitorHistory : [];
     W.world.visitorHistory.push({ day: W.day, visitorId: v.id, nameTh: v.nameTh, summaryTh: 'สนทนากับ ' + n.h.name.given + (clueShared ? ' · มอบเบาะแส「' + clueShared.titleTh + '」' : ' · แบ่งปันข่าวสารทั่วไป') });
     if (W.world.visitorHistory.length > 80) W.world.visitorHistory.shift();
@@ -6940,8 +6967,10 @@
       for (let i = W.sect.gear.length - 1; i >= 0; i--) {
         const g2 = W.sect.gear[i];
         if (g2 && g2.intendedRecipientId && VC.LEGENDARY_WEAPON_BY_ID[g2.id]) {
-          const recNpc = alive.find(m => m.id === g2.intendedRecipientId) || alive[0];
+          const recNpc = alive.find(m => m.id === g2.intendedRecipientId)
+            || (ex && ex.clueInstanceId && g2.clueInstanceId === ex.clueInstanceId ? alive[0] : null);
           if (recNpc && !recNpc.dead) {
+            delete g2.intendedRecipientId;
             W.sect.gear.splice(i, 1);
             recNpc.inv.gear = Array.isArray(recNpc.inv.gear) ? recNpc.inv.gear : [];
             recNpc.inv.gear.push(g2);
@@ -7225,15 +7254,18 @@
       VC.ensure(W, true);
       if (W && W.sect && W.sect.mentorship && SECT && SECT.MENTORSHIP) SECT.MENTORSHIP.ensure(W);
       if (W && W.world && W.world.jianghu && SECT && SECT.JIANGHU) SECT.JIANGHU.ensure(W);
-      if (W && W.world && W.world.livingSects && g.EXPED && g.EXPED.LIVING_SECTS) {
-        const orgs = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
-        for (const s of orgs) { if (s && s.livingRoster && s.livingRoster.leader) s.leaderNameTh = s.livingRoster.leader.nameTh; }
+      if (W && W.world) {
+        if (Array.isArray(W.world.allSects)) W.world.jianghuSects = W.world.allSects;
         if (Array.isArray(W.world.sects) && Array.isArray(W.world.allSects)) {
           for (let i = 0; i < W.world.sects.length; i++) {
             const ws = W.world.sects[i];
             const ai = ws ? W.world.allSects.findIndex(x => x && (x.id === ws.id || (ws.canonicalId && x.canonicalId === ws.canonicalId))) : -1;
             if (ai >= 0) W.world.sects[i] = W.world.allSects[ai];
           }
+        }
+        if (W.world.livingSects && g.EXPED && g.EXPED.LIVING_SECTS) {
+          const orgs = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+          for (const s of orgs) { if (s && s.livingRoster && s.livingRoster.leader) s.leaderNameTh = s.livingRoster.leader.nameTh; }
         }
       }
       return W;
@@ -7254,7 +7286,7 @@
 
     const seenTpl = new Set();
     const validNodeTypes = new Set(['search_site', 'speak_contact', 'inspect_inscription', 'skill_trial', 'body_trial', 'spirit_judgment', 'guardian_combat']);
-    for (const t of CLUE_TEMPLATES) {
+    for (const t of ALL_CLUE_TEMPLATES) {
       if (!t.templateId || seenTpl.has(t.templateId)) errors.push('duplicate templateId: ' + t.templateId);
       seenTpl.add(t.templateId);
       if (t.targetKind === 'MATERIAL' && !ECO.matById[t.targetId]) errors.push('missing material target: ' + t.targetId);

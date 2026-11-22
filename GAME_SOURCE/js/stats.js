@@ -235,16 +235,27 @@
     const linSig = Array.isArray(it.lineage) && it.lineage.length
       ? it.lineage.slice(0, 3).map(l => l ? ((l.bonusStat || '') + ':' + (l.bonusVal || 0)) : '').join(',')
       : '';
-    return (it.tier || 1) + '|' + (it.q || 1) + '|' + durRatio + '|' + (it.dormant ? 1 : 0) + '|' + deedStage + '|' + linSig;
+    const affSig = Array.isArray(it.affixes) && it.affixes.length
+      ? it.affixes.map(a => a ? ((a.stat || '') + ':' + (a.val || 0)) : '').join(',')
+      : '';
+    const fxList = it.fx || it.effects;
+    const fxSig = Array.isArray(fxList) && fxList.length
+      ? fxList.map(x => x ? (x.effectId || x.id || '') : '').join(',')
+      : '';
+    const artDef = (it.artisan && it.artisan.defenseBonus) || 0;
+    return (it.tier || 1) + '|' + (it.q || 1) + '|' + durRatio + '|' + (it.dormant ? 1 : 0) + '|' + (it.broken ? 1 : 0) + '|' + (it.attunedStars || 0) + '|' + (it.combatMult || 0) + '|' + (it.defMult || 0) + '|' + artDef + '|' + deedStage + '|' + linSig + '|' + affSig + '|' + fxSig;
   };
   ST.gearStats = it => {
     if (!it) return {};
     const sig = ST.gearStateSig(it);
     if (it.st && it._stSig === sig) return it.st;
     if (it.st && !it._stSig && !it.baseSt) {
-      it.baseSt = Object.assign({}, it.st);
-      it.baseTier = it.baseTier || clamp(it.tier || 1, 1, 7);
-      it.baseQ = it.baseQ || it.q || 1;
+      const isStdOrCatalog = !!(it.uid || (g.ECO && g.ECO.itemById && g.ECO.itemById[it.id]));
+      if (!isStdOrCatalog) {
+        it.baseSt = Object.assign({}, it.st);
+        it.baseTier = it.baseTier || clamp(it.tier || 1, 1, 7);
+        it.baseQ = it.baseQ || it.q || 1;
+      }
     }
     const tier = clamp(it.tier || 1, 1, 7), q = it.q || 1, base = GT[tier - 1] * q, h = hash((it.id || '') + (it.nameTh || '') + (it.procedural ? (it.uid || '') : '')), f = 1 + 0.12 * tier, s = {};
     const hasRolledAffixes = Array.isArray(it.affixes) && it.affixes.length > 0;
@@ -267,8 +278,8 @@
     (it.fx || it.effects || []).forEach(x => {
       const p = x.params || {};
       const eid = x.effectId || x.id || '';
-      if (p.armorReductionRatio) s.pen = (s.pen || 0) + p.armorReductionRatio * 40;
-      if (eid === 'EFX_BARRIER_SHIELD' || eid === 'EFX_TRIBULATION_SHIELD') { s.def = (s.def || 0) + (p.barrierCapacity || 200) * 0.08; s.mdef = (s.mdef || 0) + (p.barrierCapacity || 200) * 0.08; }
+      if (p.armorReductionRatio || p.armorPen || p.fracturePct || p.defBreakPct) s.pen = (s.pen || 0) + (p.armorReductionRatio || p.armorPen || p.fracturePct || p.defBreakPct) * 40;
+      if (eid === 'EFX_BARRIER_SHIELD' || eid === 'EFX_TRIBULATION_SHIELD') { const cap = p.barrierCapacity || (p.shieldPct ? p.shieldPct * base * 1.5 : 200); s.def = (s.def || 0) + cap * 0.08; s.mdef = (s.mdef || 0) + cap * 0.08; }
       else if (eid === 'EFX_STEALTH_CONCEALMENT' || eid === 'EFX_SIDESTEP_EVASION' || eid === 'EFX_ILLUSION_DECOY') { s.eva = (s.eva || 0) + (p.concealmentScore || 40) * 0.45; s.move = (s.move || 0) + 4; }
       else if (eid === 'EFX_DETECTION_REVEAL' || eid === 'EFX_TRACE_MARK' || eid === 'EFX_INTENT_SENSE' || eid === 'EFX_WEAKNESS_EXPOSURE') { s.acc = (s.acc || 0) + 14; s.crit = (s.crit || 0) + 3.5; }
       else if (eid === 'EFX_MIND_SHIELD' || eid === 'EFX_CONTROL_RESILIENCE' || eid === 'EFX_CALM_MIND' || eid === 'EFX_REALM_SUPPRESSION_GUARD') { s.mdef = (s.mdef || 0) + base * 0.14; s.hp = (s.hp || 0) + base * 0.15; }
@@ -295,9 +306,10 @@
         if (p.bonusCrit) s.crit = (s.crit || 0) + p.bonusCrit;
         if (p.bonusPen) s.pen = (s.pen || 0) + p.bonusPen;
         if (p.bonusCast) s.cast = (s.cast || 0) + p.bonusCast;
-        if (eid === 'EFX_V234_ELEMENTAL_REACTOR' && p.bonusMult) {
-          s.atk = (s.atk || 0) + base * p.bonusMult * 0.15;
-          s.matk = (s.matk || 0) + base * p.bonusMult * 0.15;
+        const reactMult = p.bonusMult || p.elemMult || p.elementMult || p.damageMult || 0;
+        if (eid === 'EFX_V234_ELEMENTAL_REACTOR' && reactMult) {
+          s.atk = (s.atk || 0) + base * reactMult * 0.15;
+          s.matk = (s.matk || 0) + base * reactMult * 0.15;
         }
       }
     });
@@ -987,9 +999,10 @@
     const shrineLv = (!n.foe && wRefKey && wRefKey.sect && wRefKey.sect.infernalShrine) ? (wRefKey.sect.infernalShrine.consecrationLevel || 0) : 0;
     const lifeKey = CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.contextKey ? CULT.EXPERIENCE_TRAITS.contextKey(n, wRefKey) : '';
     const postKey = lifeKey + ':' + (!n.foe && wRefKey && wRefKey.sect ? (wRefKey.sect.combatPosture || '') : '') + ':' + shrineLv + ':' + (n.peakId || '') + ':' + (Array.isArray(n.sectTotems) ? n.sectTotems.length : 0) + ':' + (n.subpathArchetype || '') + ':' + (n.subpathArchetypeTier || 0) + ':' + (n.combatHistory && Array.isArray(n.combatHistory.unlockedTraits) ? n.combatHistory.unlockedTraits.length : 0);
-    const eqW = Eq.WEAPON || null, eqWdur = (eqW ? ST.gearStateSig(eqW) : '') + ':' + (eqW && eqW.killTracker ? eqW.killTracker.evolutionStage * 1000 : 0) + ':' + (eqW ? (eqW._modVer || 0) + ':' + (Array.isArray(eqW.socketedRunes) ? eqW.socketedRunes.length : 0) : '') + ':' + postKey;
-    const eqA = Eq.ARMOR || null, eqAdur = (eqA ? ST.gearStateSig(eqA) : '') + ':' + (eqA ? (eqA._modVer || 0) + ':' + (Array.isArray(eqA.socketedRunes) ? eqA.socketedRunes.length : 0) : '');
-    const eqX = Eq.ACCESSORY || null, eqXdur = (eqX ? ST.gearStateSig(eqX) : '') + ':' + (eqX ? (eqX._modVer || 0) + ':' + (Array.isArray(eqX.socketedRunes) ? eqX.socketedRunes.length : 0) : '');
+    const runeSig = eq => (eq && Array.isArray(eq.socketedRunes) && eq.socketedRunes.length) ? eq.socketedRunes.map(r => r ? ((r.id || r.runeId || '') + ':' + (r.element || '')) : '').join(',') : '';
+    const eqW = Eq.WEAPON || null, eqWdur = (eqW ? ST.gearStateSig(eqW) : '') + ':' + (eqW && eqW.killTracker ? eqW.killTracker.evolutionStage * 1000 : 0) + ':' + (eqW ? (eqW._modVer || 0) + ':' + (eqW.attunedStars || 0) + ':' + runeSig(eqW) : '') + ':' + postKey;
+    const eqA = Eq.ARMOR || null, eqAdur = (eqA ? ST.gearStateSig(eqA) : '') + ':' + (eqA ? (eqA._modVer || 0) + ':' + (eqA.attunedStars || 0) + ':' + runeSig(eqA) : '');
+    const eqX = Eq.ACCESSORY || null, eqXdur = (eqX ? ST.gearStateSig(eqX) : '') + ':' + (eqX ? (eqX._modVer || 0) + ':' + (eqX.attunedStars || 0) + ':' + runeSig(eqX) : '');
     const cb = n._csBase;
     if (cb && cb.day === HC.nowDay && cb.ver === n._ver &&
         cb.cPath === cPath && cb.cStage === cStage && cb.cSub === cSub && cb.cMantra === cMantra &&
@@ -1222,7 +1235,8 @@
     const martial = g.MARTIAL ? g.MARTIAL.weaponSkill(n) : (sk.FIST_PALM || 0);
     const mAtkP = 0.8 + 0.45 * martial / 100 - 1, mPenF = martial * 0.05;
     const s = n.h.state;
-    const cond = (0.8 + 0.2 * (n._hpf == null ? 1 : n._hpf)) * (0.8 + 0.2 * s.energy / 100) * (1 - 0.3 * s.heartDemon / 100);
+    const effHd = (n.cult && n.cult.path === 'DEMON') ? (s.heartDemon <= 60 ? 0 : (s.heartDemon - 60)) : s.heartDemon;
+    const cond = (0.8 + 0.2 * (n._hpf == null ? 1 : n._hpf)) * (0.8 + 0.2 * s.energy / 100) * (1 - 0.3 * effHd / 100);
     const cm1 = cond - 1;
     if ((n.buffs && n.buffs.length > 0) || (n.sx && n.sx.length > 0)) ST.purgeExpired(n, ST.now);
     const hasBuffs = n.buffs && n.buffs.length > 0;
@@ -1278,7 +1292,8 @@
   function conditionMods(u, add) {
     const s = u.foe ? { hp: u.hp, energy: 100, heartDemon: 0 } : u.h.state;
     const hpf = u.foe ? clamp(u.hp / u.hpMax, 0, 1) : clamp(s.hp / (u._hpMaxHint || 1), 0, 1);
-    const cond = (0.8 + 0.2 * (u.foe ? hpf : u._hpf == null ? 1 : u._hpf)) * (0.8 + 0.2 * s.energy / 100) * (1 - 0.3 * s.heartDemon / 100);
+    const effHd = (!u.foe && u.cult && u.cult.path === 'DEMON') ? (s.heartDemon <= 60 ? 0 : (s.heartDemon - 60)) : s.heartDemon;
+    const cond = (0.8 + 0.2 * (u.foe ? hpf : u._hpf == null ? 1 : u._hpf)) * (0.8 + 0.2 * s.energy / 100) * (1 - 0.3 * effHd / 100);
     ['atk', 'matk', 'acc', 'eva'].forEach(k => add(k, 'สภาพร่างกาย (เลือด/แรง/จิตมาร)', 'p', cond - 1)); add('cast', 'สภาพร่างกาย', 'f', (cond - 1) * 40);
   }
   function computeFoe(u, A, add, wp) {
@@ -1349,7 +1364,9 @@
   function hpMaxBase(n) { const h = n.foe ? n.hpMax : getBaseFast(n).hpVal; n._hpMaxHint = h; return h; }
   ST.explain = n => { if (!n.foe) { const hmEff = (n.buffs && n.buffs.length) ? ST.hpMax(n) : hpMaxBase(n); n._hpMaxHint = hmEff; if (n._hpf == null) n._hpf = 1; n._hpf = clamp(n.h.state.hp / Math.max(1, hmEff), 0, 1); } return compute(n, true); };
   ST.hpMax = n => {
+    if (!n) return 100;
     if (n.foe) return n.hpMax;
+    if (!n.h || !n.h.body) return Number.isFinite(n.hpMax) ? n.hpMax : 100;
     const base = getBaseFast(n);
     if (!n.buffs || !n.buffs.length) { n._lastHpMax = base.hpVal; return base.hpVal; }
     let pHp = base.p.hp, fHp = base.f.hp;
@@ -1395,9 +1412,25 @@
   const oApplyPill = ECO.applyPill;
   ECO.applyPill = (W, npc, key, qualityOpt) => {
     const info = ECO.pillInfo(key);
-    if (!info || !info.effect.cbBuff) return oApplyPill(W, npc, key, qualityOpt);
-    const b = Object.assign({ kind: 'cbPill' }, info.effect.cbBuff); ST.addBuff(npc, b); if (npc.cult) npc.cult.toxic = Math.min(100, (npc.cult.toxic || 0) + (info.effect.toxicity || 0));
-    HC.bump(npc); return { info, msgs: ['บัฟ「' + b.name + '」'] };
+    if (!info || !info.effect || !info.effect.cbBuff) return oApplyPill(W, npc, key, qualityOpt);
+    const res = oApplyPill(W, npc, key, qualityOpt);
+    if (!res) return res;
+    const qScale = clamp(Number.isFinite(qualityOpt) ? qualityOpt : 1, 0.70, 1.80);
+    const srcB = info.effect.cbBuff;
+    const p = {}, f = {};
+    if (srcB.p) for (const k in srcB.p) p[k] = Math.round(srcB.p[k] * qScale * 1000) / 1000;
+    if (srcB.f) for (const k in srcB.f) f[k] = Math.round(srcB.f[k] * qScale * 10) / 10;
+    const b = Object.assign({}, srcB, {
+      id: 'cbPill:' + key,
+      kind: 'cbPill',
+      dur: Math.round((srcB.dur || 60) * qScale),
+      p,
+      f
+    });
+    ST.addBuff(npc, b, W ? W.t : ST.now);
+    HC.bump(npc);
+    res.msgs = (res.msgs || []).concat('บัฟ「' + (b.name || info.name) + '」');
+    return res;
   };
   ST.preFight = (W, n, hard) => {
     if (n.foe || !n.cult || (n.buffs && n.buffs.some(b => b.until > ST.now && (b.kind === 'cbPill' || (b.id && String(b.id).startsWith('CB_')))))) return;
@@ -1447,8 +1480,8 @@
     const x = (a && (a.sect || a.rng || a.day !== undefined)) ? b : a;
     const it = x && x.outItemId ? ECO.itemById[x.outItemId] : (x && x.id && ECO.itemById[x.id] ? ECO.itemById[x.id] : (x && x.slot ? x : null));
     if (it) {
-      if (it.effects && !gear.fx) gear.fx = it.effects;
-      if (it.effects && !gear.effects) gear.effects = it.effects;
+      if (it.effects && !gear.fx) gear.fx = it.effects.map(e => e ? Object.assign({}, e, e.params ? { params: Object.assign({}, e.params) } : {}) : e);
+      if (it.effects && !gear.effects) gear.effects = it.effects.map(e => e ? Object.assign({}, e, e.params ? { params: Object.assign({}, e.params) } : {}) : e);
       if (it.grantedSkills && !gear.grantedSkills) gear.grantedSkills = it.grantedSkills.slice();
       if (it.skillModifiers && !gear.skillModifiers) gear.skillModifiers = JSON.parse(JSON.stringify(it.skillModifiers));
       if (it.composableEffects && !gear.composableEffects) gear.composableEffects = JSON.parse(JSON.stringify(it.composableEffects));

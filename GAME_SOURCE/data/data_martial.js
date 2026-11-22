@@ -48861,11 +48861,13 @@ JD.ITEMS.items.forEach(it => {
       const mantraObj = {
         id: mid,
         nameTh: 'คัมภีร์บ่มเพ็ญเพียร · มหาเคล็ด' + noun,
+        cat: 'MANTRA',
         path: pc.path,
         sub: subId,
         reqPath: pc.path,
         bonusSubpath: subId,
         tier,
+        power: i === 0 ? 180 : 325,
         reqStage: i === 0 ? 2 : 4,
         element: el1,
         elementalRole: 'ELEMENTAL',

@@ -965,14 +965,17 @@
       const eq = [];
       const seen = new Set();
       JD.ITEMS.items.forEach(it => {
-        if (!it || it.out !== 'EQUIPMENT' || it.tier !== tier) return;
+        if (!it || (it.out !== 'EQUIPMENT' && !it.slot) || it.tier !== tier) return;
+        if (/^ITEM_PROC_/.test(it.id) || it.isProceduralTemplate) return;
         if (it.legendary || (VC && VC.LEGENDARY_WEAPON_BY_ID && VC.LEGENDARY_WEAPON_BY_ID[it.id])) return;
         seen.add(it.id);
         eq.push({ kind: 'EQUIPMENT', id: it.id, itemDef: it, nameTh: it.nameTh, tier: it.tier });
       });
       JD.ITEMS.recipes.forEach(r => {
         if (!r || r.outType !== 'EQUIPMENT' || r.tier !== tier || r.legendary) return;
+        if (/^REC_PROC_/.test(r.id) || r.proceduralOut) return;
         const id = r.outItemId || r.id;
+        if (/^ITEM_PROC_/.test(id)) return;
         if (seen.has(id) || (VC && VC.LEGENDARY_WEAPON_BY_ID && VC.LEGENDARY_WEAPON_BY_ID[id])) return;
         seen.add(id);
         eq.push({ kind: 'EQUIPMENT', id, recipeDef: r, nameTh: r.outNameTh, tier: r.tier });
@@ -1128,6 +1131,8 @@
       let gear = null;
       if (drop.kind === 'LEGENDARY_WEAPON' && VC && VC.mintLegendaryWeapon) {
         gear = VC.mintLegendaryWeapon(W, drop.id, 'fishing_container');
+      } else if (drop.id && /^ITEM_PROC_/.test(drop.id) && ECO.rollProceduralGear) {
+        gear = ECO.rollProceduralGear(W, { maxTier: Math.min(4, Math.max(1, drop.tier || 1)), source: 'fishing_container' });
       } else {
         gear = ECO.mintGear(W, drop.itemDef || drop.recipeDef || ECO.itemById[drop.id] || ECO.recipeById[drop.id], 1.05);
       }
