@@ -121,11 +121,23 @@
     const isMerchantPath = !!(npcObj && npcObj.cult && npcObj.cult.path === 'MERCANTILE_DAO');
     const treatyList = (W && W.world && W.world.politics && Array.isArray(W.world.politics.treaties)) ? W.world.politics.treaties : ((W && W.world && Array.isArray(W.world.treaties)) ? W.world.treaties : []);
     const hasFreeTrade = treatyList.some(t => t && t.active !== false && (t.type === 'FREE_TRADE_TREATY' || t.kind === 'TRADE' || t.id === 'FREE_TRADE_TREATY'));
+    let tollDisc = 0, shortageBoost = 0;
+    const _pl = W && W.world && W.world.politicalLives;
+    if (_pl) {
+      for (const _d of Object.values(_pl.dynasties || {})) {
+        if (_d && _d.policyFavors && _d.policyFavors.HOME_SECT && _d.policyFavors.HOME_SECT.tollDiscount > 0) {
+          tollDisc += _d.policyFavors.HOME_SECT.tollDiscount;
+        }
+      }
+      tollDisc = Math.min(0.08, tollDisc);
+      const _severeShortages = Object.values(_pl.cityDistricts || {}).filter(cd => cd && cd.shortageLevel >= 50).length;
+      if (_severeShortages > 0) shortageBoost = Math.min(0.05, _severeShortages * 0.015);
+    }
     let mult = 1;
-    if (side === 'sect-buy') mult = (1.15 - skill / 850) * (hasFreeTrade ? 0.96 : 1);
-    else if (side === 'sect-sell') mult = (0.78 + skill / 900) * (hasFreeTrade ? 1.04 : 1);
-    else if (side === 'member-buy') mult = (1.18 - (skill - 40) / 900) * (isAppraiserSub ? 0.92 : (isMerchantPath ? 0.96 : 1));
-    else if (side === 'member-sell') mult = (0.76 + (skill - 40) / 950) * (isAppraiserSub ? 1.10 : (isMerchantPath ? 1.05 : 1));
+    if (side === 'sect-buy') mult = (1.15 - skill / 850) * (hasFreeTrade ? 0.96 : 1) * (1 - tollDisc) * (1 + shortageBoost);
+    else if (side === 'sect-sell') mult = (0.78 + skill / 900) * (hasFreeTrade ? 1.04 : 1) * (1 + tollDisc * 0.75) * (1 + shortageBoost);
+    else if (side === 'member-buy') mult = (1.18 - (skill - 40) / 900) * (isAppraiserSub ? 0.92 : (isMerchantPath ? 0.96 : 1)) * (1 - tollDisc * 0.6);
+    else if (side === 'member-sell') mult = (0.76 + (skill - 40) / 950) * (isAppraiserSub ? 1.10 : (isMerchantPath ? 1.05 : 1)) * (1 + tollDisc * 0.6);
     return Math.max(1, Math.round(base * clamp(mult, 0.65, 1.2)));
   };
 

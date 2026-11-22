@@ -2266,7 +2266,10 @@
   CULT.threshold = npc => { const c = npc.cult; if (!c) return 0; const t = (CULT.THRESH[c.path] || [])[c.stage - 1]; return t == null ? Infinity : t; };
   CULT.lifespan = npc => {
     const c = npc && npc.cult; if (!c) return Math.round(HC.mortalLifespan(npc));
-    let life = CULT.PATHS[c.path].stages[c.stage - 1].lifespanMax + (c.lifeBonus || 0);
+    const _pDef = CULT.PATHS[c.path];
+    const _pStages = (_pDef && Array.isArray(_pDef.stages)) ? _pDef.stages : [];
+    const _sIdx = Math.max(0, Math.min(_pStages.length - 1, (c.stage || 1) - 1));
+    let life = ((_pStages[_sIdx] && _pStages[_sIdx].lifespanMax) || Math.round(HC.mortalLifespan(npc))) + (c.lifeBonus || 0);
     if (c.track) {
       const trRealm = CULT.trackRealm(npc);
       if (trRealm && trRealm.lifespanMax > life) life = trRealm.lifespanMax + (c.lifeBonus || 0);
@@ -5786,6 +5789,36 @@
     const partner = W.byId[compId];
     return !!(partner && !partner.dead && !partner.exiled);
   };
+  /* === JS2_DEEP_B_SECRET_SUBPATH_MODS_START === */
+  CULT.secretSubPathMods = (npc) => {
+    const out = { powerMult: 1, gainMult: 1, btBonus: 0, defBonus: 0, dmgMitigation: 0, heartDemonCalm: 0 };
+    if (!npc) return out;
+    const sp = npc.secretSubPathId;
+    if (sp === 'BREATH_RELAY_DAO') {
+      out.powerMult *= 1.10;
+      out.gainMult *= 1.12;
+      out.btBonus += 0.06;
+      out.heartDemonCalm += 0.35;
+    } else if (sp === 'SHADOW_RADIANCE_SUBPATH') {
+      out.powerMult *= 1.16;
+      out.gainMult *= 1.15;
+      out.btBonus += 0.08;
+      out.dmgMitigation += 0.18;
+    } else if (sp === 'PENDING_REGISTRY_PATH') {
+      const tier = clamp(npc.pendingCountdownTier == null ? 5 : Number(npc.pendingCountdownTier), 0, 5);
+      const steps = 6 - tier; // 1 at Tier 5 -> 6 at Tier 0
+      out.powerMult *= (1 + steps * 0.03);
+      out.btBonus += steps * 0.015;
+      out.dmgMitigation += steps * 0.03;
+      out.heartDemonCalm += steps * 0.25;
+    }
+    const ft = npc.folkTraitId;
+    if (ft === 'TR_FOLK_ROPE_BEARER') out.defBonus += 0.05;
+    else if (ft === 'TR_FOLK_SCALE_WALKER') out.gainMult *= 1.05;
+    else if (ft === 'TR_FOLK_LINGERING_BREATH') { out.gainMult *= 1.06; out.btBonus += 0.04; }
+    return out;
+  };
+  /* === JS2_DEEP_B_SECRET_SUBPATH_MODS_END === */
   CULT.gain = (npc, pts, W, sourceTag) => {
     const c = npc.cult; if (!c) return;
     const ascendedCount = (W && W.sect && W.sect.ascendedLegacyCount > 0 && W.byId && W.byId[npc.id] === npc) ? W.sect.ascendedLegacyCount : 0;
@@ -5803,6 +5836,13 @@
     }
     if (npc.bloodlineTrait && Number.isFinite(npc.bloodlineTrait.cultRateBonus) && sourceTag !== 'bloodline_raw' && sourceTag !== 'cultivate_rate') {
       pts *= (1 + npc.bloodlineTrait.cultRateBonus);
+    }
+    if (npc.secretSubPathId || npc.folkTraitId) {
+      const spm = CULT.secretSubPathMods(npc);
+      if (sourceTag !== 'cultivate_rate') pts *= spm.gainMult;
+      if (spm.heartDemonCalm > 0 && npc.h && npc.h.state && (npc.h.state.heartDemon || 0) > 0) {
+        npc.h.state.heartDemon = Math.max(0, npc.h.state.heartDemon - spm.heartDemonCalm);
+      }
     }
     const th = CULT.threshold(npc);
     if (c.prog >= th) { c.found = Math.min(0.08, (c.found || 0) + pts * 0.0002); pts *= 0.15; }
@@ -5854,10 +5894,11 @@
     const titleMult = (Array.isArray(npc.assemblyTitles) && npc.assemblyTitles.length)
       ? (1 + Math.min(0.18, npc.assemblyTitles.length * 0.06))
       : 1;
-    cp = cp * f_body * f_skill * f_tech * (1 + eq) * HC.special(npc, 'combat.powerMult') * f_state * f_mind * petMult * bloodPowerMult * scarPowerMult * wSpiritMult * titleMult;
+    const secretSubMult = (npc.secretSubPathId || npc.folkTraitId) ? CULT.secretSubPathMods(npc).powerMult : 1;
+    cp = cp * f_body * f_skill * f_tech * (1 + eq) * HC.special(npc, 'combat.powerMult') * f_state * f_mind * petMult * bloodPowerMult * scarPowerMult * wSpiritMult * titleMult * secretSubMult;
     return Math.max(3, cp);
   };
-  CULT.defenseMult = npc => { let d = 0; const E = npc.equip || {}; for (const k in E) if (E[k] && E[k].defMult) d += E[k].defMult; return 1 + d; };
+  CULT.defenseMult = npc => { let d = 0; const E = npc.equip || {}; for (const k in E) if (E[k] && E[k].defMult) d += E[k].defMult; if (npc && (npc.secretSubPathId || npc.folkTraitId)) d += CULT.secretSubPathMods(npc).defBonus; return 1 + d; };
 
   /* ----- ทะลวงขั้น ----- */
   CULT.isAncestralBlessingActive = (npc, now) => {
@@ -5882,6 +5923,7 @@
     p += elemBt.breakthroughBonus * 0.5;
     p += (HC.eff(npc, 'personality.composure') - 50) / 50 * 0.08 + (HC.eff(npc, 'intellect.willpower') - 50) / 50 * 0.08 + (HC.eff(npc, 'physiology.spiritualFoundation') - 50) / 50 * 0.06;
     p += HC.special(npc, 'cultivation.breakthroughBonus');
+    if (npc.secretSubPathId || npc.folkTraitId) p += CULT.secretSubPathMods(npc).btBonus;
     let equipTribBonus = 0;
     if (npc.equip) {
       if (npc._eqTribC && npc._eqTribC.ver === npc._ver) {

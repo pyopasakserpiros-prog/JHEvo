@@ -10,8 +10,8 @@ const { SIM, CULT, ECO, WILD, EXPED, MARTIAL: M } = g;
 console.log('=== JS2 v3.5.0c Phase C — P2 Polish & GitHub Release Suite ===');
 
 const W = SIM.create('v350c-p2-seed');
-assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'PATCH_VERSION must be 3.5.0c');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SAVE_SCHEMA_VERSION must be 3.5.0c-release-polish');
+assert.strictEqual(SIM.PATCH_VERSION, '3.9.6', 'PATCH_VERSION must be 3.5.0c');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration', 'SAVE_SCHEMA_VERSION must be 3.5.0c-release-polish');
 
 // 1. WILD.awardSpiritBeastCrucible calls CULT.gain
 {

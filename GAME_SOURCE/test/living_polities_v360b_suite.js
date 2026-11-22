@@ -11,8 +11,8 @@ const LS = EXPED.LIVING_SECTS;
 
 console.log('=== JS2 v3.6.0b Phase 2 — Living Continental Polities (Dynasties, Border Wars & Sect-Polity Link) Suite ===');
 
-assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'PATCH_VERSION must be 3.6.0b');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SAVE_SCHEMA_VERSION must be 3.6.0b-living-polities');
+assert.strictEqual(SIM.PATCH_VERSION, '3.9.6', 'PATCH_VERSION must be 3.6.0b');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration', 'SAVE_SCHEMA_VERSION must be 3.6.0b-living-polities');
 
 // 1. Initialization & ZERO W.rng consumption
 {

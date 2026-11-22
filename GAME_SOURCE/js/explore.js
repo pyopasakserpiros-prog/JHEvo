@@ -7058,7 +7058,10 @@
       else if (sc > 75 && r < 0.6) {
         const gear = (ECO.rollProceduralGear && rng.chance(0.7))
           ? ECO.rollProceduralGear(W, { maxTier: clamp(1 + s.lvl, 1, 4), source: 'pagoda_ruin' })
-          : (() => { const rs = ECO.recipesFor(W, ['FORGING']).filter(x => x.outType === 'EQUIPMENT' && x.tier <= 2 + s.lvl); if (!rs.length) return null; const g2 = ECO.mintGear(W, rng.pick(rs), 1.1 + rng.next() * 0.2); g2.nameTh = (g2.nameTh || 'ศาสตรา') + ' (ของโบราณ)'; return g2; })();
+          : (() => { const rs = ECO.recipesFor(W, ['FORGING']).filter(x => x.outType === 'EQUIPMENT' && x.tier <= 2 + s.lvl); if (!rs.length) return null; const g2 = ECO.mintGear(W, rng.pick(rs), 1.1 + rng.next() * 0.2); g2.nameTh = (g2.nameTh || 'ศาสตรา') + ' (ของโบราณ)'; return g2; 
+
+
+})();
         if (gear) {
           n.inv = n.inv || {}; n.inv.gear = n.inv.gear || []; n.inv.gear.push(gear);
           if (g.CPE && g.CPE.evaluatePersonalBagGear) g.CPE.evaluatePersonalBagGear(W, n);
@@ -7249,6 +7252,7 @@
     if (ex.kind === 'sanctum') return EX.resolveSanctum(W, ex, members);
     if (ex.kind === 'nine_dao_pagoda') return EX.resolveNineDaoPagoda(W, ex, members);
     if (ex.kind === 'elemental_realm') return EX.resolveElementalRealm(W, ex, members);
+    if (ex.kind === 'rift_shard') return EX.resolveRiftShard(W, ex, members);
     if (ex.kind === 'delve' || ex.kind === 'realm') return EX.resolve(W, ex, members);
     return origResolve(W, ex, members);
   };
@@ -7339,6 +7343,8 @@
     if (pw >= 30 && !W.world.expeds.some(x => !x.done && x.kind === 'nine_dao_pagoda')) opts.push({ k: 'nine_dao_pagoda', w: 0.48 + Math.max(0, (E(n, 'values.martialPeak') - 45) / 120) + Math.max(0, (E(n, 'interests.exploring') - 45) / 140) });
     const activeElementRealm = EX.elementalRealmAt(W.day);
     if (pw >= 24 && activeElementRealm && !W.world.expeds.some(x => !x.done && x.kind === 'elemental_realm')) opts.push({ k: 'elemental_realm', w: 0.36 + (EX.rootMatchesElement(n, activeElementRealm) ? 0.45 : 0) + Math.max(0, (E(n, 'interests.exploring') - 45) / 150) });
+    const openShards = (EX.getOpenEventShards && EX.getOpenEventShards(W)) || [];
+    if (pw >= 28 && openShards.length && !W.world.expeds.some(x => !x.done && x.kind === 'rift_shard')) opts.push({ k: 'rift_shard', w: 0.62 + (n.folkTraitId ? 0.35 : 0) + (n.secretSubPathId ? 0.25 : 0) + Math.max(0, (E(n, 'interests.exploring') - 40) / 110) });
     if (pw >= 95 && n.rank >= 2 && !W.world.expeds.some(x => !x.done && x.kind === 'sanctum')) {
       const hasRefinableT4 = !!(n.equip && Object.values(n.equip).some(eq => eq && (eq.tier || 1) >= 4 && (eq.q || 1) < 1.65));
       const resInc = (g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(n).pieces < 3 : false;
@@ -7383,6 +7389,7 @@
       return true;
     }
     if (pick === 'elemental_realm') { EX.departElementalRealm(W, party, { realmId: activeElementRealm.id }); return true; }
+    if (pick === 'rift_shard' && openShards.length) { EX.departRiftShard(W, party, { realmId: openShards[0].id }); return true; }
     EX.depart(W, party, pick); return true;
   };
 
@@ -7985,6 +7992,7 @@
   /* ======================= v2.0.10: Universal Pagoda & Elemental Realms ======================= */
   X.MISSIONS.nine_dao_pagoda = { nameTh: 'ทดสอบเจดีย์เก้าวิถี', icon: '🗼' };
   X.MISSIONS.elemental_realm = { nameTh: 'สำรวจแดนธาตุ', icon: '🌌' };
+  X.MISSIONS.rift_shard = { nameTh: 'สำรวจแดนลับเศษรอยแยก', icon: '🪞' };
   EX.NINE_DAO_PAGODA = Object.freeze({
     id: 'NINE_DAO_PAGODA', nameTh: 'เจดีย์เก้าวิถีทดสอบสัจธรรม', icon: '🗼',
     attemptApexTrial(W, npc, floorOrPathId, opts) {
@@ -8704,6 +8712,280 @@
   };
 
   if (g.SECT && g.SECT.IMMORTAL_TOMB) EX.IMMORTAL_TOMB = g.SECT.IMMORTAL_TOMB;
+  /* === JS2_DEEP_B_RIFT_SHARD_EXPEDITIONS_START === */
+  EX.RIFT_SHARD_CONFIGS = {
+    TIANGU_FOLDED_TREASURY: {
+      id: 'TIANGU_FOLDED_TREASURY',
+      num: 10,
+      nameTh: 'ท้องพระคลังพับมิติเทียนกู่',
+      openField: 'tianguTreasuryOpenUntilDay',
+      tripDays: 1.5,
+      basePower: 95,
+      stones: 160,
+      rewardMatId: 'MAT_ORE_DIVINE_GOLD_6',
+      awakensSubPath: 'BREATH_RELAY_DAO',
+      relicEchoId: 'REL_ECHO_BREATH_JADE',
+      trialMode: 'COMBAT',
+      guardianNameTh: 'หุ่นทวารบาลพับมิติคลังเทียนกู่'
+    },
+    SKY_FALL_SORTING_YARD: {
+      id: 'SKY_FALL_SORTING_YARD',
+      num: 11,
+      nameTh: 'ลานคัดแยกของตกฟ้า',
+      openField: 'skyFallOpenUntilDay',
+      tripDays: 1.0,
+      basePower: 75,
+      stones: 115,
+      rewardMatId: 'MAT_HERB_CINDER_LEAF_1',
+      awakensSubPath: 'SHADOW_RADIANCE_SUBPATH',
+      relicEchoId: 'REL_ECHO_NAME_COMPASS',
+      trialMode: 'COMBAT',
+      guardianNameTh: 'กระแสลมม่านกั้นภพไร้ที่มา'
+    },
+    TWO_BANK_WATER_REALM: {
+      id: 'TWO_BANK_WATER_REALM',
+      num: 12,
+      nameTh: 'แดนถ้วยน้ำสองฝั่ง',
+      openField: 'twoBankOpenUntilDay',
+      tripDays: 0.75,
+      basePower: 55,
+      stones: 85,
+      rewardMatId: 'MAT_HERB_CINDER_LEAF_1',
+      awakensSubPath: 'PENDING_REGISTRY_PATH',
+      relicEchoId: 'REL_ECHO_THREE_SIDED_SEAL',
+      trialMode: 'DIPLOMACY',
+      guardianNameTh: 'ด่านคันชั่งน้ำสองฝั่ง (ไม่ใช้กำลัง)'
+    },
+    DAO_ZHI_SHADOW_ARCHIVE: {
+      id: 'DAO_ZHI_SHADOW_ARCHIVE',
+      num: 13,
+      nameTh: 'คลังเงาสำเนาเต้าจื่อ',
+      openField: 'daoZhiArchiveOpenUntilDay',
+      tripDays: 1.0,
+      basePower: 80,
+      stones: 105,
+      rewardMatId: 'MAT_ORE_CINNABAR_1',
+      awakensSubPath: 'PENDING_REGISTRY_PATH',
+      relicEchoId: null,
+      trialMode: 'SCHOLAR',
+      guardianNameTh: 'กลไกเงาสำเนาคัมภีร์โบราณ'
+    }
+  };
+
+  EX.getOpenEventShards = (W) => {
+    const ws = W && W.world && W.world.witnessesAndShards;
+    if (!ws || !ws.eventShards) return [];
+    const curDay = Math.floor((W.t || 0) / 1440);
+    const out = [];
+    Object.values(EX.RIFT_SHARD_CONFIGS).forEach(cfg => {
+      const untilDay = ws.eventShards[cfg.openField];
+      if (Number.isFinite(untilDay) && untilDay >= curDay) {
+        out.push(cfg);
+      }
+    });
+    return out;
+  };
+
+  EX.departRiftShard = (W, party, opts) => {
+    opts = opts || {};
+    const open = EX.getOpenEventShards(W);
+    const cfg = opts.realmId
+      ? (EX.RIFT_SHARD_CONFIGS[opts.realmId] && (opts.force || open.some(s => s.id === opts.realmId)) ? EX.RIFT_SHARD_CONFIGS[opts.realmId] : null)
+      : open[0];
+    if (!cfg) return null;
+    const validParty = (party || []).filter(n => n && !n.dead && !n.exiled && !n.away);
+    if (!validParty.length) return null;
+    return EX.createTrialExpedition(W, validParty, 'rift_shard', {
+      target: 2,
+      realmId: cfg.id,
+      regionId: cfg.id,
+      days: cfg.tripDays || 1.0
+    });
+  };
+
+  EX.resolveRiftShard = (W, ex, members) => {
+    const cfg = EX.RIFT_SHARD_CONFIGS[ex.realmId] || EX.RIFT_SHARD_CONFIGS.SKY_FALL_SORTING_YARD;
+    const alive = (members || []).filter(m => m && !m.dead);
+    const ws = (g.EXPED && g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.ensure)
+      ? g.EXPED.WITNESSES_AND_SHARDS.ensure(W)
+      : (W.world && W.world.witnessesAndShards);
+    const rng = W.rng;
+    const out = {
+      ok: true,
+      shardId: cfg.id,
+      shardNum: cfg.num,
+      nameTh: cfg.nameTh,
+      won: false,
+      stonesEarned: 0,
+      matsAdded: {},
+      awakenedSubPaths: [],
+      relicEchoFound: null,
+      manualUnlocked: null
+    };
+
+    if (!alive.length) {
+      ex.done = true;
+      return out;
+    }
+
+    // Compute party score based on trialMode (COMBAT vs DIPLOMACY vs SCHOLAR)
+    let partyScore = 0;
+    let hasScaleWalker = false;
+    let hasRopeBearer = false;
+    alive.forEach(m => {
+      if (m.folkTraitId === 'TR_FOLK_SCALE_WALKER') hasScaleWalker = true;
+      if (m.folkTraitId === 'TR_FOLK_ROPE_BEARER') hasRopeBearer = true;
+      const baseP = PW(m);
+      if (cfg.trialMode === 'DIPLOMACY') {
+        const integrity = E(m, 'personality.integrity') || 50;
+        const empathy = E(m, 'personality.empathy') || 50;
+        const dip = (m.h && m.h.skills && m.h.skills.diplomacy) || 30;
+        const ropeBonus = m.folkTraitId === 'TR_FOLK_ROPE_BEARER' ? 35 : 0;
+        partyScore += (integrity + empathy + dip) * 0.45 + baseP * 0.25 + ropeBonus;
+      } else if (cfg.trialMode === 'SCHOLAR') {
+        const rational = E(m, 'personality.rationality') || 50;
+        const scr = (m.h && m.h.skills && m.h.skills.SCRIPTURE) || 30;
+        partyScore += (rational + scr) * 0.5 + baseP * 0.5;
+      } else {
+        partyScore += baseP;
+      }
+    });
+
+    const threshold = cfg.basePower * (0.85 + rng.next() * 0.25);
+    const won = partyScore >= threshold;
+    out.won = won;
+
+    if (won) {
+      const scaleMult = hasScaleWalker ? 1.06 : 1.0;
+      const rawStones = Math.round(cfg.stones * scaleMult);
+      if (g.ECO && g.ECO.earnFromPool) {
+        out.stonesEarned = g.ECO.earnFromPool(W, rawStones, 'สำรวจแดนลับเศษรอยแยก #' + cfg.num + '「' + cfg.nameTh + '」');
+      } else if (g.ECO && g.ECO.earn) {
+        g.ECO.earn(W, rawStones, 'สำรวจแดนลับเศษรอยแยก #' + cfg.num + '「' + cfg.nameTh + '」');
+        out.stonesEarned = rawStones;
+      }
+
+      if (cfg.rewardMatId && g.ECO && g.ECO.add) {
+        const matQty = cfg.id === 'SKY_FALL_SORTING_YARD' ? 4 : 2;
+        if (g.ECO.add(W, cfg.rewardMatId, matQty)) {
+          out.matsAdded[cfg.rewardMatId] = matQty;
+        }
+      }
+
+      // Special Shard #12 Two-Bank Water Realm: lowers Bloodless War localPressure & raises sect rep!
+      if (cfg.id === 'TWO_BANK_WATER_REALM') {
+        if (W.world && W.world.livingInstitutions && W.world.livingInstitutions.bloodlessWar) {
+          const bw = W.world.livingInstitutions.bloodlessWar;
+          bw.localPressure = Math.max(0, (bw.localPressure || 0) - 2);
+          bw.ritualLegitimacy = (bw.ritualLegitimacy || 0) + 1;
+        }
+        if (W.sect) W.sect.rep = (W.sect.rep || 0) + (hasRopeBearer ? 6 : 4);
+      }
+
+      // Special Shard #13 Dao Zhi Shadow Archive: recovers a lost technique manual into sect library!
+      if (cfg.id === 'DAO_ZHI_SHADOW_ARCHIVE' && g.JD && g.JD.TECH && Array.isArray(g.JD.TECH.techniques)) {
+        W.sect.library = W.sect.library || [];
+        const missing = g.JD.TECH.techniques.find(t => t && t.tier >= 2 && t.tier <= 4 && !W.sect.library.includes(t.id));
+        if (missing) {
+          W.sect.library.push(missing.id);
+          out.manualUnlocked = missing.id;
+        }
+        if (W.sect) W.sect.rep = (W.sect.rep || 0) + 3;
+      }
+
+      // Special Shard #10 Tiangu Folded Treasury: roll procedural gear into sect stock/leader
+      if (cfg.id === 'TIANGU_FOLDED_TREASURY' && g.ECO && g.ECO.rollProceduralGear) {
+        try {
+          const gear = g.ECO.rollProceduralGear(W, { minTier: 3, maxTier: 5, source: 'rift_shard:TIANGU_FOLDED_TREASURY' });
+          if (gear && W.sect) {
+            W.sect.armory = W.sect.armory || [];
+            W.sect.armory.push(gear);
+          }
+        } catch (_) {}
+      }
+
+      // Cultivation gain + Autonomous Secret Sub-Path Awakening!
+      alive.forEach(m => {
+        if (m.cult && g.CULT && g.CULT.gain) g.CULT.gain(m, 55, W, 'rift_shard_' + cfg.id);
+        m.merit = (m.merit || 0) + 18;
+        if (!m.secretSubPathId && cfg.awakensSubPath) {
+          const affinityBoost = (cfg.awakensSubPath === 'BREATH_RELAY_DAO' && m.folkTraitId === 'TR_FOLK_LINGERING_BREATH') ? 0.45
+            : (cfg.awakensSubPath === 'PENDING_REGISTRY_PATH' && m.folkTraitId === 'TR_FOLK_ROPE_BEARER') ? 0.35
+            : 0.25;
+          if (rng.next() < affinityBoost || alive.length === 1) {
+            m.secretSubPathId = cfg.awakensSubPath;
+            if (cfg.awakensSubPath === 'PENDING_REGISTRY_PATH' && m.pendingCountdownTier == null) {
+              m.pendingCountdownTier = 5;
+            }
+            if (cfg.awakensSubPath === 'BREATH_RELAY_DAO' && m.breathRelayStage == null) {
+              m.breathRelayStage = 1;
+            }
+            out.awakenedSubPaths.push({ npcId: m.id, subPathId: cfg.awakensSubPath });
+          }
+        }
+      });
+
+      // Relic Echo Discovery (tracked on ws.discoveredRelicEchoes)
+      if (ws && cfg.relicEchoId) {
+        ws.discoveredRelicEchoes = ws.discoveredRelicEchoes || [];
+        if (!ws.discoveredRelicEchoes.includes(cfg.relicEchoId)) {
+          ws.discoveredRelicEchoes.push(cfg.relicEchoId);
+          out.relicEchoFound = cfg.relicEchoId;
+        }
+      }
+
+      ex.journal.push('ฝ่าด่าน「' + cfg.nameTh + '」สำเร็จ ได้รับศิลาวิญญาณ +' + out.stonesEarned + (out.awakenedSubPaths.length ? ' และศิษย์ตระหนักแขนงลับ ' + cfg.awakensSubPath : ''));
+    } else {
+      // Partial retreat: minor cultivation insight & fatigue, no instant wipe
+      alive.forEach(m => {
+        if (m.cult && g.CULT && g.CULT.gain) g.CULT.gain(m, 18, W, 'rift_shard_retreat');
+        if (m.h && m.h.state) m.h.state.hp = Math.max(10, Math.round((m.h.state.hp || 50) * 0.72));
+      });
+      ex.journal.push('คณะสำรวจประเมินความเสี่ยงใน「' + cfg.nameTh + '」แล้วถอนตัวกลับอย่างปลอดภัยพร้อมบันทึกสังเกตการณ์');
+    }
+
+    // Record history on witnessesAndShards
+    if (ws) {
+      ws.shardExpeditionHistory = ws.shardExpeditionHistory || [];
+      ws.shardExpeditionHistory.unshift({
+        day: Math.floor((W.t || 0) / 1440),
+        shardId: cfg.id,
+        shardNum: cfg.num,
+        nameTh: cfg.nameTh,
+        won,
+        partyIds: alive.map(m => m.id),
+        stonesEarned: out.stonesEarned,
+        awakenedSubPaths: out.awakenedSubPaths.slice()
+      });
+      if (ws.shardExpeditionHistory.length > 30) ws.shardExpeditionHistory.length = 30;
+    }
+
+    // Return members to sect cleanly
+    alive.forEach(m => {
+      m.away = false; m.hidden = false; m.x = ex.px + 0.5 + rng.gauss(0, 0.5); m.y = ex.py + 1.5;
+      m.travel = null; m.expId = null; m.path = null; m.run = false;
+      if (m.h && m.h.state) m.h.state.satiety = Math.max(30, m.h.state.satiety || 50);
+      HC.experience(m, 'adventure', won ? 0.75 : 0.35);
+      if (g.AI && g.AI.mem) g.AI.mem(W, m, (won ? 'ผ่านแดนลับเศษรอยแยก ' : 'ถอนตัวจากแดนลับ ') + cfg.nameTh, won ? 0.65 : 0.25);
+    });
+    ex.done = true;
+
+    if (g.EXPED && g.EXPED.recordChronicle) {
+      g.EXPED.recordChronicle(W, {
+        category: 'SECRET_REALM',
+        icon: '🪞',
+        involvedSects: [W.sect && W.sect.name].filter(Boolean),
+        involvedFigures: alive.map(m => HC.fullName(m)),
+        npcIds: alive.map(m => m.id),
+        titleTh: 'สำรวจแดนลับเศษรอยแยก #' + cfg.num + '「' + cfg.nameTh + '」: ' + (won ? 'สำเร็จ (+' + out.stonesEarned + ' ศิลา)' : 'ถอนตัวปลอดภัย'),
+        storyTh: ex.journal[ex.journal.length - 1] || cfg.nameTh,
+        quiet: true
+      });
+    }
+    return out;
+  };
+  /* === JS2_DEEP_B_RIFT_SHARD_EXPEDITIONS_END === */
+
   g.EXPLORE = EX;
   if (typeof module === 'object' && module.exports) module.exports = EX;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

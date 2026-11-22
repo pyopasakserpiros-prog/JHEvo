@@ -6,8 +6,8 @@ console.log('=== JS2 v3.7.0c — Phase C: Final P2 Polish & Regression Verificat
 
 // [1/5] Version & Backward-Compatible Schema Contract
 {
-  assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.2');
-  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive');
+  assert.strictEqual(g.SIM.PATCH_VERSION, '3.9.6');
+  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration');
   const W = g.SIM.create('v370c_schema');
   const legacySnap = JSON.parse(g.SIM.serialize(W));
   legacySnap.schemaVersion = '3.7.0b-p1-realism-polish';

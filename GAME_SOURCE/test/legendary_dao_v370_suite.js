@@ -8,8 +8,8 @@ console.log('=== JS2 v3.7.0 — Legendary & Transcendent Dao Expansion Suite ===
 
 // [1/7] 55 Paths (43 Ordinary + 6 Legendary + 6 Transcendent), 346 Subpaths, Lower-World Scale & 3 Origin Types
 {
-  assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.2');
-  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive');
+  assert.strictEqual(g.SIM.PATCH_VERSION, '3.9.6');
+  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration');
   assert.strictEqual(Object.keys(g.CULT.PATHS).length, 55, 'Expected 55 total cultivation paths');
   assert.strictEqual(g.CULT.subList.length, 346, 'Expected 346 total subpaths');
   assert.strictEqual(g.CULT.LEGENDARY_DAO.LEGENDARY_IDS.length, 6, 'Expected 6 Legendary paths');

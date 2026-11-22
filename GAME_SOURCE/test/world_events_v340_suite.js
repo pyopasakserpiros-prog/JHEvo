@@ -6,8 +6,8 @@ const { SIM, ECO, HC, CULT, EXPED } = G;
 console.log('=== Running JS2 v3.4.0 External World Events & Living Lore Cross-Links Suite ===');
 
 // 1. Version, Schema & Catalog Integrity
-assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'PATCH_VERSION must be 3.4.0');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SAVE_SCHEMA_VERSION must be 3.4.0-world-events');
+assert.strictEqual(SIM.PATCH_VERSION, '3.9.6', 'PATCH_VERSION must be 3.4.0');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration', 'SAVE_SCHEMA_VERSION must be 3.4.0-world-events');
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'human_core.js fingerprint must remain locked');
 
 const EWE = EXPED.EXTERNAL_WORLD_EVENTS;

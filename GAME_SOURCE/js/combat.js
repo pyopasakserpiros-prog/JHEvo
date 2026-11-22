@@ -1297,6 +1297,13 @@
       if (guard.cocoonTriggered) return false;
       dmg = guard.dmg;
     }
+    // Deep Round B: Secret Sub-Path Incoming Damage Mitigation (SHADOW_RADIANCE_SUBPATH / PENDING_REGISTRY_PATH)
+    if (dmg > 0 && !d.foe && d.secretSubPathId && g.CULT && g.CULT.secretSubPathMods) {
+      const spm = g.CULT.secretSubPathMods(d);
+      if (spm.dmgMitigation > 0) {
+        dmg = Math.max(1, Math.round(dmg * (1 - spm.dmgMitigation)));
+      }
+    }
     let hp = C.hp(d) - dmg;
     if (hp <= 0 && d.isGateBeast && (d.fourSymbol === 'VERMILION_PHOENIX' || d.fourSymbol === 'BLACK_TORTOISE' || d.bloodlineTrait === 'SOVEREIGN_AWAKENED' || d.bloodlineTrait === 'VERMILION_PHOENIX' || d.bloodlineTrait === 'BLACK_TORTOISE') && !d.sovereignGuardUsed) {
       d.sovereignGuardUsed = true;
@@ -1358,6 +1365,51 @@
       d.fx = { t: W.t, text: '🏮 โคมวิญญาณคุ้มชีพ!' };
       d.lastNirvanaSave = { t: W.t, fightId: f ? f.id : 0 };
       STs().dirty(d);
+    }
+    // Deep Round B: BREATH_RELAY_DAO Cheat-Death Relay (ผลัดลมสุดท้ายยืมปลายทาง)
+    if (f.kind !== 'spar' && !(f.kind === 'duel' && f.serious === false) && hp <= hm * 0.14 && !d.foe && (d._cheatDeathSavesCount || 0) < 2 && d.secretSubPathId === 'BREATH_RELAY_DAO') {
+      f._breathRelayUsed = f._breathRelayUsed || {};
+      if (!f._breathRelayUsed[d.id]) {
+        f._breathRelayUsed[d.id] = true;
+        d._cheatDeathSavesCount = (d._cheatDeathSavesCount || 0) + 1;
+        hp = Math.max(Math.round(hm * 0.38), hp);
+        STs().addStatus(d, 'shield', 10, { amt: Math.round(hm * 0.22) }, W.t);
+        STs().addStatus(d, 'evadeUp', 10, {}, W.t);
+        STs().clearStatus(d, x => ['poison', 'bleed'].includes(x.k));
+        d.fx = { t: W.t, text: '🌬️ ผลัดลมสุดท้ายยืมปลายทาง!' };
+        d.lastBreathRelaySave = { t: W.t, fightId: f ? f.id : 0 };
+        if (W.world && W.world.witnessesAndShards && W.world.witnessesAndShards.breathRelay) {
+          W.world.witnessesAndShards.breathRelay.relayPassCount = (W.world.witnessesAndShards.breathRelay.relayPassCount || 0) + 1;
+        }
+        STs().dirty(d);
+      }
+    }
+    // Deep Round B: SHADOW_RADIANCE_SUBPATH Non-Lethal Disarming Counter (เงาจำคมเดิม — ลมหายใจข้ามภพ)
+    if (hp > 0 && hp <= hm * 0.35 && !d.foe && d.secretSubPathId === 'SHADOW_RADIANCE_SUBPATH' && a && C.alive(a) && note !== 'เงาจำคมเดิม') {
+      f._shadowRadianceCounterUsed = f._shadowRadianceCounterUsed || {};
+      if (!f._shadowRadianceCounterUsed[d.id]) {
+        f._shadowRadianceCounterUsed[d.id] = true;
+        const counterDmg = Math.max(8, Math.round(hm * 0.14));
+        C.applyDamage(W, f, d, a, counterDmg, 'เงาจำคมเดิม');
+        STs().addStatus(a, 'weak', 10, {}, W.t);
+        d.fx = { t: W.t, text: '✨ เงาจำคมเดิม — ลมหายใจข้ามภพ!' };
+        d.lastShadowRadianceCounter = { t: W.t, fightId: f ? f.id : 0, attackerId: a.id, counterDmg };
+        STs().dirty(d);
+      }
+    }
+    // Deep Round B: PENDING_REGISTRY_PATH Third-Side Seal Survival (ท่าประทับตราด้านที่สาม)
+    if (f.kind !== 'spar' && !(f.kind === 'duel' && f.serious === false) && hp <= hm * 0.20 && !d.foe && (d._cheatDeathSavesCount || 0) < 2 && d.secretSubPathId === 'PENDING_REGISTRY_PATH') {
+      f._pendingSealUsed = f._pendingSealUsed || {};
+      if (!f._pendingSealUsed[d.id]) {
+        f._pendingSealUsed[d.id] = true;
+        d._cheatDeathSavesCount = (d._cheatDeathSavesCount || 0) + 1;
+        hp = Math.max(Math.round(hm * 0.28), hp);
+        STs().addStatus(d, 'shield', 10, { amt: Math.round(hm * 0.16) }, W.t);
+        STs().clearStatus(d, x => ['curse', 'fear'].includes(x.k));
+        d.fx = { t: W.t, text: '📜 ท่าประทับตราด้านที่สาม — ชื่อยังไม่ขาด!' };
+        d.lastPendingSealSave = { t: W.t, fightId: f ? f.id : 0, tier: d.pendingCountdownTier == null ? 5 : d.pendingCountdownTier };
+        STs().dirty(d);
+      }
     }
     if (hp <= 0 && (d._cheatDeathSavesCount || 0) < 2 && (f.serious || d._phoenixClauseReady || STs().has(d, 'phoenixCovenant', W.t)) && (STs().has(d, 'phoenixCovenant', W.t) || (STs().hasBuff && STs().hasBuff(d, 'phoenixCovenant', W.t)) || d._phoenixClauseReady)) {
       f._phoenixClauseUsed = f._phoenixClauseUsed || (fTac ? fTac.phoenixClauseUsed : {});
@@ -3033,7 +3085,7 @@
         if (p.heal > 0 && hMult > 0) C.setHp(ally, Math.min(ahm, C.hp(ally) + Math.max(1, Math.round(ahm * p.heal * hMult))));
         if (p.shield > 0) ST.addStatus(ally, 'shield', dur, { amt: Math.round(ahm * p.shield) }, W.t);
         if (a.wild && p.beastNativeAbility === 'ABIL_BODHI_THORN_SANCTUARY' && d) {
-          const linked = C.enemiesOf(W,f,a.id).find(other=>other.id!==d.id && C.alive(other) && C.unitDist(other,d)<=4);
+          const linked = C.enemies(W,f,a.id).find(other=>other.id!==d.id && C.alive(other) && C.unitDist(other,d)<=4);
           if (linked) ST.addStatus(d,'tetheredEnemy',12,{linkedToId:linked.id,shareRatio:0.2},W.t);
         }
         if (ST.BUFF_CATALOG && ST.BUFF_CATALOG[buffKind] && ST.applyNamedBuff) {

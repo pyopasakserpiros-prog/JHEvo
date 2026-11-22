@@ -6,8 +6,8 @@ console.log('=== JS2 v3.8.1 — Formal World Calendar & 1,000-Year Epoch System 
 
 // [1/5] Version, Schema & Backward-Compatible 3.8.0 Save Hydration
 {
-  assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.6');
-  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.6-90book-grand-lore-archive');
+  assert.strictEqual(g.SIM.PATCH_VERSION, '3.9.6');
+  assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration');
   const W = g.SIM.create('v381_cal');
   const snap = JSON.parse(g.SIM.serialize(W));
   snap.schemaVersion = '3.8.0-master-lore-compendium';

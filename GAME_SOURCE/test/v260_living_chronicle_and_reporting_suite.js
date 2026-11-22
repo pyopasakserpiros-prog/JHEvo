@@ -67,8 +67,8 @@ console.log('===================================================================
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   assert.strictEqual(hcSha, 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js must remain 100% byte-identical');
   assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.ok(['2.6.0', '3.0.0', '3.1.0', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.6.0a', '3.8.2'].includes(SIM.PATCH_VERSION), 'known release contract');
-  assert.ok(['2.6.0-living-chronicle-and-reporting', '3.0.0-living-continent', '3.4.0-world-events', '3.5.0a-p0-hardening', '3.5.0b-p1-hardening', '3.5.0c-release-polish', '3.6.0a-living-sects', '3.8.2-chaos-era-lore-archive'].includes(SIM.SAVE_SCHEMA_VERSION), 'known release contract');
+  assert.ok(['2.6.0', '3.0.0', '3.1.0', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.6.0a', '3.9.5', '3.9.6'].includes(SIM.PATCH_VERSION), 'known release contract');
+  assert.ok(['2.6.0-living-chronicle-and-reporting', '3.0.0-living-continent', '3.4.0-world-events', '3.5.0a-p0-hardening', '3.5.0b-p1-hardening', '3.5.0c-release-polish', '3.6.0a-living-sects', '3.9.6-deep-gameplay-integration'].includes(SIM.SAVE_SCHEMA_VERSION), 'known release contract');
 
   const indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const scriptMatches = indexHtml.match(/<script\s+src="[^"]+"\s*><\/script>/g) || [];

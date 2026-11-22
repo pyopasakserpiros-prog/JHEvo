@@ -10,8 +10,8 @@ const LS = EXPED.LIVING_SECTS;
 
 console.log('=== JS2 v3.6.0a Phase 1 — Living Jianghu Sects (Rise, Fall, Collapse & Rebirth) Suite ===');
 
-assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'PATCH_VERSION must be 3.6.0a');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SAVE_SCHEMA_VERSION must be 3.6.0a-living-sects');
+assert.strictEqual(SIM.PATCH_VERSION, '3.9.6', 'PATCH_VERSION must be 3.6.0a');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration', 'SAVE_SCHEMA_VERSION must be 3.6.0a-living-sects');
 
 // 1. Roster initialization & ZERO W.rng consumption
 {

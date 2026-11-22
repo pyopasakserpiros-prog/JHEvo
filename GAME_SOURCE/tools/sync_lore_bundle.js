@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * sync_lore_bundle.js — ซิงค์ไฟล์ Lore แยกทั้งหมด (90 บทมหากาพย์ภายใต้ GAME_SOURCE/data/lore_chronicle_*.js)
+ * sync_lore_bundle.js — ซิงค์ไฟล์ Lore แยกทั้งหมด (104 บทมหากาพย์ภายใต้ GAME_SOURCE/data/lore_chronicle_*.js)
  * เข้าสู่บล็อกเฉพาะท้ายไฟล์ GAME_SOURCE/data/data_expansion.js
  * เพื่อให้ผู้พัฒนาแก้ไฟล์ Lore แยกได้อย่างอิสระเหมือนอ่านนิยาย โดยยังรักษาข้อบังคับ 40 <script> tags ครบ 100%
  */
@@ -108,7 +108,25 @@ const loreFiles = [
   'data/lore_chronicle_seams_of_the_realm_six_bridges.js',
   'data/lore_chronicle_sect_three_ascensions_ten_epochs.js',
   'data/lore_chronicle_sect_two_tribulations_softened_stone.js',
-  'data/lore_chronicle_sects_of_epoch101_nineteen_pillars.js'
+  'data/lore_chronicle_sects_of_epoch101_nineteen_pillars.js',
+
+  // === 6 คัมภีร์ตำนานชุดใหม่ v3.9.2 (Books 91–96: Golden Tiangu, Three Empires Shadow, 7 Middle Kingdoms, Epoch 101 Scene, Black Ledger & Mortal Almanac) ===
+  'data/lore_chronicle_b91_golden_tiangu_and_outer_empires.js',
+  'data/lore_chronicle_b92_three_empires_shadow_continuity.js',
+  'data/lore_chronicle_b93_seven_middle_kingdoms_and_heroes.js',
+  'data/lore_chronicle_b94_epoch101_five_buffers_and_sect_masters.js',
+  'data/lore_chronicle_b95_black_ledger_and_neutral_charter.js',
+  'data/lore_chronicle_b96_mortal_almanac_faiths_and_refugees.js',
+
+  // === 8 คัมภีร์ตำนานชุดใหม่ v3.9.3 (Books 97–104: Yunhe Survey, Breath Relay, Epoch 1 Anatomy, Bloodless War, Living Economy A-D, Two Witnesses, 12 Shards E101, Shadow Market & Ash City) ===
+  'data/lore_chronicle_b97_yunhe_survey_and_nine_benches.js',
+  'data/lore_chronicle_b98_breath_relay_pavilion.js',
+  'data/lore_chronicle_b99_epoch1_anatomy_and_unpermitted_dead.js',
+  'data/lore_chronicle_b100_court_vs_jianghu_bloodless_war.js',
+  'data/lore_chronicle_b101_epoch101_living_economy_dossiers.js',
+  'data/lore_chronicle_b102_two_reincarnated_witnesses.js',
+  'data/lore_chronicle_b103_twelve_shards_ancients_and_beasts_e101.js',
+  'data/lore_chronicle_b104_shadow_market_and_ash_city.js'
 ];
 
 // Verify no unreferenced lore_chronicle_*.js files exist

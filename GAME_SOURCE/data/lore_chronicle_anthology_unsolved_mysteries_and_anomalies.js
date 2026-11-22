@@ -16,7 +16,7 @@
     version: '3.8.3-standalone-anthology-unsolved-mysteries',
     status: 'STANDALONE_CANON_DRAFT',
     titleTh: 'บทที่ 37: บันทึกเจ็ดปริศนาไร้คำตอบ และปรากฏการณ์พิศวงทั่วอนุทวีปพันลี้',
-    eraId: 'ERA_CROSS_EPOCH_ANTHOLOGY',
+    eraId: 'ERA_3_MIDDLE_EPOCHS',
     eraGroup: 'ANTHOLOGY_MYSTERIES_E6_E100',
     startWorldYear: 5300,
     endWorldYear: 99910,

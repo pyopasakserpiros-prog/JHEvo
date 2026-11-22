@@ -6,8 +6,8 @@ const { SIM, ECO, HC, CULT, SECT, SK, STATS, COMBAT, MARTIAL, JD } = G;
 console.log('=== Running JS2 v3.2.0 Equipment Expansion Suite ===');
 
 // 1. Version, Catalog & Keyword Invariants
-assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'PATCH_VERSION must be 3.2.0');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SAVE_SCHEMA_VERSION must be 3.2.0-equipment-expansion');
+assert.strictEqual(SIM.PATCH_VERSION, '3.9.6', 'PATCH_VERSION must be 3.2.0');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration', 'SAVE_SCHEMA_VERSION must be 3.2.0-equipment-expansion');
 assert.strictEqual(Object.keys(COMBAT.KEYWORDS_CATALOG).length, 16, 'C.KEYWORDS_CATALOG must remain 16 locked base keywords');
 assert.strictEqual(Object.keys(COMBAT.EQUIPMENT_KEYWORDS_CATALOG).length, 8, 'C.EQUIPMENT_KEYWORDS_CATALOG must have 8 shared equipment keywords');
 

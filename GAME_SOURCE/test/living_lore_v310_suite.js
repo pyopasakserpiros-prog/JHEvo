@@ -42,8 +42,8 @@ console.log('===================================================================
   const scriptTags = idxHtml.match(/<script\s+src="([^"]+)"/g) || [];
   assert.strictEqual(scriptTags.length, 40, 'index.html must contain exact 40 <script> tags');
 
-  assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'SIM.PATCH_VERSION must be 3.1.0');
-  assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SIM.SAVE_SCHEMA_VERSION must be 3.1.0-living-lore');
+  assert.strictEqual(SIM.PATCH_VERSION, '3.9.6', 'SIM.PATCH_VERSION must be 3.1.0');
+  assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration', 'SIM.SAVE_SCHEMA_VERSION must be 3.1.0-living-lore');
   console.log('  ✓ [0/6] Constitutional Locks, 40-Script Invariant & SIM.PATCH_VERSION = 3.1.0 Verified');
 }
 

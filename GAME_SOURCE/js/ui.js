@@ -868,7 +868,7 @@
       show('lore', '📜 พงศาวดารและตำนานโลก (Master Lore Compendium)', [
         ['eras', '⏳ 6 มหายุคสมัย'],
         ['chaos_e0_e1', '📖 มหากาพย์ยุค 0–1'],
-        ['chronicles', '📚 คลังมหากาพย์ 11 บท'],
+        ['chronicles', '📚 คลังมหากาพย์ 104 เล่ม'],
         ['empires', '🏚️ อาณาจักร & ราชวงศ์'],
         ['figures', '🧙‍♂️ 60 ยอดคนตำนาน'],
         ['cosmos', '🌌 จักรวาล & 6 ราชันอสูร'],
@@ -5305,13 +5305,31 @@
         { k: 'B43', cat: 'EVTS', label: '43. ☄️ วัฏจักรคลื่นปราณ & มหาภัยพิบัติ', data: JD && JD.LORE_CHRONICLE_EVENTS_COSMIC_TIDES },
         { k: 'B44', cat: 'EVTS', label: '44. ⚖️ ตลาดประมูล พิธีรับศิษย์ & ป้ายเหล็กดำ', data: JD && JD.LORE_CHRONICLE_EVENTS_RITES_MARKETS }
       ];
+      if (JD) {
+        const knownRefs = new Set(BOOKS.map(b => b.data).filter(Boolean));
+        const extraKeys = Object.keys(JD)
+          .filter(k => k.startsWith('LORE_CHRONICLE_') && JD[k] && typeof JD[k] === 'object' && !knownRefs.has(JD[k]))
+          .sort((a, b) => {
+            const ba = (JD[a].META && JD[a].META.bookNumber) || 999;
+            const bb = (JD[b].META && JD[b].META.bookNumber) || 999;
+            return ba !== bb ? ba - bb : a.localeCompare(b);
+          });
+        extraKeys.forEach((ek, idx) => {
+          const obj = JD[ek];
+          const num = (obj.META && obj.META.bookNumber) || (45 + idx);
+          const title = (obj.META && (obj.META.titleTh || obj.META.shortTitleTh)) || ek.replace(/^LORE_CHRONICLE_/, '');
+          BOOKS.push({ k: 'BX_' + num + '_' + idx, cat: 'EXT', label: num + '. 📖 ' + title, data: obj });
+        });
+      }
+      const extCount = BOOKS.filter(b => b.cat === 'EXT').length;
       const selCat = UI.loreChronicleCat || 'ALL';
       const CATS = [
         ['ALL', '📚 ทั้งหมด (' + BOOKS.length + ')'],
         ['CORE', '👑 11 ปฐมบทหลัก'],
         ['ERAS', '⏳ 23 มหากาพย์ยุค 2–94'],
         ['ANTH', '🏮 6 วิถีเจียงหู'],
-        ['EVTS', '🌀 4 ระบบประเพณี-มิติลับ']
+        ['EVTS', '🌀 4 ระบบประเพณี-มิติลับ'],
+        ...(extCount > 0 ? [['EXT', '📜 หอจดหมายเหตุขยาย (' + extCount + ' เล่ม)']] : [])
       ];
       h += '<div class="subtab-bar" style="margin:6px 0 6px 0;gap:5px">';
       for (const [ck, cl] of CATS) {
@@ -8676,6 +8694,204 @@
     }
     return html;
   };
+
+
+  /* === JS2_V390_POLITICAL_LIVES_UI_START === */
+  (function () {
+    const PL = () => (typeof EXPED !== "undefined" && EXPED.POLITICAL_LIVES) || null;
+    const esc = s => (typeof U !== "undefined" && U.esc ? U.esc(s) : String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])));
+
+    // (a) UI.rNpc wrapper: optional visible ตระกูล + branch & public former roles (strictly read-only)
+    const _origRNpcPL = UI.rNpc;
+    if (typeof _origRNpcPL === "function") {
+      UI.rNpc = function (...args) {
+        let html = _origRNpcPL.apply(this, args);
+        try {
+          const W = (UI.G && UI.G.W) || (typeof G !== "undefined" && G.W) || UI.W;
+          const plMod = PL();
+          if (!W || !plMod || !html || html.includes("pl-npc-clan-card")) return html;
+          const n = (W.byId && W.byId[UI.npcId]) || null;
+          if (!n) return html;
+          const clanVis = plMod.getVisibleClanLabel(W, n);
+          const plExt = n.ext && n.ext.politicalLife;
+          const isSecret = !!(plExt && plExt.clanVisibility === "SECRET");
+          const formerRoles = (!isSecret && plExt && Array.isArray(plExt.formerRoles)) ? plExt.formerRoles : [];
+          const obs = (!isSecret && plExt && Array.isArray(plExt.obligations)) ? plExt.obligations.filter(o => !o.fulfilled) : [];
+          if (!clanVis && !formerRoles.length && !obs.length) return html;
+          const parts = [];
+          if (clanVis) {
+            parts.push(`<span class="tag" style="background:rgba(245,158,11,.16);color:#fbbf24;border:1px solid rgba(245,158,11,.35)">🏛️ ตระกูล: ${esc(clanVis.clanNameTh)}${clanVis.branchNameTh ? " · " + esc(clanVis.branchNameTh) : ""}</span>`);
+          }
+          if (formerRoles.length) {
+            parts.push(`<div class="muted" style="font-size:11px;margin-top:4px">อดีตบทบาทภายนอก: ${esc(formerRoles.slice(-3).join(" → "))}</div>`);
+          }
+          if (obs.length) {
+            parts.push(`<div class="muted" style="font-size:11px;margin-top:3px">🤝 พันธะบุญคุณ/ข้อผูกมัด: ${esc(obs.slice(-2).map(o => o.noteTh).join(" · "))}</div>`);
+          }
+          const card = `<div class="card pl-npc-clan-card" style="margin-top:6px;padding:8px 10px;border-left:3px solid #f59e0b">${parts.join("")}</div>`;
+          html = card + html;
+        } catch (_) {}
+        return html;
+      };
+    }
+
+    // (b) UI.rPolities wrapper: Dynasties, Succession Rules, Active Public Disputes & Policy Favors (read-only)
+    const _origRPolPL = UI.rPolities;
+    if (typeof _origRPolPL === "function") {
+      UI.rPolities = function (W, ...args) {
+        let html = _origRPolPL.call(this, W, ...args);
+        try {
+          const plMod = PL();
+          const pl = W && W.world && W.world.politicalLives;
+          if (!plMod || !pl || !html || html.includes("pl-polities-dynasty-card")) return html;
+          const dyns = Object.values(pl.dynasties || {});
+          const rows = dyns.map(d => {
+            const ruler = pl.persons && pl.persons[d.rulerPersonId];
+            const heir = pl.persons && pl.persons[d.designatedHeirId];
+            const ruleTh = (plMod.SUCCESSION_RULE_TH && plMod.SUCCESSION_RULE_TH[d.successionRule]) || d.successionRule;
+            const activeDisp = d.activeDisputeId && pl.disputes && pl.disputes[d.activeDisputeId];
+            const favor = d.policyFavors && d.policyFavors.HOME_SECT ? " · 🤝 สิทธิพิเศษสำนัก" : "";
+            return `<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px"><b>${esc(d.dynastyNameTh)}</b> (รัชกาลที่ ${d.reignNumber})<br><span class="muted">ประมุข: ${esc(ruler ? ruler.name.full : "-")} · รัชทายาท: ${esc(heir ? heir.name.full : "-")} · กฎสืบราชย์: ${esc(ruleTh)}${activeDisp ? " · ⚔️ " + esc(plMod.DISPUTE_STAGE_TH[activeDisp.stage] || activeDisp.stage) : ""}${favor}</span></div>`;
+          }).join("");
+          const summary = plMod.getReadOnlySummary(W);
+          const evRows = summary && summary.recentEvents.length
+            ? summary.recentEvents.slice(0, 4).map(e => `<div class="muted" style="font-size:11px;margin-top:3px">• วันที่ ${e.day}: ${esc(e.summaryTh)}</div>`).join("")
+            : "";
+          html += `<div class="card pl-polities-dynasty-card" style="margin-top:10px"><div style="font-weight:700;color:#fbbf24;margin-bottom:6px">👑 ราชวงศ์ การสืบราชสมบัติ และชีวิตการเมืองภายนอก (v3.9.5)</div>${rows}${evRows ? "<div style=\"margin-top:6px\"><b>ความเคลื่อนไหวล่าสุด</b>" + evRows + "</div>" : ""}</div>`;
+        } catch (_) {}
+        return html;
+      };
+    }
+
+    // (c) UI.rWorld wrapper: Trade Halls, Cultivator Clans & Active Public Contracts/Convoys (read-only)
+    const _origRWorldPL = UI.rWorld;
+    if (typeof _origRWorldPL === "function") {
+      UI.rWorld = function (...args) {
+        let html = _origRWorldPL.apply(this, args);
+        try {
+          const W = (UI.G && UI.G.W) || (typeof G !== "undefined" && G.W) || UI.W;
+          const plMod = PL();
+          const pl = W && W.world && W.world.politicalLives;
+          if (!plMod || !pl || !html || html.includes("pl-world-institutions-card")) return html;
+          if (UI.tab !== "sects" && UI.tab !== "visitors") return html;
+          const sum = plMod.getReadOnlySummary(W);
+          if (!sum) return html;
+          const halls = Object.values(pl.tradeHalls || {}).slice(0, 5).map(h =>
+            `<span class="tag" style="margin:2px">${esc(h.nameTh)} (คลัง ${h.cash} ศิลา)</span>`
+          ).join("");
+          const ctrs = sum.activeContracts.slice(0, 5).map(c =>
+            `<div class="muted" style="font-size:11px">• [${esc(plMod.CONTRACT_STATE_TH[c.state] || c.state)}] ${esc(c.commodity)} x${c.quantity} → ${esc(c.destCityId)} (${c.paymentStones} ศิลา)</div>`
+          ).join("") || "<div class=\"muted\" style=\"font-size:11px\">ยังไม่มีสัญญาส่งมอบที่ค้างอยู่</div>";
+          html += `<div class="card pl-world-institutions-card" style="margin-top:10px"><div style="font-weight:700;color:#38bdf8;margin-bottom:6px">🏛️ หอการค้า ตระกูลผู้ฝึกตน และสัญญาส่งมอบ (${sum.tradeHallCount} หอ · ${sum.clanCount} ตระกูล · ${sum.activeDeliveries.length} ขบวนกำลังเดินทาง)</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${halls}</div><div><b>สัญญาที่กำลังดำเนินการ</b>${ctrs}</div></div>`;
+        } catch (_) {}
+        return html;
+      };
+    }
+  })();
+  /* === JS2_V390_POLITICAL_LIVES_UI_END === */
+
+  /* === JS2_V394_LIVING_INSTITUTIONS_UI_START === */
+  (() => {
+    const LI = () => (typeof EXPED !== "undefined" && EXPED.LIVING_INSTITUTIONS) || null;
+    const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const _origRWorldLI = UI.rWorld;
+    if (typeof _origRWorldLI === "function") {
+      UI.rWorld = function (...args) {
+        let html = _origRWorldLI.apply(this, args);
+        try {
+          const W = (UI.G && UI.G.W) || (typeof G !== "undefined" && G.W) || UI.W;
+          const liMod = LI();
+          if (!liMod || !W || !html || html.includes("li-world-institutions-card")) return html;
+          if (UI.tab !== "sects" && UI.tab !== "visitors") return html;
+          const sum = liMod.getReadOnlySummary(W);
+          if (!sum) return html;
+          const activeHtml = sum.activeCycles.length
+            ? sum.activeCycles.map(c => `<span class="tag" style="background:rgba(245,158,11,.18);color:#fbbf24;margin:2px">🌀 ${esc(c.nameTh)}</span>`).join("")
+            : '<span class="muted" style="font-size:11px">ยังไม่มีวัฏจักรพิเศษเปิดอยู่ในขณะนี้</span>';
+          const nextHtml = sum.upcomingCycles.slice(0, 3).map(u =>
+            `<div class="muted" style="font-size:11px">• ปีที่ ${u.nextYear} เดือน ${u.month} วันที่ ${u.dom}: ${esc(u.nameTh)} (${u.durationDays} วัน)</div>`
+          ).join("");
+          const bw = sum.bloodlessWar;
+          const reg = sum.sectNameRegistry;
+          const tm = sum.ticketMarket;
+          const ce = sum.curseEconomy;
+          const indTh = bw.fiveGuildIndependence === "CLEAN" ? "สะอาด (มีสิทธิ์พยานปกดำ)" : "ติดพันธะห้าหอการค้า";
+          const tmLine = tm.active
+            ? `ตลาดตั๋วแดนลับ 74 วัน: ความตื่น ${tm.ticketFever} · หลักฐานตั๋วปลอม ${tm.counterfeitEvidence} · ดัชนีราคา ${tm.priceIndex}x`
+            : `ตลาดตั๋วแดนลับ 74 วัน: ปิดฉากแล้ว (${tm.escalatedToBlackLedger ? "ส่งสำนวนสู่หอพิพากษากลางแล้ว" : "ชำระบัญชีเรียบร้อย"})`;
+          const evHtml = sum.recentEvents.slice(0, 4).map(e =>
+            `<div class="muted" style="font-size:11px;margin-top:2px">• ปี ${e.yearInEpoch} ด.${e.month} ว.${e.dom}: ${esc(e.summaryTh)}</div>`
+          ).join("");
+          html += `<div class="card li-world-institutions-card" style="margin-top:10px"><div style="font-weight:700;color:#34d399;margin-bottom:6px">⚖️ สถาบันมีชีวิต ปฏิทินวัฏจักรยุค 101 และสงครามไร้คม (v3.9.4)</div><div style="margin-bottom:5px">${activeHtml}</div><div style="font-size:11px;margin-bottom:5px"><b>ภาษีธำรงชื่อหยุนเหอ (2%):</b> ชำระถึงปีที่ ${reg.taxPaidThroughYear} (${reg.annualTaxStones} ศิลา/ปี) · ศิษย์ในทะเบียน ${reg.registeredDisciples} คน · ความเสี่ยงชื่อระดับ ${reg.nameThreatLevel}/4</div><div style="font-size:11px;margin-bottom:5px"><b>ดุลสงครามไร้คม:</b> แรงกดดัน ${bw.localPressure} · ความชอบธรรมพิธี ${bw.ritualLegitimacy} · ความอิสระ: ${esc(indTh)} · เครือข่ายศิษย์ลงเขา: ไว้ใจ ${sum.departedNetwork.trust}</div><div style="font-size:11px;margin-bottom:5px"><b>${esc(tmLine)}</b> · สมุนไพรธาตุร้อนเป่ยหมิง: ${ce.heatHerbPriceMultiplier}x (รอบคำสาปเหลือ ~${ce.countdownYearsRemaining} ปี)</div><div style="margin-top:4px"><b>วัฏจักรที่จะมาถึง</b>${nextHtml}</div>${evHtml ? '<div style="margin-top:4px"><b>บันทึกสถาบันล่าสุด</b>' + evHtml + '</div>' : ''}</div>`;
+        } catch (_) {}
+        return html;
+      };
+    }
+  })();
+  /* === JS2_V394_LIVING_INSTITUTIONS_UI_END === */
+
+  /* === JS2_V395_WITNESSES_UI_START === */
+  (() => {
+    const WS = () => (typeof EXPED !== "undefined" && EXPED.WITNESSES_AND_SHARDS) || null;
+    const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const _origRWorldWS = UI.rWorld;
+    if (typeof _origRWorldWS === "function") {
+      UI.rWorld = function (...args) {
+        let html = _origRWorldWS.apply(this, args);
+        try {
+          const W = (UI.G && UI.G.W) || (typeof G !== "undefined" && G.W) || UI.W;
+          const wsMod = WS();
+          if (!wsMod || !W || !html || html.includes("ws-witnesses-shards-card")) return html;
+          if (UI.tab !== "sects" && UI.tab !== "visitors") return html;
+          const sum = wsMod.getReadOnlySummary(W);
+          if (!sum) return html;
+          const ap = sum.aping;
+          const wh = sum.weiheng;
+          const es = sum.eventShards;
+          const whStatus = !wh.born ? "ยังไม่ถือกำเนิด (กำหนดเกิดยุค 101 ปีที่ 2)" : `อายุ ${wh.ageYears} ปี · สถานะ: ${esc(wh.stage)}${wh.epithetEarned ? " · 🌟 ยอดคนเงาประกาย" : ""}`;
+          const apNpc = W.byId && W.byId.WITNESS_APING;
+          const whNpc = W.byId && W.byId.WITNESS_WEIHENG;
+          const apBtn = apNpc ? ` <span class="chip" style="cursor:pointer" data-npc="WITNESS_APING">👁️ ดูแผ่นข้อมูล (พลัง ${Math.round(CULT.power(apNpc))})</span>` : "";
+          const whBtn = whNpc ? ` <span class="chip" style="cursor:pointer" data-npc="WITNESS_WEIHENG">👁️ ดูแผ่นข้อมูล (ขั้น ${whNpc.cult ? whNpc.cult.stage : 1} · พลัง ${Math.round(CULT.power(whNpc))})</span>` : "";
+          html += `<div class="card ws-witnesses-shards-card" style="margin-top:10px"><div style="font-weight:700;color:#c084fc;margin-bottom:6px">🔮 พยานข้ามแสนปี วิถีลับ และแดนลับเศษเสี้ยวมิติ 12 แห่ง (v3.9.6)</div><div style="font-size:11px;margin-bottom:4px"><b>อาผิง (คนคัดชื่อ):</b> ชั้น ${ap.countdownTier}/5 · ชื่อค้าง ${ap.pendingNamesRemaining.toLocaleString("en-US")} ชื่อ · ${ap.handwritingVerified ? "ลายมือยืนยันแล้ว" : "ยังไม่ตรวจลายมือ"}${apBtn}</div><div style="font-size:11px;margin-bottom:4px"><b>เว่ยเหิง (ถานอี้กลับชาติ):</b> ${whStatus}${whBtn}</div><div style="font-size:11px;margin-bottom:4px"><b>แดนลับพิเศษ (10–12):</b> กุญแจท้องพระคลังเทียนกู่ ${es.tianguKeysGranted}/9 · ลานคัดแยกของตกฟ้าเปิดมาแล้ว ${es.skyFallOpenCount} ครั้ง · แดนถ้วยน้ำสองฝั่ง ${es.twoBankTrucesWitnessed} พันธสัญญา</div><div class="muted" style="font-size:11px">วิถีลับนอกสารบบ: วิถีผลัดลม (วงถอนใจห้วง 6 · ผู้ถือลมค้าง ${sum.breathRelay.latentBearersCount} คน) · สายย่อยจิตรับภพ · วิถีชื่อค้างวัฏ</div></div>`;
+        } catch (_) {}
+        return html;
+      };
+    }
+  })();
+  (() => {
+    const _origRNpcWS = UI.rNpc;
+    if (typeof _origRNpcWS === "function") {
+      UI.rNpc = function (...args) {
+        let html = _origRNpcWS.apply(this, args);
+        try {
+          const W = (UI.G && UI.G.W) || (typeof G !== "undefined" && G.W) || UI.W;
+          const n = W && UI.sel && W.byId && W.byId[UI.sel];
+          if (!n || !html || html.includes("ws-secret-subpath-card")) return html;
+          if (!n.secretSubPathId && !n.folkTraitId && !n.isExternalWitness) return html;
+          const spNames = {
+            BREATH_RELAY_DAO: "วิถีผลัดลม (พลัง +10% · รอดตายผลัดลมสุดท้าย)",
+            SHADOW_RADIANCE_SUBPATH: "สายย่อยจิตรับภพ (พลัง +16% · ลดดาเมจ 18% · เงาจำคมเดิมสวนปลดอาวุธ)",
+            PENDING_REGISTRY_PATH: "วิถีชื่อค้างวัฏ (นับถอยหลังชั้น " + (n.pendingCountdownTier == null ? 5 : n.pendingCountdownTier) + "→0 · ตราด้านที่สาม)"
+          };
+          const ftNames = {
+            TR_FOLK_ROPE_BEARER: "ผู้ถือเชือก (ป้องกัน +5% · โบนัสแดนถ้วยน้ำสองฝั่ง)",
+            TR_FOLK_SCALE_WALKER: "คนเดินคันชั่ง (บ่มเพาะ +5% · โบนัสศิลาสำรวจ +6%)",
+            TR_FOLK_LINGERING_BREATH: "ลมค้างแฝง (บ่มเพาะ +6% · ทะลวงด่าน +4%)"
+          };
+          let body = "";
+          if (n.isExternalWitness) body += '<div style="font-size:11px;margin-bottom:3px"><b>สถานะพยานข้ามแสนปี:</b> พยานอิสระนอกบัญชีศิษย์สำนัก</div>';
+          if (n.secretSubPathId) body += '<div style="font-size:11px;margin-bottom:3px"><b>แขนงลับนอกสารบบ:</b> ' + (spNames[n.secretSubPathId] || n.secretSubPathId) + '</div>';
+          if (n.folkTraitId) body += '<div style="font-size:11px"><b>คุณสมบัติสามัญชน:</b> ' + (ftNames[n.folkTraitId] || n.folkTraitId) + '</div>';
+          html += '<div class="card ws-secret-subpath-card" style="margin-top:8px"><div style="font-weight:700;color:#c084fc;margin-bottom:4px">✨ วิถีลับและร่องรอยยุค 101</div>' + body + '</div>';
+        } catch (_) {}
+        return html;
+      };
+    }
+  })();
+  /* === JS2_V395_WITNESSES_UI_END === */
+
+
 
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 

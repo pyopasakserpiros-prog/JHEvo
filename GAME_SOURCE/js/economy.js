@@ -139,7 +139,13 @@
     if (recipeByOutItemId[id]) { const r = recipeByOutItemId[id]; return 14 * Math.pow(2.05, r.tier - 1); }
     return 5;
   };
-  ECO.price = (W, id) => ECO.base(id) * ((W.market && W.market.mult[id]) || 1);
+  ECO.price = (W, id) => {
+    const baseMult = (W && W.market && W.market.mult && W.market.mult[id]) || 1;
+    const liMod = (W && g.EXPED && g.EXPED.LIVING_INSTITUTIONS && typeof g.EXPED.LIVING_INSTITUTIONS.getMarketPriceModifier === 'function')
+      ? g.EXPED.LIVING_INSTITUTIONS.getMarketPriceModifier(W, id)
+      : 1;
+    return ECO.base(id) * baseMult * liMod;
+  };
   ECO.isPill = id => {
     if (typeof id !== 'string') return false;
     if (id.startsWith('P:')) {
@@ -3988,6 +3994,7 @@
     npc.ext.dantianBonusPct = Math.min(.80, +((npc.ext.dantianBonusPct || 0) + .12 * fresh.length).toFixed(3));
     npc.ext.elixirCombatBonus = Math.min(.45, +((npc.ext.elixirCombatBonus || 0) + .08 * fresh.length).toFixed(3));
     npc.ext.elixirLifespanBonus = Math.min(240, (npc.ext.elixirLifespanBonus || 0) + 50 * fresh.length);
+    if (npc.cult) npc.cult.toxic = 0;
     if (npc.h && npc.h.state) {
       npc.h.state.pillToxicity = 0;
       npc.h.state.heartDemon = Math.max(0, (npc.h.state.heartDemon || 0) - 35);

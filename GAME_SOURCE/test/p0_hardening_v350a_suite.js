@@ -9,8 +9,8 @@ console.log('=== JS2 v3.5.0a Phase A — 13 P0 Hardening Regression Suite ===');
 
 // Create clean test world
 const W = SIM.create('v350a-p0-seed');
-assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'PATCH_VERSION must be 3.5.0a');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SAVE_SCHEMA_VERSION must be 3.5.0a-p0-hardening');
+assert.strictEqual(SIM.PATCH_VERSION, '3.9.6', 'PATCH_VERSION must be 3.5.0a');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration', 'SAVE_SCHEMA_VERSION must be 3.5.0a-p0-hardening');
 
 // ---------------------------------------------------------------------------
 // G1-01: retraining.js null-guards (n.inv / n.inv.crystals / n.inv.techs)

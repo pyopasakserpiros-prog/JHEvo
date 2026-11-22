@@ -1425,7 +1425,15 @@
 
   /* ---------- ผูกเข้าระบบเดิม ---------- */
   CULT.powerLegacy = CULT.power; CULT.hpMaxLegacy = CULT.hpMax;
-  CULT.power = (npc, opts) => ST.rating(npc);
+  const _origStRating = ST.rating;
+  ST.rating = (npc, opts) => {
+    const base = _origStRating(npc, opts);
+    if (npc && (npc.secretSubPathId || npc.folkTraitId) && g.CULT && typeof g.CULT.secretSubPathMods === 'function') {
+      return base * g.CULT.secretSubPathMods(npc).powerMult;
+    }
+    return base;
+  };
+  CULT.power = (npc, opts) => ST.rating(npc, opts);
   CULT.hpMax = npc => ST.hpMax(npc);
   CULT.speedMult = npc => ST.moveMult(npc);
   const oBump = HC.bump, oTouch = HC.touch;

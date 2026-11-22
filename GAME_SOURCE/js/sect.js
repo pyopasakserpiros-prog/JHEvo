@@ -7355,7 +7355,9 @@
     const sPool = (g.SIM && g.SIM.NAME_POOLS && g.SIM.NAME_POOLS.FAMILY) || ['หลิน', 'มู่หรง', 'ตงฟาง'];
     const gPool = (g.SIM && g.SIM.NAME_POOLS && g.SIM.NAME_POOLS.GIVEN_M) || ['เทียนหยา', 'เจี้ยนซิน', 'อู๋จี๋'];
     const nameTh = spec.nameTh || spec.name || (sPool[(seq * 7 + (W.day || 0)) % sPool.length] + gPool[(seq * 13 + (W.day || 0)) % gPool.length]);
-    const stage = clamp(spec.stage || Math.max(2, (homeSect.tierLevel || 2) + 1), 2, 7);
+    const _prisPath = spec.path || homeSect.majorPath || 'DEMON';
+    const _maxPathStage = (CULT && CULT.PATHS && CULT.PATHS[_prisPath] && Array.isArray(CULT.PATHS[_prisPath].stages)) ? CULT.PATHS[_prisPath].stages.length : 7;
+    const stage = clamp(spec.stage || Math.max(2, (homeSect.tierLevel || 2) + 1), 2, Math.min(7, _maxPathStage));
     const ransomStones = spec.ransomStones || Math.round(160 + stage * 65 + (homeSect.tierLevel || 2) * 35);
 
     const prisoner = {
@@ -7469,6 +7471,8 @@
         const pKey = pris.path;
         const pDef = CULT.PATHS[pKey];
         newNpc.cult.path = pKey;
+        const _maxRecStage = (pDef && Array.isArray(pDef.stages) && pDef.stages.length) ? pDef.stages.length : 7;
+        newNpc.cult.stage = Math.max(1, Math.min(_maxRecStage, pris.stage || newNpc.cult.stage || 2));
         const chosenSub = (pris.sub && pDef.subPaths && pDef.subPaths.some(s => s.id === pris.sub))
           ? pris.sub
           : ((pDef.subPaths && pDef.subPaths[0] && pDef.subPaths[0].id) || 'NONE');
@@ -9559,6 +9563,21 @@
         reasonTh = 'กระแสปราณบรรพกาลทะลัก ผู้ฝึกตนทั่วหล้ากว้านซื้อคัมภีร์ทะลวงด่าน +30%';
       }
 
+      // Living Institutions Epoch 101 Market Pressure (Beiming 11-Year Curse & Deep Yin Eclipse)
+      const li = W && W.world && W.world.livingInstitutions;
+      if (li) {
+        const heatMult = (li.curseEconomy && li.curseEconomy.heatHerbPriceMultiplier) || 1;
+        const deepYin = Array.isArray(li.activeCycles) && li.activeCycles.some(c => c && c.id === 'DEEP_YIN_ECLIPSE');
+        if (k === 'HERB_SPIRIT' && heatMult >= 1.8) {
+          const boost = Math.min(0.45, +((heatMult - 1.4) * 0.25).toFixed(2));
+          mult += boost;
+          reasonTh = 'นายหน้าวังเหมันต์กว้านซื้อสมุนไพรธาตุร้อนจากคำสาปเป่ยหมิง (ดัชนีสมุนไพรร้อน ×' + heatMult.toFixed(2) + ')';
+        } else if (k === 'SPIRIT_CUISINE' && deepYin) {
+          mult += 0.35;
+          reasonTh = 'เหมันต์สุริยคราสหยินลึก 180 วัน เสบียงปราณและข้าวสารขาดแคลนทั่วแคว้น (+35%)';
+        }
+      }
+
       // Saturation penalty from excessive player selling (Proposal F07 guardrail: 0.65x .. 1.65x)
       const satPenalty = Math.min(0.35, Math.floor((entry.volumeSold || 0) / 15) * 0.07);
       mult = clamp(+(mult - satPenalty).toFixed(2), 0.65, 1.65);
@@ -9609,7 +9628,37 @@
     // untracked sect inventory. The buyer pays from the world treasury.
     const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
     const quotedRevenue = Math.round(catDef.basePrice * (qty / 4) * (mEntry ? mEntry.multiplier : 1.1) * dipBonus * hostTaxBonus);
-    const revenue = Math.min(quotedRevenue, Number.isFinite(pool.stones) ? Math.max(0, Math.floor(pool.stones)) : 0);
+    const grossRevenue = Math.min(quotedRevenue, Number.isFinite(pool.stones) ? Math.max(0, Math.floor(pool.stones)) : 0);
+    // Yunhe 2% Two-Bank Scale Toll + Bloodless War Double-Toll / Departed Network Ferry Bypass
+    let yunheToll = 0;
+    let yunheTollRate = 0;
+    let ferryBypassUsed = false;
+    let nameThreatPenalty = 0;
+    const liInst = W && W.world && W.world.livingInstitutions;
+    if (liInst && grossRevenue > 0) {
+      const bw = liInst.bloodlessWar || {};
+      const reg = liInst.sectNameRegistry || {};
+      const dn = liInst.departedNetwork || {};
+      if ((reg.nameThreatLevel || 1) >= 4) {
+        nameThreatPenalty = Math.floor(grossRevenue * 0.15);
+      }
+      const taxableBase = Math.max(0, grossRevenue - nameThreatPenalty);
+      const underDoubleToll = (bw.localPressure || 0) >= 5;
+      if (underDoubleToll && (dn.trust || 0) >= 3) {
+        yunheTollRate = 0.01;
+        ferryBypassUsed = true;
+      } else if (underDoubleToll) {
+        yunheTollRate = 0.08;
+      } else {
+        yunheTollRate = 0.02;
+      }
+      yunheToll = Math.max(1, Math.round(taxableBase * yunheTollRate));
+      if (yunheToll > taxableBase) yunheToll = taxableBase;
+      if (liInst.sectNameRegistry) {
+        liInst.sectNameRegistry.totalTollPaid = (liInst.sectNameRegistry.totalTollPaid || 0) + yunheToll;
+      }
+    }
+    const revenue = Math.max(0, grossRevenue - nameThreatPenalty - yunheToll);
     pool.stones -= revenue;
 
     if (mEntry) {
@@ -9649,6 +9698,11 @@
       destSectId: destSect ? destSect.id : null,
       destSectNameTh: destSect ? destSect.nameTh : 'เมืองการค้าชายแดน',
       multiplier: mEntry ? mEntry.multiplier : 1.0,
+      grossRevenue,
+      yunheToll,
+      yunheTollRate,
+      ferryBypassUsed,
+      nameThreatPenalty,
       revenue,
       status: 'COMPLETED',
       summaryTh: HC.fullName(leader) + ' นำศิษย์คุ้มกันคาราวานสินค้า「' + catDef.nameTh + '」สู่「' + (destSect ? destSect.nameTh : 'เมืองการค้า') + '」รับค่าจ้าง +' + revenue + ' ศิลาวิญญาณ!'

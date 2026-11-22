@@ -5,8 +5,8 @@ const g = require('./load.js');
 console.log('=== JS2 v3.6.0c — Deep Living World Audit & Stabilization Suite ===');
 
 // [1/6] Version & Schema Contract
-assert.strictEqual(g.SIM.PATCH_VERSION, '3.8.2');
-assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive');
+assert.strictEqual(g.SIM.PATCH_VERSION, '3.9.6');
+assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration');
 assert.strictEqual(g.EXPED.LIVING_POLITIES.VERSION, '3.6.0c-living-world-audit');
 console.log('PASS [1/6] Version & schema contract verified (3.6.0c / 3.6.0c-living-world-audit)');
 

@@ -6,9 +6,9 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '3.8.6',
-    SUPPORTED_PATCHES: ['3.0.0', '3.1.0', '3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0a', '3.6.0b', '3.6.0c', '3.7.0', '3.7.0a', '3.7.0b', '3.7.0c', '3.8.0', '3.8.1', '3.8.2', '3.8.3', '3.8.4', '3.8.5', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
-    SAVE_SCHEMA_VERSION: '3.8.6-90book-grand-lore-archive',
+    PATCH_VERSION: '3.9.6',
+    SUPPORTED_PATCHES: ['3.9.5', '3.9.4', '3.9.3', '3.9.2', '3.9.1', '3.9.0', '3.0.0', '3.1.0', '3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0a', '3.6.0b', '3.6.0c', '3.7.0', '3.7.0a', '3.7.0b', '3.7.0c', '3.8.0', '3.8.1', '3.8.2', '3.8.3', '3.8.4', '3.8.5', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
+    SAVE_SCHEMA_VERSION: '3.9.6-deep-gameplay-integration',
     DAY_FACTOR: 1.5,
     CALENDAR_MINS_PER_DAY: 1440,
     WORK_STEPS_PER_DAY: 2160,
@@ -905,8 +905,8 @@
             }
             const hasPatina = Array.isArray(it.combatKeywords) && it.combatKeywords.some(k => k.kw === 'KW_PATINA_WEAR');
             const repairThreshold = hasPatina ? 0.28 : 0.45;
-            if (it.procedural && n.act.id !== 'fight') {
-              if (it.retired || (it.dur <= 0 && (it.maxDur || 100) <= 20)) {
+            if (n.act.id !== 'fight') {
+              if (it.procedural && (it.retired || (it.dur <= 0 && (it.maxDur || 100) <= 20))) {
                 if (ECO && ECO.retireGear) ECO.retireGear(W, n, it);
               } else if ((it.dur <= 0 || it.dur <= (it.maxDur || 100) * repairThreshold) && (it.maxDur || 100) > 20 && ECO && ECO.repairGear) {
                 const hasPersonalStone = n.inv && n.inv.mats && Object.keys(ECO.REPAIR_STONES || {}).some(sid => (n.inv.mats[sid] || 0) > 0);
@@ -944,6 +944,9 @@
       if (g.EXPED && g.EXPED.LIVING_POLITIES && g.EXPED.LIVING_POLITIES.tickMonthly) {
         g.EXPED.LIVING_POLITIES.tickMonthly(W);
       if (typeof CULT !== 'undefined' && CULT.LEGENDARY_DAO && CULT.LEGENDARY_DAO.tickMonthlyDiscoveryAndRipples) CULT.LEGENDARY_DAO.tickMonthlyDiscoveryAndRipples(W);
+      if (g.EXPED && g.EXPED.POLITICAL_LIVES) { g.EXPED.POLITICAL_LIVES.tickDaily(W); g.EXPED.POLITICAL_LIVES.tickMonthly(W); }
+      if (g.EXPED && g.EXPED.LIVING_INSTITUTIONS && g.EXPED.LIVING_INSTITUTIONS.tickDaily) { g.EXPED.LIVING_INSTITUTIONS.tickDaily(W); }
+      if (g.EXPED && g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.tickDaily) { g.EXPED.WITNESSES_AND_SHARDS.tickDaily(W); }
       }
     }
     if (_simHr % 72 === 0 && ECO && ECO.maintainUpkeepGear) {
@@ -1328,6 +1331,17 @@
     if (s.hc && s.hc !== HC.FINGERPRINT) throw new Error('เซฟนี้สร้างจากแกนมนุษย์คนละเวอร์ชัน (' + s.hc + ' ≠ ' + HC.FINGERPRINT + ')');
     const SUPPORTED_SAVE_SCHEMAS = new Set([
       SIM.SAVE_SCHEMA_VERSION,
+      '3.9.5-witnesses-and-12shards',
+      '3.9.4-living-institutions-and-cycles',
+      '3.9.3-grand-lore-canon-104books',
+      '3.9.2-grand-lore-unification-96books',
+      '3.9.1-audit-hardening-and-90book-ui',
+      '3.9.0-political-lives-and-external-institutions',
+      '3.8.6-90book-grand-lore-archive',
+      '3.8.5-lore-continuity-canon-hardening',
+      '3.8.4-grand-lore-44books',
+      '3.8.3-grand-lore-chronicles',
+      '3.8.2-chaos-era-lore-archive',
       '3.8.1-world-calendar-epoch',
       '3.8.0-master-lore-compendium',
       '3.7.0c-final-polish',
@@ -1927,4 +1941,46 @@
       return W;
     };
   }
+
+  /* === JS2_V390_SIM_HOOKS === */
+  const _origCreatePL = SIM.create;
+  if (typeof _origCreatePL === 'function') {
+    SIM.create = (...args) => {
+      const W = _origCreatePL(...args);
+      if (W && g.EXPED && g.EXPED.POLITICAL_LIVES && g.EXPED.POLITICAL_LIVES.ensure) {
+        g.EXPED.POLITICAL_LIVES.ensure(W);
+      }
+      if (W && g.EXPED && g.EXPED.LIVING_INSTITUTIONS && g.EXPED.LIVING_INSTITUTIONS.ensure) {
+        g.EXPED.LIVING_INSTITUTIONS.ensure(W);
+      }
+      if (W && g.EXPED && g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.ensure) {
+        g.EXPED.WITNESSES_AND_SHARDS.ensure(W);
+      }
+      return W;
+    };
+  }
+  const _origAddNpcPL = SIM.addNpc;
+  if (typeof _origAddNpcPL === 'function') {
+    SIM.addNpc = (W, o) => {
+      const n = _origAddNpcPL(W, o);
+      if (W && n && o && o.fromApplicant && g.EXPED && g.EXPED.POLITICAL_LIVES && g.EXPED.POLITICAL_LIVES.rollApplicantClanHeritage) {
+        g.EXPED.POLITICAL_LIVES.rollApplicantClanHeritage(W, n);
+        if (g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.rollApplicantFolkTrait) g.EXPED.WITNESSES_AND_SHARDS.rollApplicantFolkTrait(W, n);
+      }
+      return n;
+    };
+  }
+  const _origDeserializePL = SIM.deserialize;
+  if (typeof _origDeserializePL === 'function') {
+    SIM.deserialize = raw => {
+      const W = _origDeserializePL(raw);
+      if (W && g.EXPED && g.EXPED.POLITICAL_LIVES && g.EXPED.POLITICAL_LIVES.ensure) {
+        g.EXPED.POLITICAL_LIVES.ensure(W);
+        if (g.EXPED.LIVING_INSTITUTIONS && g.EXPED.LIVING_INSTITUTIONS.ensure) g.EXPED.LIVING_INSTITUTIONS.ensure(W);
+        if (g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.ensure) g.EXPED.WITNESSES_AND_SHARDS.ensure(W);
+      }
+      return W;
+    };
+  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

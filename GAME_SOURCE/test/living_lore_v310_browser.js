@@ -56,7 +56,7 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
 
     assert.deepStrictEqual(errors, [], 'Browser smoke test must produce zero page errors');
     assert.strictEqual(smokeResult.ok, true);
-    assert.ok(['3.1.0', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.6.0a', '3.8.2'].includes(smokeResult.patchVersion));
+    assert.ok(['3.1.0', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.6.0a', '3.9.5', '3.9.6'].includes(smokeResult.patchVersion));
     assert.strictEqual(smokeResult.schemaVersion, '3.4.0-world-events');
     assert.strictEqual(smokeResult.reloadedStatus, 'active');
     console.log('PASS living_lore_v310_browser smoke test and current-save replay:', JSON.stringify(smokeResult));

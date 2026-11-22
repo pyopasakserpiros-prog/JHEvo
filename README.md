@@ -1,8 +1,18 @@
-> **Latest Stable Release: JianghuSect 2 (`JS2 v3.8.6` — 90-Book Grand Lore Archive & Deep Continuity Audit)** — เล่นได้ทันทีผ่าน `GAME_SOURCE/JianghuSect_single.html` (ไฟล์เดี่ยว `22,831 KB`, 40 `<script>` tags) หรือ `GAME_SOURCE/index.html` · ดูรายงานล่าสุดใน [`PATCH_REPORTS/PATCH_v3.8.6_90BOOK_GRAND_LORE_ARCHIVE.md`](PATCH_REPORTS/PATCH_v3.8.6_90BOOK_GRAND_LORE_ARCHIVE.md), รายงาน continuity `v3.8.5` ใน [`PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md`](PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md), คู่มือส่งต่อแชทใหม่ใน [`docs/handovers/NEW_CHAT_HANDOFF_JS2_v3.8.5.md`](docs/handovers/NEW_CHAT_HANDOFF_JS2_v3.8.5.md), และรายละเอียดทุกแพตช์ในโฟลเดอร์ [`PATCH_REPORTS/`](PATCH_REPORTS/)
+> **Latest Release: `JS2 v3.8.5`** — Lore Continuity & Canon Hardening (resolved all 15 audit findings `LC-01..LC-15` + 3 worldbuilding decisions across runtime `sim.js`/`sect.js`/`expedition.js`/`visitors_clues.js` and 44 bundled Lore Chronicles), verified 40-script lock & `JianghuSect_single.html` (`21,261 KB`). See [`NEW_CHAT_HANDOFF_JS2_v3.8.5.md`](NEW_CHAT_HANDOFF_JS2_v3.8.5.md) & [`PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md`](PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md).
 
-> **Current Version:** `JS2 v3.8.6` (`3.8.6-90book-grand-lore-archive`) · See [`PATCH_REPORTS/PATCH_v3.8.6_90BOOK_GRAND_LORE_ARCHIVE.md`](PATCH_REPORTS/PATCH_v3.8.6_90BOOK_GRAND_LORE_ARCHIVE.md), [`PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md`](PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md), [`PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.4.md`](PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.4.md), [`PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.3.md`](PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.3.md), [`PATCH_REPORTS/PATCH_JS2_V382_CHAOS_ERA_LORE_REPORT.md`](PATCH_REPORTS/PATCH_JS2_V382_CHAOS_ERA_LORE_REPORT.md), [`PATCH_JS2_V381_WORLD_CALENDAR_REPORT.md`](PATCH_REPORTS/PATCH_JS2_V381_WORLD_CALENDAR_REPORT.md), [`PATCH_JS2_V380_MASTER_LORE_COMPENDIUM_REPORT.md`](PATCH_REPORTS/PATCH_JS2_V380_MASTER_LORE_COMPENDIUM_REPORT.md), และ [`PATCH_JS2_V370_LEGENDARY_DAO_REPORT.md`](PATCH_REPORTS/PATCH_JS2_V370_LEGENDARY_DAO_REPORT.md)
+> **Latest Release: `JS2 v3.8.4`** — 44 Standalone Novel-Grade Lore Chronicles (`3.65 MB`, `1,299` unique Entity IDs, 24 `systemBlueprint` recurring events/pocket realms) synced into `data_expansion.js` & `UI.rLore("chronicles")`, plus Legendary/Transcendent canon fixes, verified 40-script lock & `JianghuSect_single.html` (`21,257 KB`). See [`NEW_CHAT_HANDOFF_JS2_v3.8.4.md`](NEW_CHAT_HANDOFF_JS2_v3.8.4.md) & [`PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.4.md`](PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.4.md).
 
-> **Prior Series (`v3.2.0 – v3.6.0c`):** `3.2.0` Equipment Expansion (`PATCH_REPORTS/EQUIPMENT_EXPANSION_JS2_V3_2_0.md`) · `3.3.0` Tactical Combat & Six-Path Mastery (`PATCH_REPORTS/TACTICAL_SIXPATHS_JS2_V3_3_0.md`) · `3.4.0` External World Events (`PATCH_REPORTS/WORLD_EVENTS_JS2_V3_4_0.md`) · `3.5.0a–c` Hardening & Polish · `3.6.0a–c` Living Sects & Continental Polities (`PATCH_REPORTS/PATCH_JS2_V360C_LIVING_WORLD_AUDIT_REPORT.md`)
+> **Latest Release: `JS2 v3.8.3`** — 11 Standalone Novel-Grade Lore Chronicles (~706 KB) bundled into `data_expansion.js` & `UI.rLore()` (`📚 คลังมหากาพย์ 11 บท`), verified 40-script lock & `JianghuSect_single.html` (19,842 KB). See `NEW_CHAT_HANDOFF_JS2_v3.8.3.md` & `PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.3.md`.
+
+> **Latest Release: ** — 11 Standalone Novel-Grade Lore Chronicles (~706 KB) bundled into  &  (), verified 40-script lock &  (19,842 KB). See  & .
+
+> **Latest Stable Release: JianghuSect 2 (`JS2 v3.8.2` — Living Rise & Fall: Sects & Polities)** — เล่นได้ทันทีผ่าน `GAME_SOURCE/JianghuSect_single.html` (ไฟล์เดี่ยว) หรือ `GAME_SOURCE/index.html` · ดูสรุปการอัปเดตทั้งหมดตั้งแต่ `v3.1.0` → `v3.7.0a` ได้ใน [`CHANGELOG_JS2_V310_TO_V382.md`](CHANGELOG_JS2_V310_TO_V382.md) และรายละเอียดทุกแพทในโฟลเดอร์ [`PATCH_REPORTS/`](PATCH_REPORTS/)
+
+> **Current Version:** JS2 v3.4.0 External World Events (`3.4.0-world-events`) · See `PATCH_REPORTS/WORLD_EVENTS_JS2_V3_4_0.md` & `docs/handovers/JS2_V3_5_0_NEXT_PATCH_HANDOFF.md`
+
+> **Current Version:** JS2 v3.3.0 Tactical Combat & Six-Path Mastery (`3.3.0-tactical-sixpaths`) · See `PATCH_REPORTS/TACTICAL_SIXPATHS_JS2_V3_3_0.md`
+
+> **Current Version:** JS2 v3.2.0 Equipment Expansion () · See  & 
 
 # JianghuSect 2 (ภาค 2) — JS2-v3.1.0 Living Lore
 
@@ -41,7 +51,7 @@
 
 > 💡 **โครงสร้างเวอร์ชันของเกม (Franchise Versioning Architecture):**
 > - **ภาค 1 (JianghuSect 1):** มีวิวัฒนาการตั้งแต่ ยุค 1 ถึง ยุคที่ 5 (สิ้นสุดที่แพตช์สมบูรณ์ `v5.8.0`)
-> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 55 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (รุ่นเสถียรปัจจุบันคือ **`JS2-v3.8.6`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
+> - **ภาค 2 (JianghuSect 2 — The Grand Dao Epoch):** คือการยกเครื่องโครงสร้างระบบ มหาวิถี 43 สาย และความลึกซึ้งของยุทธภพ จึงเริ่มนับศักราชใหม่ในฐานะ **"ภาค 2"** โดยใช้รหัสแพตช์ทางการว่า **`JS2-v...`** (ปัจจุบันคือ **`JS2-v2.6.0`**) *ไม่ใช่การนับเลขถอยหลังจากภาค 1*
 
 Source, data, assets, tests and build tools are in [GAME_SOURCE](GAME_SOURCE/). Project guidance is in [AGENTS.md](AGENTS.md), with subsystem references in `.agents/skills/`. ดูคำสั่งตั้งต้นสำหรับ AI ได้ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md) และสรุปสถานะเกมใน [project_status_and_ai_onboarding.md](project_status_and_ai_onboarding.md)
 

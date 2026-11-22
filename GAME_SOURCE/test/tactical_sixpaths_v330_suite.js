@@ -6,8 +6,8 @@ const { SIM, ECO, HC, CULT, SECT, SK, STATS, COMBAT, MARTIAL, UI } = G;
 console.log('=== Running JS2 v3.3.0 Tactical Combat & Six-Path Mastery Suite ===');
 
 // 1. Version & Schema Invariants
-assert.strictEqual(SIM.PATCH_VERSION, '3.8.2', 'PATCH_VERSION must be 3.3.0');
-assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.8.2-chaos-era-lore-archive', 'SAVE_SCHEMA_VERSION must be 3.3.0-tactical-sixpaths');
+assert.strictEqual(SIM.PATCH_VERSION, '3.9.6', 'PATCH_VERSION must be 3.3.0');
+assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration', 'SAVE_SCHEMA_VERSION must be 3.3.0-tactical-sixpaths');
 assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'human_core.js fingerprint must remain locked');
 assert.strictEqual(Object.keys(COMBAT.DUET_CATALOG).length, 12, 'DUET_CATALOG must have 12 duet skills (8 baseline + 4 v3.3.0)');
 assert.strictEqual(Object.keys(COMBAT.SECONDARY_RESOURCES).length, 4, 'SECONDARY_RESOURCES must have 4 dedicated resources');

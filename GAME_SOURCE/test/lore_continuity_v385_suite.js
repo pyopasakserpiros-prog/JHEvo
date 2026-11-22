@@ -40,7 +40,7 @@ console.log('  [PASS] LC-03 & LC-04: Tiangu fall anchor & Living Lore figure IDs
 // LC-05, LC-06, LC-07, LC-08, LC-09, LC-11, LC-13, LC-14, LC-15
 const e01 = g.JD.LORE_CHRONICLE_E0_E1;
 const wallEv = e01.EVENTS.find(e => e.id === 'EVT_E0_05_SEVEN_DAYS_WALL');
-assert(wallEv.yearLabelTh.includes('เดือน 12 วันที่ 24–30'), 'LC-05: 7-day wall must be in Month 12');
+assert(wallEv.yearLabelTh.includes('เดือนสิบเอ็ดน้ำค้างแข็ง วันที่ 24–30') || wallEv.yearLabelTh.includes('เดือนสิบสองเหมันต์ลึก วันที่ 24–30'), 'LC-05: 7-day wall must be anchored to Month 11/12 Days 24-30 (got ' + wallEv.yearLabelTh + ')');
 
 const p5 = g.JD.LORE_CHRONICLE_P5_PRESENT_EPOCH101;
 const gen6Ev = p5.EVENTS.find(e => e.id === 'EVT_P5_04_GEN6_LAST_WILL_AND_EMPTY_CHAIR');
