@@ -1,0 +1,132 @@
+﻿รายงานตรวจบั๊กวิถีและสายย่อยฉบับละเอียด — JianghuSect Evolution (JS2 v3.9.6)
+1. บทสรุปผู้บริหารและขอบเขตการตรวจ (Executive Summary)
+* เวอร์ชันฐานที่ตรวจ: JianghuSect 2 (JS2-v3.9.6, Save Schema 3.9.6-deep-gameplay-integration, HC.FINGERPRINT = 155:2f9c9dd7)
+* มาตรฐานที่ใช้ตรวจ: กฎเหล็กและข้อบังคับการตรวจบั๊กอย่างละเอียดจาก AGENTS.md (ตรวจแบบอ่านอย่างเดียว ไม่แก้ไขไฟล์เกม, แยก "มีข้อมูล / เชื่อมระบบ / เข้าถึงจริง (Code Zero) / ใช้แล้วเกิดผลจริง", ตรวจกฎ Observer-Autonomy 100%, และรันทดสอบ Live Node Runtime + Save/Load ทุกวิถี)
+* การจัดแบ่งทีมตรวจ: แบ่งเป็น 10 ทีมย่อยแบบคู่ขนาน (ทีมละ 5–6 วิถี ไม่เกิน 6 วิถีต่อทีม) ครอบคลุมครบทั้ง 55 มหาวิถี + 346 สายย่อย + 3 แขนงลับยุค 101
+* สรุปยอดบั๊กที่ยืนยันผลจริงหลังคัดกรองซ้ำ (Total: 47 Confirmed Bugs):
+   * P0 Critical (วิกฤต — ระบบหลักพังเงียบ): 1 รายการ
+   * P1 High (ร้ายแรง — กลไกพัง / ล็อกสายย่อย / ละเมิด Autonomy / ดาเมจหลุดเพดาน): 21 รายการ (4 บั๊กเชิงระบบข้ามหลายวิถี + 17 บั๊กเฉพาะวิถี)
+   * P2 Medium (ปานกลาง — โค้ดตาย / สถานะไม่ถูกใช้งาน / ขาด T6 / Save กลางศึกหลุด): 19 รายการ
+   * P3 Low (เล็กน้อย — ภาษาไทยเพี้ยน / ชื่อวิถีไม่ตรงกัน / ค่าคงที่คลาดเคลื่อน): 6 รายการ
+2. ตารางสรุปความครอบคลุมทั้ง 10 ทีม (55 วิถี + 3 แขนงลับ)
+ทีม
+	วิถีที่รับผิดชอบ
+	จำนวนวิถี/สายย่อย
+	ผลตรวจหลัก & รหัสบั๊กที่พบ
+	ทีม 1
+	#1–6: XIAN, BODY, GOD, DEMON, HEART_SOUL, MECH_PUPPET
+	6 วิถี / 75 สายย่อย
+	6 บั๊ก (T1-01..T1-06): Heart Demon Paradox ของ DEMON, syncDivineFaith ทับศรัทธารายบุคคลของ GOD, MECH_PUPPET ขาดเคล็ดบ่มเพาะ T2/T3/T5/T7
+	ทีม 2
+	#7–12: KARMA_SAMSARA, BEAST_SOVEREIGN, SAGE_SUPPORT, CRAFT_CREATION, ARRAY_TALISMAN, STRATEGY_GOVERNANCE
+	6 วิถี / 57 สายย่อย
+	7 บั๊ก (T2-01..T2-07): MANTRA_V234 ขาด .power ทำ sort เป็น NaN, SAGE_SUPPORT ขาดเคล็ด T1–2, ละเมิด Observer-Autonomy ใน supportDoctrine/specialistFacilities
+	ทีม 3
+	#13–18: ASTRO_DIVINATION, BUDDHA_DHARMA, VOID_SPACE, SONIC_HARMONY, VENOM_GU, PRIMORDIAL_SHIFTER
+	6 วิถี / 36 สายย่อย
+	7 บั๊ก (T3-01..T3-07): Stage 1 mantra === null, INNATE_V200 รั่วเข้า learnable, VENOM_GU โดนหักพิษ -50%, grandDaoState 6 ฟิลด์ตาย
+	ทีม 4
+	#19–24: CELESTIAL_WEATHER, WANDERING_DAO, MERCANTILE_DAO, DRAGON_VEIN_GEOMANCY, GRAVITY_DAO, CHRONO_EPOCH
+	6 วิถี / 36 สายย่อย
+	6 บั๊ก (T4-01..T4-06): CHRONO_EPOCH ทะลุ CD 12 เทิร์น, GRAVITY_DAO ติดดีบัฟถาวรไม่หาย, DRAGON_VEIN ดูดศิลาซ้ำทุก 10 วันเข้าบัฟตาย
+	ทีม 5
+	#25–30: INK_LITERATI, SOUL_PUPPETRY, PRIMORDIAL_CHAOS, SHADOW_SAMURAI, NINPO_SHADOW, NINPO_ELEMENTAL
+	6 วิถี / 30 สายย่อย
+	5 บั๊ก (T5-01..T5-05): SHADOW_SAMURAI โดนล็อก eff=0 เมื่อไม่ใส่เกราะตรงประเภท, NINPO_ELEMENTAL ดาเมจไม่ติดเพดาน 22%
+	ทีม 6
+	#31–35: DIVINE_SUMMONER, DIVINE_POSSESSION, DIVINE_CHANNELER, VOID_HERETIC_PACT, OCCULT_MAGE
+	5 วิถี / 20 สายย่อย
+	8 บั๊ก (T6-01..T6-08): COSMIC_SHRINE.consecrateOffering พัง Code Zero ([OBJECT OBJECT]), DIVINE_SUMMONER/OCCULT_MAGE ดาเมจหลุดเพดาน, VOID_HERETIC_PACT ดาเมจหายครึ่งหนึ่ง
+	ทีม 7
+	#36–40: DEVOURING_FLESH, NETHER_GRAVE, ANCESTRAL_RITUAL, TIDE_VOYAGER, LORE_ARCHIVIST
+	5 วิถี / 20 สายย่อย
+	5 บั๊ก (T7-01..T7-05): ANCESTRAL_RITUAL แสดงคำว่า undefined ใน UI, DEVOURING_FLESH กินของคลังฟรีไม่ได้ stat, NETHER_GRAVE ทิ้งโล่ที่คำนวณไว้
+	ทีม 8
+	#41–45: FORTUNE_GAMBLER, SPIRIT_HUSBANDRY, ARENA_GLORY, LEG_READ_FORM_BLADE, LEG_TRIAGE_MERIDIAN
+	5 วิถี / 22 สายย่อย
+	8 บั๊ก (T8-01..T8-08): CULT.breakthroughChance คืนค่า NaN เมื่อ cult.toxic หาย, ขาด Passive สายย่อยและ T6, หอวิถีชั้น 44–45 รางวัลศิลาลดลง 65%
+	ทีม 9
+	#46–50: LEG_STORM_CALLER_TEMPEST, LEG_JADE_CARAVAN_VOYAGER, LEG_OATH_JUDGE_WARDEN, LEG_ASHEN_KILN_ALCHEMY, TRANS_CONSTELLATION_RELAY
+	5 วิถี / 25 สายย่อย
+	8 บั๊ก (T9-01..T9-08): ท่า T7 ฮีลของ TRANS_CONSTELLATION_RELAY โจมตีพวกเดียวกันแทนฮีล, โบนัสพายุ LEG_STORM_CALLER เป็นโค้ดตาย, อาวุธ T7 ไม่ตรงสายโดนหัก -43.5%
+	ทีม 10
+	#51–55: TRANS_FIELD_CLAUSE_SOVEREIGN, TRANS_TEMPO_SOVEREIGN, TRANS_SEALKEEPER_FORBIDDEN_KEY, TRANS_PRIMAL_VORTEX_MIRROR, TRANS_DYNASTIC_MANDATE_WEAVER + 3 แขนงลับยุค 101
+	5 วิถี (25 สายย่อย) + 3 แขนงลับ
+	7 บั๊ก (T10-01..T10-07): P0 const ST = g.STATS เป็น undefined ทำ 4 วิถีเหนือตำนานไม่ทำงานในศึก, แดนลับ #13 เปิดไม่ได้, SHADOW_RADIANCE ใช้สถานะ 'weak' ผิดและฆ่าคนได้
+	3. บั๊กระดับ P0 Critical (วิกฤต — ต้องแก้ก่อนสุด)
+BUG-P0-01 (T10-01): C.runLegendaryDaoProc จับค่า ST = undefined ทำให้กลไกต่อสู้ของ 4 ใน 5 วิถีเหนือตำนาน (TRANS_*) ไม่ทำงานเลย
+* วิถีที่ได้รับผลกระทบ: TRANS_FIELD_CLAUSE_SOVEREIGN, TRANS_TEMPO_SOVEREIGN, TRANS_SEALKEEPER_FORBIDDEN_KEY, TRANS_DYNASTIC_MANDATE_WEAVER (รวม 20 สายย่อย)
+* ไฟล์และบรรทัด: GAME_SOURCE/js/combat.js:8261 (const ST = g.STATS;), js/combat.js:8692–8853, index.html:52, 57
+* สาเหตุ: combat.js โหลดก่อน stats.js ทำให้ตัวแปร ST ที่จับไว้ตอนโหลดไฟล์เป็น undefined ตลอดกาล และ C.runLegendaryDaoProc ไม่ได้อ่าน g.STATS ใหม่ ส่งผลให้ buffUnit, statusUnit และ isUnitSilenced กลายเป็นฟังก์ชันว่าง แต่ยังคงกิน ICD และหัก _tempoBank ทิ้งฟรี
+* หลักฐานการทดสอบสด: รัน COMBAT.runLegendaryDaoProc บนทั้ง 4 วิถี _daoIcd ถูกตั้งและ _tempoBank ลด 2 → 0 แต่ STATS.getActiveBuffs(a, W.t) เป็น [] และ d.sx เป็น []
+* แนวทางแก้ไข: เพิ่ม const ST = g.STATS; (หรือ STs()) ที่ต้นฟังก์ชัน C.runLegendaryDaoProc (js/combat.js:8693)
+4. บั๊กระดับ P1 High — บั๊กเชิงระบบข้ามหลายวิถี (4 รายการ)
+BUG-P1-01 (T2-02, T3-01, T5-03, T6-04, T8-01, T9-08): ช่องว่างเคล็ดบ่มเพาะขั้น 1 (cult.mantra === null) ครอบคลุม 44+ วิถี
+* วิถีที่ได้รับผลกระทบ: SAGE_SUPPORT และวิถีรุ่น v200 / v370 ทั้งหมด (#13–#55)
+* ไฟล์และบรรทัด: js/cultivation.js:5548–5555 (CULT.bestMantra), data/data_martial.js:51451–51466
+* สาเหตุ: เคล็ดเริ่มต้น MANTRA_V200_*_01 ตั้ง tier: 2, reqTier: 1 (ส่วน SAGE_SUPPORT เริ่มที่ T3) แต่ CULT.bestMantra กรองด้วย m.tier <= effMax และมี fallback tier <= 2 เฉพาะ path === 'GOD' เท่านั้น ทำให้ NPC ขั้น 1 เกิดมาโดยไม่มีเคล็ดบ่มเพาะ (mantra: null) และโดนหักความเร็วบ่มเพาะ -4% ถึง -16.2% จนกว่าจะขึ้นขั้น 2
+* แนวทางแก้ไข: เปลี่ยนเงื่อนไขกรองใน CULT.bestMantra เป็น (m.reqTier || m.tier) <= effMax พร้อมเปิด fallback เคล็ดระดับต่ำสุดของวิถีนั้นให้ทุกวิถี (และเพิ่มเคล็ด T1 ให้ SAGE_SUPPORT)
+BUG-P1-02 (T6-05, T8-02, T8-03, T9-06, T10-06): กฎล็อกสายย่อย (isExclusiveSubpathTech) ตัดสิทธิ์ Passive 50%, Forbidden 75% และสายย่อยที่ 5 ทั้ง 12 วิถี LEG_*/TRANS_*
+* วิถีที่ได้รับผลกระทบ: วิถี v200/v230/v370 จำนวนมาก โดยเฉพาะสายย่อยที่ 3–4 ของวิถีปกติ และสายย่อยที่ 5 ของทั้ง 12 วิถี LEG_*/TRANS_*
+* ไฟล์และบรรทัด: js/cultivation.js:6335–6336, 6363, data/data_martial.js:51393–51402, 52494–52512
+* สาเหตุ: ตัวสร้างข้อมูลผูก sub เดี่ยวไว้กับ PASSIVE_GRAND_DAO (สร้างแค่ 2 จาก 4 หรือ 4 จาก 5 สายย่อย), FORBIDDEN_GRAND_DAO (ผูกแค่ subs[3]), และ QI_MANTRA แต่ CULT.isExclusiveSubpathTech ตีความว่าทุก Passive/Forbidden ที่มี t.sub เป็นวิชาผูกขาดสายย่อย ทำให้สายย่อยอื่นเรียนไม่ได้เลย
+* แนวทางแก้ไข: สร้าง Passive ให้ครบทุกสายย่อย (เพิ่ม PAS_05 ให้ 12 วิถี LEG_*/TRANS_*) และปลดการล็อก sub (หรือใส่ compatibleSubs ครบทุกสายย่อย) บน QI_MANTRA และ FORBIDDEN_GRAND_DAO ประจำวิถี
+BUG-P1-03 (T2-01): MANTRA_V234_* ไม่มีฟิลด์ .power ทำให้การเรียงลำดับใน CULT.bestMantra เป็น NaN และล็อกเคล็ด T6
+* วิถีที่ได้รับผลกระทบ: วิถี #7–#12 (หนักสุดคือ KARMA_SAMSARA และ BEAST_SOVEREIGN ที่ไม่มีเคล็ด T6 อื่น)
+* ไฟล์และบรรทัด: data/data_martial.js:48854, js/cultivation.js:5560–5562
+* สาเหตุ: a.tier * 100 + a.power ได้ NaN เพราะ a.power === undefined ทำให้ขั้น 8 ยังเลือกเคล็ด T4 แทน T6
+* แนวทางแก้ไข: เติมค่าตัวเลข power ให้ MANTRA_V234_* ทุกบท (เช่น T4=180, T6=325) และดัก (a.power || 0) ใน CULT.bestMantra
+BUG-P1-04 (T8-05): CULT.breakthroughChance คืนค่า NaN เมื่อ npc.cult.toxic ไม่ได้ถูกกำหนดค่า
+* วิถีที่ได้รับผลกระทบ: LEG_* / TRANS_* (ผ่าน LEGENDARY_DAO.evaluateNpcAdoption) และเป็นจุดเสี่ยงทุกวิถี
+* ไฟล์และบรรทัด: js/cultivation.js:5954, 5957, 5959 และ js/cultivation.js:15043
+* สาเหตุ: คำนวณ c.toxic / 100 * 0.15 โดยไม่ใช้ (c.toxic || 0) ขณะที่ evaluateNpcAdoption สร้าง npc.cult โดยไม่มี toxic: 0
+* แนวทางแก้ไข: เปลี่ยนเป็น (c.toxic || 0) ใน CULT.breakthroughChance และเพิ่ม toxic: 0, attempts: 0 ที่ js/cultivation.js:15043
+5. บั๊กระดับ P1 High — บั๊กเฉพาะวิถีและสายย่อย (17 รายการ)
+* BUG-P1-05 (T1-01) — DEMON (ทั้ง 10 สายย่อย) Heart Demon Combat Paradox: js/stats.js:1224, 1280 หักค่าสถานะ ATK/MATK ของสายมารเต็มเพดาน -30% จาก heartDemon ทำให้โบนัส Demonic Frenzy +9% (combat.js:1952) ติดลบสุทธิ -7.9% ที่ hd=80 ทั้งที่ยังโดนดาเมจสะท้อน (แก้: ยกเว้นโทษ hd <= 60 ให้ DEMON ใน stats.js)
+* BUG-P1-06 (T1-02) — GOD (ทั้ง 13 สายย่อย) updateDivineFaith ทับศรัทธารายบุคคล: js/cultivation.js:6104–6107 เรียก CULT.syncDivineFaith(W) ทันทีหลังบวกค่าเฉพาะตัว ทำให้ godNpc.ext.divineFaith ถูกทับกลับเป็นค่าสำนัก (88 + 2.5 → 53) (แก้: แยก personalFaithOffset หรือข้ามการทับใน syncDivineFaith)
+* BUG-P1-07 (T1-03) — MECH_PUPPET (ทั้ง 10 สายย่อย) ขาดเคล็ดบ่มเพาะ T2, T3, T5 และ T7 Apex: มีแค่ 4 บท (T1:1, T4:2, T6:1) ทำให้ติดเพดานเคล็ดที่ T6 ด้อยกว่าอีก 5 วิถีหลัก (แก้: เพิ่มเคล็ด MECH_PUPPET ระดับ T2/T3/T5/T7 ใน data_tech.js)
+* BUG-P1-08 (T2-03) — ละเมิดกฎเหล็ก Observer-Autonomy (AGENTS.md): SAGE_SUPPORT (supportDoctrine, harmonic_pavilion), BEAST_SOVEREIGN (beast_menagerie) และ MECH_PUPPET (mech_workshop) ใน js/sect.js:2352–2413 ถูกเรียกเปลี่ยน/อัปเกรดได้จากปุ่ม Edit Hub เท่านั้น ไม่มีเจ้าสำนักหรือผู้อาวุโส AI ตัดสินใจเอง (แก้: เพิ่มรอบตัดสินใจอัตโนมัติใน js/sect.js)
+* BUG-P1-09 (T4-01) — CHRONO_EPOCH ทะลุคูลดาวน์ triggerTemporalRewind 12 เทิร์น: js/cultivation.js:10543 ใส่เงื่อนไข && npc._temporalRewindLastTick === nowT ทำให้เทิร์นถัดไป (nowT + 1) กดใช้ซ้ำได้ทุกเทิร์น ลด CD ทุกวิชา -6 และเพิ่มเกจ +35 รัวๆ (แก้: ลบเงื่อนไข === nowT ออก และเปลี่ยน !st._lastHpRewindAt ที่บรรทัด 10568 เป็น == null)
+* BUG-P1-10 (T4-02) — GRAVITY_DAO แปะดีบัฟ gravityCrush/slow ถาวรไม่หายแม้จบศึก: js/cultivation.js:10508–10512 เขียนฟิลด์ดิบ target.gravityCrush = 4 / target.slow = 4 ซึ่งไม่มีวันถูกล้าง ทำให้เป้าหมายเสียท่าพุ่งและเดินช้าลง 55% ตลอดชีวิต + combat.js:5663 ส่ง { free: true, ignoreCooldown: true } ทะลุ CD (แก้: ลบฟิลด์ดิบ ใช้เฉพาะ STATS.addStatus ที่มีเวลาหมดอายุ)
+* BUG-P1-11 (T4-03) — DRAGON_VEIN_GEOMANCY ดูดศิลาสำนัก 60 ก้อนทุก 10 วันเข้าบัฟตาย: js/cultivation.js:10770 เช็ค keys.length < 2 แต่เขียนทับคีย์ 'MAIN_PEAK' ซ้ำทุก 10 วันจนศิลาเหลือต่ำกว่า 900 ขณะที่ leylineShieldBonusPct และ cultAuraBonusPct (10467–10468) ไม่ถูกอ่านที่ไหนเลย (แก้: เช็ค !anchoredNodes[key] และผูกโบนัสเข้าศึก/การบ่มเพาะจริง)
+* BUG-P1-12 (T5-01) — SHADOW_SAMURAI ถูกล็อกใช้ทุกวิชาไม่ได้ (eff = 0) เมื่อไม่ใส่เกราะตรงประเภท: js/martial.js:664–686 คืนค่า 0 เมื่อ weaponConditionMatches เป็น false ซึ่งเช็คทั้งอาวุธและ armorTypes ทำให้ซามูไรถือดาบแต่ไม่ใส่เกราะหรือใส่ชุดคลุมใช้สกิลไม่ได้เลย 0 ครั้งใน 40 เทิร์น (แก้: บังคับล็อก 0 เฉพาะอาวุธ ให้เกราะไม่ตรงลดเหลือ 0.65 ตามปกติ)
+* BUG-P1-13 (T5-02, T6-02) — ท่าพิเศษ 3 วิถีขาดเพดานดาเมจ stageRefHp * 0.22: NINPO_ELEMENTAL (MUDRA_EXPLOSIVE_SEAL, combat.js:5933 ทำดาเมจ 1,409 = 105% stageRefHp), DIVINE_SUMMONER (SUMMON_DEITY_PROJECTION, combat.js:5949 ทำดาเมจ 6,607 = 63 เท่าของเพดาน 105!), และ OCCULT_MAGE (KHMER_YANTRA_WARD, combat.js:6011 ทำดาเมจ 2,194) (แก้: ครอบเพดาน stageRefHp * 0.22 และส่งผ่าน C.applyProcDamage ให้เท่าวิถีอื่น)
+* BUG-P1-14 (T6-01) — COSMIC_SHRINE.consecrateOffering พัง 100% (Code Zero): DIVINE_SUMMONER, DIVINE_POSSESSION, DIVINE_CHANNELER ถูกเรียกจาก js/ai.js:1614 และ js/cultivation.js:10823 โดยส่ง NPC object เข้าพารามิเตอร์ realmId (js/sect.js:17497, 17815) กลายเป็น '[OBJECT OBJECT]' ล้มเหลวทุกครั้งและทำให้ไม่เคยทำพันธสัญญาเทพได้เอง (แก้: แปลงอาร์กิวเมนต์ให้รองรับทั้ง (W, actor, realmId, ...) และ (W, realmId, opts))
+* BUG-P1-15 (T6-03) — VOID_HERETIC_PACT (ELDRITCH_SANITY_BLAST) ดาเมจหายครึ่งหนึ่งแต่รายงานเต็ม: js/combat.js:5996–6000 ส่ง Math.round(elDmg * 0.50) เข้า C.applyDamage หลังลบ setHp ทิ้งแต่ลืมใส่ applyProcDamage 50% ที่เหลือ ขณะที่บวกเต็ม elDmg เข้า bonusDmg (แก้: ส่งเต็ม elDmg หรือเติม applyProcDamage อีก 50%)
+* BUG-P1-16 (T7-01) — ANCESTRAL_RITUAL อ่าน W.sect.ancestors ที่ไม่มีอยู่จริงและแสดง undefined บนหน้าจอ: js/cultivation.js:10690–10711 นับบรรพชนได้ 0 เสมอ (ของจริงคือ W.sect.fallen/W.graveyard) และไม่ใส่ elderNameTh/studySpeedMult จน cognition.js:2702 และ ui.js:7242 แสดงข้อความ "ได้รับพรบรรพชนจาก「undefined」(เร่งศึกษา ×undefined)" (แก้: อ่านจาก fallen/graveyard และเติมฟิลด์ให้ครบ)
+* BUG-P1-17 (T7-02, T7-03) — DEVOURING_FLESH กินของคลังจริงฟรีไม่ได้ Stat และ NETHER_GRAVE ทิ้งโล่ที่คำนวณไว้: devourResourceForBody (cultivation.js:11201–11241) หักชิ้นส่วนอสูรจริงจากคลังแต่ devouredOrgansCount ไม่เคยถูกอ่านใน stats.js/combat.js; channelGraveyardEcho (11243–11251) คำนวณ bonusShieldPct แล้วทิ้งไม่นำไปสร้างโล่ (แก้: ผูก devouredOrgansCount และ graveBonusShieldPct เข้า stats.js/combat.js)
+* BUG-P1-18 (T9-01) — ท่า T7 ฮีลของ TRANS_CONSTELLATION_RELAY โจมตีพวกเดียวกันแทนฮีล: LEG_V370_TRANS_CONSTELLATION_RELAY (data/data_martial.js:52690, 52734, 52776–52793) ประกาศ arch: 'harmonize', aiRole: 'healer' แต่ตัวสร้างฮาร์ดโค้ด cat: 'COMBAT_TECHNIQUE', M: 2.26, SINGLE_ENEMY ทดสอบร่ายใส่เพื่อน HP ลด 50 → 22 (แก้: แยกสาขาสร้าง SUPPORT_ART / ALL_ALLIES / M: 0 สำหรับ heal/harmonize)
+* BUG-P1-19 (T9-02) — โบนัสพายุ 1.20x ของ LEG_STORM_CALLER_TEMPEST เป็นโค้ดตาย: js/combat.js:8777 เช็ค String(W.weather) ซึ่งเป็น object ("[object Object]") ทำให้ได้ false ตลอด (แก้: ใช้ String(W.weather.kind || W.weather))
+* BUG-P1-20 (T9-03) — อาวุธท่า T7 ของ LEG_ASHEN_KILN_ALCHEMY (FOCUS) และ TRANS_CONSTELLATION_RELAY (ZITHER) ไม่ตรงกับอาวุธประจำวิถี: ผู้ฝึกใช้อาวุธประจำวิถีตัวเอง (STAFF/ASTROLABE) โดนหักพลัง -43.5% (mult: 0.65 แทน 1.15) (data/data_martial.js:50764–50765, 52689–52690) (แก้: เปลี่ยนเป็น STAFF และ ASTROLABE)
+* BUG-P1-21 (T10-02, T10-03) — แขนงลับยุค 101 (Deep Round B/C): แดนลับ #13 เปิดไม่ได้ (Code Zero) และท่าสวน SHADOW_RADIANCE_SUBPATH ใช้สถานะ 'weak' ผิด + ฆ่าคนได้: daoZhiArchiveOpenUntilDay (expedition.js:16960, 17238) ไม่เคยถูกตั้งค่าเปิด; combat.js:1393–1394 ใช้ 'weak' แทน 'weaken' (ไม่มีผลลด ATK) และไม่จำกัด HP เหลือ 1 ทำให้สวนจนฆ่าศัตรูที่เลือดน้อยตาย ขัดกับกติกาปลดอาวุธไม่สังหาร (แก้: เพิ่มเงื่อนไขเปิดแดน #13 ใน _tickEventShards, เปลี่ยนเป็น 'weaken', และจำกัด counterDmg <= hp - 1)
+6. บั๊กระดับ P2 Medium (19 รายการ)
+1. BUG-P2-01 (T1-04): GOD (4 ขั้น) & BODY (5 ขั้น) ตรวจ [3,5,7].includes(c.stage) (cultivation.js:6240) ทำให้ Origin Arc เลื่อนบทไม่ครบ — ควรใช้ CULT.equivalentStage
+2. BUG-P2-02 (T1-05): CULT.QINGGONG (cultivation.js:2881–2883, 2915–2920) เช็ค ID เก่าที่ไม่มีอยู่จริง (SWORD, SWORD_FLIGHT, CLOUD_WIND, BLOOD_SHADOW) ทำให้สายกระบี่ไม่ปลดล็อกเหินกระบี่อัตโนมัติ
+3. BUG-P2-03 (T2-04): BEAST_SOVEREIGN ท่า T6 TECH_V240_CLAW_02 (data_martial.js:52709) ใส่ sub: 'TIGER_SOVEREIGN' (ของสาย BODY) ทำให้ไม่ได้โบนัสความเข้ากันได้ของสายย่อย
+4. BUG-P2-04 (T2-05): MP_BASE_ARRAY_TALISMAN และ MP_BASE_STRATEGY_GOVERNANCE ตกหล่นจาก SECT.FOUNDATION_CURRICULUM (js/sect.js:546–554)
+5. BUG-P2-05 (T3-02): INNATE_V200_* ไม่มี innateOnly: true จึงรั่วเข้า CULT.learnable (cultivation.js:6381) แล้วโดน reconcileInnate ลบทิ้ง เสียเทิร์นเรียนฟรี
+6. BUG-P2-06 (T3-03): CULT.mantraById (cultivation.js:2431–2447) ตกหล่น MANTRA_V200_* ทั้งหมด (เพราะอยู่ใน JD.TECH.techniques ไม่ใช่ JD.TECH.mantras)
+7. BUG-P2-07 (T3-04): grandDaoState 6 ฟิลด์ของวิถี #13–#18 (starDestinyStacks, bodhiMeritStacks, voidPocketCharges, harmonicChordNotes, symbioticGuTier, atavismForm) เป็นโค้ดตายไม่เคยอัปเดต และไม่มีสาขาใน monthlyAutonomousTick (cultivation.js:10244–10249, 10739–10832)
+8. BUG-P2-08 (T3-05): expedition.js:10209, 10429 อ้าง ID วิถีผิด ('STAR_FATE', 'SONIC_RESONANCE' แทน 'ASTRO_DIVINATION', 'SONIC_HARMONY')
+9. BUG-P2-09 (T3-06): VENOM_GU โดนหักความเร็วบ่มเพาะจากพิษเต็ม -50% (cultivation.js:5671–5680) เพราะข้อยกเว้นพิษเช็คแค่สายย่อยเก่าใต้ DEMON
+10. BUG-P2-10 (T4-04): MERCANTILE_DAO (cultivation.js:10436, 10758–10762) แปะ targetUnit.contractDefault ถาวรไม่หมดอายุ และสัญญา 'OFFERED' ที่สร้างตอนไม่มีเจ้าหอคลังค้างตลอดกาล
+11. BUG-P2-11 (T4-05): CELESTIAL_WEATHER activeWeatherMelody.bonusPct (cultivation.js:10307–10314) ไม่เคยถูกอ่านในเกม และ onWeatherSync (combat.js:4896) เป็น true เสมอแม้ไม่ได้ประสานอากาศ
+12. BUG-P2-12 (T5-04): INK_LITERATI, SOUL_PUPPETRY, PRIMORDIAL_CHAOS (cultivation.js:10584–10611) ค่า imperialEdictActive, marionetteLinks/damageSharePct, chaosEntropyStacks/ignoreResistPct ไม่ถูกนำไปใช้คำนวณในศึกจริง
+13. BUG-P2-13 (T5-05): SHADOW_SAMURAI ตัวกรอง readyMoves (combat.js:2509–2512) ลืมเช็ค stamina (samStaminaCost) ทำให้คำนวณระยะโจมตีเพี้ยนเมื่อพลังงานหมด
+14. BUG-P2-14 (T6-06): invokeDivineManifestation (cultivation.js:11156) ยัดเยียดพันธสัญญา 'PANGU' ถาวรฟรีกลางศึกให้ทุกสายเทพ และ BORROW_COSMIC_LAW (combat.js:5977) ทิ้งค่า combatPowerMult
+15. BUG-P2-15 (T6-07): CULT.canStudyForbidden (cultivation.js:6365) เช็คเฉพาะ c.path === 'DEMON' ลืมรวม VOID_HERETIC_PACT, OCCULT_MAGE, DEVOURING_FLESH, NETHER_GRAVE, VENOM_GU
+16. BUG-P2-16 (T6-08): OCCULT_MAGE:SACRED_GOLEM_TAMER ท่า T6 TECH_V240_FOCUS_02 (data_martial.js:52727) บังคับอาวุธ FOCUS แต่สายย่อยใช้ STAFF/ROSARY
+17. BUG-P2-17 (T7-04, T7-05, T8-04, T9-05): ฟิลด์ grandDaoState และ ripple ที่เขียนแล้วไม่มีผู้อ่าน: LORE_ARCHIVIST (compileLoreIndex), FORTUNE_GAMBLER (destinyStake), SPIRIT_HUSBANDRY (herbYieldBonusPct), ARENA_GLORY (duelMomentumBonusPct), LEG_JADE_CARAVAN_VOYAGER (W.sect.caravanSupplyEfficiency), รวมถึง DEVOURING_FLESH:IRON_BONE_DEVOURER บล็อกแร่ MAT_ORE_* ทั้งที่ลอร์ระบุให้กลืนแร่ได้
+18. BUG-P2-18 (T8-06, T8-07, T9-04, T9-07, T10-06): 12 วิถี LEG_*/TRANS_* ไม่มีวิชา T6 เลย (T6: 0), หอวิถีชั้น 44–45 (explore.js:8054) ดรอปศิลาลด 65% แม้พลังบอสพุ่ง 3.4 เท่า, LEG_JADE_CARAVAN_VOYAGER (combat.js:8784) เผา ICD 12 เทิร์นฟรีตอนปราณไม่พอ, และคีย์เวิร์ดท่า T7 KW_DAO_* 5 ตัว (data_martial.js:52686–52690) ไม่มีตัวประมวลผลในศึก
+19. BUG-P2-19 (T10-04, T10-05): 3 แขนงลับยุค 101: ศิษย์สำนักที่ตระหนัก PENDING_REGISTRY_PATH ค้างที่ชั้น 5 ตลอด (pendingCountdownTier ไม่ลด) และ breathRelayStage ค้างที่ 1 ไม่ถูกใช้ + ธงกันใช้ซ้ำกลางศึก (f._breathRelayUsed, f._shadowRadianceCounterUsed, f._pendingSealUsed) หายเมื่อเซฟ/โหลดกลางศึก (ควรย้ายเข้า C.ensureFightTac)
+7. บั๊กระดับ P3 Low & ข้อสังเกตเพิ่มเติม (6 รายการ)
+1. BUG-P3-01 (T1-06): ชื่อเกจใน CULT.PATH_GAUGES (cultivation.js:9322–9327) และ COMBAT.SECONDARY_RESOURCES (combat.js:7840–7843) ของวิถี #1–#6 ยังมีภาษาอังกฤษในวงเล็บปนใน nameTh
+2. BUG-P3-02 (T2-06, T2-07): ข้อความ UI js/ui.js:7913 ระบุจำนวนสัตว์เลี้ยง BEAST_SOVEREIGN (2–4 ตัว) ไม่ตรงกับโค้ดจริง (1–3 ตัว, เฉพาะ MYRIAD_BEAST_PACK ได้ 2–4) และคำสะกดผิด "แก่นเนยใน" ที่ js/cultivation.js:9062 (ควรเป็น "แก่นใน")
+3. BUG-P3-03 (T3-07): CULT.rate (cultivation.js:5630) ใช้สูตร social.charisma 35% กับวิถี v200 แทนที่จะอ่าน PATH_DESCRIPTORS[p].cult
+4. BUG-P3-04 (T4-06, ทีม 6): ชื่อไทยของออร่าใน js/render.js:1711–1715, 1724–1727 ยังใช้ชื่อเก่าไม่ตรงกับ JD.CULT.paths[p].nameTh (รวม 9 วิถี)
+5. BUG-P3-05 (T8-08): LEG_V370_LEG_READ_FORM_BLADE (data_martial.js:52684) สะกดคีย์เวิร์ดเป็น 'KW_DAO_SEAM_READ' แทน 'KW_DAO_READ_FORM'
+6. BUG-P3-06 (T10-07): TRANS_DYNASTIC_MANDATE_WEAVER (combat.js:8848) ฮาร์ดโค้ด 'POL_YUNHE' แทน W.sect.homePolityId || 'POL_YUNHE'
+8. แผนลำดับการแก้ไขแนะนำ (Recommended Patch Roadmap)
+* Wave 1 — เร่งด่วนสูงสุด (P0 + Systemic P1): แก้ BUG-P0-01 (ST = g.STATS ใน runLegendaryDaoProc), BUG-P1-01 (Mantra ขั้น 1), BUG-P1-02 (ปลดล็อก Passive/Forbidden สายย่อย), BUG-P1-03 (MANTRA_V234.power), BUG-P1-04 (toxic || 0 กัน NaN), และ BUG-P1-14 (COSMIC_SHRINE.consecrateOffering) — แก้แค่ 6 จุดนี้ช่วยวิถีพร้อมกันกว่า 45 วิถี!
+* Wave 2 — แก้บั๊กต่อสู้และกลไกเฉพาะวิถี (Path-Specific P1): แก้ DEMON Heart Demon Paradox, GOD syncDivineFaith, CHRONO_EPOCH CD, GRAVITY_DAO ดีบัฟถาวร, DRAGON_VEIN ดูดศิลา, SHADOW_SAMURAI ล็อกเกราะ, เพดานดาเมจ 22% (NINPO_ELEMENTAL, DIVINE_SUMMONER, OCCULT_MAGE), VOID_HERETIC_PACT ดาเมจหายครึ่ง, ANCESTRAL_RITUAL undefined, TRANS_CONSTELLATION_RELAY ฮีลกลายเป็นตีเพื่อน, LEG_STORM_CALLER พายุตาย, อาวุธ T7 ไม่ตรงสาย, ระบบอัตโนมัติของ supportDoctrine/specialistFacilities (แก้ข้อขัด AGENTS.md), และ 2 จุดของแขนงลับยุค 101 (DAO_ZHI + weaken/non-lethal)
+* Wave 3 — เก็บงาน P2 & P3 Polish: เชื่อม grandDaoState ที่ยังไม่ได้อ่าน, เพิ่ม T6 ให้ 12 วิถี LEG_*/TRANS_* และ T2/T3/T5/T7 Mantra ให้ MECH_PUPPET, ย้ายธงกลางศึกเข้า ensureFightTac, และแก้คำสะกด/ชื่อไทยให้ตรงกันทั้งเกม
