@@ -172,7 +172,7 @@ console.log(`  ✓ Audited ${allRecipes.length} recipes and verified acyclic cra
 // 3. Audit Subpaths across all 12 Cultivation Paths
 console.log('\n▶ [3/6] Auditing Cultivation Paths, Subpaths & 9-Stage Tracks...');
 const majorPaths = Object.keys(JD.CULT.paths || {});
-check(majorPaths.length === 55, `Expected 27 major cultivation paths, found ${majorPaths.length}`);
+check(majorPaths.length === 58, `Expected 27 major cultivation paths, found ${majorPaths.length}`);
 const allSubPaths = Object.entries(JD.CULT.paths || {}).flatMap(([pk, p]) => (p.subPaths || []).map(s => Object.assign({ path: pk }, s)));
 const subPathIds = new Set();
 for (const sp of allSubPaths) {
@@ -303,9 +303,9 @@ function assertV234(cond, msg) {
 }
 
 // 1. Verify 12 paths and 132 subpaths (96 legacy + 36 v2.0.34)
-assertV234(majorPaths.length === 55, `12 main cultivation paths exist (got ${majorPaths.length})`);
-assertV234(allSubPaths.length === 346, `Total subpaths is 132 (got ${allSubPaths.length})`);
-assertV234(allSubPaths.length - 96 === 250, `v2.0.34 added 36 subpaths (got ${allSubPaths.length - 96})`);
+assertV234(majorPaths.length === 58, `12 main cultivation paths exist (got ${majorPaths.length})`);
+assertV234(allSubPaths.length === 358, `Total subpaths is 132 (got ${allSubPaths.length})`);
+assertV234(allSubPaths.length - 96 === 262, `v2.0.34+ added subpaths (got ${allSubPaths.length - 96})`);
 for (const sp of allSubPaths) {
   assertV234(typeof sp.combatBonus === 'number' && !Number.isNaN(sp.combatBonus), `subpath ${sp.id} numeric combatBonus`);
   assertV234(typeof sp.defenseBonus === 'number' && !Number.isNaN(sp.defenseBonus), `subpath ${sp.id} numeric defenseBonus`);
@@ -315,7 +315,7 @@ for (const sp of allSubPaths) {
 }
 
 // 2. Verify 655 martial techniques (355 legacy + 300 v2.0.34) and composableSpec validity
-assertV234(techniques.length === 1447, `655 martial techniques in JD.MARTIAL.techniques (got ${techniques.length})`);
+assertV234(techniques.length === 1489, `655 martial techniques in JD.MARTIAL.techniques (got ${techniques.length})`);
 const v234Techs = techniques.filter(t => String(t.id).includes('V234') || t.versionAdded === 'v2.0.34');
 assertV234(v234Techs.length === 300, `300 v2.0.34 techniques in JD.MARTIAL.techniques (got ${v234Techs.length})`);
 for (const t of v234Techs) {

@@ -47,7 +47,7 @@ console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Loc
 console.log('▶ [Phase 1 / PROP-03] Testing Path-Specific Secondary Combat Gauges & Finishers...');
 {
   const W = SIM.create('v340-path-gauges');
-  check(Object.keys(CULT.PATH_GAUGES).length === 55, 'All 12 cultivation paths have dedicated secondary combat gauges');
+  check(Object.keys(CULT.PATH_GAUGES).length === 58, 'All 12 cultivation paths have dedicated secondary combat gauges');
 
   const hero = W.npcs[0];
   hero.cult.path = 'XIAN';

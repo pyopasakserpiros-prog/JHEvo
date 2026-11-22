@@ -28,7 +28,7 @@ console.log('===================================================================
 
   // Legacy array length locks
   assert.strictEqual(JD.TECH.mantras.length, 122, 'JD.TECH.mantras length must remain 122');
-  assert.strictEqual(JD.TECH.techniques.length, 1942, 'JD.TECH.techniques length must remain 1942');
+  assert.strictEqual(JD.TECH.techniques.length, 1987, 'JD.TECH.techniques length must remain 1942');
   assert.strictEqual(Object.keys(COMBAT.KEYWORDS_CATALOG).length, 16, 'COMBAT.KEYWORDS_CATALOG length must remain 16');
   console.log('  ✓ [1/7] Core Locks & Legacy Catalog Counts Verified');
 }

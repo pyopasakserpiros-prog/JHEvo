@@ -89,8 +89,8 @@ console.log('=== JS2 v3.7.0a — Phase A: All 9 P0 Critical Audit Fixes Verifica
       if (!key || !g.ECO.pillInfo(key)) missing++;
     }
   }
-  assert.strictEqual(missing, 0, `Expected 0 missing breakthrough pills across 55x7 pairs, got ${missing}`);
-  console.log('PASS [4/9] BN.resolveBreakthroughPillKey resolved 385/385 (55 paths x 7 stages) to valid pills');
+  assert.strictEqual(missing, 0, `Expected 0 missing breakthrough pills across 58x7 pairs, got ${missing}`);
+  console.log('PASS [4/9] BN.resolveBreakthroughPillKey resolved 406/406 (58 paths x 7 stages) to valid pills');
 }
 
 // [5/9] UI.rWorld No ReferenceError & world-legendary-dao-card Wired to outHtml

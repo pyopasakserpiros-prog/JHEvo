@@ -301,7 +301,7 @@ assert(CULT.resolveTribulationVariant(W, caster, 'PURPLE_THUNDER_TRIBULATION').o
 assert(ECO.recordWeaponKill(W, caster, caster.equip.WEAPON, target).kills >= 1, 'Living Weapon kill recorded');
 assert(ECO.adaptArmorToElement(caster, { slot: 'ARMOR' }, 'FIRE').stacks === 1, 'Adaptive Armor element recorded');
 
-assert(Object.keys(SECT.UNIVERSAL_EQUITY_V235).length === 55, 'All 12 cultivation paths present in SECT.UNIVERSAL_EQUITY_V235');
+assert(Object.keys(SECT.UNIVERSAL_EQUITY_V235).length === 58, 'All 12 cultivation paths present in SECT.UNIVERSAL_EQUITY_V235');
 assert(Object.keys(SK.SUBPATH_ARCHETYPES_V235).length === 7, 'All 7 new subpath archetypes present in SK.SUBPATH_ARCHETYPES_V235');
 for (const [k, meta] of Object.entries(SK.KEYWORD_REGISTRY)) {
   assert(meta && meta.implemented === true, `Keyword ${k} marked implemented: true`);

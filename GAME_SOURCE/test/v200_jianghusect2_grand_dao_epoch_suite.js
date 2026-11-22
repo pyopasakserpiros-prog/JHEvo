@@ -82,7 +82,7 @@ function check(cond, msg) {
 
   // Verify all 27 Path Manuals and 27 Path Crystals exist in ECO.itemById
   const allPathIds = Object.keys(CULT.PATHS);
-  check(allPathIds.length === 55, `Expected 27 Major Paths, got ${allPathIds.length}`);
+  check(allPathIds.length === 58, `Expected 27 Major Paths, got ${allPathIds.length}`);
   for (const pid of allPathIds) {
     const manId = 'MANUAL_PATH_' + pid;
     const cryId = 'CRYSTAL_PATH_' + pid;
@@ -135,10 +135,10 @@ function check(cond, msg) {
   }
 
   // Check all 27 paths and 222 subpaths
-  check(Object.keys(CULT.PATHS).length === 55, 'Total Major Paths must be 27 (3^3)');
-  check(Object.keys(CULT.PATH_GAUGES).length === 55, 'Total Path Gauges must be 27');
+  check(Object.keys(CULT.PATHS).length === 58, 'Total Major Paths must be 27 (3^3)');
+  check(Object.keys(CULT.PATH_GAUGES).length === 58, 'Total Path Gauges must be 27');
   const allSubPaths = Object.values(CULT.PATHS).flatMap(p => p.subPaths || []);
-  check(allSubPaths.length === 346, `Total Subpaths must be 222 (got ${allSubPaths.length})`);
+  check(allSubPaths.length === 358, `Total Subpaths must be 222 (got ${allSubPaths.length})`);
 
   for (const sp of allSubPaths) {
     check(Array.isArray(sp.subpathTraits) && sp.subpathTraits.length === 3, `Subpath ${sp.id} must have 3 milestone subpathTraits (Realms 3, 6, 9)`);
@@ -246,10 +246,10 @@ function check(cond, msg) {
   const synEval = COMBAT.evaluateCrossPathSynergies([{ cult: { path: 'CELESTIAL_WEATHER' } }, { cult: { path: 'XIAN' } }]);
   check(synEval && Array.isArray(synEval.matchedSynergies) && synEval.matchedSynergies.length >= 1, 'evaluateCrossPathSynergies activates synergy for CELESTIAL_WEATHER + SONIC_HARMONY');
 
-  check(EXPLORE.NINE_DAO_PAGODA && Array.isArray(EXPLORE.NINE_DAO_PAGODA.floors) && EXPLORE.NINE_DAO_PAGODA.floors.length === 55,
+  check(EXPLORE.NINE_DAO_PAGODA && Array.isArray(EXPLORE.NINE_DAO_PAGODA.floors) && EXPLORE.NINE_DAO_PAGODA.floors.length === 58,
     `EXPLORE.NINE_DAO_PAGODA.floors must have 27 floors (got ${EXPLORE.NINE_DAO_PAGODA?.floors?.length})`);
-  check(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length === 55, 'Must have 43 RES_NINE_DAO_* Pagoda resonance sets');
-  check(MARTIAL.RESONANCE_SETS.filter(x => !x.id.startsWith('RES_V320_')).length === 74, 'Must have 46 total equipment resonance sets (19 baseline + 27 Pagoda)');
+  check(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length === 58, 'Must have 43 RES_NINE_DAO_* Pagoda resonance sets');
+  check(MARTIAL.RESONANCE_SETS.filter(x => !x.id.startsWith('RES_V320_')).length === 77, 'Must have 46 total equipment resonance sets (19 baseline + 27 Pagoda)');
   console.log('  ✓ [5/6] Pillar 5: 15 Cross-Path Synergies & 27-Floor Nine-Dao Pagoda Verified');
 }
 

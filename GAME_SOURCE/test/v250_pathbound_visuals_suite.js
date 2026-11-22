@@ -130,9 +130,9 @@ globalThis.window = globalThis.window || {
   // 1. P0 & P2 — 43/43 Cultivation Path Visual Signatures & True maxStage Halos
   // -------------------------------------------------------------------------
   const allPathIds = Object.keys(CULT.PATHS);
-  assert.strictEqual(allPathIds.length, 55, 'CULT.PATHS must contain all 43 Grand Dao paths');
+  assert.strictEqual(allPathIds.length, 58, 'CULT.PATHS must contain all 43 Grand Dao paths');
   const sigKeys = Object.keys(Render.PATH_VISUAL_SIGNATURES);
-  assert.strictEqual(sigKeys.length, 55, 'Render.PATH_VISUAL_SIGNATURES must define all 43 cultivation paths');
+  assert.strictEqual(sigKeys.length, 58, 'Render.PATH_VISUAL_SIGNATURES must define all 43 cultivation paths');
 
   for (const pid of allPathIds) {
     const pDef = CULT.PATHS[pid];

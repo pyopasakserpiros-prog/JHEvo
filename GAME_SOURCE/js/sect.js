@@ -785,7 +785,10 @@
     TRANS_TEMPO_SOVEREIGN: {"commander": 18, "vanguard": 16, "mission": 14},
     TRANS_SEALKEEPER_FORBIDDEN_KEY: {"array": 20, "discipline": 18, "alchemy": 12},
     TRANS_PRIMAL_VORTEX_MIRROR: {"martial": 16, "array": 16, "diplomacy": 14},
-    TRANS_DYNASTIC_MANDATE_WEAVER: {"diplomacy": 22, "commander": 20, "envoy": 18}
+    TRANS_DYNASTIC_MANDATE_WEAVER: {"diplomacy": 22, "commander": 20, "envoy": 18},
+    CORPSE_SOVEREIGN: { arraymaster: 14, steward: 14, vanguard: 12 },
+    WRAITH_GRIEVANCE: { censor: 16, healer: 12, discipline: 12 },
+    DEATHLESS_CADAVER: { vanguard: 18, martial: 16, wildwarden: 12 }
   };
   SECT.relevance = (post, n, W) => {
     const base = _origRelevance(post, n);
@@ -11877,7 +11880,7 @@
       shortTh: 'หุบเขาเงาโลหิต',
       icon: '🩸',
       isSoloPath: true,
-      paths: ['DEMON', 'VENOM_GU', 'SOUL_PUPPETRY', 'NINPO_SHADOW', 'VOID_HERETIC_PACT', 'NETHER_GRAVE', 'TRANS_SEALKEEPER_FORBIDDEN_KEY'],
+      paths: ['DEMON', 'VENOM_GU', 'SOUL_PUPPETRY', 'NINPO_SHADOW', 'VOID_HERETIC_PACT', 'NETHER_GRAVE', 'TRANS_SEALKEEPER_FORBIDDEN_KEY', 'CORPSE_SOVEREIGN', 'WRAITH_GRIEVANCE', 'DEATHLESS_CADAVER'],
       auraBonus: { cultRate: 0.15, combatFerocity: 0.12, critBonus: 10, btBonus: 0.10, p: { atk: 0.10 }, f: { crit: 10 } },
       descTh: 'หุบเขาลี้ลับและแดนอัสนีโลหิต เพิ่มอัตราคริติคอล +10% และโอกาสทะลวงด่าน +10%'
     },
@@ -13882,7 +13885,10 @@
     TRANS_TEMPO_SOVEREIGN: { path: 'TRANS_TEMPO_SOVEREIGN', combatMechanic: 'KW_DAO_TEMPO_BANK', elementalSpecialty: ['WIND'], facilityRole: 'High-Grade Dao Hall (ปรมาจารย์จังหวะกาล)', explorationRole: 'Seek ปรมาจารย์จังหวะกาล Provenance & Living Lore' },
     TRANS_SEALKEEPER_FORBIDDEN_KEY: { path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', combatMechanic: 'KW_DAO_SEAL_KNOT', elementalSpecialty: ['YIN_SHADOW'], facilityRole: 'High-Grade Dao Hall (ผู้ถือกุญแจผนึก)', explorationRole: 'Seek ผู้ถือกุญแจผนึก Provenance & Living Lore' },
     TRANS_PRIMAL_VORTEX_MIRROR: { path: 'TRANS_PRIMAL_VORTEX_MIRROR', combatMechanic: 'KW_DAO_MIRROR_ECHO', elementalSpecialty: ['ASTRAL'], facilityRole: 'High-Grade Dao Hall (กระจกสะท้อนหมื่นวิชา)', explorationRole: 'Seek กระจกสะท้อนหมื่นวิชา Provenance & Living Lore' },
-    TRANS_DYNASTIC_MANDATE_WEAVER: { path: 'TRANS_DYNASTIC_MANDATE_WEAVER', combatMechanic: 'KW_DAO_MANDATE_THREAD', elementalSpecialty: ['LIGHT_YANG'], facilityRole: 'High-Grade Dao Hall (ทอชะตาแผ่นดิน)', explorationRole: 'Seek ทอชะตาแผ่นดิน Provenance & Living Lore' }
+    TRANS_DYNASTIC_MANDATE_WEAVER: { path: 'TRANS_DYNASTIC_MANDATE_WEAVER', combatMechanic: 'KW_DAO_MANDATE_THREAD', elementalSpecialty: ['LIGHT_YANG'], facilityRole: 'High-Grade Dao Hall (ทอชะตาแผ่นดิน)', explorationRole: 'Seek ทอชะตาแผ่นดิน Provenance & Living Lore' },
+    CORPSE_SOVEREIGN: { path: 'CORPSE_SOVEREIGN', combatMechanic: 'KW_DAO_BODY_MEMORY', elementalSpecialty: ['YIN_SHADOW'], facilityRole: 'High-Grade Dao Hall (จอมคุมศพ)', explorationRole: 'Seek จอมคุมศพ Provenance & Living Lore' },
+    WRAITH_GRIEVANCE: { path: 'WRAITH_GRIEVANCE', combatMechanic: 'KW_DAO_GRIEVANCE_MATCH', elementalSpecialty: ['YIN_SHADOW'], facilityRole: 'High-Grade Dao Hall (วิญญาณแค้น)', explorationRole: 'Seek วิญญาณแค้น Provenance & Living Lore' },
+    DEATHLESS_CADAVER: { path: 'DEATHLESS_CADAVER', combatMechanic: 'KW_DAO_LIFE_INVERSION', elementalSpecialty: ['BLOOD_DEMON'], facilityRole: 'High-Grade Dao Hall (กายไร้ชีพ)', explorationRole: 'Seek กายไร้ชีพ Provenance & Living Lore' }
   });
 
   SECT.EXPERT_SYNTHESIS_V235 = Object.freeze({
@@ -16816,7 +16822,7 @@
       const pStats = decisionMaker.h && decisionMaker.h.personality || {};
       const integ = pStats.integrity != null ? pStats.integrity : 50;
       const agg = pStats.aggression != null ? pStats.aggression : 50;
-      const darkPaths = new Set(['DEMON', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'OCCULT_MAGE', 'VENOM_GU']);
+      const darkPaths = new Set(['DEMON', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'OCCULT_MAGE', 'VENOM_GU', 'CORPSE_SOVEREIGN', 'WRAITH_GRIEVANCE', 'DEATHLESS_CADAVER']);
       const isDarkLeader = darkPaths.has(decisionMaker.cult.path);
       const darkShare = alive.filter(u => darkPaths.has(u.cult.path)).length / alive.length;
       const inDanger = !!(W.activeRaid || (g.COMBAT && g.COMBAT.fights && g.COMBAT.fights.some(f => f && !f.done && f.kind === 'raid')));
@@ -17284,7 +17290,10 @@
       { id: 'trans_tempo_sovereign', path: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'วิถีปรมาจารย์จังหวะกาล', titleTh: 'ปรมาจารย์จังหวะกาล', wFamily: 'FAN', wSkill: 'ARRAY', w1: 'MP_FAN_1', w2: 'MP_FAN_2' },
       { id: 'trans_sealkeeper_forbidden_key', path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'วิถีผู้ถือกุญแจผนึก', titleTh: 'ผู้ถือกุญแจผนึก', wFamily: 'ABACUS', wSkill: 'TALISMAN', w1: 'MP_ABACUS_1', w2: 'MP_ABACUS_2' },
       { id: 'trans_primal_vortex_mirror', path: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'วิถีกระจกสะท้อนหมื่นวิชา', titleTh: 'กระจกสะท้อนหมื่นวิชา', wFamily: 'FAN', wSkill: 'SCRIPTURE', w1: 'MP_FAN_1', w2: 'MP_FAN_2' },
-      { id: 'trans_dynastic_mandate_weaver', path: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'วิถีทอชะตาแผ่นดิน', titleTh: 'ทอชะตาแผ่นดิน', wFamily: 'BRUSH', wSkill: 'SCRIPTURE', w1: 'MP_BRUSH_1', w2: 'MP_BRUSH_2' }
+      { id: 'trans_dynastic_mandate_weaver', path: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'วิถีทอชะตาแผ่นดิน', titleTh: 'ทอชะตาแผ่นดิน', wFamily: 'BRUSH', wSkill: 'SCRIPTURE', w1: 'MP_BRUSH_1', w2: 'MP_BRUSH_2' },
+      { id: 'corpse_sovereign', path: 'CORPSE_SOVEREIGN', nameTh: 'สำนักกระดิ่งทองแดงต้อนศพ', titleTh: 'วิถีขบวนศพข้ามขุนเขาและศาสตราผู้ล่วงลับ', wFamily: 'STAFF', wSkill: 'STAFF', w1: 'MP_STAFF_1', w2: 'MP_STAFF_2' },
+      { id: 'wraith_grievance', path: 'WRAITH_GRIEVANCE', nameTh: 'หอสมุดดำวิญญาณแค้น', titleTh: 'วิถีจดบัญชีแค้นและส่งวิญญาณข้ามภพ', wFamily: 'ROSARY', wSkill: 'ROSARY', w1: 'EQ_V200_WPN_ROSARY_T1', w2: 'EQ_V200_WPN_ROSARY_T2' },
+      { id: 'deathless_cadaver', path: 'DEATHLESS_CADAVER', nameTh: 'อารามชีพจรเย็นกายไร้ชีพ', titleTh: 'วิถีลุกจากความตายและไขกระดูกนิ่งงัน', wFamily: 'CLAW', wSkill: 'CLAW', w1: 'EQ_V200_WPN_CLAW_T1', w2: 'EQ_V200_WPN_CLAW_T2' }
     ];
 
     const allTechs = (JD && JD.TECH && Array.isArray(JD.TECH.techniques)) ? JD.TECH.techniques : [];

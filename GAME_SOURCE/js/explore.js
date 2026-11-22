@@ -8063,7 +8063,10 @@
       { floor: 52, path: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'ชั้นทดสอบสัจธรรม · ปรมาจารย์จังหวะกาล', guardianNameTh: 'ผู้พิทักษ์มรรคาปรมาจารย์จังหวะกาล', basePower: 12520, stones: 400 },
       { floor: 53, path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'ชั้นทดสอบสัจธรรม · ผู้ถือกุญแจผนึก', guardianNameTh: 'ผู้พิทักษ์มรรคาผู้ถือกุญแจผนึก', basePower: 12680, stones: 405 },
       { floor: 54, path: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'ชั้นทดสอบสัจธรรม · กระจกสะท้อนหมื่นวิชา', guardianNameTh: 'ผู้พิทักษ์มรรคากระจกสะท้อนหมื่นวิชา', basePower: 12840, stones: 410 },
-      { floor: 55, path: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'ชั้นทดสอบสัจธรรม · ทอชะตาแผ่นดิน', guardianNameTh: 'ผู้พิทักษ์มรรคาทอชะตาแผ่นดิน', basePower: 13000, stones: 415 }
+      { floor: 55, path: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'ชั้นทดสอบสัจธรรม · ทอชะตาแผ่นดิน', guardianNameTh: 'ผู้พิทักษ์มรรคาทอชะตาแผ่นดิน', basePower: 13000, stones: 415 },
+      { floor: 56, path: 'CORPSE_SOVEREIGN', nameTh: 'ชั้นขบวนศพข้ามขุนเขาและกระดิ่งทองแดง', guardianNameTh: 'จอมคุมศพผู้ไม่เคยหลับ', basePower: 13160, stones: 420 },
+      { floor: 57, path: 'WRAITH_GRIEVANCE', nameTh: 'ชั้นหอวิญญาณและสมุดบัญชีแค้น', guardianNameTh: 'ผู้ถือบัญชีหนี้เลือดเก้าพันดวง', basePower: 13320, stones: 425 },
+      { floor: 58, path: 'DEATHLESS_CADAVER', nameTh: 'ชั้นร่างไร้ชีพผู้เย้ยยมทูต', guardianNameTh: 'อมตะไร้ชีพเฝ้าประตูมรณะ', basePower: 13480, stones: 430 }
     ])
   });
   // EARTH_METAL is the engine's canonical shared Earth/Metal root element.

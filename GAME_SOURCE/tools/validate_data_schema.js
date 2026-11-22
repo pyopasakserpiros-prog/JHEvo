@@ -184,7 +184,7 @@ console.log(`  ✓ Audited ${allRecipes.length} recipes and verified acyclic cra
 // 3. Audit Subpaths across all 12 Cultivation Paths
 console.log('\n▶ [3/6] Auditing Cultivation Paths, Subpaths & 9-Stage Tracks...');
 const majorPaths = Object.keys(JD.CULT.paths || {});
-check(majorPaths.length === 55, `Expected 55 major cultivation paths, found ${majorPaths.length}`);
+check(majorPaths.length === 58, `Expected 58 major cultivation paths, found ${majorPaths.length}`);
 const allSubPaths = Object.entries(JD.CULT.paths || {}).flatMap(([pk, p]) => (p.subPaths || []).map(s => Object.assign({ path: pk }, s)));
 const subPathIds = new Set();
 for (const sp of allSubPaths) {

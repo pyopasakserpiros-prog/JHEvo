@@ -1140,7 +1140,7 @@
       }
     });
     if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
-    EXPED.daily(W); EXPLORE.daily(W); BN.daily(W); CPE.daily(W); g.CONTENT.daily(W); if (g.EXT) g.EXT.daily(W); if (g.FISHING) g.FISHING.daily(W);
+    EXPED.daily(W); EXPLORE.daily(W); BN.daily(W); CPE.daily(W); g.CONTENT.daily(W); if (g.EXT) g.EXT.daily(W); if (g.FISHING) g.FISHING.daily(W); if (g.NECRO) g.NECRO.daily(W);
     W.npcs.forEach(n => {
       if (n.dead) {
         if (Array.isArray(n.pets) && n.pets.length > 0) {
@@ -1277,7 +1277,7 @@
 
   /* ---------- บันทึก/โหลด ---------- */
   SIM.serialize = W => {
-    if (W && Array.isArray(W.npcs)) { for (let i = 0; i < W.npcs.length; i++) { if (W.npcs[i]) { W.npcs[i]._cultRateBase = null; W.npcs[i]._wsBase = null; } } }
+    if (W && Array.isArray(W.npcs)) { for (let i = 0; i < W.npcs.length; i++) { if (W.npcs[i]) { W.npcs[i]._cultRateBase = null; W.npcs[i]._wsBase = null; W.npcs[i]._c = null; W.npcs[i]._d = null; if (g.CULT && g.CULT.ELEM && g.CULT.ELEM.invalidateNpcCache) g.CULT.ELEM.invalidateNpcCache(W.npcs[i]); } } }
     const M = W.map;
     const snap = {
       ...(W._saveExtras || {}),
@@ -1320,7 +1320,7 @@
       map: { mapW: M.W, mapH: M.H, extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
     };
     const transientSet = SIM.TRANSIENT_CACHE_KEYS;
-    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil', '_elemAuras', '_poiseGauge', '_ccDrStacks', '_ccDrUntil', '_shadowClones', '_boneArmorHp', '_supHealIcd', '_cheatDeathSavesCount', '_cheatDeathFightId', '_salvaged', '_lastStepTick', '_lastSupportBlessAt', '_lastUrgentBnAt', '_lastAegisInterceptTick', '_lastDodgeOrParryAt', '_lastTacLogAt', '_roundStartFired', '_lastTabooCostTick', '_lastAttackElement', '_unitFirstStrikeDone', '_closedOnBy', '_gapClosedOn', '_traitCds', '_lastSovCutInTick', '_cocoonUsedInFight', '_cocoonStasisUntil', '_lastChronoRewindTick', '_pendingChronoEcho', '_tcmbFlow', '_woundLedgerPool', '_chronoBookmarks', '_castCounter', '_basePreTranscendent', '_lastSpiritBeastCrucibleGain']);
+    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil', '_elemAuras', '_poiseGauge', '_ccDrStacks', '_ccDrUntil', '_shadowClones', '_boneArmorHp', '_supHealIcd', '_cheatDeathSavesCount', '_cheatDeathFightId', '_salvaged', '_lastStepTick', '_lastSupportBlessAt', '_lastUrgentBnAt', '_lastAegisInterceptTick', '_lastDodgeOrParryAt', '_lastTacLogAt', '_roundStartFired', '_lastTabooCostTick', '_lastAttackElement', '_unitFirstStrikeDone', '_closedOnBy', '_gapClosedOn', '_traitCds', '_lastSovCutInTick', '_cocoonUsedInFight', '_cocoonStasisUntil', '_lastChronoRewindTick', '_pendingChronoEcho', '_tcmbFlow', '_woundLedgerPool', '_chronoBookmarks', '_castCounter', '_basePreTranscendent', '_lastSpiritBeastCrucibleGain', '_necroFallen', '_necroSynced', '_necroSnap', '_necroHauntAt']);
     return JSON.stringify(snap, (k, v) => (transientSet.has(k) || (k[0] === '_' && !PERSISTED_UNDERSCORE_KEYS.has(k))) ? undefined : v);
   };
   SIM.deserialize = str => {
@@ -1615,7 +1615,7 @@
       if (['XIAN', 'CELESTIAL_WEATHER', 'TIDE_VOYAGER', 'SPIRIT_HUSBANDRY'].includes(p)) return 'QI_IMMORTAL';
       if (['BODY', 'ARENA_GLORY', 'PRIMORDIAL_SHIFTER'].includes(p)) return 'BODY_CRUCIBLE';
       if (['GOD', 'DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'ANCESTRAL_RITUAL'].includes(p)) return 'DIVINE_FAITH';
-      if (['DEMON', 'VENOM_GU', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'VOID_HERETIC_PACT', 'OCCULT_MAGE'].includes(p)) return 'DEMON_ABYSS';
+      if (['DEMON', 'VENOM_GU', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'VOID_HERETIC_PACT', 'OCCULT_MAGE', 'CORPSE_SOVEREIGN', 'WRAITH_GRIEVANCE', 'DEATHLESS_CADAVER'].includes(p)) return 'DEMON_ABYSS';
       if (['BUDDHA_DHARMA', 'HEART_SOUL', 'KARMA_SAMSARA', 'SOUL_PUPPETRY'].includes(p)) return 'DHARMA_SOUL';
       if (['INK_LITERATI', 'LORE_ARCHIVIST', 'SONIC_HARMONY', 'STRATEGY_GOVERNANCE', 'MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'WANDERING_DAO'].includes(p)) return 'SCHOLAR_HARMONY';
       if (['SHADOW_SAMURAI', 'NINPO_SHADOW', 'NINPO_ELEMENTAL'].includes(p)) return 'BUSHIDO_SHINOBI';

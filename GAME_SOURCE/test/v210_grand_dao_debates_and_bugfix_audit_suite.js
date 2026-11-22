@@ -54,7 +54,7 @@ function check(cond, msg) {
 // 2. Verify B-02 & B-03: All 27 MANUAL_PATH_* & All 27 CRYSTAL_PATH_* Consumable Execution
 {
   const allPaths = Object.keys(CULT.PATHS);
-  check(allPaths.length === 55, 'Must have 27 Major Paths');
+  check(allPaths.length === 58, 'Must have 27 Major Paths');
   for (const pid of allPaths) {
     const W = SIM.create('v210-manual-crystal-' + pid, { masterIdx: 0 });
     const disc = W.npcs[0];
@@ -75,7 +75,7 @@ function check(cond, msg) {
 
 // 3. Verify B-04, B-05, B-06, B-16, B-17: Refugees, Founding Disciples, 8 Peaks Mapping (27 Paths), 32 Sect Archetypes
 {
-  check(Array.isArray(CULT.PATH_IDS) && CULT.PATH_IDS.length === 55, 'CULT.PATH_IDS must list all 27 paths');
+  check(Array.isArray(CULT.PATH_IDS) && CULT.PATH_IDS.length === 58, 'CULT.PATH_IDS must list all 27 paths');
   for (const pid of CULT.PATH_IDS) {
     const peakId = SECT.PEAKS.peakIdForPath(pid);
     check(typeof peakId === 'string' && SECT.PEAKS.PEAK_DEFS[peakId], `Path ${pid} must map to a valid Peak in SECT.PEAKS (got ${peakId})`);
@@ -97,7 +97,7 @@ function check(cond, msg) {
       }
     }
   }
-  check(coveredArchPaths.size === 55, `All 27 Grand Dao Paths must be selectable via SECT.ARCHETYPES (covered ${coveredArchPaths.size})`);
+  check(coveredArchPaths.size === 58, `All 27 Grand Dao Paths must be selectable via SECT.ARCHETYPES (covered ${coveredArchPaths.size})`);
 
   // Test B-04: Refugee / Defector recruitment
   const W = SIM.create('v210-refugee-test', { masterIdx: 0 });
@@ -119,8 +119,8 @@ function check(cond, msg) {
   const catalog = SECT.EDITOR.catalog(W);
   const pathManuals = catalog.filter(x => x.kind === 'PATH_MANUAL');
   const pathCrystals = catalog.filter(x => x.kind === 'PATH_CRYSTAL');
-  check(pathManuals.length === 55, `EDITOR.catalog must include 27 PATH_MANUAL entries (got ${pathManuals.length})`);
-  check(pathCrystals.length === 55, `EDITOR.catalog must include 27 PATH_CRYSTAL entries (got ${pathCrystals.length})`);
+  check(pathManuals.length === 58, `EDITOR.catalog must include 27 PATH_MANUAL entries (got ${pathManuals.length})`);
+  check(pathCrystals.length === 58, `EDITOR.catalog must include 27 PATH_CRYSTAL entries (got ${pathCrystals.length})`);
   const leakedInnates = catalog.filter(x => x.kind === 'TECH_MANUAL' && MARTIAL.isInnateTech && MARTIAL.isInnateTech(x.id));
   check(leakedInnates.length === 0, `EDITOR.catalog TECH_MANUAL must contain 0 innate techniques (got ${leakedInnates.length})`);
 

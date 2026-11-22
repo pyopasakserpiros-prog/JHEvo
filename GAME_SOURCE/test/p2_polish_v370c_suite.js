@@ -19,7 +19,7 @@ console.log('=== JS2 v3.7.0c — Phase C: Final P2 Polish & Regression Verificat
 // [2/5] All 55/55 Paths Have Canonical Tier-7 Legendary Apex Techniques (Including 12 LEG_V370_*)
 {
   const paths = Object.keys(g.CULT.PATHS);
-  assert.strictEqual(paths.length, 55, 'Expected 55 cultivation paths');
+  assert.strictEqual(paths.length, 58, 'Expected 58 cultivation paths');
   let v370LegCount = 0;
   for (const pId of paths) {
     const hasLeg = [...g.JD.TECH.techniques, ...g.JD.TECH.mantras].some(

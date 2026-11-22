@@ -82,7 +82,7 @@
   Object.assign(SUBFX, (JD.EXPANSION && JD.EXPANSION.subStats) || {}, (JD.MARTIAL && JD.MARTIAL.subStats) || {});
   ST.SUBFX = SUBFX;
 
-  const _CONSTRUCT_UNDEAD_PATHS = new Set(['MECH_PUPPET', 'SOUL_PUPPETRY', 'NETHER_GRAVE']);
+  const _CONSTRUCT_UNDEAD_PATHS = new Set(['MECH_PUPPET', 'SOUL_PUPPETRY', 'NETHER_GRAVE', 'DEATHLESS_CADAVER']);
   const _CONSTRUCT_UNDEAD_SUBS = new Set(['HEAVENLY_GOLEM', 'NETHER_GHOST_KING', 'CORPSE_FLAME_MARIONETTE', 'BONE_PUPPET_REFINER', 'SOUL_VESSEL_AVATAR', 'SOLAR_BRONZE_COLOSSUS']);
   ST._fiveElementsCount = n => {
     if (!n || !n.cult) return 0;
@@ -399,6 +399,7 @@
     substitutionReady: { id: 'substitutionReady', name: 'คาถาสลับร่างท่อนไม้', icon: '🪵', kind: 'defense', defaultDur: 50, p: { def: 0.14, eva: 0.18 }, f: { eva: 16 }, descTh: 'เตรียมพร้อมสลับร่างกับท่อนไม้เมื่อได้รับความเสียหายถึงตายและฟื้นฟูเลือด 25%' },
     vowBacklash: { id: 'vowBacklash', name: 'ของเข้าตัว·ผิดสัจจะ', icon: '💔', kind: 'debuff', defaultDur: 30, p: { def: -0.35, mdef: -0.30 }, f: {}, descTh: 'ผลสะท้อนกลับจากการฝืนกฎเทวะหรือผิดสัจจะอาคม ลดพลังป้องกันลงชั่วคราว' },
     boneArmor: { id: 'boneArmor', name: 'เกราะกระดูกวิญญาณ', icon: '🦴', kind: 'shield', defaultDur: 55, p: { def: 0.25, mdef: 0.15, hp: 0.12 }, f: {}, shieldPct: 0.25, descTh: 'เกราะกระดูกวิญญาณดูดซับความเสียหายกายภาพ 25% ของ Max HP และเพิ่ม DEF +25%' },
+    deathlessFrame: { id: 'deathlessFrame', name: 'กายไร้ชีพลุกขึ้นสู้', icon: '💀', kind: 'buff', defaultDur: 10, p: { atk: 0.20, def: -0.10 }, f: { pen: 10 }, descTh: 'ฝืนสังขารลุกขึ้นสู้ต่อแม้บาดเจ็บปางตาย เพิ่มพลังโจมตี +20% และเจาะเกราะ +10' },
     parryCounter: { id: 'parryCounter', name: 'ปัดป้องสะท้อนคม', icon: '⚔️', kind: 'offense', defaultDur: 45, p: { atk: 0.20, def: 0.18 }, f: { crit: 18, critDmg: 24, pen: 18 }, descTh: 'ตั้งการ์ดอิไอปัดป้องการโจมตีประชิดและสวนกลับด้วยคมดาบคริติคอลทันที' },
     sanityStrain: { id: 'sanityStrain', name: 'จิตใจปั่นป่วนนอกมิติ', icon: '👁️‍🗨️', kind: 'offense', defaultDur: 45, p: { matk: 0.38, def: -0.10 }, f: { pen: 24, crit: 15, critDmg: 25 }, descTh: 'สังเวยสติสัมปชัญญะรับพลังนอกมิติ เพิ่ม MATK +38% และเจาะเกราะ +24%' },
     ironSkin: { id: 'ironSkin', name: 'กายาเหล็กไหล', icon: '🛡️', kind: 'defense', defaultDur: 45, p: { def: 0.25, mdef: 0.16, hp: 0.08 }, f: { tenacity: 18 }, descTh: 'แปรสภาพผิวหนังและกระดูกประดุจเหล็กไหล เพิ่มป้องกันและต้านทานสถานะ' }

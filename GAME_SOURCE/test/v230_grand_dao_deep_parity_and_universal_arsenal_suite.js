@@ -36,10 +36,10 @@ function check(cond, msg) {
 // 1. Pillar 1: 43-Path Technique Parity, 31 New Legendary Apex Arts, 64 Era-5 Arts & 30 Universal/Multi-Path Arts
 {
   const allPaths = Object.keys(CULT.PATHS);
-  check(allPaths.length === 55, `Expected 43 Grand Dao Paths, got ${allPaths.length}`);
+  check(allPaths.length === 58, `Expected 43 Grand Dao Paths, got ${allPaths.length}`);
 
   // Verify every single one of the 31 newer Grand Dao paths has its Tier-7 Legendary Technique (LEG_V230_<PATH>)
-  const newer31Paths = allPaths.slice(12);
+  const newer31Paths = allPaths.slice(12, 43);
   for (const pid of newer31Paths) {
     if (CULT.LEGENDARY_DAO && CULT.LEGENDARY_DAO.gradeOf(pid) !== 'ORDINARY') continue;
     const legTech = CULT.tech('LEG_V230_' + pid);
@@ -139,7 +139,7 @@ function check(cond, msg) {
 // 4. Pillar 4: SECT.PEAKS Sub-Sanctuaries, 16 Armament Wills, Duet Catalog & Pagoda Floor Drops
 {
   const W = SIM.create('v230-peaks-duets');
-  check(SECT.PEAKS.PATH_SANCTUARY_BLESSINGS && Object.keys(SECT.PEAKS.PATH_SANCTUARY_BLESSINGS).length === 55,
+  check(SECT.PEAKS.PATH_SANCTUARY_BLESSINGS && Object.keys(SECT.PEAKS.PATH_SANCTUARY_BLESSINGS).length === 58,
     'SECT.PEAKS.PATH_SANCTUARY_BLESSINGS must cover all 43 Grand Dao Paths');
   check(Object.keys(SECT.SOUL_FORGE.ARMAMENT_WILLS).length >= 16,
     'SECT.SOUL_FORGE.ARMAMENT_WILLS must cover all 16 weapon classes');
@@ -165,7 +165,7 @@ function check(cond, msg) {
   check(sigKeys.length >= 22, `SK.SIGNATURE_VFX_CATALOG must have 22 entries (got ${sigKeys.length})`);
 
   const npc = W.npcs[0];
-  for (const pid of Object.keys(CULT.PATHS).slice(12)) {
+  for (const pid of Object.keys(CULT.PATHS).slice(12, 43)) {
     const pObj = CULT.PATHS[pid];
     if (CULT.LEGENDARY_DAO && CULT.LEGENDARY_DAO.gradeOf(pid) !== 'ORDINARY') continue;
     npc.cult = { path: pid, sub: pObj.subPaths[0].id, stage: 7, prog: 0, techs: ['LEG_V230_' + pid] };

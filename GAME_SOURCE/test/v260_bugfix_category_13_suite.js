@@ -20,7 +20,7 @@ function log(msg) { console.log('  ✓ ' + msg); }
 
   // 1. Core Lock & Law 1: Diegetic "Mortal Aspirational Naming" Canon (Zero Stage/Path Renaming)
   assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.strictEqual(Object.keys(CULT.PATHS).length, 55, 'All 43 Major Paths preserved');
+  assert.strictEqual(Object.keys(CULT.PATHS).length, 58, 'All 43 Major Paths preserved');
   assert(CULT.PATHS.XIAN.stages[8].nameTh.includes('เซียนสวรรค์'), 'XIAN Stage 9 title preserved per Law 1');
   assert(CULT.PATHS.BODY.stages.some(function(st){ return st.nameTh && st.nameTh.indexOf('อมตะ') >= 0; }), 'BODY Stage title preserved per Law 1');
   assert(typeof CULT.LOWER_WORLD_CEILING_LORE_TH === 'string' && CULT.LOWER_WORLD_CEILING_LORE_TH.includes('โลกเบื้องล่าง'), 'Diegetic Lower-World ceiling lore note defined');
@@ -68,7 +68,7 @@ function log(msg) { console.log('  ✓ ' + msg); }
       assert(!wkTh.includes('ต้องอาศัยการวางจังหวะท่วงท่าและตราประทับให้สอดคล้องกับศาสตราประจำสาย'), `${sp.id} weaknessTh must not use generic copy-pasted boilerplate`);
     }
   }
-  assert.strictEqual(subCount, 346, 'Audited all 286 subpaths');
+  assert.strictEqual(subCount, 358, 'Audited all 286 subpaths');
   log('4. [LORE-SUBPATH-04] All 286 subpaths scrubbed of patch notes, raw English enums, Earth names & robotic boilerplate');
 
   // 5. [LORE-CANON-01, LORE-IDENTITY-05 & LORE-TERM-06] 27 Relics Canon Sync, 19 Sects Empire Spheres, World Crises & Martial Sobriquets

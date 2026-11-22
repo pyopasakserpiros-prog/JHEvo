@@ -10,8 +10,8 @@ console.log('=== JS2 v3.7.0 — Legendary & Transcendent Dao Expansion Suite ===
 {
   assert.strictEqual(g.SIM.PATCH_VERSION, '3.9.6');
   assert.strictEqual(g.SIM.SAVE_SCHEMA_VERSION, '3.9.6-deep-gameplay-integration');
-  assert.strictEqual(Object.keys(g.CULT.PATHS).length, 55, 'Expected 55 total cultivation paths');
-  assert.strictEqual(g.CULT.subList.length, 346, 'Expected 346 total subpaths');
+  assert.strictEqual(Object.keys(g.CULT.PATHS).length, 58, 'Expected 58 total cultivation paths');
+  assert.strictEqual(g.CULT.subList.length, 358, 'Expected 358 total subpaths');
   assert.strictEqual(g.CULT.LEGENDARY_DAO.LEGENDARY_IDS.length, 6, 'Expected 6 Legendary paths');
   assert.strictEqual(g.CULT.LEGENDARY_DAO.TRANSCENDENT_IDS.length, 6, 'Expected 6 Transcendent paths');
 

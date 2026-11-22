@@ -7397,6 +7397,58 @@
             h += '<div style="margin-top:6px"><div class="muted" style="font-size:11.5px">✦ <b>คุณสมบัติขั้นวิถีและสายย่อยที่ตื่นรู้ (' + trObj.allTraits.length + '):</b></div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">' + trObj.allTraits.map(rt => '<span class="chip g" title="' + esc(rt.descTh || '') + '">✦ ' + esc(rt.nameTh) + '</span>').join('') + '</div></div>';
           }
         }
+        if (g.NECRO && g.NECRO.summary) {
+          const ns = g.NECRO.summary(n);
+          if (ns) {
+            const np = ns.path || c.path;
+            let nh = '';
+            if (np === 'CORPSE_SOVEREIGN') {
+              const thralls = Array.isArray(ns.thralls) ? ns.thralls : [];
+              nh += '<div><b>⚰️ ทาสศพในพันธะ (' + thralls.length + '):</b></div>';
+              if (thralls.length) {
+                nh += thralls.map(t => {
+                  const moves = Array.isArray(t.inheritedMoves) ? t.inheritedMoves : (Array.isArray(t.moves) ? t.moves : []);
+                  const moveTxt = moves.length ? moves.map(m => esc(typeof m === 'string' ? m : (m && (m.nameTh || m.id)) || '')).filter(Boolean).join(', ') : '—';
+                  const eq = t.equip || {};
+                  const eqTxt = ['WEAPON', 'ARMOR', 'ACCESSORY'].map(sl => {
+                    const it = eq[sl];
+                    return sl + ': ' + esc(it ? (it.nameTh || it.id || 'มี') : 'ว่าง');
+                  }).join(' · ');
+                  return '<div style="margin-top:4px;padding:4px 6px;border:1px solid var(--line,#3a3f4a);border-radius:6px;font-size:11.5px">' +
+                    '<div><b>' + esc(t.nameTh || 'ศพไร้ชื่อ') + '</b>' + (t.kind ? ' <span class="chip">' + esc(t.kind) + '</span>' : '') + ' <span class="chip b">ความสมบูรณ์ ' + Math.round(t.integrity == null ? 100 : t.integrity) + '%</span></div>' +
+                    '<div class="muted">ท่าสืบทอด: ' + moveTxt + '</div>' +
+                    '<div class="muted">อุปกรณ์: ' + eqTxt + '</div>' +
+                    '</div>';
+                }).join('');
+              } else {
+                nh += '<div class="muted" style="font-size:11.5px">ยังไม่มีทาสศพในพันธะ</div>';
+              }
+            } else if (np === 'WRAITH_GRIEVANCE') {
+              const souls = Array.isArray(ns.souls) ? ns.souls : [];
+              const relCnt = ns.released != null ? ns.released : 0;
+              const devCnt = ns.devoured != null ? ns.devoured : 0;
+              nh += '<div><b>👻 ดวงวิญญาณแค้นในพันธะ (' + souls.length + '):</b> <span class="chip ok">ปลดปล่อย ' + relCnt + '</span> <span class="chip r">กลืนกิน ' + devCnt + '</span></div>';
+              if (souls.length) {
+                nh += souls.map(so => {
+                  const killerObj = so.killerId && W && W.byId && W.byId[so.killerId];
+                  const killerTxt = killerObj ? HC.fullName(killerObj) : (so.killerId || 'ไม่ทราบ');
+                  return '<div style="margin-top:4px;padding:4px 6px;border:1px solid var(--line,#3a3f4a);border-radius:6px;font-size:11.5px">' +
+                    '<b>' + esc(so.nameTh || 'วิญญาณไร้ชื่อ') + '</b> · <span class="muted">ผู้สังหาร: ' + esc(killerTxt) + '</span> · <span class="chip v">แรงอาฆาต ' + Math.round(so.resolve || 0) + '</span>' +
+                    '</div>';
+                }).join('');
+              } else {
+                nh += '<div class="muted" style="font-size:11.5px">ยังไม่มีดวงวิญญาณแค้นในพันธะ</div>';
+              }
+            } else if (np === 'DEATHLESS_CADAVER') {
+              const burned = ns.burnedLifespanYears != null ? ns.burnedLifespanYears : 0;
+              const granted = !!ns.stillLifeGranted;
+              nh += '<div><b>🦴 กายไร้ชีพ:</b> อายุขัยที่เผาผลาญสะสม <b>' + Math.round(burned) + ' ปี</b> · <span class="chip ' + (granted ? 'ok' : '') + '">นิ่งสงบไร้ชีพ: ' + (granted ? 'ได้รับแล้ว' : 'ยังไม่เกิด') + '</span></div>';
+            }
+            if (nh) {
+              h += '<div class="card npc-necro-summary-card" style="margin-top:6px;background:rgba(255,255,255,0.03)">' + nh + '</div>';
+            }
+          }
+        }
       } else {
         const mc = (CULT.MORTAL_INITIATION && CULT.MORTAL_INITIATION.ensureMortalState) ? CULT.MORTAL_INITIATION.ensureMortalState(n, W) : { qiFoundation: 0, daoComprehension: 0, targetPath: 'XIAN' };
         const tPathDef = (mc && mc.targetPath && CULT.PATHS[mc.targetPath]) ? CULT.PATHS[mc.targetPath] : CULT.PATHS.XIAN;

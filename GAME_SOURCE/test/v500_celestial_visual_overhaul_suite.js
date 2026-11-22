@@ -119,7 +119,7 @@ require(path.join(ROOT, 'js/ui.js'));
   // =========================================================================
   const R = g.Render;
   assert(R.REALM_VISUAL_TIERS && Object.keys(R.REALM_VISUAL_TIERS).length === 9, 'REALM_VISUAL_TIERS must define all 9 cultivation stages');
-  assert(R.PATH_VISUAL_SIGNATURES && Object.keys(R.PATH_VISUAL_SIGNATURES).length === 55, 'PATH_VISUAL_SIGNATURES must define all 12 cultivation paths');
+  assert(R.PATH_VISUAL_SIGNATURES && Object.keys(R.PATH_VISUAL_SIGNATURES).length === 58, 'PATH_VISUAL_SIGNATURES must define all 12 cultivation paths');
 
   const W = g.SIM.create('v500-celestial-seed', { masterIdx: 0 });
   const mainCv = makeMockCanvas(1280, 800);

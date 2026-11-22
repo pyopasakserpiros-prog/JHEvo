@@ -448,7 +448,7 @@
     return w;
   }
 
-  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78', ASTRO_DIVINATION: '#74c0fc', BUDDHA_DHARMA: '#fcc419', VOID_SPACE: '#9775fa', SONIC_HARMONY: '#63e6be', VENOM_GU: '#a9e34b', PRIMORDIAL_SHIFTER: '#ff8787', CELESTIAL_WEATHER: '#4dabf7', WANDERING_DAO: '#69db7c', MERCANTILE_DAO: '#ffd43b', DRAGON_VEIN_GEOMANCY: '#d9a97c', GRAVITY_DAO: '#845ef7', CHRONO_EPOCH: '#e599f7', INK_LITERATI: '#adb5bd', SOUL_PUPPETRY: '#da77f2', PRIMORDIAL_CHAOS: '#ff6b6b', SHADOW_SAMURAI: '#e63946', NINPO_SHADOW: '#4a4e69', NINPO_ELEMENTAL: '#f77f00', DIVINE_SUMMONER: '#ffd166', DIVINE_POSSESSION: '#ff9f1c', DIVINE_CHANNELER: '#4cc9f0', VOID_HERETIC_PACT: '#7209b7', OCCULT_MAGE: '#d97706', DEVOURING_FLESH: '#9b2226', NETHER_GRAVE: '#6c757d', ANCESTRAL_RITUAL: '#e9c46a', TIDE_VOYAGER: '#0077b6', LORE_ARCHIVIST: '#8ecae6', FORTUNE_GAMBLER: '#ffb703', SPIRIT_HUSBANDRY: '#52b788', ARENA_GLORY: '#f4a261', LEG_READ_FORM_BLADE: '#38bdf8', LEG_TRIAGE_MERIDIAN: '#34d399', LEG_STORM_CALLER_TEMPEST: '#60a5fa', LEG_JADE_CARAVAN_VOYAGER: '#f59e0b', LEG_OATH_JUDGE_WARDEN: '#fbbf24', LEG_ASHEN_KILN_ALCHEMY: '#ea580c', TRANS_CONSTELLATION_RELAY: '#a78bfa', TRANS_FIELD_CLAUSE_SOVEREIGN: '#e11d48', TRANS_TEMPO_SOVEREIGN: '#06b6d4', TRANS_SEALKEEPER_FORBIDDEN_KEY: '#7c3aed', TRANS_PRIMAL_VORTEX_MIRROR: '#ec4899', TRANS_DYNASTIC_MANDATE_WEAVER: '#d97706' };
+  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78', ASTRO_DIVINATION: '#74c0fc', BUDDHA_DHARMA: '#fcc419', VOID_SPACE: '#9775fa', SONIC_HARMONY: '#63e6be', VENOM_GU: '#a9e34b', PRIMORDIAL_SHIFTER: '#ff8787', CELESTIAL_WEATHER: '#4dabf7', WANDERING_DAO: '#69db7c', MERCANTILE_DAO: '#ffd43b', DRAGON_VEIN_GEOMANCY: '#d9a97c', GRAVITY_DAO: '#845ef7', CHRONO_EPOCH: '#e599f7', INK_LITERATI: '#adb5bd', SOUL_PUPPETRY: '#da77f2', PRIMORDIAL_CHAOS: '#ff6b6b', SHADOW_SAMURAI: '#e63946', NINPO_SHADOW: '#4a4e69', NINPO_ELEMENTAL: '#f77f00', DIVINE_SUMMONER: '#ffd166', DIVINE_POSSESSION: '#ff9f1c', DIVINE_CHANNELER: '#4cc9f0', VOID_HERETIC_PACT: '#7209b7', OCCULT_MAGE: '#d97706', DEVOURING_FLESH: '#9b2226', NETHER_GRAVE: '#6c757d', ANCESTRAL_RITUAL: '#e9c46a', TIDE_VOYAGER: '#0077b6', LORE_ARCHIVIST: '#8ecae6', FORTUNE_GAMBLER: '#ffb703', SPIRIT_HUSBANDRY: '#52b788', ARENA_GLORY: '#f4a261', LEG_READ_FORM_BLADE: '#38bdf8', LEG_TRIAGE_MERIDIAN: '#34d399', LEG_STORM_CALLER_TEMPEST: '#60a5fa', LEG_JADE_CARAVAN_VOYAGER: '#f59e0b', LEG_OATH_JUDGE_WARDEN: '#fbbf24', LEG_ASHEN_KILN_ALCHEMY: '#ea580c', TRANS_CONSTELLATION_RELAY: '#a78bfa', TRANS_FIELD_CLAUSE_SOVEREIGN: '#e11d48', TRANS_TEMPO_SOVEREIGN: '#06b6d4', TRANS_SEALKEEPER_FORBIDDEN_KEY: '#7c3aed', TRANS_PRIMAL_VORTEX_MIRROR: '#ec4899', TRANS_DYNASTIC_MANDATE_WEAVER: '#d97706', CORPSE_SOVEREIGN: '#8d7b68', WRAITH_GRIEVANCE: '#7b8cde', DEATHLESS_CADAVER: '#9c6644' };
   // Ordinary martial casts use the real weapon family for their motion language.
   // Legendary named arts deliberately keep their authored, higher-priority motifs.
   R.WEAPON_MOTION_VFX = Object.freeze({
@@ -596,7 +596,8 @@
     NINPO_SHADOW:'shadow_court',NINPO_ELEMENTAL:'seal_obelisk',DIVINE_SUMMONER:'deity_throne',DIVINE_POSSESSION:'beast_avatar',
     DIVINE_CHANNELER:'storm_spire',VOID_HERETIC_PACT:'void_maw',OCCULT_MAGE:'seal_obelisk',DEVOURING_FLESH:'beast_avatar',
     NETHER_GRAVE:'grave_procession',ANCESTRAL_RITUAL:'grave_procession',TIDE_VOYAGER:'ocean_pillars',LORE_ARCHIVIST:'ink_landscape',
-    FORTUNE_GAMBLER:'fortune_table',SPIRIT_HUSBANDRY:'jade_garden',ARENA_GLORY:'sword_constellation',LEG_READ_FORM_BLADE:'sword_constellation',LEG_TRIAGE_MERIDIAN:'jade_garden',LEG_STORM_CALLER_TEMPEST:'storm_spire',LEG_JADE_CARAVAN_VOYAGER:'fortune_table',LEG_OATH_JUDGE_WARDEN:'lotus_sanctuary',LEG_ASHEN_KILN_ALCHEMY:'seal_obelisk',TRANS_CONSTELLATION_RELAY:'star_orrery',TRANS_FIELD_CLAUSE_SOVEREIGN:'imperial_gates',TRANS_TEMPO_SOVEREIGN:'epoch_dial',TRANS_SEALKEEPER_FORBIDDEN_KEY:'void_maw',TRANS_PRIMAL_VORTEX_MIRROR:'taiji_court',TRANS_DYNASTIC_MANDATE_WEAVER:'imperial_gates'
+    FORTUNE_GAMBLER:'fortune_table',SPIRIT_HUSBANDRY:'jade_garden',ARENA_GLORY:'sword_constellation',LEG_READ_FORM_BLADE:'sword_constellation',LEG_TRIAGE_MERIDIAN:'jade_garden',LEG_STORM_CALLER_TEMPEST:'storm_spire',LEG_JADE_CARAVAN_VOYAGER:'fortune_table',LEG_OATH_JUDGE_WARDEN:'lotus_sanctuary',LEG_ASHEN_KILN_ALCHEMY:'seal_obelisk',TRANS_CONSTELLATION_RELAY:'star_orrery',TRANS_FIELD_CLAUSE_SOVEREIGN:'imperial_gates',TRANS_TEMPO_SOVEREIGN:'epoch_dial',TRANS_SEALKEEPER_FORBIDDEN_KEY:'void_maw',TRANS_PRIMAL_VORTEX_MIRROR:'taiji_court',TRANS_DYNASTIC_MANDATE_WEAVER:'imperial_gates',
+    CORPSE_SOVEREIGN:'grave_procession',WRAITH_GRIEVANCE:'grave_procession',DEATHLESS_CADAVER:'beast_avatar'
   };
   R.LEGENDARY_APEX_BUDGET = Object.freeze({ radiusMin:60,radiusMax:84,fieldMax:136,maxFull:2,maxFullLow:1,maxRecipients:8 });
   R.LEGENDARY_SCENES = Object.freeze(Object.fromEntries(Object.values(R.LEGENDARY_ART_VISUALS).filter(a=>!a.passive).map((a,i)=>{
@@ -1744,7 +1745,10 @@
     TRANS_TEMPO_SOVEREIGN: { id: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'วิถีปรมาจารย์จังหวะกาล', moteShape: 'trans_tempo_sovereign_mote', apexCrownShape: 'trans_tempo_sovereign_crown', family: 'RIVER_CADENCE', primary: '#06b6d4', secondary: '#a5f3fc', accent: '#f59e0b', maxStage: 8, grade: 'TRANSCENDENT' },
     TRANS_SEALKEEPER_FORBIDDEN_KEY: { id: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'วิถีผู้ถือกุญแจผนึก', moteShape: 'trans_sealkeeper_forbidden_key_mote', apexCrownShape: 'trans_sealkeeper_forbidden_key_crown', family: 'FORBIDDEN_KEY', primary: '#7c3aed', secondary: '#c4b5fd', accent: '#f43f5e', maxStage: 8, grade: 'TRANSCENDENT' },
     TRANS_PRIMAL_VORTEX_MIRROR: { id: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'วิถีกระจกสะท้อนหมื่นวิชา', moteShape: 'trans_primal_vortex_mirror_mote', apexCrownShape: 'trans_primal_vortex_mirror_crown', family: 'MIRROR_VORTEX', primary: '#ec4899', secondary: '#fbcfe8', accent: '#38bdf8', maxStage: 8, grade: 'TRANSCENDENT' },
-    TRANS_DYNASTIC_MANDATE_WEAVER: { id: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'วิถีทอชะตาแผ่นดิน', moteShape: 'trans_dynastic_mandate_weaver_mote', apexCrownShape: 'trans_dynastic_mandate_weaver_crown', family: 'DYNASTIC_LOOM', primary: '#d97706', secondary: '#fde68a', accent: '#2563eb', maxStage: 8, grade: 'TRANSCENDENT' }
+    TRANS_DYNASTIC_MANDATE_WEAVER: { id: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'วิถีทอชะตาแผ่นดิน', moteShape: 'trans_dynastic_mandate_weaver_mote', apexCrownShape: 'trans_dynastic_mandate_weaver_crown', family: 'DYNASTIC_LOOM', primary: '#d97706', secondary: '#fde68a', accent: '#2563eb', maxStage: 8, grade: 'TRANSCENDENT' },
+    CORPSE_SOVEREIGN:     { id: 'CORPSE_SOVEREIGN',     nameTh: 'วิถีจอมคุมศพ',            moteShape: 'copper_bell_talisman',   apexCrownShape: 'copper_bell_coffin_procession', family: 'ABYSS_DEMON', primary: '#8d7b68', secondary: '#d4a373', accent: '#e9c46a', maxStage: 8 },
+    WRAITH_GRIEVANCE:     { id: 'WRAITH_GRIEVANCE',     nameTh: 'วิถีวิญญาณแค้น',          moteShape: 'wailing_wisp_tear',      apexCrownShape: 'grievance_ledger_wailing_ring', family: 'ABYSS_DEMON', primary: '#7b8cde', secondary: '#c8d1ff', accent: '#e63946', maxStage: 8 },
+    DEATHLESS_CADAVER:    { id: 'DEATHLESS_CADAVER',    nameTh: 'วิถีกายไร้ชีพ',           moteShape: 'cracked_rib_ember',      apexCrownShape: 'stilled_heart_bone_lotus',      family: 'ABYSS_DEMON', primary: '#9c6644', secondary: '#e6ccb2', accent: '#7f5539', maxStage: 8 }
   });
 
   R.resolvePathVisualSignature = pKey => {
@@ -4790,7 +4794,7 @@
       }
 
       ctx.scale(face * sc, sc);
-      const robe = ap.robe, sash = ap.sash;
+      const robe = n.isNecroThrall ? '#8d7b68' : ap.robe, sash = n.isNecroThrall ? '#d4a373' : ap.sash;
       const lunge = act === 'fight' && n.act.ctx && n.fx && this.W.t - n.fx.t < 3 ? 3 : 0;
       if (pose === 'lie') { ctx.rotate(-1.5); ctx.translate(0, -4); }
       const legL = pose === 'sit' ? 0 : step * 2.5, legR = pose === 'sit' ? 0 : -step * 2.5;
@@ -5694,9 +5698,9 @@
         ctx.fillStyle = '#3a2a2a';
         ctx.fillRect(-3, -6, 2.6, 6);
         ctx.fillRect(0.6, -6, 2.6, 6);
-        ctx.fillStyle = f.boss ? '#7a1f1f' : '#4a3a4a';
+        ctx.fillStyle = f.isNecroThrall ? '#8d7b68' : (f.boss ? '#7a1f1f' : '#4a3a4a');
         ctx.beginPath(); ctx.moveTo(-4.5, -5 - bob); ctx.lineTo(4.5, -5 - bob); ctx.lineTo(3.6, -13 - bob); ctx.lineTo(-3.6, -13 - bob); ctx.fill();
-        ctx.fillStyle = '#c99a78';
+        ctx.fillStyle = f.isNecroThrall ? '#d4a373' : '#c99a78';
         ctx.beginPath(); ctx.arc(0, -17 - bob, 4.8, 0, 7); ctx.fill();
         ctx.fillStyle = '#222';
         ctx.fillRect(-4.4, -19.6 - bob, 8.8, 2.2);
@@ -6514,6 +6518,81 @@
           ctx.fillStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 3.0, 0, Math.PI * 2); ctx.fill();
           break;
         }
+        case 'CORPSE_SOVEREIGN': {
+          // copper_bell_coffin_procession: 3 copper bells above a rectangular coffin outline
+          ctx.strokeStyle = col1;
+          ctx.lineWidth = 1.6;
+          ctx.strokeRect(-7.5, -4.5, 15.0, 9.0);
+          ctx.strokeStyle = col2;
+          ctx.lineWidth = 1.1;
+          ctx.strokeRect(-5.5, -2.5, 11.0, 5.0);
+          for (let b = -1; b <= 1; b++) {
+            const bx = b * 5.2;
+            const swing = Math.sin(t * 2.8 + b) * 0.8;
+            ctx.fillStyle = col2;
+            ctx.beginPath();
+            ctx.arc(bx + swing, -9.5, 2.1, Math.PI, 0);
+            ctx.lineTo(bx + swing + 2.4, -7.0);
+            ctx.lineTo(bx + swing - 2.4, -7.0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = acc;
+            ctx.beginPath(); ctx.arc(bx + swing, -6.5, 0.9, 0, Math.PI * 2); ctx.fill();
+          }
+          break;
+        }
+        case 'WRAITH_GRIEVANCE': {
+          // grievance_ledger_wailing_ring: ring of 7 wailing wisp teardrops around an open ledger in the center
+          ctx.fillStyle = col2;
+          ctx.strokeStyle = col1;
+          ctx.lineWidth = 1.3;
+          ctx.beginPath();
+          ctx.moveTo(-5.0, -5.5); ctx.lineTo(0, -4.2); ctx.lineTo(5.0, -5.5);
+          ctx.lineTo(5.0, 1.5); ctx.lineTo(0, 2.8); ctx.lineTo(-5.0, 1.5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, -4.2); ctx.lineTo(0, 2.8); ctx.stroke();
+          for (let i = 0; i < 7; i++) {
+            const a = t * 1.1 + (i * Math.PI * 2) / 7;
+            const wx = Math.cos(a) * 10.2, wy = -1.5 + Math.sin(a) * 7.2;
+            ctx.fillStyle = i % 2 === 0 ? col1 : acc;
+            ctx.beginPath();
+            ctx.moveTo(wx, wy - 2.6);
+            ctx.quadraticCurveTo(wx + 2.1, wy + 0.5, wx, wy + 2.2);
+            ctx.quadraticCurveTo(wx - 2.1, wy + 0.5, wx, wy - 2.6);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'DEATHLESS_CADAVER': {
+          // stilled_heart_bone_lotus: 6 bone-petalled lotus around a muted/stilled heart
+          const petals = lowQuality ? 4 : 6;
+          for (let i = 0; i < petals; i++) {
+            const a = (i * Math.PI * 2) / petals - Math.PI / 2;
+            ctx.save();
+            ctx.translate(Math.cos(a) * 7.2, -2.0 + Math.sin(a) * 5.8);
+            ctx.rotate(a + Math.PI / 2);
+            ctx.fillStyle = col2;
+            ctx.strokeStyle = col1;
+            ctx.lineWidth = 1.1;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 2.1, 4.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+          }
+          ctx.fillStyle = acc;
+          ctx.strokeStyle = col1;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(0, 1.8);
+          ctx.bezierCurveTo(-4.2, -1.2, -3.8, -5.2, 0, -2.8);
+          ctx.bezierCurveTo(3.8, -5.2, 4.2, -1.2, 0, 1.8);
+          ctx.fill();
+          ctx.stroke();
+          break;
+        }
         case 'ARENA_GLORY':
         default: {
           // ช่อมงกุฎชัยพฤกษ์เจ้ายุทธจักร & คมทวนคู่ไขว้ (Champion Laurel Wreath + Crossed Halberds)
@@ -6790,6 +6869,19 @@
         case 'trans_dynastic_mandate_weaver_mote': {
           ctx.beginPath(); ctx.moveTo(mx, my - 3.2); ctx.lineTo(mx + 2.6, my + 1.8); ctx.lineTo(mx - 2.6, my + 1.8); ctx.closePath(); ctx.fill();
           ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.7; ctx.stroke();
+          break;
+        }
+        case 'copper_bell_talisman': {
+          ctx.beginPath(); ctx.arc(mx, my - 0.5, 1.8, Math.PI, 0); ctx.lineTo(mx + 2.0, my + 1.8); ctx.lineTo(mx - 2.0, my + 1.8); ctx.closePath(); ctx.fill();
+          break;
+        }
+        case 'wailing_wisp_tear': {
+          ctx.beginPath(); ctx.moveTo(mx, my - 2.5); ctx.quadraticCurveTo(mx + 1.8, my + 0.5, mx, my + 2.1); ctx.quadraticCurveTo(mx - 1.8, my + 0.5, mx, my - 2.5); ctx.fill();
+          break;
+        }
+        case 'cracked_rib_ember': {
+          ctx.beginPath(); ctx.arc(mx, my, 2.0, -0.8, 0.8); ctx.stroke();
+          ctx.beginPath(); ctx.arc(mx, my, 2.0, Math.PI - 0.8, Math.PI + 0.8); ctx.stroke();
           break;
         }
         default: {
@@ -10560,7 +10652,7 @@
   const gObj = typeof globalThis !== "undefined" ? globalThis : window;
   const R = gObj.Render;
   if (!R || !R.PATH_VISUAL_SIGNATURES) return;
-  const pMap = {"XIAN":"วิถีเซียน","BODY":"วิถีกายา","GOD":"วิถีเทพศรัทธา","DEMON":"วิถีมาร","HEART_SOUL":"วิถีจิตเซน","MECH_PUPPET":"วิถีหุ่นกลไก","KARMA_SAMSARA":"วิถีสังสารวัฏ","BEAST_SOVEREIGN":"วิถีราชันอสูร","SAGE_SUPPORT":"วิถีปราชญ์โอสถ","CRAFT_CREATION":"วิถีหลอมสร้าง","ARRAY_TALISMAN":"วิถีค่ายกลยันต์","STRATEGY_GOVERNANCE":"วิถีพิชัยยุทธ์","ASTRO_DIVINATION":"วิถีโหราดารา","BUDDHA_DHARMA":"วิถีพุทธธรรม","VOID_SPACE":"วิถีมิติเร้น","SONIC_HARMONY":"วิถีคีตยุทธ์","VENOM_GU":"วิถีพิษกู่","PRIMORDIAL_SHIFTER":"วิถีจำแลงอสูร","CELESTIAL_WEATHER":"วิถีบัญชาฟ้าฝน","WANDERING_DAO":"วิถีคนจร","MERCANTILE_DAO":"วิถีวาณิชย์","DRAGON_VEIN_GEOMANCY":"วิถีชีพจรมังกร","GRAVITY_DAO":"วิถีถ่วงดารา","CHRONO_EPOCH":"วิถีกาลเวลา","INK_LITERATI":"วิถีอักษรปราชญ์","SOUL_PUPPETRY":"วิถีเชิดเงา","PRIMORDIAL_CHAOS":"วิถีโกลาหล","SHADOW_SAMURAI":"วิถีดาบไร้ปราณ","NINPO_SHADOW":"วิถีเร้นเงา","NINPO_ELEMENTAL":"วิถีมุทราธาตุ","DIVINE_SUMMONER":"วิถีอัญเชิญเทวะ","DIVINE_POSSESSION":"วิถีร่างทรงเทวะ","DIVINE_CHANNELER":"วิถีสื่อเทวบัญญัติ","VOID_HERETIC_PACT":"วิถีพันธะสุญตา","OCCULT_MAGE":"วิถีไสยเวทย์","DEVOURING_FLESH":"วิถีกลืนสรีระ","NETHER_GRAVE":"วิถีสุสานยมโลก","ANCESTRAL_RITUAL":"วิถีบรรพชน","TIDE_VOYAGER":"วิถีจ้าวสมุทร","LORE_ARCHIVIST":"วิถีอาลักษณ์","FORTUNE_GAMBLER":"วิถีเดิมพันชะตา","SPIRIT_HUSBANDRY":"วิถีพฤกษาปราณ","ARENA_GLORY":"วิถีสังเวียนยุทธ์","LEG_READ_FORM_BLADE":"วิถีกระบี่อ่านช่องฟ้า","LEG_TRIAGE_MERIDIAN":"วิถีชีพจรประคองสหาย","LEG_STORM_CALLER_TEMPEST":"วิถีจอมพายุบัญชาฟ้า","LEG_JADE_CARAVAN_VOYAGER":"วิถีจอมคาราวานหยก","LEG_OATH_JUDGE_WARDEN":"วิถีผู้คุมสัตย์สาบาน","LEG_ASHEN_KILN_ALCHEMY":"วิถีเตาเถ้าคืนชีวิต","TRANS_CONSTELLATION_RELAY":"วิถีประสานปราณหมู่ดาว","TRANS_FIELD_CLAUSE_SOVEREIGN":"วิถีธรรมนูญฟ้าขีดเขต","TRANS_TEMPO_SOVEREIGN":"วิถีปรมาจารย์จังหวะกาล","TRANS_SEALKEEPER_FORBIDDEN_KEY":"วิถีผู้ถือกุญแจผนึก","TRANS_PRIMAL_VORTEX_MIRROR":"วิถีกระจกสะท้อนหมื่นวิชา","TRANS_DYNASTIC_MANDATE_WEAVER":"วิถีทอชะตาแผ่นดิน"};
+  const pMap = {"XIAN":"วิถีเซียน","BODY":"วิถีกายา","GOD":"วิถีเทพศรัทธา","DEMON":"วิถีมาร","HEART_SOUL":"วิถีจิตเซน","MECH_PUPPET":"วิถีหุ่นกลไก","KARMA_SAMSARA":"วิถีสังสารวัฏ","BEAST_SOVEREIGN":"วิถีราชันอสูร","SAGE_SUPPORT":"วิถีปราชญ์โอสถ","CRAFT_CREATION":"วิถีหลอมสร้าง","ARRAY_TALISMAN":"วิถีค่ายกลยันต์","STRATEGY_GOVERNANCE":"วิถีพิชัยยุทธ์","ASTRO_DIVINATION":"วิถีโหราดารา","BUDDHA_DHARMA":"วิถีพุทธธรรม","VOID_SPACE":"วิถีมิติเร้น","SONIC_HARMONY":"วิถีคีตยุทธ์","VENOM_GU":"วิถีพิษกู่","PRIMORDIAL_SHIFTER":"วิถีจำแลงอสูร","CELESTIAL_WEATHER":"วิถีบัญชาฟ้าฝน","WANDERING_DAO":"วิถีคนจร","MERCANTILE_DAO":"วิถีวาณิชย์","DRAGON_VEIN_GEOMANCY":"วิถีชีพจรมังกร","GRAVITY_DAO":"วิถีถ่วงดารา","CHRONO_EPOCH":"วิถีกาลเวลา","INK_LITERATI":"วิถีอักษรปราชญ์","SOUL_PUPPETRY":"วิถีเชิดเงา","PRIMORDIAL_CHAOS":"วิถีโกลาหล","SHADOW_SAMURAI":"วิถีดาบไร้ปราณ","NINPO_SHADOW":"วิถีเร้นเงา","NINPO_ELEMENTAL":"วิถีมุทราธาตุ","DIVINE_SUMMONER":"วิถีอัญเชิญเทวะ","DIVINE_POSSESSION":"วิถีร่างทรงเทวะ","DIVINE_CHANNELER":"วิถีสื่อเทวบัญญัติ","VOID_HERETIC_PACT":"วิถีพันธะสุญตา","OCCULT_MAGE":"วิถีไสยเวทย์","DEVOURING_FLESH":"วิถีกลืนสรีระ","NETHER_GRAVE":"วิถีสุสานยมโลก","ANCESTRAL_RITUAL":"วิถีบรรพชน","TIDE_VOYAGER":"วิถีจ้าวสมุทร","LORE_ARCHIVIST":"วิถีอาลักษณ์","FORTUNE_GAMBLER":"วิถีเดิมพันชะตา","SPIRIT_HUSBANDRY":"วิถีพฤกษาปราณ","ARENA_GLORY":"วิถีสังเวียนยุทธ์","LEG_READ_FORM_BLADE":"วิถีกระบี่อ่านช่องฟ้า","LEG_TRIAGE_MERIDIAN":"วิถีชีพจรประคองสหาย","LEG_STORM_CALLER_TEMPEST":"วิถีจอมพายุบัญชาฟ้า","LEG_JADE_CARAVAN_VOYAGER":"วิถีจอมคาราวานหยก","LEG_OATH_JUDGE_WARDEN":"วิถีผู้คุมสัตย์สาบาน","LEG_ASHEN_KILN_ALCHEMY":"วิถีเตาเถ้าคืนชีวิต","TRANS_CONSTELLATION_RELAY":"วิถีประสานปราณหมู่ดาว","TRANS_FIELD_CLAUSE_SOVEREIGN":"วิถีธรรมนูญฟ้าขีดเขต","TRANS_TEMPO_SOVEREIGN":"วิถีปรมาจารย์จังหวะกาล","TRANS_SEALKEEPER_FORBIDDEN_KEY":"วิถีผู้ถือกุญแจผนึก","TRANS_PRIMAL_VORTEX_MIRROR":"วิถีกระจกสะท้อนหมื่นวิชา","TRANS_DYNASTIC_MANDATE_WEAVER":"วิถีทอชะตาแผ่นดิน","CORPSE_SOVEREIGN":"วิถีจอมคุมศพ","WRAITH_GRIEVANCE":"วิถีวิญญาณแค้น","DEATHLESS_CADAVER":"วิถีกายไร้ชีพ"};
   for (const [pid, sig] of Object.entries(R.PATH_VISUAL_SIGNATURES)) {
     if (sig && pMap[pid]) sig.nameTh = pMap[pid];
   }

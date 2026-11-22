@@ -1445,6 +1445,7 @@
       }
     }
     if (!d.foe) { d.lastHurtBy = a ? a.id : d.lastHurtBy; d.h.state.stress += 0.8; d.h.state.fear = clamp(d.h.state.fear + 1.5 * (1 - E(d, 'personality.courage') / 130), 0, 100); HC.trainBody(d, 'toughness', 0.15); if (W.rng.chance(0.02 * (dmg / hm * 10))) AI.injure(W, d, hp < hm * .3 ? 2 : 1, 'บาดแผลจากการต่อสู้'); }
+    if (hp <= 0 && !d.isSummon && !nonlethal && g.NECRO && g.NECRO.tryDeathlessFrame(W, f, d)) hp = 1;
     if (hp <= 0 && !d.isSummon && !nonlethal && (d._cheatDeathSavesCount || 0) < 2) {
       const kwDef = C.keywordsOf ? C.keywordsOf(d) : null;
       const fId = (f && f.id) || 1;
@@ -4194,6 +4195,7 @@
     const all = [].concat(f.A, f.B).map(id => C.unit(W, id)).filter(Boolean);
     const ws = f.winner; const winners = ws ? (ws === 'A' ? f.A : f.B).map(i => C.unit(W, i)).filter(u => u && !u.dead) : [];
     const losers = ws ? (ws === 'A' ? f.B : f.A).map(i => C.unit(W, i)).filter(Boolean) : [];
+    if (g.NECRO && g.NECRO.syncAfterFight) g.NECRO.syncAfterFight(W, f);
     all.forEach(u => {
       if (u.isSummon || u.isWeaponAvatar || u.isFounderPhantom) {
         u.dead = true; u.gone = true;
@@ -8852,4 +8854,925 @@
     return bonusDmg;
   };
 
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* ==================== NECRO ENGINE (CORPSE / WRAITH / DEATHLESS CADAVER) ==================== */
+(function (g) {
+  'use strict';
+  const C = g.COMBAT;
+  if (!C) return;
+
+  const PATHS = {
+    CORPSE: 'CORPSE_SOVEREIGN',
+    WRAITH: 'WRAITH_GRIEVANCE',
+    CADAVER: 'DEATHLESS_CADAVER'
+  };
+  const SUB_ROLE = {
+    CORPSE_BELL_HERDER: 'HORDE',
+    BEAST_CARCASS_RIDER: 'BEAST',
+    JADE_COFFIN_WARDEN: 'SINGLE',
+    ARMORY_OF_THE_DEAD: 'ARMORY',
+    GRIEVANCE_LEDGER_KEEPER: 'LEDGER',
+    HUNGRY_GHOST_STEWARD: 'DEVOUR',
+    LAST_WISH_MEDIUM: 'RELEASE',
+    WAILING_CHORUS: 'CHORUS',
+    UNDYING_FRAME: 'FRAME',
+    ROT_BLOOM_HOST: 'ROT',
+    MARROW_STILLNESS_SAGE: 'STILL',
+    COLD_PULSE_REVENANT: 'INVERT'
+  };
+  const UNI = {
+    CORPSE_SOVEREIGN: 'TECH_NECRO_UNI_01',
+    WRAITH_GRIEVANCE: 'TECH_NECRO_UNI_02',
+    DEATHLESS_CADAVER: 'TECH_NECRO_UNI_03'
+  };
+  const PATH_SET = new Set([PATHS.CORPSE, PATHS.WRAITH, PATHS.CADAVER]);
+  const INVERT_DOTS = new Set(['poison', 'necroRot', 'curse', 'venomSeed', 'guLeech']);
+
+  function clamp(v, lo, hi) {
+    return v < lo ? lo : v > hi ? hi : v;
+  }
+
+  function fnvHash(str) {
+    let h = 2166136261;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function npcName(n) {
+    return (n && n.h && n.h.name && (n.h.name.given || n.h.name.full)) || (n && (n.nameTh || n.name)) || 'ผู้ฝึกตน';
+  }
+
+  function effStat(n, path, defVal) {
+    if (g.HC && typeof g.HC.eff === 'function' && n && n.h) {
+      const v = g.HC.eff(n, path);
+      return Number.isFinite(v) ? v : (defVal != null ? defVal : 50);
+    }
+    return defVal != null ? defVal : 50;
+  }
+
+  const NECRO = { PATHS, SUB_ROLE, UNI };
+
+  NECRO.ensure = n => {
+    if (!n) return null;
+    if (!n.necro || typeof n.necro !== 'object') {
+      n.necro = {
+        thralls: [],
+        souls: [],
+        nextUid: 1,
+        frameUsedFight: null,
+        released: 0,
+        devoured: 0,
+        stillLifeGranted: 0,
+        witnessUntil: 0,
+        nearDeathDay: -999
+      };
+    }
+    const st = n.necro;
+    if (!Array.isArray(st.thralls)) st.thralls = [];
+    if (!Array.isArray(st.souls)) st.souls = [];
+    if (!Number.isFinite(st.nextUid)) st.nextUid = 1;
+    if (st.frameUsedFight === undefined) st.frameUsedFight = null;
+    if (!Number.isFinite(st.released)) st.released = 0;
+    if (!Number.isFinite(st.devoured)) st.devoured = 0;
+    if (!Number.isFinite(st.stillLifeGranted)) st.stillLifeGranted = 0;
+    if (!Number.isFinite(st.witnessUntil)) st.witnessUntil = 0;
+    if (!Number.isFinite(st.nearDeathDay)) st.nearDeathDay = -999;
+    return st;
+  };
+
+  NECRO.role = n => (n && n.cult && SUB_ROLE[n.cult.sub]) || null;
+
+  NECRO.synergy = n => {
+    if (!n || !n.cult || !Array.isArray(n.cult.techs)) return 1;
+    const uId = UNI[n.cult.path];
+    return (uId && n.cult.techs.includes(uId)) ? 1.15 : 1;
+  };
+
+  NECRO.capacity = n => {
+    const r = NECRO.role(n);
+    if (r === 'SINGLE') return 1;
+    const st = (n && n.cult && n.cult.stage) || 1;
+    return 1 + Math.floor(st / 3) + (r === 'HORDE' ? 2 : 0);
+  };
+
+  NECRO.soulCap = n => {
+    const r = NECRO.role(n);
+    const st = (n && n.cult && n.cult.stage) || 1;
+    return 2 + Math.floor(st / 2) + (r === 'CHORUS' ? 1 : 0);
+  };
+
+  function buildFallenSnapshot(W, f, killer, victim) {
+    const CULT = g.CULT, ST = g.STATS, SK = g.SKILLS;
+    const kind = (victim.wild || victim.kind === 'beast' || victim.kind === 'boss') ? 'BEAST' : 'NPC';
+    const nameTh = (victim.h && victim.h.name && (victim.h.name.full || victim.h.name.given)) || victim.nameTh || victim.name || 'ผู้ล่วงลับ';
+    const tier = (kind === 'NPC' && victim.h && CULT && CULT.equivalentStage)
+      ? Math.max(1, Math.round(CULT.equivalentStage(victim)))
+      : Math.max(1, victim.tier || 1);
+    const element = (victim.cult && CULT && CULT.PATHS && CULT.PATHS[victim.cult.path] && CULT.PATHS[victim.cult.path].element) || victim.element || 'NEUTRAL';
+    const sectId = victim.sectId || (victim.h && victim.h.sectId) || null;
+    const speciesId = victim.speciesId || victim.species || null;
+    const side = (f.A && f.A.includes(victim.id)) ? 'A' : ((f.B && f.B.includes(victim.id)) ? 'B' : null);
+
+    const rawStats = (ST && ST.get) ? ST.get(victim) : {};
+    const keys = (ST && ST.KEYS) ? ST.KEYS : ['hp', 'atk', 'matk', 'def', 'mdef', 'crit', 'critDmg', 'pen', 'eva', 'acc', 'cast', 'move'];
+    const baseStats = {};
+    for (const k of keys) {
+      if (k === 'hp') baseStats.hp = Math.max(20, Math.round((C.hpMax ? C.hpMax(victim) : (victim.hpMax || 100)) * 0.6));
+      else baseStats[k] = Number.isFinite(rawStats[k]) ? +(rawStats[k] * 0.55).toFixed(2) : 0;
+    }
+
+    let moves = [];
+    let techIds = [];
+    if (victim.cult && Array.isArray(victim.cult.techs) && CULT && CULT.tech) {
+      const combatTechs = [];
+      for (const tid of victim.cult.techs) {
+        const t = CULT.tech(tid);
+        if (!t) continue;
+        if (t.kind === 'passive' || t.role === 'PASSIVE' || t.innateOnly) continue;
+        if (t.cat === 'QI_MANTRA' || t.cat === 'BODY_MANTRA' || t.cat === 'FAITH_MANTRA') continue;
+        combatTechs.push(t);
+        if (combatTechs.length >= 3) break;
+      }
+      if (combatTechs.length) {
+        techIds = combatTechs.map(t => t.id);
+        moves = combatTechs.map(t => {
+          const tt = Math.max(1, t.tier || 1);
+          const arch = (SK && SK.ARCH && SK.ARCH[t.combatArch] && SK.ARCH[t.combatArch].off) ? t.combatArch : 'strike';
+          const mType = (t.moveDefs && t.moveDefs[0] && t.moveDefs[0].type) || 'p';
+          return {
+            nameTh: t.nameTh || t.id,
+            tier: tt,
+            element: t.element || element,
+            arch,
+            type: mType,
+            cd: 9,
+            wind: 3,
+            hits: 1,
+            M: +(0.9 + 0.08 * tt).toFixed(2),
+            costPct: 0,
+            icon: '💀'
+          };
+        });
+      }
+    }
+    if (!moves.length && Array.isArray(victim.skl) && victim.skl.length) {
+      moves = victim.skl.slice(0, 2).map(s => Object.assign({}, s, { costPct: 0 }));
+    }
+    if (!moves.length) {
+      moves = [{
+        nameTh: 'ฟาดฟันด้วยความจำกาย',
+        tier: 1,
+        element,
+        arch: 'strike',
+        type: 'p',
+        cd: 9,
+        wind: 3,
+        hits: 1,
+        M: 1.0,
+        costPct: 0,
+        icon: '💀'
+      }];
+    }
+
+    return {
+      kind,
+      nameTh,
+      tier,
+      element,
+      sectId,
+      speciesId,
+      ownSect: !victim.foe && !!victim.h,
+      side,
+      killerId: killer ? killer.id : null,
+      killerSectId: killer ? (killer.sectId || (killer.h && killer.h.sectId) || null) : null,
+      killerSpeciesId: killer ? (killer.speciesId || killer.species || null) : null,
+      baseStats,
+      moves,
+      techIds,
+      claimed: false
+    };
+  }
+
+  NECRO.destroyThrall = (W, owner, th, whyTh) => {
+    if (!owner || !th) return false;
+    const st = NECRO.ensure(owner);
+    owner.inv = owner.inv || {};
+    owner.inv.gear = owner.inv.gear || [];
+    if (th.equip && typeof th.equip === 'object') {
+      for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+        const it = th.equip[slot];
+        if (it) {
+          it.dur = Math.max(0, (it.dur == null ? 100 : it.dur) - 20);
+          owner.inv.gear.push(it);
+          delete th.equip[slot];
+        }
+      }
+    }
+    st.thralls = st.thralls.filter(x => x && x.uid !== th.uid);
+    if (W && W.log && (th.tier || 1) >= 3) {
+      W.log('cult', npcName(owner) + ' สูญเสียบริวาร「' + th.nameTh + '」' + (whyTh ? ' (' + whyTh + ')' : ''), [owner.id]);
+    }
+    return true;
+  };
+
+  NECRO.equipThrall = (W, owner, th) => {
+    if (!owner || !th) return false;
+    owner.inv = owner.inv || {};
+    owner.inv.gear = owner.inv.gear || [];
+    th.equip = th.equip || {};
+    const slots = th.kind === 'BEAST' ? ['ACCESSORY'] : ['WEAPON', 'ARMOR', 'ACCESSORY'];
+    const isArmory = NECRO.role(owner) === 'ARMORY';
+    let changed = false;
+
+    for (const slot of slots) {
+      const cur = th.equip[slot] || null;
+      if (cur && !isArmory) continue;
+
+      let bestIdx = -1;
+      let bestTier = cur ? (cur.tier || 1) : 0;
+      let bestVal = cur ? (cur.value || 0) : -1;
+
+      for (let i = 0; i < owner.inv.gear.length; i++) {
+        const it = owner.inv.gear[i];
+        if (!it || it.slot !== slot) continue;
+        if (it.dur != null && it.dur <= 0) continue;
+        const itTier = it.tier || 1;
+        if (itTier > (th.tier || 1) + 1) continue;
+        if (cur && itTier <= (cur.tier || 1)) continue;
+        const itVal = it.value || 0;
+        if (bestIdx === -1 || itTier > bestTier || (itTier === bestTier && itVal > bestVal)) {
+          bestIdx = i;
+          bestTier = itTier;
+          bestVal = itVal;
+        }
+      }
+
+      if (bestIdx >= 0) {
+        const picked = owner.inv.gear.splice(bestIdx, 1)[0];
+        if (cur) owner.inv.gear.push(cur);
+        th.equip[slot] = picked;
+        changed = true;
+      }
+    }
+    return changed;
+  };
+
+  NECRO.claimCorpse = (W, owner, snap) => {
+    if (!owner || !snap) return null;
+    const st = NECRO.ensure(owner);
+    const cap = NECRO.capacity(owner);
+    if (st.thralls.length >= cap) {
+      let minIdx = -1;
+      let minTier = Infinity;
+      for (let i = 0; i < st.thralls.length; i++) {
+        const t = (st.thralls[i] && st.thralls[i].tier) || 1;
+        if (t < minTier) { minTier = t; minIdx = i; }
+      }
+      if (minIdx >= 0 && (snap.tier || 1) > minTier) {
+        NECRO.destroyThrall(W, owner, st.thralls[minIdx], 'ถูกแทนที่ด้วยร่างที่แข็งแกร่งกว่า');
+      } else {
+        return null;
+      }
+    }
+    const r = NECRO.role(owner);
+    const moveCount = r === 'SINGLE' ? 3 : 2;
+    const th = {
+      uid: st.nextUid++,
+      kind: snap.kind,
+      nameTh: 'ศพของ' + snap.nameTh,
+      tier: snap.tier || 1,
+      element: snap.element || 'YIN_SHADOW',
+      baseStats: Object.assign({}, snap.baseStats || {}),
+      moves: Array.isArray(snap.moves) ? snap.moves.slice(0, moveCount).map(m => Object.assign({}, m)) : [],
+      techIds: Array.isArray(snap.techIds) ? snap.techIds.slice(0, moveCount) : [],
+      equip: {},
+      integrity: 100,
+      bornDay: (W && W.day) || 0
+    };
+    st.thralls.push(th);
+    NECRO.equipThrall(W, owner, th);
+    return th;
+  };
+
+  NECRO.thrallStats = (owner, th) => {
+    const ST = g.STATS;
+    const keys = (ST && ST.KEYS) ? ST.KEYS : ['hp', 'atk', 'matk', 'def', 'mdef', 'crit', 'critDmg', 'pen', 'eva', 'acc', 'cast', 'move'];
+    const r = NECRO.role(owner);
+    let roleMult = 1.0;
+    if (r === 'SINGLE') roleMult = 1.6;
+    else if (r === 'HORDE') roleMult = 0.85;
+    else if (r === 'BEAST' && th && th.kind === 'BEAST') roleMult = 1.25;
+
+    const integ = (th && Number.isFinite(th.integrity)) ? th.integrity : 100;
+    const integMult = 0.6 + 0.4 * (clamp(integ, 0, 100) / 100);
+    const syn = NECRO.synergy(owner);
+    const totalMult = roleMult * integMult * syn;
+
+    const out = {};
+    const base = (th && th.baseStats) || {};
+    for (const k of keys) {
+      let val = Number.isFinite(base[k]) ? base[k] : (k === 'critDmg' ? 150 : (k === 'cast' || k === 'move') ? 100 : 0);
+      out[k] = val * totalMult;
+    }
+
+    const equip = (th && th.equip) || {};
+    const gearMult = r === 'ARMORY' ? 1.35 : 1.0;
+    for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+      const it = equip[slot];
+      if (!it) continue;
+      const dur = it.dur == null ? 100 : it.dur;
+      if (dur <= 0) continue;
+      const df = clamp(dur / 100, 0, 1);
+      const gs = (ST && ST.gearStats) ? ST.gearStats(it) : (it.st || it.stats || {});
+      for (const k of keys) {
+        if (Number.isFinite(gs[k])) out[k] = (out[k] || 0) + gs[k] * df * gearMult;
+      }
+    }
+    for (const k of keys) {
+      if (!Number.isFinite(out[k])) out[k] = (k === 'critDmg' ? 150 : (k === 'cast' || k === 'move') ? 100 : 0);
+      else out[k] = Math.round(out[k]);
+    }
+    out.hp = Math.max(20, out.hp || 20);
+    return out;
+  };
+
+  NECRO.deployForFight = (W, f) => {
+    if (!W || !f || f.over) return;
+    const k = String(f.kind || '');
+    if (k === 'spar' || k === 'duel' || k === 'leadership' || k === 'challenge' || k.includes('tourn')) return;
+    W.foes = W.foes || [];
+    W.foeById = W.foeById || {};
+
+    for (const side of ['A', 'B']) {
+      const ids = (f[side] || []).slice();
+      for (const id of ids) {
+        const owner = C.unit(W, id);
+        if (!owner || owner.foe || owner.dead || !owner.cult || owner.cult.path !== PATHS.CORPSE) continue;
+        const st = NECRO.ensure(owner);
+        const cap = NECRO.capacity(owner);
+        let deployed = 0;
+        for (const th of st.thralls) {
+          if (deployed >= cap) break;
+          if (!th || (th.integrity || 0) < 25) continue;
+          const sId = 'THR_' + owner.id + '_' + th.uid + '_' + (W.t || 0);
+          if (W.foeById[sId]) continue;
+          const summonStats = NECRO.thrallStats(owner, th);
+          const hpMax = Math.max(20, summonStats.hp || 100);
+          const hp = Math.max(1, Math.round(hpMax * Math.max(0.2, (th.integrity || 100) / 100)));
+          const h = fnvHash(String(W.seed || 's') + ':' + owner.id + ':' + th.uid + ':' + (W.day || 0));
+          const ox = ((h % 31) / 30 - 0.5) * 1.6;
+          const oy = (((h >>> 5) % 31) / 30 - 0.5) * 1.6;
+          const skl = (Array.isArray(th.moves) && th.moves.length ? th.moves : [{ nameTh: 'ฟาดฟัน', tier: 1, element: th.element || 'YIN_SHADOW', arch: 'strike', type: 'p', cd: 9, wind: 3, hits: 1, M: 1.0, costPct: 0, icon: '💀' }])
+            .map((m, idx) => Object.assign({}, m, { id: 'S_' + sId + '_' + idx }));
+          const unit = {
+            id: sId,
+            name: th.nameTh,
+            nameTh: th.nameTh,
+            isSummon: true,
+            isNecroThrall: true,
+            isConstruct: true,
+            summonerId: owner.id,
+            ownerId: owner.id,
+            necroOwnerId: owner.id,
+            thrallUid: th.uid,
+            side,
+            foe: true,
+            element: th.element || 'YIN_SHADOW',
+            tier: th.tier || 1,
+            power: Math.max(1, Math.round(Math.max(summonStats.atk || 0, summonStats.matk || 0) / 0.55)),
+            summonStats,
+            hp,
+            hpMax,
+            speed: 1.0,
+            x: (owner.x || 0) + ox,
+            y: (owner.y || 0) + oy,
+            px: owner.x || 0,
+            py: owner.y || 0,
+            act: { id: 'fight', ctx: { fid: f.id, target: null, cd: 2 } },
+            skl
+          };
+          W.foeById[sId] = unit;
+          W.foes.push(unit);
+          if (!f[side].includes(sId)) f[side].push(sId);
+          deployed++;
+        }
+      }
+    }
+  };
+
+  NECRO.syncAfterFight = (W, f) => {
+    if (!W || !f || f._necroSynced) return;
+    f._necroSynced = true;
+    const allUnits = [].concat(f.A || [], f.B || []).map(id => C.unit(W, id)).filter(Boolean);
+
+    for (const u of allUnits) {
+      if (!u.isNecroThrall) continue;
+      const owner = C.unit(W, u.necroOwnerId || u.ownerId);
+      if (!owner || !owner.necro) continue;
+      const th = owner.necro.thralls.find(x => x && x.uid === u.thrallUid);
+      if (!th) continue;
+      if (u.dead || (u.hp || 0) <= 0) {
+        th.integrity = (th.integrity || 100) - 45;
+      } else {
+        const hpRatio = clamp((u.hp || 0) / Math.max(1, u.hpMax || 1), 0, 1);
+        th.integrity = clamp((th.integrity || 100) - 3 - Math.round(30 * (1 - hpRatio)), 0, 100);
+      }
+      if (th.integrity <= 0) {
+        NECRO.destroyThrall(W, owner, th, 'ร่างแหลกสลายในสมรภูมิ');
+      }
+    }
+
+    const fallen = Array.isArray(f._necroFallen) ? f._necroFallen : [];
+    const fvPolicy = (W.sect && W.sect.forbiddenVault && W.sect.forbiddenVault.policy) || '';
+    const corpUsers = allUnits.filter(u => !u.foe && !u.dead && u.cult && u.cult.path === PATHS.CORPSE);
+
+    for (const snap of fallen) {
+      if (!snap || snap.claimed) continue;
+      for (const owner of corpUsers) {
+        if (snap.ownSect && fvPolicy === 'STRICT_ORTHODOX_BAN') continue;
+        const r = NECRO.role(owner);
+        const amb = effStat(owner, 'personality.ambition', 50);
+        const emp = effStat(owner, 'personality.empathy', 50);
+        const will = 50 + 0.3 * amb - 0.3 * emp - (snap.ownSect ? 60 : 0) + (r === 'HORDE' ? 10 : 0);
+        if (will > 30) {
+          const th = NECRO.claimCorpse(W, owner, snap);
+          if (th) {
+            snap.claimed = true;
+            if (snap.ownSect && W.log) {
+              W.log('cult', '⚠️ เหตุอื้อฉาว: ' + npcName(owner) + ' ปลุกศพศิษย์ร่วมสำนัก「' + snap.nameTh + '」มาเป็นบริวาร!', [owner.id]);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    for (const u of allUnits) {
+      if (u.foe || !u.h) continue;
+      if (fallen.length >= 3 && (!u.cult || u.cult.path !== PATHS.CORPSE)) {
+        NECRO.ensure(u).witnessUntil = (W.day || 0) + 30;
+      }
+      if (!u.dead) {
+        const curHp = u.hp != null ? u.hp : (u.h.state && u.h.state.hp);
+        const maxHp = u.hpMax || (u._hpMaxCache && u._hpMaxCache.v) || 100;
+        if (curHp != null && curHp < maxHp * 0.10) {
+          NECRO.ensure(u).nearDeathDay = W.day || 0;
+        }
+      }
+    }
+  };
+
+  NECRO.grievanceMult = (soul, target, owner) => {
+    if (!soul || !target) return 1.0;
+    const isLedger = owner ? NECRO.role(owner) === 'LEDGER' : false;
+    const tSect = target.sectId || (target.h && target.h.sectId) || null;
+    const tSpec = target.speciesId || target.species || null;
+    let m = 1.0;
+    if (soul.killerId && target.id === soul.killerId) m = 2.0;
+    else if ((soul.killerSectId && tSect === soul.killerSectId) || (soul.killerSpeciesId && tSpec === soul.killerSpeciesId)) m = 1.4;
+    if (isLedger && m > 1.0) m += 0.5;
+    return m;
+  };
+
+  NECRO.onHit = (W, f, a, d, r) => {
+    if (!W || !f || !a || !d || !r || !(r.dmg > 0) || a.foe || !a.cult || d.dead) return;
+    const p = a.cult.path;
+    const ST = g.STATS;
+    if (p === PATHS.WRAITH) {
+      const st = NECRO.ensure(a);
+      if (!st.souls.length) return;
+      if (a._necroHauntAt != null && (W.t - a._necroHauntAt) < 6) return;
+      a._necroHauntAt = W.t;
+
+      let bestSoul = st.souls[0];
+      let bestMult = NECRO.grievanceMult(bestSoul, d, a);
+      for (let i = 1; i < st.souls.length; i++) {
+        const m = NECRO.grievanceMult(st.souls[i], d, a);
+        if (m > bestMult) { bestMult = m; bestSoul = st.souls[i]; }
+      }
+      const sa = (ST && ST.get) ? ST.get(a) : {};
+      const matk = sa.matk || 40;
+      const syn = NECRO.synergy(a);
+      const refHp = C.stageRefHp ? C.stageRefHp(d) : (C.hpMax ? C.hpMax(d) : 200);
+      const dmg = Math.max(1, Math.min(Math.round(matk * 0.28 * bestMult * syn), Math.round(refHp * 0.12 * bestMult)));
+
+      const applySoulHaunt = (tgt, amount) => {
+        if (!tgt || tgt.dead || amount <= 0) return;
+        if (C.applyProcDamage) C.applyProcDamage(W, f, a, tgt, amount, 'วิญญาณแค้นตามหลอน');
+        else C.applyDamage(W, f, a, tgt, amount, 'วิญญาณแค้นตามหลอน');
+        if (ST && ST.addStatus) ST.addStatus(tgt, 'soulHaunt', 8, { src: a.id }, W.t);
+        if (!tgt.foe && tgt.h && tgt.h.state && g.CULT && g.CULT.qiMax) {
+          const qm = g.CULT.qiMax(tgt);
+          tgt.h.state.qi = Math.max(0, (tgt.h.state.qi || 0) - qm * 0.04);
+        }
+      };
+
+      applySoulHaunt(d, dmg);
+      bestSoul.resolve = Math.max(0, (bestSoul.resolve || 100) - 12);
+
+      if (NECRO.role(a) === 'CHORUS') {
+        const oppSide = (f.A && f.A.includes(a.id)) ? f.B : f.A;
+        let extra = 0;
+        for (const eid of (oppSide || [])) {
+          if (eid === d.id) continue;
+          const eu = C.unit(W, eid);
+          if (!eu || eu.dead) continue;
+          applySoulHaunt(eu, Math.max(1, Math.round(dmg * 0.5)));
+          if (++extra >= 2) break;
+        }
+      }
+    } else if (p === PATHS.CADAVER && NECRO.role(a) === 'ROT') {
+      if (ST && ST.addStatus) ST.addStatus(d, 'necroRot', 8, { per: 0.012, src: a.id }, W.t);
+    }
+  };
+
+  NECRO.tryDeathlessFrame = (W, f, d) => {
+    if (!W || !f || !d || d.foe || !d.cult || d.cult.path !== PATHS.CADAVER || (d.cult.stage || 1) < 2) return false;
+    const ST = g.STATS;
+    if (ST && ST.has && ST.has(d, 'deathlessFrame', W.t)) return true;
+    const st = NECRO.ensure(d);
+    if (st.frameUsedFight === f.id) return false;
+    st.frameUsedFight = f.id;
+    const dur = Math.round((NECRO.role(d) === 'FRAME' ? 15 : 10) * NECRO.synergy(d));
+    if (ST && ST.applyNamedBuff) ST.applyNamedBuff(d, 'deathlessFrame', dur, W.t, { casterId: d.id });
+    d.ext = d.ext || {};
+    d.ext.burnedLifespanYears = (d.ext.burnedLifespanYears || 0) + 1;
+    if (d.h && d.h.state) d.h.state.heartDemon = clamp((d.h.state.heartDemon || 0) + 4, 0, 100);
+    d.fx = { t: W.t, text: '💀 กายไร้ชีพลุกขึ้นอีกครั้ง' };
+    return true;
+  };
+
+  NECRO.recordDiscovery = (W, n, pid, sourceKind, evidenceTh) => {
+    if (!n || !PATH_SET.has(pid)) return false;
+    n.daoDiscoveries = n.daoDiscoveries || {};
+    if (n.daoDiscoveries[pid]) return false;
+    n.daoDiscoveries[pid] = {
+      pathId: pid,
+      grade: 'ORDINARY',
+      discoveredDay: (W && W.day) || 0,
+      sourceKind: sourceKind || 'EVENT',
+      evidenceTh: evidenceTh || '',
+      decision: 'PENDING'
+    };
+    if (g.HC && g.HC.bump) g.HC.bump(n);
+    if (W && W.log) {
+      const pName = (g.CULT && g.CULT.PATHS && g.CULT.PATHS[pid] && g.CULT.PATHS[pid].nameTh) || pid;
+      W.log('cult', npcName(n) + ' ค้นพบร่องรอยแห่ง「' + pName + '」(' + (evidenceTh || sourceKind) + ')', [n.id]);
+    }
+    return true;
+  };
+
+  NECRO.evaluateAdoption = (W, n, pid) => {
+    if (!W || !n || !n.daoDiscoveries || !n.daoDiscoveries[pid]) return null;
+    const disc = n.daoDiscoveries[pid];
+    if (disc.decision !== 'PENDING') return disc.decision;
+    if (n.cult && n.cult.path === pid) { disc.decision = 'ADOPT'; return 'ADOPT'; }
+    const CULT = g.CULT;
+    if (!n.cult) {
+      if (n.mortalCult && (n.mortalCult.qiFoundation || 0) >= 60 && CULT && CULT.MORTAL_INITIATION && CULT.MORTAL_INITIATION.triggerMeridianBreakthrough) {
+        CULT.MORTAL_INITIATION.triggerMeridianBreakthrough(W, n, { path: pid, force: true, ignoreLibraryLock: true });
+        disc.decision = 'ADOPT';
+        return 'ADOPT';
+      }
+      return 'PENDING';
+    }
+
+    const eq = CULT && CULT.equivalentStage ? CULT.equivalentStage(n.cult) : (n.cult.stage || 1);
+    const cur = effStat(n, 'personality.curiosity', 50);
+    const amb = effStat(n, 'personality.ambition', 50);
+    const disp = effStat(n, 'personality.discipline', 50);
+    const comp = effStat(n, 'intellect.comprehension', 50);
+    const caut = effStat(n, 'personality.caution', 50);
+    const integ = effStat(n, 'personality.integrity', 50);
+    const emp = effStat(n, 'personality.empathy', 50);
+
+    let drive = 0.35 * cur + 0.30 * amb + 0.25 * disp + 0.30 * comp + 6;
+    if (pid === PATHS.CORPSE || pid === PATHS.CADAVER) drive += (55 - integ) * 0.2;
+    else if (pid === PATHS.WRAITH) drive += (emp - 50) * 0.15;
+
+    const curDef = CULT && CULT.PATHS && CULT.PATHS[n.cult.path];
+    const curGrade = curDef && curDef.grade ? curDef.grade : 'ORDINARY';
+    const switchCost = Math.max(0, eq - 3) * 4 + caut * 0.25 + ((curGrade === 'LEGENDARY' || curGrade === 'TRANSCENDENT') ? 22 : 0);
+
+    if (drive >= switchCost + 18) {
+      const nextStage = clamp(Math.round(eq * 0.8), 1, 8);
+      const scores = CULT && CULT.pathScores ? CULT.pathScores(n) : [];
+      const subRows = scores.filter(r => r && r.path === pid).sort((a, b) => (b.score || 0) - (a.score || 0));
+      const subList = (CULT && CULT.PATHS && CULT.PATHS[pid] && CULT.PATHS[pid].subPaths) || [];
+      const pickSub = (subRows[0] && subRows[0].sub) || (subList[0] && subList[0].id) || 'NONE';
+
+      n.cult.prevPath = n.cult.path;
+      n.cult.path = pid;
+      n.cult.sub = pickSub;
+      n.cult.stage = nextStage;
+      n.cult.prog = 0;
+      delete n.cult.track;
+      delete n.cult.mantra;
+
+      delete n.mechState;
+      delete n.karmaState;
+      delete n.pathGauge;
+      delete n.demonicRealmsGauge;
+      delete n.grandDaoState;
+
+      if (CULT && CULT.bestMantra) {
+        const bm = CULT.bestMantra(pid, nextStage, n);
+        if (bm) n.cult.mantra = bm.id || bm;
+      }
+      if (CULT && CULT.ensurePathGauge) CULT.ensurePathGauge(n);
+      const M = g.MARTIAL;
+      if (M) {
+        if (n.equip && M.gearUsable) {
+          n.inv = n.inv || {}; n.inv.gear = n.inv.gear || [];
+          for (const sl of Object.keys(n.equip)) {
+            if (n.equip[sl] && !M.gearUsable(n, n.equip[sl])) {
+              n.inv.gear.push(n.equip[sl]);
+              n.equip[sl] = null;
+            }
+          }
+        }
+        if (M.reconcileInnate) M.reconcileInnate(n, W);
+        if (M.reconcilePassives) M.reconcilePassives(n);
+      }
+      if (CULT && CULT.refreshLifespan) CULT.refreshLifespan(n);
+      if (g.HC && g.HC.bump) g.HC.bump(n);
+      if (g.STATS && g.STATS.dirty) g.STATS.dirty(n);
+      disc.decision = 'ADOPT';
+      if (W.log) {
+        const pName = (CULT && CULT.PATHS && CULT.PATHS[pid] && CULT.PATHS[pid].nameTh) || pid;
+        W.log('cult', npcName(n) + ' ตัดสินใจเปลี่ยนวิถีเข้าสู่「' + pName + '」ด้วยตนเอง', [n.id]);
+      }
+      return 'ADOPT';
+    }
+    disc.decision = 'DECLINE';
+    return 'DECLINE';
+  };
+
+  NECRO.daily = W => {
+    if (!W || !Array.isArray(W.npcs)) return;
+    const CULT = g.CULT, SECT = g.SECT, HC = g.HC;
+    const day = W.day || 0;
+
+    for (const n of W.npcs) {
+      if (!n) continue;
+      if (n.dead) {
+        if (n.necro) {
+          for (const th of (n.necro.thralls || []).slice()) NECRO.destroyThrall(W, n, th, 'ผู้คุมสิ้นชีพ');
+          n.necro.souls = [];
+        }
+        continue;
+      }
+
+      const p = n.cult && n.cult.path;
+      if (n.necro) {
+        if (p !== PATHS.CORPSE && n.necro.thralls && n.necro.thralls.length) {
+          for (const th of n.necro.thralls.slice()) NECRO.destroyThrall(W, n, th, 'ละทิ้งวิถีจอมคุมศพ');
+        }
+        if (p !== PATHS.WRAITH && n.necro.souls && n.necro.souls.length) {
+          n.necro.released = (n.necro.released || 0) + n.necro.souls.length;
+          n.necro.souls = [];
+        }
+        if (p !== PATHS.CADAVER && n.necro.stillLifeGranted) {
+          if (n.cult) n.cult.lifeBonus = Math.max(0, (n.cult.lifeBonus || 0) - n.necro.stillLifeGranted);
+          n.necro.stillLifeGranted = 0;
+          if (CULT && CULT.refreshLifespan) CULT.refreshLifespan(n);
+        }
+      }
+
+      if (p === PATHS.CORPSE) {
+        const st = NECRO.ensure(n);
+        const isJade = NECRO.role(n) === 'JADE';
+        for (const th of st.thralls.slice()) {
+          th.integrity = (th.integrity || 100) - (isJade ? 1 : 2);
+          if (th.integrity < 60 && n.inv && (n.inv.stones || 0) >= 6) {
+            n.inv.stones -= 6;
+            th.integrity += 10;
+          }
+          if (th.integrity <= 0) NECRO.destroyThrall(W, n, th, 'ร่างผุพังตามกาล');
+          else NECRO.equipThrall(W, n, th);
+        }
+      } else if (p === PATHS.WRAITH) {
+        const st = NECRO.ensure(n);
+        const cap = NECRO.soulCap(n);
+        const r = NECRO.role(n);
+        const emp = effStat(n, 'personality.empathy', 50);
+        const integ = effStat(n, 'personality.integrity', 50);
+        const amb = effStat(n, 'personality.ambition', 50);
+        const agg = effStat(n, 'personality.aggression', 50);
+
+        for (let i = 0; i < st.souls.length; i++) {
+          st.souls[i].resolve = (st.souls[i].resolve || 100) - 3;
+        }
+        const keep = [];
+        for (let i = 0; i < st.souls.length; i++) {
+          const soul = st.souls[i];
+          const overCap = (st.souls.length - i + keep.length) > cap;
+          if ((soul.resolve || 0) <= 30 || overCap) {
+            const relScore = emp * 0.5 + integ * 0.4 + (r === 'RELEASE' ? 25 : 0);
+            const devScore = amb * 0.5 + agg * 0.3 + (100 - integ) * 0.3 + (r === 'DEVOUR' ? 25 : 0);
+            const sTier = soul.tier || 1;
+            if (relScore >= devScore) {
+              if (CULT && CULT.gain) CULT.gain(n, 6 * sTier, W, 'necro_release');
+              if (n.h && n.h.state) {
+                n.h.state.heartDemon = clamp((n.h.state.heartDemon || 0) - 4, 0, 100);
+                n.h.state.stress = clamp((n.h.state.stress || 0) - 3, 0, 100);
+              }
+              if (r === 'RELEASE' && W.sect && typeof W.sect.morale === 'number') {
+                W.sect.morale = clamp(W.sect.morale + 0.2, 0, 100);
+              }
+              st.released++;
+              if (sTier >= 3 && W.log) W.log('cult', npcName(n) + ' ส่ง「' + soul.nameTh + '」สู่สุคติ', [n.id]);
+            } else {
+              if (CULT && CULT.gain) CULT.gain(n, Math.round(10 * sTier * (r === 'DEVOUR' ? 1.2 : 1)), W, 'necro_devour');
+              if (n.h && n.h.state) n.h.state.heartDemon = clamp((n.h.state.heartDemon || 0) + 5, 0, 100);
+              if (r === 'DEVOUR' && CULT && CULT.gainPathGauge) CULT.gainPathGauge(n, 25);
+              st.devoured++;
+              if (sTier >= 3 && W.log) W.log('cult', npcName(n) + ' กลืนกิน「' + soul.nameTh + '」เพิ่มตบะและจิตมาร', [n.id]);
+            }
+          } else {
+            keep.push(soul);
+          }
+        }
+        st.souls = keep;
+      } else if (p === PATHS.CADAVER) {
+        const st = NECRO.ensure(n);
+        const stage = (n.cult && n.cult.stage) || 1;
+        const target = (NECRO.role(n) === 'STILL' ? 20 : 8) * stage;
+        const delta = target - (st.stillLifeGranted || 0);
+        if (delta !== 0) {
+          n.cult.lifeBonus = (n.cult.lifeBonus || 0) + delta;
+          st.stillLifeGranted = target;
+          if (CULT && CULT.refreshLifespan) CULT.refreshLifespan(n);
+        }
+      }
+
+      if (PATH_SET.has(p) && n.cult && CULT && CULT.equivalentStage) {
+        const eq = CULT.equivalentStage(n.cult);
+        const comp = effStat(n, 'intellect.comprehension', 50);
+        const uniId = UNI[p];
+        if (eq >= 3 && comp >= 55 && uniId && W.sect) {
+          W.sect.library = W.sect.library || [];
+          if (!W.sect.library.includes(uniId)) {
+            W.sect.library.push(uniId);
+            const tDef = CULT.tech ? CULT.tech(uniId) : null;
+            if (W.log) W.log('cult', npcName(n) + ' จารึกวิชา「' + ((tDef && tDef.nameTh) || uniId) + '」ลงหอคัมภีร์สำนัก', [n.id]);
+          }
+        }
+      }
+
+      // Autonomous discovery & adoption
+      const st = n.necro || {};
+      const libUnlocked = (pid) => !!(SECT && SECT.PATH_LIBRARY && SECT.PATH_LIBRARY.isPathUnlocked && SECT.PATH_LIBRARY.isPathUnlocked(W, pid));
+      const pers = (n.h && n.h.personality) || {};
+      const affs = (n.h && n.h.affinities) || {};
+      const cur = Number.isFinite(pers.curiosity) ? pers.curiosity : 50;
+      const yinAff = Number.isFinite(affs.YIN_SHADOW) ? affs.YIN_SHADOW : 40;
+      const soulAff = Number.isFinite(affs.SOUL_DIVINE) ? affs.SOUL_DIVINE : 40;
+      const emp = Number.isFinite(pers.empathy) ? pers.empathy : 50;
+      const amb = Number.isFinite(pers.ambition) ? pers.ambition : 50;
+      const age = (HC && HC.ageYears) ? HC.ageYears(n) : 20;
+      const lifeMax = n.lifespanMax || 80;
+
+      for (const pid of [PATHS.CORPSE, PATHS.WRAITH, PATHS.CADAVER]) {
+        if (p === pid) continue;
+        const hasDisc = !!(n.daoDiscoveries && n.daoDiscoveries[pid]);
+        if (!hasDisc) {
+          const roll = fnvHash(String(W.seed || 's') + ':' + n.id + ':' + pid + ':' + day) % 1000;
+          let hit = false, src = 'EVENT', ev = '';
+          if (pid === PATHS.CORPSE && (st.witnessUntil || 0) >= day && (yinAff >= 55 || soulAff >= 55) && roll < 50) {
+            hit = true; src = 'BATTLE_WITNESS'; ev = 'เห็นสมรภูมิเต็มไปด้วยศพ';
+          } else if (pid === PATHS.WRAITH && (n.grief || 0) > 0 && Array.isArray(n.grudges) && n.grudges.length > 0 && emp >= 45 && roll < 20) {
+            hit = true; src = 'GRIEF_GRUDGE'; ev = 'ความโศกเศร้าและหนี้แค้นปลุกเสียงวิญญาณ';
+          } else if (pid === PATHS.CADAVER && ((age / Math.max(1, lifeMax)) >= 0.8 || (day - (st.nearDeathDay || -999)) <= 30) && amb >= 60 && roll < 30) {
+            hit = true; src = 'NEAR_DEATH'; ev = 'เฉียดความตายและปรารถนาฝืนสังขาร';
+          } else if (libUnlocked(pid) && cur >= 55 && roll < 10) {
+            hit = true; src = 'SECT_LIBRARY'; ev = 'ศึกษาบันทึกในหอคัมภีร์สำนัก';
+          }
+          if (hit) {
+            NECRO.recordDiscovery(W, n, pid, src, ev);
+            NECRO.evaluateAdoption(W, n, pid);
+          }
+        } else if (n.daoDiscoveries[pid].decision === 'PENDING' && (day - (n.daoDiscoveries[pid].discoveredDay || 0)) % 10 === 0) {
+          NECRO.evaluateAdoption(W, n, pid);
+        }
+      }
+    }
+  };
+
+  NECRO.summary = n => {
+    if (!n) return null;
+    const st = n.necro || {};
+    const thralls = Array.isArray(st.thralls) ? st.thralls : [];
+    const souls = Array.isArray(st.souls) ? st.souls : [];
+    return {
+      path: (n.cult && n.cult.path) || null,
+      sub: (n.cult && n.cult.sub) || null,
+      thralls: thralls.map(th => ({
+        uid: th.uid,
+        kind: th.kind,
+        nameTh: th.nameTh,
+        tier: th.tier,
+        integrity: th.integrity,
+        moves: (th.moves || []).map(m => m.nameTh),
+        equip: {
+          WEAPON: th.equip && th.equip.WEAPON ? (th.equip.WEAPON.nameTh || th.equip.WEAPON.id) : null,
+          ARMOR: th.equip && th.equip.ARMOR ? (th.equip.ARMOR.nameTh || th.equip.ARMOR.id) : null,
+          ACCESSORY: th.equip && th.equip.ACCESSORY ? (th.equip.ACCESSORY.nameTh || th.equip.ACCESSORY.id) : null
+        }
+      })),
+      souls: souls.map(s => ({
+        uid: s.uid,
+        nameTh: s.nameTh,
+        tier: s.tier,
+        resolve: s.resolve,
+        killerId: s.killerId
+      })),
+      released: st.released || 0,
+      devoured: st.devoured || 0,
+      burnedLifespanYears: (n.ext && n.ext.burnedLifespanYears) || 0,
+      stillLifeGranted: st.stillLifeGranted || 0
+    };
+  };
+
+  // Wrap C.slay, C.startFight, C.strike, C.statusTick
+  const _origSlay = C.slay;
+  C.slay = function (W, f, killer, victim) {
+    const res = _origSlay.apply(this, arguments);
+    if (victim && victim.dead && !victim.isSummon && !victim._necroSnap && f) {
+      const units = [].concat(f.A || [], f.B || []).map(id => C.unit(W, id)).filter(Boolean);
+      const hasCorpse = units.some(u => !u.foe && !u.dead && u.cult && u.cult.path === PATHS.CORPSE);
+      const wraiths = units.filter(u => !u.foe && !u.dead && u.cult && u.cult.path === PATHS.WRAITH);
+      if (!hasCorpse && !wraiths.length) return res;
+      const snap = buildFallenSnapshot(W, f, killer, victim);
+      if (hasCorpse) {
+        f._necroFallen = f._necroFallen || [];
+        f._necroFallen.push(snap);
+      }
+      if (wraiths.length) {
+        const sameSide = wraiths.filter(u => ((f.A && f.A.includes(u.id)) ? 'A' : 'B') === snap.side);
+        const oppSide = wraiths.filter(u => ((f.A && f.A.includes(u.id)) ? 'A' : 'B') !== snap.side);
+        const ordered = sameSide.concat(oppSide);
+        for (const wOwner of ordered) {
+          const st = NECRO.ensure(wOwner);
+          if (st.souls.length < NECRO.soulCap(wOwner)) {
+            st.souls.push({
+              uid: st.nextUid++,
+              nameTh: 'วิญญาณของ' + snap.nameTh,
+              tier: snap.tier,
+              element: snap.element,
+              kind: snap.kind,
+              killerId: snap.killerId,
+              killerSectId: snap.killerSectId,
+              killerSpeciesId: snap.killerSpeciesId,
+              resolve: 100,
+              bornDay: (W && W.day) || 0
+            });
+            break;
+          }
+        }
+      }
+      victim._necroSnap = true;
+    }
+    return res;
+  };
+
+  const _origStartFight = C.startFight;
+  C.startFight = function (W, A, B, kind, opts) {
+    const f = _origStartFight.apply(this, arguments);
+    if (f) NECRO.deployForFight(W, f);
+    return f;
+  };
+
+  const _origStrike = C.strike;
+  C.hit = C.strike = function (W, f, a, d, o) {
+    const r = _origStrike.apply(this, arguments);
+    if (r && r.dmg > 0 && a && !a.foe && a.cult) {
+      NECRO.onHit(W, f, a, d, r);
+    }
+    return r;
+  };
+
+  const _origStatusTick = C.statusTick;
+  C.statusTick = function (W, f, u) {
+    if (!u || u.foe || !u.cult || u.cult.path !== PATHS.CADAVER || NECRO.role(u) !== 'INVERT') {
+      return _origStatusTick.apply(this, arguments);
+    }
+    const before = C.hp(u);
+    const hasDot = Array.isArray(u.sx) && u.sx.some(x => x && INVERT_DOTS.has(x.k) && x.until > W.t);
+    const res = _origStatusTick.apply(this, arguments);
+    if (hasDot && !u.dead) {
+      const after = C.hp(u);
+      if (after < before) {
+        C.setHp(u, Math.min(C.hpMax(u), after + Math.round((before - after) * 1.2)));
+      }
+    }
+    return res;
+  };
+
+  g.NECRO = C.NECRO = NECRO;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

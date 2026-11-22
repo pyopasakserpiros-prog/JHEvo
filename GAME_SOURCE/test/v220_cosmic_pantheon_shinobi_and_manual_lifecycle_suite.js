@@ -122,12 +122,12 @@ function check(cond, msg) {
 // 3. Pillar 3: All 43 Grand Dao Paths, 286 Subpaths, Zero-Qi Bushido Samurai & 48 Sect Archetypes
 {
   const allPaths = Object.keys(CULT.PATHS);
-  check(allPaths.length === 55, `Total Major Paths must be 43 (27 + 16), got ${allPaths.length}`);
-  check(Object.keys(CULT.PATH_GAUGES).length === 55, 'Total Path Gauges must be 43');
+  check(allPaths.length === 58, `Total Major Paths must be 43 (27 + 16), got ${allPaths.length}`);
+  check(Object.keys(CULT.PATH_GAUGES).length === 58, 'Total Path Gauges must be 43');
   const allSubs = Object.values(CULT.PATHS).flatMap(p => p.subPaths || []);
-  check(allSubs.length === 346, `Total Subpaths must be 286 (222 + 64), got ${allSubs.length}`);
-  check(EXPLORE.NINE_DAO_PAGODA.floors.length === 55, 'Nine-Dao Pagoda must have 43 floors');
-  check(MARTIAL.RESONANCE_SETS.filter(x => !x.id.startsWith('RES_V320_')).length === 74, `Total Resonance Sets must be 62 (19 baseline + 43 Pagoda), got ${MARTIAL.RESONANCE_SETS.length}`);
+  check(allSubs.length === 358, `Total Subpaths must be 286 (222 + 64), got ${allSubs.length}`);
+  check(EXPLORE.NINE_DAO_PAGODA.floors.length === 58, 'Nine-Dao Pagoda must have 58 floors');
+  check(MARTIAL.RESONANCE_SETS.filter(x => !x.id.startsWith('RES_V320_')).length === 77, `Total Resonance Sets must be 77 (19 baseline + 58 Pagoda), got ${MARTIAL.RESONANCE_SETS.length}`);
 
   for (const pid of allPaths) {
     check(SECT.PEAKS.peakIdForPath(pid) !== null, `Path ${pid} must map to a valid Sect Peak`);
