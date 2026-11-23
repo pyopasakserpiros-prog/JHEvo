@@ -261,7 +261,7 @@
     BEAST_FROST_MIST_KIRIN: ['stag', 'kirin', 'rime'],
     BEAST_THUNDER_ROC: ['bird', 'bolt'],
     BEAST_BLOOD_TIGER: ['cat', 'stripes', 'fangs', ['#833b49', '#f8ad92']],
-    BEAST_ABYSSAL_DRAGON: ['dragon', null, 'hydra'],
+    BEAST_ABYSSAL_DRAGON: ['dragon', 'scales', 'hydra', ['#245891', '#8be5ff']],
     ECO2_BEAST_SHELL_5: ['turtle', 'plates', 'dragonHead'],
     ECO2_BEAST_AQUATIC_1: ['shark', 'scales'],
     ECO2_BEAST_AQUATIC_2: ['shark', 'spots'],
@@ -283,8 +283,8 @@
     BEAST_ANCIENT_TREANT_SERPENT_4: ['serpent', 'leaves'],
     BEAST_THUNDER_HORN_STAG_4: ['stag', 'bolt'],
     BEAST_ASTRAL_VOID_HAWK_5: ['bird', 'stars'],
-    BEAST_MYTHIC_TAOTIE_SHADOW: ['taotie', 'stars'],
-    BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN: ['stag', 'kirin', 'stars'],
+    BEAST_MYTHIC_TAOTIE_SHADOW: ['taotie', 'stars', null, ['#3d286c', '#d996ff']],
+    BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN: ['stag', 'kirin', 'stars', ['#247e7a', '#ffe19c']],
     BEAST_V222_MIRAGE_SILK_MOTH: ['moth'],
     BEAST_V222_GALE_SABERTOOTH_TIGER: ['cat', 'stripes', 'fangs'],
     BEAST_V222_BLOOD_KIRIN_WOLF: ['wolf', 'kirin'],
@@ -304,8 +304,8 @@
     KING_EMERALD_SERPENT_SOUTH: ['serpent', 'scales', 'hydra'],
     KING_FROST_SOVEREIGN_BEAR: ['bear', 'rime', 'spikes'],
     KING_SCORPION_EMPEROR_WEST: ['scorpion', 'embers', 'spikes'],
-    KING_BLOOD_TIGER_CENTRAL: ['cat', 'stripes', 'spikes', ['#6e2939', '#f68e7f']],
-    KING_THUNDER_ROC_EAST: ['phoenix', 'bolt'],
+    KING_BLOOD_TIGER_CENTRAL: ['cat', 'stripes', 'spikes', ['#923335', '#ffb088']],
+    KING_THUNDER_ROC_EAST: ['phoenix', 'bolt', null, ['#5b3c9d', '#dec2ff']],
     KING_KUNLUN_DRAGON: ['dragon', 'plates', 'spikes'],
     ECO2_BEAST_ARTHROPOD_1: ['mantis'],
     ECO2_BEAST_ARTHROPOD_2: ['crawler', 'embers'],
@@ -391,6 +391,14 @@
     sun: ['light','M-20-27-25-33-18-32-18-39-13-35-9-41-7-35-1-38-1-32 3-29-1-28Q-8-40-20-27Z'],
     canopy: ['light','M-26-26-31-31-24-36-21-34-19-41-11-39-7-43 0-40 8-43 13-38 21-41 26-35 32-35 35-30 28-24 22-30 14-28 6-33 0-29-9-34-16-30-22-31Z'],
     hydra: ['shade','M-13-7-9-10Q-11-15-29-16L-32-21-30-25-24-23-25-20Q-16-20-10-17Q-15-25-26-26L-28-30-24-34-19-32-20-29Q-14-29-10-24Q-12-35-18-35L-19-40-13-42-9-39-11-36Q-4-32-3-23Q-2-33-5-38L-3-43 3-43 6-39 2-37Q5-30 4-23Q6-30 9-33L7-37 11-41 16-40 17-36 14-34Q11-26 12-21Q20-27 23-33L22-37 27-40 31-37 32-33 27-31Q23-23 20-20Q29-25 33-26L35-31 39-30 42-26 40-22 35-22Q27-20 23-17Q36-19 38-17L43-20 46-16 46-12 41-10 36-12Q25-9 12-10L1-7Z']
+  };
+  // Read at map scale as five different silhouettes of light from beast art v3.
+  const wildSignature = {
+    BEAST_ABYSSAL_DRAGON: 'M-34-3Q-24-12-13-4T8-4T29-4L41-8 38-3Q24 8 11 2T-11 2T-34-3Z',
+    BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN: 'M7-38Q6-47 0-51 4-44 3-38Z M17-44l3-5 3 5-3 5Z M-24-22l2-4 2 4-2 4Z',
+    BEAST_MYTHIC_TAOTIE_SHADOW: 'M-30-16Q-33-37-19-42Q-27-31-23-20Z M23-29Q37-31 33-46Q43-37 35-28Z',
+    KING_BLOOD_TIGER_CENTRAL: 'M-31-12l12-20-6 22Z M-23-15l14-20-7 22Z M-15-18 0-38l-8 23Z',
+    KING_THUNDER_ROC_EAST: 'M-29-25l15-18-5 13 10-2-18 22 6-15Z M24-31l10-12-3 10 8-2-15 15 5-12Z'
   };
   const wildPaths = new Map();
   const wildSpecies = new Map();
@@ -4800,7 +4808,7 @@
       const legL = pose === 'sit' ? 0 : step * 2.5, legR = pose === 'sit' ? 0 : -step * 2.5;
 
       const by = -bob;
-      if (mount) R.drawTravelMount(ctx, mount, by, motionTime, this.isReducedMotion());
+      if (mount) R.drawTravelMount(ctx, mount, by, motionTime, this.isReducedMotion(), this.resolveQuality() !== 'low' && z >= .65);
       // Patch v5.4.0: Underfoot Sword Flight / Celestial Cloud / Phantom Blink Clones
       if (qgMode !== 'MORTAL_WALK' && (moving || act === 'qinggong')) {
         this.drawQinggongBodyEffects(ctx, n, ap, qgMode, qgInfo, by, step);
@@ -5476,8 +5484,9 @@
       const y = (localStep ? b._py + dy * alpha : b.y) * TS;
       const zoom = this.cam.z;
       const { model, tier, scale, palette, visual, marking, trim, raid } = R.resolveWildBeastArt(b);
-      const body = visual?.body || palette[0];
-      const light = visual?.accent || palette[1];
+      const signature = wildSignature[b.speciesId || b.sp];
+      const body = signature ? palette[0] : visual?.body || palette[0];
+      const light = signature ? palette[1] : visual?.accent || palette[1];
       const ink = '#18232e';
       const colors = { body, light, shade: ink, wing: body, ivory: palette[1],
         eye: b.aggressive || b.fighting ? '#ffea8d' : '#fff3d5' };
@@ -5576,6 +5585,13 @@
       ctx.scale(face * scale, scale);
       ctx.lineJoin = 'round';
       if (typeof Path2D === 'function') {
+        if (signature && detail) {
+          ctx.save();
+          ctx.translate(0, Math.sin(time * 2.4) * 1.5);
+          ctx.globalAlpha *= .64;
+          paintWildLayer(ctx, ['ivory', signature], colors, 0);
+          ctx.restore();
+        }
         const back = wildBacks[trim];
         if (back) paintWildLayer(ctx, back, colors, flap);
         for (const layer of model.layers) {
@@ -5592,7 +5608,8 @@
       }
       ctx.restore();
 
-      const top = Math.max(model.top, wildBacks[trim] ? 43 : 0, wildMarkings[trim] || marking === 'kirin' ? 38 : 0);
+      const top = Math.max(model.top, wildBacks[trim] ? 43 : 0, wildMarkings[trim] || marking === 'kirin' ? 38 : 0,
+        signature && detail ? 52 : 0);
       const labelY = -(top + lift + 6) * scale;
       const showHealth = zoom >= .55 && b.fighting && Number.isFinite(b.hp) && b.hpMax > 0;
       if (showHealth) this.hpBar(ctx, 0, labelY, b.hp / b.hpMax, shadow * scale * 1.5);
@@ -6937,6 +6954,7 @@
       for (const companion of pets) {
         if (CULT.regionalCompanionSpec(companion.speciesId)) illustrated.push(companion);
       }
+      const detail = this.resolveQuality() !== 'low' && this.cam.z >= .65;
       const cap = illustrated.length > 1 && this.resolveQuality() === 'low' ? 1 : 2;
       let drewCompanion = false;
       for (const [i, companion] of illustrated.slice(0, cap).entries()) {
@@ -6950,7 +6968,7 @@
         const lineage = CULT.lineageCompanionSpec(companion.speciesId);
         const size = [0, .12, .20, .31, .49][stage] * (lineage?.scale || 1) * (i ? .72 : 1);
         drewCompanion = R.drawSovereignCompanion(ctx, companion.speciesId, stage,
-          -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face) || drewCompanion;
+          -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face, false, detail) || drewCompanion;
       }
       if (drewCompanion) return true;
       const spId = String(pet.speciesId || pet.id || 'SPIRIT_FOX').toUpperCase();
@@ -11252,6 +11270,35 @@
       insignia:'M10 89Q40 113 76 103Q109 103 147 89M14 95Q43 118 81 107Q125 110 152 91M11 36q2-18 18-20'
     }
   };
+  // Four Symbols v4: storm arcs, blade rays, solar feathers and shell hexagrams.
+  const sovereignSeals = {
+    AZURE_DRAGON: {
+      crest:'M5 42 11 29 17 32 25 16 29 22 41 9M155 65l-5 11-7-2-5 15-10-1-7 10M48 11l12-5M101 5l11 4',
+      etching:'M37 60q5 0 8 5 4-3 8-1m3 3q6 0 9 5 4-5 9-4m3 4q7 0 11-5m5-6 8-8m-2-14 8 3m31-5 6 4',
+      wake:'M13 92Q40 87 69 92M7 100Q38 94 68 99M23 106h34'
+    },
+    WHITE_TIGER: {
+      crest:'M7 36 20 24 13 37 26 27 19 43Z M132 17l16 9-14-2 15 12-20-10Z M24 86l-15 6 13-19Z M149 69l-8 18-7 6Z',
+      etching:'M47 47l-6 9 7-2m10-9 2 10 5-7m9-3 3 11 4-8m11-1 4 9 6-9m6 16-4 6m23-19 9 1',
+      wake:'M12 91l27 7m-21-17 32 11m-46 9 21 5'
+    },
+    VERMILION_PHOENIX: {
+      crest:'M18 30Q9 19 18 12Q21 22 27 19Q28 28 18 30Z M130 22Q125 9 141 6Q133 16 138 20Z M4 72q13-11 11-18 9 13-11 18Z M145 72q14-6 11-15 1 13-11 15Z',
+      etching:'M16 39Q33 36 60 54M26 48Q44 43 62 55M113 47q19-12 38-13m-31 20q11-5 24-6M76 85l-4 13m17-17 7 15',
+      wake:'M6 91q17 10 42-3Q32 108 12 102M24 104q10 4 26-1'
+    },
+    BLACK_TORTOISE: {
+      crest:'M12 28l7-4 7 4v8l-7 4-7-4Z M59 7l6-4 6 4v7l-6 4-6-4Z M126 22l7-4 7 4v8l-7 4-7-4Z M138 96l6-4 6 4v7l-6 4-6-4Z',
+      etching:'M77 38q6-6 10 0 5 6-2 10-5 3-10 0-5-5 2-10Z M76 48q-1-5 5-6 5 0 4-5M51 62l5 3-2 5m56-15-5 6m-26 9h9',
+      wake:'M6 90q17-5 31 1t24 0M4 99q14-4 29 1t27 0'
+    }
+  };
+  const lineageSeals = {
+    KUNPENG: 'M6 73Q20 34 65 31 M154 73Q140 34 95 31 M19 80Q32 52 60 45 M141 80Q128 52 100 45',
+    FOX: 'M19 54C20 12 54 1 87 10Q42 19 48 56Q40 82 12 94Q42 80 36 57Q34 41 19 54Z',
+    QILIN: 'M10 82 23 70 32 41 43 37 57 18 M150 82 137 70 128 41 117 37 103 18 M73 14l7-9 7 9-7 9Z',
+    BAIZE: 'M21 29Q80-2 139 29Q80 52 21 29Z M74 28l6-8 6 8-6 8Z M22 77l9 8 10-8 M119 77l10 8 9-8'
+  };
   const lineageArt = {
     KUNPENG: {
       colors:[
@@ -11357,20 +11404,35 @@
       return [[p.young, mid, ink, 3.2], [eyes[spec.symbol], shine, ink, 1.25]];
     }
     const layers = [];
-    if (stage >= 3) layers.push([p.insignia, null, gold, stage === 4 && (spec.gradeRank || 3) >= 2 ? 2.3 : 1.05]);
+    if (stage >= 3) layers.push([p.insignia, null, gold, stage === 4 ? 2.3 : 1.05]);
     if (stage === 4) layers.push([p.crown, mid, shine, 1.75]);
-    layers.push([p.body, mid, ink, stage === 1 ? 4.2 : 3.3], [p.shade, light, null, 0],
-      [p.accents, stage === 1 ? light : shine, ink, 1.35], [p.detail, null, stage >= 3 ? gold : ink, 1.3]);
+    layers.push([p.body, mid, ink, 3.3], [p.shade, light, null, 0],
+      [p.accents, shine, ink, 1.35], [p.detail, null, stage >= 3 ? gold : ink, 1.3]);
+    if (stage >= 3) layers.push([sovereignSeals[spec.symbol].etching, null, ink, 1.5]);
     return layers;
   };
+  const companionLayers = new Map();
+  const layersFor = (spec, stage) => {
+    const key = spec.id + ':' + stage;
+    if (!companionLayers.has(key)) companionLayers.set(key, look(spec, stage));
+    return companionLayers.get(key);
+  };
+
   R.sovereignCompanionSvg = (speciesId, stage) => {
     const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec) return '';
     const [ink, mid, light, shine, gold] = illustration(spec).color;
-    return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' +
+    const seal = sovereignSeals[spec.symbol];
+    const crest = seal?.crest || (spec.gradeRank >= 2 && lineageSeals[spec.familyId]);
+    const frame = crest && stage >= 3 ?
+      '<ellipse cx="80" cy="53" rx="69" ry="47" fill="' + mid + '" fill-opacity=".28" stroke="' + gold + '" stroke-opacity=".65"/>' +
+      '<ellipse cx="80" cy="53" rx="63" ry="42" fill="none" stroke="' + light + '" opacity=".64" stroke-dasharray="1.5 3"/>' +
+      (stage === 4 ? '<path d="' + crest + '" fill="' + light + '" fill-opacity=".25" stroke="' + gold +
+        '" stroke-width="1.4"/>' : '') : '';
+    return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' + frame +
       '<ellipse cx="80" cy="96" rx="57" ry="9" fill="' + ink + '" opacity=".52"/>' +
       (stage === 4 && (spec.gradeRank || 3) >= 2 ? '<path d="M14 79Q79 59 146 79Q118 101 80 102Q41 102 14 79Z" fill="none" stroke="' + light + '" opacity=".7"/>' : '') +
-      look(spec, stage).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
+      layersFor(spec, stage).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
         '" stroke="' + (stroke || 'none') + '" stroke-width="' + width +
         '" stroke-linecap="round" stroke-linejoin="round" />').join('') +
       (stage === 4 ? '<path d="M80 3 83 8 80 13 77 8Z M17 38 20 43 17 48 14 43Z M143 36 146 41 143 46 140 41Z" fill="' + gold + '"/>' : '') +
@@ -11378,7 +11440,12 @@
   };
 
   const paths = new Map();
-  R.drawSovereignCompanion = (ctx, speciesId, stage, x, y, scale, time, face, riding = false) => {
+  const companionPath = d => {
+    if (!paths.has(d)) paths.set(d, new Path2D(d));
+    return paths.get(d);
+  };
+
+  R.drawSovereignCompanion = (ctx, speciesId, stage, x, y, scale, time, face, riding = false, detail = true) => {
     const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec || typeof Path2D !== 'function') return false;
     const [ink, mid, light, shine, gold] = illustration(spec).color;
@@ -11391,33 +11458,50 @@
     ctx.lineCap = 'round';
     ctx.fillStyle = '#11182670';
     ctx.beginPath(); ctx.ellipse(80, 103, stage === 4 ? 60 : 48, 11, 0, 0, Math.PI * 2); ctx.fill();
-    if (stage >= 3 && (spec.gradeRank || 3) >= 2) {
+    const seal = sovereignSeals[spec.symbol];
+    if (stage >= 3 && (spec.gradeRank || 3) >= 2 && (detail || !seal) && (!riding || !seal)) {
       const aura = ctx.createRadialGradient(80, 58, 8, 80, 58, 76);
       aura.addColorStop(0, mid + 'a8');
       aura.addColorStop(1, mid + '00');
       ctx.fillStyle = aura; ctx.fillRect(4, -18, 152, 152);
     }
-    for (const [d, fill, stroke, width] of look(spec, stage)) {
-      if (!paths.has(d)) paths.set(d, new Path2D(d));
-      const path = paths.get(d);
+    const crest = seal?.crest || (spec.gradeRank >= 2 && lineageSeals[spec.familyId]);
+    if (crest && stage >= 3 && detail) {
+      ctx.save();
+      ctx.globalAlpha *= .65 + Math.sin(time * 2) * .13;
+      ctx.strokeStyle = riding ? light : gold;
+      ctx.lineWidth = riding ? 2.3 : 1.7;
+      if (riding && seal) ctx.stroke(companionPath(seal.wake));
+      else if (!riding && stage === 4) {
+        ctx.fillStyle = light + (spec.gradeRank === 2 ? '1c' : '44');
+        const crestPath = companionPath(crest);
+        ctx.fill(crestPath);
+        ctx.stroke(crestPath);
+      }
+      ctx.restore();
+    }
+    let gradient;
+    for (const [d, fill, stroke, width] of layersFor(spec, stage)) {
+      const path = companionPath(d);
       if (fill) {
-        if (fill === mid) {
-          const gradient = ctx.createLinearGradient(8, 88, 112, 11);
+        if (fill === mid && detail && !gradient) {
+          gradient = ctx.createLinearGradient(8, 88, 112, 11);
           gradient.addColorStop(0, ink);
           gradient.addColorStop(.47, mid);
           gradient.addColorStop(1, light);
-          ctx.fillStyle = gradient;
-        } else ctx.fillStyle = fill;
+        }
+        ctx.fillStyle = fill === mid && gradient ? gradient : fill;
         ctx.fill(path);
       }
       if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.stroke(path); }
     }
-    if (stage === 4 && (spec.gradeRank || 3) === 3) {
+    if (stage === 4 && (spec.gradeRank || 3) === 3 && (!riding || !seal)) {
       ctx.strokeStyle = light + 'b0';
       ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.ellipse(80, 102, 64, 12, 0, 0, Math.PI * 2); ctx.stroke();
       ctx.fillStyle = gold;
-      for (let j = 0; j < 6; j++) {
+      const count = detail ? 6 : 0;
+      for (let j = 0; j < count; j++) {
         const a = j * Math.PI / 3 + time * .31;
         const sx = 80 + Math.cos(a) * 68, sy = 61 + Math.sin(a * 1.7) * 42;
         ctx.beginPath(); ctx.moveTo(sx, sy - 5); ctx.lineTo(sx + 3, sy); ctx.lineTo(sx, sy + 5); ctx.lineTo(sx - 3, sy); ctx.closePath(); ctx.fill();
@@ -11613,13 +11697,13 @@
     URSINE_BOAR:'BOAR', SHELL_GUARDIAN:'GRASS_TURTLE', SERPENT:'PYTHON', CHIMERA:'TAOTIE'
   };
   const symbolMountArt = new Map((g.JD.CORE.sovereignCompanions || []).map(spec => [spec.symbol, spec]));
-  R.drawTravelMount = (ctx, pet, by, time, reduced) => {
+  R.drawTravelMount = (ctx, pet, by, time, reduced, detail = true) => {
     const curated = CULT.curatedCompanionSpec(pet.speciesId);
     const beast = curated || symbolMountArt.get(pet.fourSymbol || pet.bloodlineTrait);
     if (beast) {
       const stage = curated ? pet.growthStage || 1 : 4;
       const seat = beast.familyId === 'KUNPENG' ? 17 : 20;
-      if (R.drawSovereignCompanion(ctx, beast.id, stage, -2, by + seat, .55, time, 1, true)) return;
+      if (R.drawSovereignCompanion(ctx, beast.id, stage, -2, by + seat, .55, time, 1, true, detail)) return;
     }
     const body = CULT.regionalCompanionSpec(pet.speciesId) || { key:mountArtByFamily[pet.family] || 'WOLF', tier:2 };
     if (R.drawRegionalCompanion(ctx, body, pet.growthStage || 2, -2,

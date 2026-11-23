@@ -5,7 +5,7 @@
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#10151c">
-<title>สำนักเมฆาหยก — เกมบริหารสำนักยุทธภพ</title>
+<title>สำนักเมฆาหยก v3.9.8 — เกมบริหารสำนักยุทธภพ</title>
 <style>
 :root{--bg:#122824;--panel:#1c362f;--panel2:#25443a;--line:#566c5c;--ink:#f5eedc;--dim:#bed0b8;--gold:#e9cd85;--cinnabar:#c84b31;--red:#e0584a;--green:#5fd38a;--blue:#58b6f4;--vio:#b58cf0;--radius:14px;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -215,7 +215,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .atlas-marker.demonic{border-color:#ef8b79;background:linear-gradient(145deg,#8c342c,#401c20)}
 .atlas-marker.neutral{border-color:#e8c875;background:linear-gradient(145deg,#716031,#343b28)}
 .atlas-marker.home{width:40px;height:40px;border-color:#fff1ad;background:#265b47;box-shadow:0 0 0 3px #dfb85a88,0 2px 8px #000a}
-.atlas-marker.event{border-color:#ffb45b;background:#7e3c19;animation:atlas-pulse 2.5s ease-in-out infinite}
+.atlas-marker.event{border-color:#ffdc94;background:radial-gradient(circle,#7a4779,#412947 70%);color:#fff2ce;animation:atlas-pulse 3s ease-in-out infinite}
 .atlas-marker.cluster{border-color:#efe2a1;background:#173c31;font-weight:700}
 .atlas-marker.selected{outline:3px solid #fff1a3;outline-offset:2px;z-index:4}
 .atlas-marker-icon{font-size:17px;line-height:1;filter:drop-shadow(0 1px 2px #0009)}
@@ -229,7 +229,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .atlas-fact{font-size:11.5px;line-height:1.4;color:#e1ebd7;margin-top:4px}.atlas-note{color:#b8d5c2;font-size:10.5px;line-height:1.35;margin-top:4px}.atlas-travel{padding:6px 8px;margin-top:7px;border-radius:7px;background:#0c261c;border:1px solid #769678;color:#ffe3a3;font-size:12px}.atlas-choice{display:block;margin-top:6px;font-size:11px}.atlas-choice select{margin-top:3px;max-width:100%}.atlas-action{margin:7px 4px 0 0;font-size:12px;padding:6px 10px}
 .atlas-cluster-list h3{padding-right:35px}.atlas-place-choice{display:flex;align-items:center;gap:8px;text-align:left;width:100%;padding:7px;border:0;border-bottom:1px solid #4c6b58;background:transparent;border-radius:0;color:#f7f4de;font-size:12px}.atlas-place-choice small{margin-left:auto;white-space:nowrap}.atlas-place-choice span:nth-child(2){flex:1}
 .atlas-footnote{padding:5px 3px;color:#a9c7b4;font-size:10px;line-height:1.3}
-@keyframes atlas-pulse{50%{box-shadow:0 0 0 5px #ed9a403d,0 2px 7px #000a}}
+@keyframes atlas-pulse{50%{box-shadow:0 0 0 3px #efbb6b55,0 0 12px #b87bd378,0 2px 7px #000a}}
 @media (min-width:700px){#sheet.world-atlas{width:min(760px,calc(100vw - 24px));bottom:12px}.atlas-viewport{height:clamp(300px,60vh,650px)}}
 @media (max-height:600px){.atlas-viewport{height:260px}.atlas-kicker,.atlas-footnote{display:none}.atlas-header{padding:0 3px 3px}}
 @media (prefers-reduced-motion:reduce){.atlas-marker.event{animation:none}}
@@ -329,6 +329,102 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   background: radial-gradient(ellipse at 52% 38%, var(--tr-ink, #642c98), #20152e 65%, #0c0d19);
   box-shadow: 0 0 7px color-mix(in srgb, var(--tr-ink, #ab96ce) 65%, transparent);
   vertical-align: middle;
+}
+/* Carbon visual references: preserve the existing grade frame and replace only the material silhouette. */
+@supports (mask-image: url("")) {
+  .transcendent-svg-wrap:is([data-art-key^="MAT_TR_SOV_"],[data-art-key^="MAT_TR_ALC_"]) {
+    position: relative;
+  }
+  .transcendent-svg-wrap:is([data-art-key^="MAT_TR_SOV_"],[data-art-key^="MAT_TR_ALC_"]) > svg > g {
+    opacity: .15;
+  }
+  .transcendent-svg-wrap:is([data-art-key^="MAT_TR_SOV_"],[data-art-key^="MAT_TR_ALC_"])::after {
+    content: "";
+    position: absolute;
+    inset: 14%;
+    background: linear-gradient(155deg, #ffffed, var(--tr-ivory, #ffeabc) 35%, var(--tr-ink, #795ab1) 90%);
+    mask: var(--tr-material-icon) center / contain no-repeat;
+    pointer-events: none;
+  }
+  [data-art-key^="MAT_TR_SOV_01"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M49%209Q62%2036%2078%2050Q91%2075%2069%2087Q52%2098%2030%2085Q10%2066%2027%2046Q41%2030%2049%209Z%20M36%2048Q10%2079%2052%2085Q32%2075%2049%2060Q59%2053%2067%2057Q52%2040%2036%2048Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_SOV_02"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M24%2012H76V22H67Q67%2037%2055%2047V54Q67%2066%2067%2078H76V88H24V78H33Q33%2066%2045%2054V47Q33%2037%2033%2022H24Z%20M40%2028Q41%2039%2050%2043Q59%2039%2060%2028Z%20M38%2077H62L50%2064Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_SOV_03"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M50%2092Q17%2063%2014%2038Q15%2015%2036%2021L49%2034Q56%2011%2080%2018Q97%2034%2083%2056Q69%2077%2050%2092Z%20M50%2077%2047%2050%2031%2038%2035%2034%2049%2044%2065%2029%2070%2033%2053%2051Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_SOV_04"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M53%206%2081%2019%2060%2037%2088%2041%2040%2094%2047%2061%2017%2062%2032%2042%2010%2035%2040%2021Z%20M53%2022%2042%2045%2057%2047%2051%2067%2070%2047%2055%2041%2066%2021Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_SOV_05"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M33%2010H67L89%2033V67L67%2090H33L11%2067V33Z%20M50%2023%2076%2050%2050%2077%2024%2050Z%20M50%2035%2064%2050%2050%2065%2036%2050Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_SOV_06"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M88%2037Q77%205%2042%2012Q10%2015%209%2051Q13%2086%2051%2088Q84%2091%2086%2058Q83%2032%2056%2030Q28%2029%2029%2052Q31%2075%2057%2070Q74%2062%2062%2047L56%2044Q66%2056%2052%2060Q41%2061%2041%2050Q44%2037%2058%2041Q82%2048%2074%2069Q60%2086%2034%2073Q9%2057%2025%2034Q47%2012%2076%2027Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_SOV_07"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M48%206Q75%2017%2079%2053Q76%2087%2050%2094Q23%2088%2021%2053Q25%2019%2048%206Z%20M33%2035Q49%2025%2067%2030L70%2036Q46%2033%2029%2043Z%20M29%2058Q56%2044%2072%2047L73%2052Q50%2052%2029%2064Z%20M37%2075Q48%2066%2066%2062L64%2070Q51%2072%2042%2081Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_SOV_08"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M49%205Q54%2022%2086%2023L79%2062Q72%2085%2050%2094Q27%2084%2022%2063L14%2023Q36%2022%2049%205Z%20M49%2027%2045%2053%2031%2040%2037%2057%2050%2072%2067%2053%2072%2037%2056%2051Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_SOV_09"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M22%2015%2032%206H72L82%2016%2078%2083%2067%2093H30L19%2083Z%20M47%2025H54V36L67%2041%2062%2048%2054%2044V64H67V71H34V64H47V44L37%2048%2032%2041%2047%2036Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_SOV_10"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M53%209Q50%2033%2070%2042L72%2028Q97%2068%2066%2083%2046%2094%2025%2077%204%2060%2028%2035L29%2053Q31%2027%2053%209Z%20M48%2048Q51%2064%2064%2064Q59%2084%2044%2079%2031%2073%2048%2048Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_01"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M50%2017Q67%2032%2061%2057Q74%2037%2088%2038Q90%2065%2062%2078H38Q10%2065%2012%2038Q30%2040%2039%2057Q33%2034%2050%2017Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_02"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M53%209Q50%2033%2070%2042L72%2028Q97%2068%2066%2083%2046%2094%2025%2077%204%2060%2028%2035L29%2053Q31%2027%2053%209Z%20M48%2048Q51%2064%2064%2064Q59%2084%2044%2079%2031%2073%2048%2048Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_03"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M50%2010C25%2010%209%2028%209%2050S28%2091%2050%2091%2091%2072%2091%2050%2075%2010%2050%2010Z%20M27%2035Q35%2021%2059%2023Q37%2026%2030%2044Z%20M52%2059Q60%2041%2074%2050Q77%2067%2061%2072Q51%2071%2052%2059Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_04"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M39%2012%2061%2012%2065%2030%2059%2033%2061%2044Q82%2055%2078%2072L70%2088H30L22%2072Q18%2055%2039%2044L41%2033%2035%2030Z%20M36%2065Q50%2050%2064%2065L65%2075%2035%2075Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_05"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M50%2092Q17%2063%2014%2038Q15%2015%2036%2021L49%2034Q56%2011%2080%2018Q97%2034%2083%2056Q69%2077%2050%2092Z%20M50%2077%2047%2050%2031%2038%2035%2034%2049%2044%2065%2029%2070%2033%2053%2051Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_06"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M53%206%2081%2019%2060%2037%2088%2041%2040%2094%2047%2061%2017%2062%2032%2042%2010%2035%2040%2021Z%20M53%2022%2042%2045%2057%2047%2051%2067%2070%2047%2055%2041%2066%2021Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_07"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M19%2076%2028%2053%2044%2049Q36%2022%2055%2013L53%2048Q62%2019%2072%2012L66%2052Q80%2026%2088%2027L75%2060%2058%2079%2039%2091Z%20M27%2072%2044%2059%2064%2065%2052%2077%2038%2080Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_08"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M48%206Q75%2017%2079%2053Q76%2087%2050%2094Q23%2088%2021%2053Q25%2019%2048%206Z%20M33%2035Q49%2025%2067%2030L70%2036Q46%2033%2029%2043Z%20M29%2058Q56%2044%2072%2047L73%2052Q50%2052%2029%2064Z%20M37%2075Q48%2066%2066%2062L64%2070Q51%2072%2042%2081Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_09"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M50%206Q56%2022%2072%2036Q93%2056%2084%2071Q76%2090%2051%2093Q23%2090%2015%2071Q8%2055%2028%2035Q44%2023%2050%206Z%20M51%2032Q30%2036%2029%2056Q30%2071%2048%2076Q61%2069%2054%2062Q64%2059%2069%2069Q80%2052%2066%2042Q60%2048%2055%2050Q42%2045%2051%2032Z%22/%3E%3C/svg%3E");
+  }
+  [data-art-key^="MAT_TR_ALC_10"] {
+    --tr-material-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M49%205Q54%2022%2086%2023L79%2062Q72%2085%2050%2094Q27%2084%2022%2063L14%2023Q36%2022%2049%205Z%20M49%2027%2045%2053%2031%2040%2037%2057%2050%2072%2067%2053%2072%2037%2056%2051Z%22/%3E%3C/svg%3E");
+  }
+}
+
+/* Codex categories keep their original art and gain a matching backing color. */
+.transcendent-svg-wrap:is([data-art-key^="TCMB_SOV_"],[data-art-key^="TFRB_SOV_"]) { background-color: #491d38; }
+.transcendent-svg-wrap:is([data-art-key^="TMNT_SOV_"],[data-art-key^="TPAS_SOV_"]) { background-color: #25335c; }
+.transcendent-svg-wrap:is([data-art-key^="TQGG_SOV_"],[data-art-key^="TSUP_SOV_"]) { background-color: #174849; }
+.transcendent-svg-wrap:is([data-art-key^="TDEF_SOV_"],[data-art-key^="TAUX_SOV_"]) { background-color: #473322; }
+.transcendent-svg-wrap:is([data-art-key^="TCMB_SOV_"],[data-art-key^="TFRB_SOV_"],[data-art-key^="TMNT_SOV_"],[data-art-key^="TPAS_SOV_"],[data-art-key^="TQGG_SOV_"],[data-art-key^="TSUP_SOV_"],[data-art-key^="TDEF_SOV_"],[data-art-key^="TAUX_SOV_"]) {
+  background-image: radial-gradient(ellipse at 50% 32%, color-mix(in srgb, var(--tr-ink) 65%, transparent), transparent 75%);
+}
+.transcendent-svg-wrap:is([data-art-key^="EQ_TR_PURE_"],[data-art-key="REGALIA_ORIGIN_FORMLESS_STONE"]) {
+  background-image:
+    radial-gradient(circle at 44% 10%, #ffe8a9 0 1px, transparent 2px),
+    radial-gradient(circle at 56% 10%, #e8c9fc 0 1px, transparent 2px),
+    radial-gradient(ellipse at 52% 38%, var(--tr-ink), #1b1229 67%, #080c19);
+  border-color: #ffe5a1;
+}
+.transcendent-svg-wrap:is([data-art-key^="PILL_TR_PURE_"],[data-art-key*="@TR:MAT_TR_ALC_"]) > svg {
+  filter: drop-shadow(0 0 2px #ffe09ea8);
 }
 .inv-cell.r-Transcendent {
   border-color: #e8c3ff;
@@ -238166,7 +238262,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     BEAST_FROST_MIST_KIRIN: ['stag', 'kirin', 'rime'],
     BEAST_THUNDER_ROC: ['bird', 'bolt'],
     BEAST_BLOOD_TIGER: ['cat', 'stripes', 'fangs', ['#833b49', '#f8ad92']],
-    BEAST_ABYSSAL_DRAGON: ['dragon', null, 'hydra'],
+    BEAST_ABYSSAL_DRAGON: ['dragon', 'scales', 'hydra', ['#245891', '#8be5ff']],
     ECO2_BEAST_SHELL_5: ['turtle', 'plates', 'dragonHead'],
     ECO2_BEAST_AQUATIC_1: ['shark', 'scales'],
     ECO2_BEAST_AQUATIC_2: ['shark', 'spots'],
@@ -238188,8 +238284,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     BEAST_ANCIENT_TREANT_SERPENT_4: ['serpent', 'leaves'],
     BEAST_THUNDER_HORN_STAG_4: ['stag', 'bolt'],
     BEAST_ASTRAL_VOID_HAWK_5: ['bird', 'stars'],
-    BEAST_MYTHIC_TAOTIE_SHADOW: ['taotie', 'stars'],
-    BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN: ['stag', 'kirin', 'stars'],
+    BEAST_MYTHIC_TAOTIE_SHADOW: ['taotie', 'stars', null, ['#3d286c', '#d996ff']],
+    BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN: ['stag', 'kirin', 'stars', ['#247e7a', '#ffe19c']],
     BEAST_V222_MIRAGE_SILK_MOTH: ['moth'],
     BEAST_V222_GALE_SABERTOOTH_TIGER: ['cat', 'stripes', 'fangs'],
     BEAST_V222_BLOOD_KIRIN_WOLF: ['wolf', 'kirin'],
@@ -238209,8 +238305,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     KING_EMERALD_SERPENT_SOUTH: ['serpent', 'scales', 'hydra'],
     KING_FROST_SOVEREIGN_BEAR: ['bear', 'rime', 'spikes'],
     KING_SCORPION_EMPEROR_WEST: ['scorpion', 'embers', 'spikes'],
-    KING_BLOOD_TIGER_CENTRAL: ['cat', 'stripes', 'spikes', ['#6e2939', '#f68e7f']],
-    KING_THUNDER_ROC_EAST: ['phoenix', 'bolt'],
+    KING_BLOOD_TIGER_CENTRAL: ['cat', 'stripes', 'spikes', ['#923335', '#ffb088']],
+    KING_THUNDER_ROC_EAST: ['phoenix', 'bolt', null, ['#5b3c9d', '#dec2ff']],
     KING_KUNLUN_DRAGON: ['dragon', 'plates', 'spikes'],
     ECO2_BEAST_ARTHROPOD_1: ['mantis'],
     ECO2_BEAST_ARTHROPOD_2: ['crawler', 'embers'],
@@ -238296,6 +238392,14 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     sun: ['light','M-20-27-25-33-18-32-18-39-13-35-9-41-7-35-1-38-1-32 3-29-1-28Q-8-40-20-27Z'],
     canopy: ['light','M-26-26-31-31-24-36-21-34-19-41-11-39-7-43 0-40 8-43 13-38 21-41 26-35 32-35 35-30 28-24 22-30 14-28 6-33 0-29-9-34-16-30-22-31Z'],
     hydra: ['shade','M-13-7-9-10Q-11-15-29-16L-32-21-30-25-24-23-25-20Q-16-20-10-17Q-15-25-26-26L-28-30-24-34-19-32-20-29Q-14-29-10-24Q-12-35-18-35L-19-40-13-42-9-39-11-36Q-4-32-3-23Q-2-33-5-38L-3-43 3-43 6-39 2-37Q5-30 4-23Q6-30 9-33L7-37 11-41 16-40 17-36 14-34Q11-26 12-21Q20-27 23-33L22-37 27-40 31-37 32-33 27-31Q23-23 20-20Q29-25 33-26L35-31 39-30 42-26 40-22 35-22Q27-20 23-17Q36-19 38-17L43-20 46-16 46-12 41-10 36-12Q25-9 12-10L1-7Z']
+  };
+  // Read at map scale as five different silhouettes of light from beast art v3.
+  const wildSignature = {
+    BEAST_ABYSSAL_DRAGON: 'M-34-3Q-24-12-13-4T8-4T29-4L41-8 38-3Q24 8 11 2T-11 2T-34-3Z',
+    BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN: 'M7-38Q6-47 0-51 4-44 3-38Z M17-44l3-5 3 5-3 5Z M-24-22l2-4 2 4-2 4Z',
+    BEAST_MYTHIC_TAOTIE_SHADOW: 'M-30-16Q-33-37-19-42Q-27-31-23-20Z M23-29Q37-31 33-46Q43-37 35-28Z',
+    KING_BLOOD_TIGER_CENTRAL: 'M-31-12l12-20-6 22Z M-23-15l14-20-7 22Z M-15-18 0-38l-8 23Z',
+    KING_THUNDER_ROC_EAST: 'M-29-25l15-18-5 13 10-2-18 22 6-15Z M24-31l10-12-3 10 8-2-15 15 5-12Z'
   };
   const wildPaths = new Map();
   const wildSpecies = new Map();
@@ -242705,7 +242809,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const legL = pose === 'sit' ? 0 : step * 2.5, legR = pose === 'sit' ? 0 : -step * 2.5;
 
       const by = -bob;
-      if (mount) R.drawTravelMount(ctx, mount, by, motionTime, this.isReducedMotion());
+      if (mount) R.drawTravelMount(ctx, mount, by, motionTime, this.isReducedMotion(), this.resolveQuality() !== 'low' && z >= .65);
       // Patch v5.4.0: Underfoot Sword Flight / Celestial Cloud / Phantom Blink Clones
       if (qgMode !== 'MORTAL_WALK' && (moving || act === 'qinggong')) {
         this.drawQinggongBodyEffects(ctx, n, ap, qgMode, qgInfo, by, step);
@@ -243381,8 +243485,9 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       const y = (localStep ? b._py + dy * alpha : b.y) * TS;
       const zoom = this.cam.z;
       const { model, tier, scale, palette, visual, marking, trim, raid } = R.resolveWildBeastArt(b);
-      const body = visual?.body || palette[0];
-      const light = visual?.accent || palette[1];
+      const signature = wildSignature[b.speciesId || b.sp];
+      const body = signature ? palette[0] : visual?.body || palette[0];
+      const light = signature ? palette[1] : visual?.accent || palette[1];
       const ink = '#18232e';
       const colors = { body, light, shade: ink, wing: body, ivory: palette[1],
         eye: b.aggressive || b.fighting ? '#ffea8d' : '#fff3d5' };
@@ -243481,6 +243586,13 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       ctx.scale(face * scale, scale);
       ctx.lineJoin = 'round';
       if (typeof Path2D === 'function') {
+        if (signature && detail) {
+          ctx.save();
+          ctx.translate(0, Math.sin(time * 2.4) * 1.5);
+          ctx.globalAlpha *= .64;
+          paintWildLayer(ctx, ['ivory', signature], colors, 0);
+          ctx.restore();
+        }
         const back = wildBacks[trim];
         if (back) paintWildLayer(ctx, back, colors, flap);
         for (const layer of model.layers) {
@@ -243497,7 +243609,8 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       }
       ctx.restore();
 
-      const top = Math.max(model.top, wildBacks[trim] ? 43 : 0, wildMarkings[trim] || marking === 'kirin' ? 38 : 0);
+      const top = Math.max(model.top, wildBacks[trim] ? 43 : 0, wildMarkings[trim] || marking === 'kirin' ? 38 : 0,
+        signature && detail ? 52 : 0);
       const labelY = -(top + lift + 6) * scale;
       const showHealth = zoom >= .55 && b.fighting && Number.isFinite(b.hp) && b.hpMax > 0;
       if (showHealth) this.hpBar(ctx, 0, labelY, b.hp / b.hpMax, shadow * scale * 1.5);
@@ -244842,6 +244955,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       for (const companion of pets) {
         if (CULT.regionalCompanionSpec(companion.speciesId)) illustrated.push(companion);
       }
+      const detail = this.resolveQuality() !== 'low' && this.cam.z >= .65;
       const cap = illustrated.length > 1 && this.resolveQuality() === 'low' ? 1 : 2;
       let drewCompanion = false;
       for (const [i, companion] of illustrated.slice(0, cap).entries()) {
@@ -244855,7 +244969,7 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
         const lineage = CULT.lineageCompanionSpec(companion.speciesId);
         const size = [0, .12, .20, .31, .49][stage] * (lineage?.scale || 1) * (i ? .72 : 1);
         drewCompanion = R.drawSovereignCompanion(ctx, companion.speciesId, stage,
-          -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face) || drewCompanion;
+          -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face, false, detail) || drewCompanion;
       }
       if (drewCompanion) return true;
       const spId = String(pet.speciesId || pet.id || 'SPIRIT_FOX').toUpperCase();
@@ -249157,6 +249271,35 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       insignia:'M10 89Q40 113 76 103Q109 103 147 89M14 95Q43 118 81 107Q125 110 152 91M11 36q2-18 18-20'
     }
   };
+  // Four Symbols v4: storm arcs, blade rays, solar feathers and shell hexagrams.
+  const sovereignSeals = {
+    AZURE_DRAGON: {
+      crest:'M5 42 11 29 17 32 25 16 29 22 41 9M155 65l-5 11-7-2-5 15-10-1-7 10M48 11l12-5M101 5l11 4',
+      etching:'M37 60q5 0 8 5 4-3 8-1m3 3q6 0 9 5 4-5 9-4m3 4q7 0 11-5m5-6 8-8m-2-14 8 3m31-5 6 4',
+      wake:'M13 92Q40 87 69 92M7 100Q38 94 68 99M23 106h34'
+    },
+    WHITE_TIGER: {
+      crest:'M7 36 20 24 13 37 26 27 19 43Z M132 17l16 9-14-2 15 12-20-10Z M24 86l-15 6 13-19Z M149 69l-8 18-7 6Z',
+      etching:'M47 47l-6 9 7-2m10-9 2 10 5-7m9-3 3 11 4-8m11-1 4 9 6-9m6 16-4 6m23-19 9 1',
+      wake:'M12 91l27 7m-21-17 32 11m-46 9 21 5'
+    },
+    VERMILION_PHOENIX: {
+      crest:'M18 30Q9 19 18 12Q21 22 27 19Q28 28 18 30Z M130 22Q125 9 141 6Q133 16 138 20Z M4 72q13-11 11-18 9 13-11 18Z M145 72q14-6 11-15 1 13-11 15Z',
+      etching:'M16 39Q33 36 60 54M26 48Q44 43 62 55M113 47q19-12 38-13m-31 20q11-5 24-6M76 85l-4 13m17-17 7 15',
+      wake:'M6 91q17 10 42-3Q32 108 12 102M24 104q10 4 26-1'
+    },
+    BLACK_TORTOISE: {
+      crest:'M12 28l7-4 7 4v8l-7 4-7-4Z M59 7l6-4 6 4v7l-6 4-6-4Z M126 22l7-4 7 4v8l-7 4-7-4Z M138 96l6-4 6 4v7l-6 4-6-4Z',
+      etching:'M77 38q6-6 10 0 5 6-2 10-5 3-10 0-5-5 2-10Z M76 48q-1-5 5-6 5 0 4-5M51 62l5 3-2 5m56-15-5 6m-26 9h9',
+      wake:'M6 90q17-5 31 1t24 0M4 99q14-4 29 1t27 0'
+    }
+  };
+  const lineageSeals = {
+    KUNPENG: 'M6 73Q20 34 65 31 M154 73Q140 34 95 31 M19 80Q32 52 60 45 M141 80Q128 52 100 45',
+    FOX: 'M19 54C20 12 54 1 87 10Q42 19 48 56Q40 82 12 94Q42 80 36 57Q34 41 19 54Z',
+    QILIN: 'M10 82 23 70 32 41 43 37 57 18 M150 82 137 70 128 41 117 37 103 18 M73 14l7-9 7 9-7 9Z',
+    BAIZE: 'M21 29Q80-2 139 29Q80 52 21 29Z M74 28l6-8 6 8-6 8Z M22 77l9 8 10-8 M119 77l10 8 9-8'
+  };
   const lineageArt = {
     KUNPENG: {
       colors:[
@@ -249262,20 +249405,35 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
       return [[p.young, mid, ink, 3.2], [eyes[spec.symbol], shine, ink, 1.25]];
     }
     const layers = [];
-    if (stage >= 3) layers.push([p.insignia, null, gold, stage === 4 && (spec.gradeRank || 3) >= 2 ? 2.3 : 1.05]);
+    if (stage >= 3) layers.push([p.insignia, null, gold, stage === 4 ? 2.3 : 1.05]);
     if (stage === 4) layers.push([p.crown, mid, shine, 1.75]);
-    layers.push([p.body, mid, ink, stage === 1 ? 4.2 : 3.3], [p.shade, light, null, 0],
-      [p.accents, stage === 1 ? light : shine, ink, 1.35], [p.detail, null, stage >= 3 ? gold : ink, 1.3]);
+    layers.push([p.body, mid, ink, 3.3], [p.shade, light, null, 0],
+      [p.accents, shine, ink, 1.35], [p.detail, null, stage >= 3 ? gold : ink, 1.3]);
+    if (stage >= 3) layers.push([sovereignSeals[spec.symbol].etching, null, ink, 1.5]);
     return layers;
   };
+  const companionLayers = new Map();
+  const layersFor = (spec, stage) => {
+    const key = spec.id + ':' + stage;
+    if (!companionLayers.has(key)) companionLayers.set(key, look(spec, stage));
+    return companionLayers.get(key);
+  };
+
   R.sovereignCompanionSvg = (speciesId, stage) => {
     const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec) return '';
     const [ink, mid, light, shine, gold] = illustration(spec).color;
-    return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' +
+    const seal = sovereignSeals[spec.symbol];
+    const crest = seal?.crest || (spec.gradeRank >= 2 && lineageSeals[spec.familyId]);
+    const frame = crest && stage >= 3 ?
+      '<ellipse cx="80" cy="53" rx="69" ry="47" fill="' + mid + '" fill-opacity=".28" stroke="' + gold + '" stroke-opacity=".65"/>' +
+      '<ellipse cx="80" cy="53" rx="63" ry="42" fill="none" stroke="' + light + '" opacity=".64" stroke-dasharray="1.5 3"/>' +
+      (stage === 4 ? '<path d="' + crest + '" fill="' + light + '" fill-opacity=".25" stroke="' + gold +
+        '" stroke-width="1.4"/>' : '') : '';
+    return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' + frame +
       '<ellipse cx="80" cy="96" rx="57" ry="9" fill="' + ink + '" opacity=".52"/>' +
       (stage === 4 && (spec.gradeRank || 3) >= 2 ? '<path d="M14 79Q79 59 146 79Q118 101 80 102Q41 102 14 79Z" fill="none" stroke="' + light + '" opacity=".7"/>' : '') +
-      look(spec, stage).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
+      layersFor(spec, stage).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
         '" stroke="' + (stroke || 'none') + '" stroke-width="' + width +
         '" stroke-linecap="round" stroke-linejoin="round" />').join('') +
       (stage === 4 ? '<path d="M80 3 83 8 80 13 77 8Z M17 38 20 43 17 48 14 43Z M143 36 146 41 143 46 140 41Z" fill="' + gold + '"/>' : '') +
@@ -249283,7 +249441,12 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
   };
 
   const paths = new Map();
-  R.drawSovereignCompanion = (ctx, speciesId, stage, x, y, scale, time, face, riding = false) => {
+  const companionPath = d => {
+    if (!paths.has(d)) paths.set(d, new Path2D(d));
+    return paths.get(d);
+  };
+
+  R.drawSovereignCompanion = (ctx, speciesId, stage, x, y, scale, time, face, riding = false, detail = true) => {
     const spec = CULT.curatedCompanionSpec(speciesId);
     if (!spec || typeof Path2D !== 'function') return false;
     const [ink, mid, light, shine, gold] = illustration(spec).color;
@@ -249296,33 +249459,50 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     ctx.lineCap = 'round';
     ctx.fillStyle = '#11182670';
     ctx.beginPath(); ctx.ellipse(80, 103, stage === 4 ? 60 : 48, 11, 0, 0, Math.PI * 2); ctx.fill();
-    if (stage >= 3 && (spec.gradeRank || 3) >= 2) {
+    const seal = sovereignSeals[spec.symbol];
+    if (stage >= 3 && (spec.gradeRank || 3) >= 2 && (detail || !seal) && (!riding || !seal)) {
       const aura = ctx.createRadialGradient(80, 58, 8, 80, 58, 76);
       aura.addColorStop(0, mid + 'a8');
       aura.addColorStop(1, mid + '00');
       ctx.fillStyle = aura; ctx.fillRect(4, -18, 152, 152);
     }
-    for (const [d, fill, stroke, width] of look(spec, stage)) {
-      if (!paths.has(d)) paths.set(d, new Path2D(d));
-      const path = paths.get(d);
+    const crest = seal?.crest || (spec.gradeRank >= 2 && lineageSeals[spec.familyId]);
+    if (crest && stage >= 3 && detail) {
+      ctx.save();
+      ctx.globalAlpha *= .65 + Math.sin(time * 2) * .13;
+      ctx.strokeStyle = riding ? light : gold;
+      ctx.lineWidth = riding ? 2.3 : 1.7;
+      if (riding && seal) ctx.stroke(companionPath(seal.wake));
+      else if (!riding && stage === 4) {
+        ctx.fillStyle = light + (spec.gradeRank === 2 ? '1c' : '44');
+        const crestPath = companionPath(crest);
+        ctx.fill(crestPath);
+        ctx.stroke(crestPath);
+      }
+      ctx.restore();
+    }
+    let gradient;
+    for (const [d, fill, stroke, width] of layersFor(spec, stage)) {
+      const path = companionPath(d);
       if (fill) {
-        if (fill === mid) {
-          const gradient = ctx.createLinearGradient(8, 88, 112, 11);
+        if (fill === mid && detail && !gradient) {
+          gradient = ctx.createLinearGradient(8, 88, 112, 11);
           gradient.addColorStop(0, ink);
           gradient.addColorStop(.47, mid);
           gradient.addColorStop(1, light);
-          ctx.fillStyle = gradient;
-        } else ctx.fillStyle = fill;
+        }
+        ctx.fillStyle = fill === mid && gradient ? gradient : fill;
         ctx.fill(path);
       }
       if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.stroke(path); }
     }
-    if (stage === 4 && (spec.gradeRank || 3) === 3) {
+    if (stage === 4 && (spec.gradeRank || 3) === 3 && (!riding || !seal)) {
       ctx.strokeStyle = light + 'b0';
       ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.ellipse(80, 102, 64, 12, 0, 0, Math.PI * 2); ctx.stroke();
       ctx.fillStyle = gold;
-      for (let j = 0; j < 6; j++) {
+      const count = detail ? 6 : 0;
+      for (let j = 0; j < count; j++) {
         const a = j * Math.PI / 3 + time * .31;
         const sx = 80 + Math.cos(a) * 68, sy = 61 + Math.sin(a * 1.7) * 42;
         ctx.beginPath(); ctx.moveTo(sx, sy - 5); ctx.lineTo(sx + 3, sy); ctx.lineTo(sx, sy + 5); ctx.lineTo(sx - 3, sy); ctx.closePath(); ctx.fill();
@@ -249518,13 +249698,13 @@ const suitable=M.gearSuitability;M.gearSuitability=(n,it,price)=>{const result=s
     URSINE_BOAR:'BOAR', SHELL_GUARDIAN:'GRASS_TURTLE', SERPENT:'PYTHON', CHIMERA:'TAOTIE'
   };
   const symbolMountArt = new Map((g.JD.CORE.sovereignCompanions || []).map(spec => [spec.symbol, spec]));
-  R.drawTravelMount = (ctx, pet, by, time, reduced) => {
+  R.drawTravelMount = (ctx, pet, by, time, reduced, detail = true) => {
     const curated = CULT.curatedCompanionSpec(pet.speciesId);
     const beast = curated || symbolMountArt.get(pet.fourSymbol || pet.bloodlineTrait);
     if (beast) {
       const stage = curated ? pet.growthStage || 1 : 4;
       const seat = beast.familyId === 'KUNPENG' ? 17 : 20;
-      if (R.drawSovereignCompanion(ctx, beast.id, stage, -2, by + seat, .55, time, 1, true)) return;
+      if (R.drawSovereignCompanion(ctx, beast.id, stage, -2, by + seat, .55, time, 1, true, detail)) return;
     }
     const body = CULT.regionalCompanionSpec(pet.speciesId) || { key:mountArtByFamily[pet.family] || 'WOLF', tier:2 };
     if (R.drawRegionalCompanion(ctx, body, pet.growthStage || 2, -2,

@@ -1,5 +1,7 @@
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
+> **JS2 v3.9.8 — ภาพสัตว์อสูรและไอคอนเหนือตำนาน (`main`)** เพิ่มเอฟเฟกต์สัตว์เทพสี่ทิศ คู่หูระดับตำนานขึ้นไป และอสูรอ้างอิง 5 ตัว พร้อมไอคอนวัสดุ 20 แบบและกรอบภาพใหม่ ดู [รายงานแพตช์](PATCH_REPORTS/VFX_JS2_V3_9_8.md)
+
 > **สถานะล่าสุด — JS2-v3.9.7 Comprehensive Bugfix Audit & Necro Paths (`main-debug`, 2026-11-22):**
 > - **วิถี Necro ใหม่ 3 วิถี (`CORPSE_SOVEREIGN`, `WRAITH_GRIEVANCE`, `DEATHLESS_CADAVER`)** รวม **58 มหาวิถี · 358 สายย่อย** ครบทุกมิติ + `apexCrownShape` เฉพาะตัว (`necro_paths_v397_suite.js` PASS)
 > - **การแก้ไขบัคเชิงลึกจากชุดตรวจ 16 ฉบับ + Regression Resolution (`JS2-v3.9.7`):** แก้ `elementProfile` เก่า (383 → 0 invalid), `C.runLegendaryDaoProc` dynamic `ST`, `SK.moveProfile` debuff whitelist & empty `weaponTypes` guard, `ECO.isPill/base` (`@TR:` & `tier >= 4` floor), `SIM.serialize` cache parity (`_stSig`, `_autoWalkRateC`, `_mantraResCache`, `_qgTickCache`), `CULT.ensurePets` `satisfaction` parity, `expedition.js` `routeLegKey` (`'<>'`) & `beastPool` strict aquatic, `CONTENT.ensure` `factionId` repair, `COG` Zero-RNG & petitions, และ `UI` observer filters (`set-lore-*` 8 actions + `LOG_GROUPS` + `worldSectsChronicleFilter`).
