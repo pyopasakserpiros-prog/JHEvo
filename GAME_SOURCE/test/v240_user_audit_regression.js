@@ -517,7 +517,7 @@ test('a wandering sword seeker grants duel rewards only once per day, including 
   assert.equal(EXPED.interactWanderingFigure(restored, loadedFig, 'DUEL', { forceWin: true }).ok, true);
 });
 
-test('the manual doctor button charges the stated fee and rejects insufficient funds', () => {
+test('observer cannot command a doctor; the simulation doctor API charges its fee', () => {
   const G = require('./load');
   G.document = { getElementById() { return { querySelectorAll() { return []; }, style: {}, classList: { add() {}, remove() {} } }; } };
   require('../js/ui.js');
@@ -528,11 +528,14 @@ test('the manual doctor button charges the stated fee and rejects insufficient f
   UI.G = { W, R: {}, opts: {}, speed: 1 };
   UI.toast = () => {}; UI.render = () => {}; UI.updateHud = () => {};
   W.sect.stones = 1000;
-  UI.doAction('interact-wandering-figure', fig.id + '|HEAL_DISCIPLE');
+  assert.strictEqual(UI.doAction('interact-wandering-figure', fig.id + '|HEAL_DISCIPLE'),false);
+  assert.equal(W.sect.stones,1000);
+  EXPED.interactWanderingFigure(W,fig.id,'HEAL_DISCIPLE');
   assert.equal(W.sect.stones, 880);
   W.sect.stones = 119;
   const affinity = fig.affinity;
-  UI.doAction('interact-wandering-figure', fig.id + '|HEAL_DISCIPLE');
+  assert.strictEqual(UI.doAction('interact-wandering-figure', fig.id + '|HEAL_DISCIPLE'),false);
+  EXPED.interactWanderingFigure(W,fig.id,'HEAL_DISCIPLE');
   assert.equal(W.sect.stones, 119);
   assert.equal(fig.affinity, affinity);
 });
@@ -830,7 +833,8 @@ test('DA-001..DA-017 & V240-01..15: voluntary vows cap/redemption/stats, seconda
   assert.equal(CULT.EXPERIENCE_TRAITS.hasTrait(n, 'EXP_TRAIT_TRIBULATION_SURVIVOR'), true);
   const recRes = CULT.EXPERIENCE_TRAITS.resolveTraitRecovery(W, n, 'EXP_TRAIT_TRIBULATION_SURVIVOR', 'ทะลวงขั้นชำระแผลใจ');
   assert.equal(recRes.ok, true);
-  assert.equal(CULT.EXPERIENCE_TRAITS.hasTrait(n, 'EXP_TRAIT_TRIBULATION_SURVIVOR'), false);
+  assert.equal(CULT.EXPERIENCE_TRAITS.hasTrait(n, 'EXP_TRAIT_TRIBULATION_SURVIVOR'), true, 'recovery retains learned wisdom');
+  assert.equal(CULT.EXPERIENCE_TRAITS.hasBurden(n, 'EXP_TRAIT_TRIBULATION_SURVIVOR'), false, 'recovery clears only the burden');
 });
 
 test('EQ-02..EQ-16 & EC-05..EC-09: living weapon evolution gating, rolled affixes, rune socket validation, broken gear block, and seasonal vs daily node harvest', () => {
@@ -861,7 +865,8 @@ test('EQ-02..EQ-16 & EC-05..EC-09: living weapon evolution gating, rolled affixe
   other.inv.gear = [brokenWpn];
   assert.equal(SECT.EDITOR.equipPersonalGear(W, other.id, brokenWpn.uid).ok, false);
 
-  // Seasonal vs daily resource node harvest
+  // Seasonal vs daily scheduling requires a funded pool; depletion is checked separately.
+  W.world.resourcePool.stones = 1000;
   const rnId = Object.keys(W.world.resourceNodes)[0];
   const rn = W.world.resourceNodes[rnId];
   rn.ownerSectId = 'PLAYER';
@@ -870,4 +875,5 @@ test('EQ-02..EQ-16 & EC-05..EC-09: living weapon evolution gating, rolled affixe
   assert.equal(sRes.totalStones, 0);
   const dRes = EXPED.harvestResourceNodes(W, { seasonal: false, includeMats: true });
   assert.ok(dRes.totalStones > 0);
+  assert.equal(W.world.resourcePool.stones + dRes.totalStones, 1000);
 });

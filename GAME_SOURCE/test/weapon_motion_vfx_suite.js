@@ -43,11 +43,14 @@ const { W, a, d, f } = (() => {
     skl: [{ id: 'motionSkill', nameTh: 'พัดแหวกเมฆ', arch: 'strike', weaponTypes: ['FAN'], tier: 4, icon: '✦',
       type: 'm', cd: 30, wind: 2, M: 12, hits: 1, moves: [] }] };
   const d = { ...a, id: 'motionTarget', x: 122, y: 71, sx: [], skl: [] };
+  // Locate a clear lane in the actual expanded map instead of a legacy building footprint.
+  let lane=null;for(let y=115;y<132&&!lane;y++)for(let x=164;x<194;x++)if([0,1,2].every(dx=>!g.MAP.blocked(W.map,x+dx,y)&&!g.MAP.blocked(W.map,x+dx,y+1))){lane={x,y};break;}
+  assert(lane,'map must contain a walkable cast lane');a.x=lane.x+.5;a.y=lane.y+.5;d.x=a.x+2;d.y=a.y+1;
   W.foes = [a, d]; W.foeById = { [a.id]: a, [d.id]: d };
   g.STATS.now = W.t;
   return { W, a, d, f: { id: 17, serious: true, A: [a.id], B: [d.id] } };
 })();
-const r = Object.assign({ W, opts: { quality: 'high' }, cam: { x: 120 * 16, y: 70 * 16, z: 1 },
+const r = Object.assign({ W, opts: { quality: 'high' }, cam: { x: a.x * 16, y: a.y * 16, z: 1 },
   vw: 1000, vh: 700, castSeen: new Map(), castActive: new Map(), castClock: 0, castLastTime: null,
   chunks: new Map(), buildingSprites: new Map(), apCache: new Map(),
   npcPos: n => ({ x: n.x, y: n.y }) }, R.methods);

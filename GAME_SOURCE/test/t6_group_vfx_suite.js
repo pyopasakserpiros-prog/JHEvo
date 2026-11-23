@@ -7,7 +7,7 @@ function actors(W,p){const a={id:'caster',name:'caster',foe:true,tier:6,power:50
 const ids=Object.keys(SK.TECH_TO_T6_VFX),families=Object.keys(SK.T6_VFX_FAMILIES),passives=Object.keys(SK.PASSIVE_TO_T6_VFX);
 assert.equal(families.length,50);assert.equal(ids.length,114);assert.equal(passives.length,8);assert.deepEqual(new Set(Object.values(SK.TECH_TO_T6_VFX)),new Set(families));
 assert.equal(SK.NONLEGENDARY_VFX_BUDGET[6].planned,false);assert(SK.NONLEGENDARY_VFX_BUDGET[6].rMax<SK.NONLEGENDARY_VFX_BUDGET[7].rMin);assert(SK.NONLEGENDARY_VFX_BUDGET[6].life<SK.NONLEGENDARY_VFX_BUDGET[7].life);
-assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length,45);assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length,256);
+assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length,45);assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length,268);
 let stages=0;
 for(const id of ids){
  const t=CULT.tech(id);assert.equal(t.tier,6);assert(!t.legendary);assert(SK.profile(t),id+' is a real active skill, not a named mantra');assert.equal(SK.resolveT6Vfx(t),SK.TECH_TO_T6_VFX[id]);
@@ -47,7 +47,7 @@ for(const quality of ['high','low']){
 }
 const n=W.npcs[0];n.cult.stage=9;r.selected=n.id;
 for(const id of passives){const t=CULT.tech(id);n.cult.path=t.path==='ANY'?'XIAN':t.path;n.cult.sub=t.sub||n.cult.sub;n.equip={WEAPON:{...JD.ITEMS.items.find(it=>it.out==='EQUIPMENT'&&(it.gearType||it.subType)===(t.weaponTypes?.[0]||'SWORD')),minStage:1,compatiblePath:['ANY'],compatiblePaths:['ANY']},ARMOR:{...JD.ITEMS.items.find(it=>it.out==='EQUIPMENT'&&(it.gearType||it.subType)===(t.armorTypes?.[0]||'ROBE')),minStage:1,compatiblePath:['ANY'],compatiblePaths:['ANY']}};n.cult.techs=[id];n.passiveLoadout=[id];n.passiveUnequipped=[];const c=rec();assert.equal(r.drawCommonPassiveAura(c.ctx,n,'fight'),id);c.balance();n.passiveUnequipped=[id];assert.equal(r.drawCommonPassiveAura(rec().ctx,n,'fight'),false);}
-const gear=JD.ITEMS.items.filter(it=>it.tier===6&&it.out==='EQUIPMENT'&&!it.legendary);assert.equal(gear.length,117);const raw=new Set(gear.map(it=>it.gearType||it.subType)),normalize=t=>({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY'})[t]||t;assert.equal(raw.size,27);assert.equal(new Set([...raw].map(normalize)).size,25);
+const gear=JD.ITEMS.items.filter(it=>it.tier===6&&it.out==='EQUIPMENT'&&!it.legendary);assert.equal(gear.length,126);const raw=new Set(gear.map(it=>it.gearType||it.subType)),normalize=t=>({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY'})[t]||t;assert.equal(raw.size,28);assert.equal(new Set([...raw].map(normalize)).size,26);
 n.cult.path='XIAN';for(const item of gear){n.equip={test:{...item,minStage:1,compatiblePath:['ANY'],compatiblePaths:['ANY']}};const c=rec();assert(r.drawT6EquipmentAura(c.ctx,n,{},0),item.id+' usable T6 gear');c.balance();}
 n.equip={test:{...gear[0],tier:7,minStage:1}};assert.equal(r.drawT6EquipmentAura(rec().ctx,n,{},0),false);
 n.equip={test:{...gear[0],legendary:true,minStage:1}};assert.equal(r.drawT6EquipmentAura(rec().ctx,n,{},0),false);

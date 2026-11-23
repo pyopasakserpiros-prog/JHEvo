@@ -10,14 +10,89 @@
   const U = g.U, HC = g.HC, CULT = g.CULT, ECO = g.ECO, SECT = g.SECT, AI = g.AI, X = g.EXPED, JD = g.JD;
   const clamp = U.clamp, E = (n, p) => HC.eff(n, p);
   const BN = {}; const TR = JD.BT.TREASURES;
+  const GRAND_DAO_BT_LINEAGE = {
+    BUDDHA_DHARMA: 'GOD', CELESTIAL_WEATHER: 'XIAN', SONIC_HARMONY: 'HEART_SOUL', INK_LITERATI: 'ARRAY_TALISMAN',
+    ASTRO_DIVINATION: 'ARRAY_TALISMAN', DRAGON_VEIN_GEOMANCY: 'ARRAY_TALISMAN', GRAVITY_DAO: 'XIAN', CHRONO_EPOCH: 'KARMA_SAMSARA',
+    MERCANTILE_DAO: 'STRATEGY_GOVERNANCE', VENOM_GU: 'DEMON', SOUL_PUPPETRY: 'MECH_PUPPET', VOID_SPACE: 'XIAN',
+    PRIMORDIAL_SHIFTER: 'BEAST_SOVEREIGN', PRIMORDIAL_CHAOS: 'DEMON', SHADOW_SAMURAI: 'BODY', WANDERING_DAO: 'XIAN',
+    CULINARY_SPIRIT: 'CRAFT_CREATION', SPIRIT_FARMING: 'SAGE_SUPPORT',ABYSSAL_SEAFARER: 'BODY', SWORD_DOMAIN: 'XIAN',
+    SPEAR_DOMAIN: 'BODY', BLADE_DOMAIN: 'DEMON', FIST_DOMAIN: 'BODY', BOW_DOMAIN: 'XIAN',
+    NECRO_CORPSE: 'DEMON', BLOOD_LINEAGE: 'DEMON', ILLUSION_MIRAGE: 'HEART_SOUL', FIVE_ELEMENTS_CYCLE: 'XIAN',
+    YIN_YANG_DUALITY: 'XIAN', HEAVENLY_THUNDER: 'XIAN', STARLIGHT_MONARCH: 'GOD',
+    DEVOURING_FLESH: 'DEMON', NETHER_GRAVE: 'DEMON', VOID_HERETIC_PACT: 'DEMON', OCCULT_MAGE: 'DEMON',
+    DIVINE_SUMMONER: 'GOD', DIVINE_POSSESSION: 'GOD', DIVINE_CHANNELER: 'GOD',
+    NINPO_SHADOW: 'BODY', NINPO_ELEMENTAL: 'XIAN', ANCESTRAL_RITUAL: 'GOD', TIDE_VOYAGER: 'BODY',
+    LORE_ARCHIVIST: 'ARRAY_TALISMAN', FORTUNE_GAMBLER: 'STRATEGY_GOVERNANCE', SPIRIT_HUSBANDRY: 'SAGE_SUPPORT', ARENA_GLORY: 'BODY',
+    LEG_READ_FORM_BLADE: 'SHADOW_SAMURAI', LEG_TRIAGE_MERIDIAN: 'SAGE_SUPPORT', LEG_STORM_CALLER_TEMPEST: 'CELESTIAL_WEATHER', LEG_JADE_CARAVAN_VOYAGER: 'MERCANTILE_DAO', LEG_OATH_JUDGE_WARDEN: 'STRATEGY_GOVERNANCE', LEG_ASHEN_KILN_ALCHEMY: 'CRAFT_CREATION', TRANS_CONSTELLATION_RELAY: 'SAGE_SUPPORT', TRANS_FIELD_CLAUSE_SOVEREIGN: 'STRATEGY_GOVERNANCE', TRANS_TEMPO_SOVEREIGN: 'CHRONO_EPOCH', TRANS_SEALKEEPER_FORBIDDEN_KEY: 'ARRAY_TALISMAN', TRANS_PRIMAL_VORTEX_MIRROR: 'LORE_ARCHIVIST', TRANS_DYNASTIC_MANDATE_WEAVER: 'STRATEGY_GOVERNANCE',
+    CORPSE_SOVEREIGN: 'NETHER_GRAVE', WRAITH_GRIEVANCE: 'NETHER_GRAVE', DEATHLESS_CADAVER: 'DEVOURING_FLESH'
+  };
+  BN.resolveBreakthroughPillKey = c => {
+    if (!c) return null;
+    const st = Math.max(1, c.stage || 1);
+    const exact = 'P:BT_' + c.path + '_' + st;
+    if (ECO && ECO.pillInfo && ECO.pillInfo(exact)) return exact;
+    // Follow GRAND_DAO_BT_LINEAGE transitively (up to 4 hops) for an existing pill at target stage (capped at 5)
+    let cur = c.path;
+    const stCap = Math.min(5, st);
+    for (let hop = 0; hop < 4; hop++) {
+      const next = GRAND_DAO_BT_LINEAGE[cur];
+      if (!next || next === cur) break;
+      cur = next;
+      const candExact = 'P:BT_' + cur + '_' + st;
+      if (ECO && ECO.pillInfo && ECO.pillInfo(candExact)) return candExact;
+      const candCap = 'P:BT_' + cur + '_' + stCap;
+      if (ECO && ECO.pillInfo && ECO.pillInfo(candCap)) return candCap;
+    }
+    // Fallback to XIAN universal breakthrough pill at stage (or capped stage)
+    const xianExact = 'P:BT_XIAN_' + st;
+    if (ECO && ECO.pillInfo && ECO.pillInfo(xianExact)) return xianExact;
+    return 'P:BT_XIAN_' + stCap;
+  };
   BN.treasureOf = c => TR[c.path + ':' + c.stage] || null;
   BN.pillKey = c => 'P:BT_' + c.path + '_' + c.stage;
-  BN.heldPill = (n) => { const k = BN.pillKey(n.cult); return n.inv && n.inv.pills && n.inv.pills[k] > 0 ? k : null; };
+  BN.heldPill = (n) => {
+    if (!n || !n.cult || !n.inv || !n.inv.pills) return null;
+    const k1 = BN.pillKey(n.cult);
+    if (n.inv.pills[k1] > 0) return k1;
+    const k2 = BN.resolveBreakthroughPillKey(n.cult);
+    if (k2 && n.inv.pills[k2] > 0) return k2;
+    return null;
+  };
 
-  /* ผลของโอสถต่อผู้ใช้: ตรงขั้น/สาย = เต็ม; ขั้นต่ำกว่า 30%; ขั้นสูงกว่า 60% (พิษ ×1.8); ผิดสาย 20% ; ดื้อยาลง 30% ต่อเม็ดที่กินในขั้นนี้ */
+  /* ผลของโอสถต่อผู้ใช้: ตรงขั้น/สาย (หรือสายตระกูลมรรคา) = เต็ม; ขั้นต่ำกว่า 30%; ขั้นสูงกว่า 60% (พิษ ×1.8); ผิดสาย 20% ; ดื้อยาลง 30% ต่อเม็ดที่กินในขั้นนี้ */
   BN.pillMult = (c, f) => {
+    if (!c || !f) return 1;
+    if (typeof f === 'string') {
+      const info = ECO && ECO.pillInfo ? ECO.pillInfo(f) : null;
+      f = info && info.effect && info.effect.btFor;
+      if (!f) return 1;
+    }
+    const st = Math.max(1, c.stage || 1);
+    const resolvedKey = BN.resolveBreakthroughPillKey(c);
+    const resolvedInfo = resolvedKey && ECO && ECO.pillInfo ? ECO.pillInfo(resolvedKey) : null;
+    const resolvedBt = resolvedInfo && resolvedInfo.effect && resolvedInfo.effect.btFor;
+    const isResolvedExact = !!(resolvedBt && resolvedBt.path === f.path && resolvedBt.stage === f.stage);
+    let pathMatches = f.path === c.path;
+    let cur = c.path;
+    if (!pathMatches) {
+      for (let hop = 0; hop < 4; hop++) {
+        const next = GRAND_DAO_BT_LINEAGE[cur];
+        if (!next || next === cur) break;
+        cur = next;
+        if (f.path === cur) { pathMatches = true; break; }
+      }
+      if (!pathMatches && f.path === 'XIAN') {
+        if ((c.path === 'GOD' && st >= 4) || (c.path === 'BODY' && st >= 5) || (cur === 'GOD' && st >= 4) || (cur === 'BODY' && st >= 5) || isResolvedExact) {
+          pathMatches = true;
+        }
+      }
+    }
     let m;
-    if (f.path !== c.path) m = 0.2; else if (f.stage === c.stage) m = 1; else if (f.stage < c.stage) m = 0.3; else m = 0.6;
+    if (isResolvedExact) m = 1;
+    else if (!pathMatches) m = 0.2;
+    else if (f.stage === st) m = 1;
+    else if (f.stage < st) m = 0.3;
+    else m = 0.6;
     return m * Math.pow(0.7, c.btTaken || 0);
   };
   /* ตัวปรับโอกาสทะลวง (เรียกจาก CULT.breakthroughChance) */
@@ -29,6 +104,9 @@
   };
   BN.onResult = (W, npc, ok) => {
     const c = npc.cult;
+    c.btBonus = 0;
+    npc._btBonusPct = 0;
+    if (npc.ext) npc.ext.btBonusPct = 0;
     if (ok) { c.found = 0; c.failExp = 0; c.btTaken = 0; c.treasure = null; c.bn = null; c.failN = 0; }
     else { c.failN = (c.failN || 0) + 1; c.failExp = Math.min(0.1, (c.failExp || 0) + 0.02); c.found = (c.found || 0) * 0.4; if (c.treasure && W.rng.chance(0.4)) c.treasure = null; c.bn = null; }
   };
@@ -38,10 +116,12 @@
     const c = n.cult, S = W.sect;
     const heldKey = BN.heldPill(n);
     const heldInfo = heldKey ? ECO.pillInfo(heldKey) : null;
-    const p0 = CULT.breakthroughChance(n, { env: 0.05, pill: c.btBonus || 0 }) + ((heldInfo && heldInfo.effect && heldInfo.effect.breakthroughBonus) || (heldKey ? 0.18 : 0));
-    const key = BN.pillKey(c), tr = BN.treasureOf(c);
+    const rawP0 = CULT.breakthroughChance(n, { env: 0.05, pill: c.btBonus || 0 }) + ((heldInfo && heldInfo.effect && heldInfo.effect.breakthroughBonus) || (heldKey ? 0.18 : 0));
+    const p0 = (g.COG && g.COG.perceivedBreakthroughChance) ? g.COG.perceivedBreakthroughChance(W, n, rawP0) : rawP0;
+    const key = BN.resolveBreakthroughPillKey(c) || BN.pillKey(c), tr = BN.treasureOf(c);
     const keyInfo = ECO.pillInfo(key);
-    const pillObt = !heldKey && ECO.count(W, key) > 0 ? ((keyInfo && keyInfo.effect && keyInfo.effect.breakthroughBonus) || 0.18) : 0;
+    const abstaining = !!(CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n));
+    const pillObt = (!abstaining && !heldKey && ECO.count(W, key) > 0) ? ((keyInfo && keyInfo.effect && keyInfo.effect.breakthroughBonus) || 0.18) : 0;
     const trObt = tr && c.treasure !== tr.id && ECO.count(W, tr.id) > 0 ? 0.46 : 0;
     return { p0, potential: p0 + pillObt + trObt, obtainable: pillObt + trObt > 0 };
   }
@@ -71,7 +151,7 @@
           storyThreadTitleTh: bnThreadTitle,
           originCauseTh: 'ประเมินโอกาสสำเร็จปัจจุบัน ' + p0Pct + '% เทียบเกณฑ์ความมั่นใจ ' + tgtPct + '% (' + why + ')',
           consequenceTh: 'เข้าสู่ขั้นตอนเตรียมทะลวงด่าน',
-          followUpTh: 'ติดตามผลการทะลวงด่านและเตรียมโอสถฟื้นฟูหากเกิดตบะย้อนกลับ',
+          followUpTh: 'เจ้าตัวเตรียมเข้าปิดด่านท้าทายคอขวดและมีหอหมอยาคอยเฝ้าระวังหากเกิดตบะย้อนกลับ',
           factDeltas: { chancePct: p0Pct, targetPct: tgtPct, waitedDays: waited },
           promoteChronicle: true
         });
@@ -81,7 +161,7 @@
           storyThreadTitleTh: bnThreadTitle,
           originCauseTh: 'โอกาสทะลวงด่านปัจจุบัน (' + p0Pct + '%) ยังต่ำกว่าเกณฑ์ที่ยอมรับได้ (' + tgtPct + '%) — ' + why,
           consequenceTh: 'ชะลอการทะลวงด่านเพื่อรอโอสถหรือสะสมความเข้าใจเต๋าเพิ่ม',
-          followUpTh: 'จัดหาโอสถทะลวงด่านประจำขั้นหรือสมบัติหนุนตบะเข้าคลังสำนัก',
+          followUpTh: 'เจ้าตัวชะลอการฝ่าด่านเพื่อรอรับการจัดสรรโอสถทะลวงด่านและสมบัติหนุนตบะจากคลังสำนัก',
           factDeltas: { chancePct: p0Pct, targetPct: tgtPct, obtainableHelp: !!est.obtainable },
           promoteChronicle: true
         });
@@ -98,7 +178,7 @@
     return s;
   };
   BN.daily = W => {
-    const S = W.sect; const demand = {}, needTr = {};
+    const S = W.sect; const demand = {}, rawDemand = {}, needTr = {};
     const stuck = [];
     W.npcs.forEach(n => {
       if (n.dead || !n.cult) return; const c = n.cult;
@@ -106,7 +186,18 @@
         if (!c.bn) c.bn = { since: W.day, plan: null };
         stuck.push(n);
         if (!n.away) BN.decide(W, n);
-        if (c.bn.plan === 'wait' || !c.bn.plan) { if (!BN.heldPill(n)) demand[c.path + ':' + c.stage] = (demand[c.path + ':' + c.stage] || 0) + 1; }
+        if (c.bn.plan === 'wait' || !c.bn.plan) {
+          if (!BN.heldPill(n)) {
+            const rawK = c.path + ':' + c.stage;
+            rawDemand[rawK] = (rawDemand[rawK] || 0) + 1;
+            const pk = BN.resolveBreakthroughPillKey(c);
+            const pInfo = pk && ECO.pillInfo ? ECO.pillInfo(pk) : null;
+            const btFor = pInfo && pInfo.effect && pInfo.effect.btFor;
+            const resK = btFor ? (btFor.path + ':' + btFor.stage) : rawK;
+            demand[resK] = (demand[resK] || 0) + 1;
+            if (rawK !== resK) demand[rawK] = (demand[rawK] || 0) + 1;
+          }
+        }
         const tr = BN.treasureOf(c); if (tr && c.treasure !== tr.id) needTr[tr.id] = (needTr[tr.id] || 0) + 1;
       } else if (c.bn) c.bn = null;
     });
@@ -121,18 +212,22 @@
       const m = W.byId[S.masterId];
       W.log('breakthrough', (m && m.id === w.id ? '' : (m ? m.h.name.given : 'เจ้าสำนัก') + ' มอบ') + (m && m.id === w.id ? w.h.name.given + ' เก็บ' : ' ') + TR[w.cult.path + ':' + w.cult.stage].nameTh + (m && m.id === w.id ? 'ไว้ใช้เอง' : 'ให้ ' + w.h.name.given + ' เพื่อทะลวง'), [w.id]);
     });
-    Object.keys(demand).forEach(k => {
-      const [path, st] = k.split(':'); const key = 'P:BT_' + path + '_' + st;
+    Object.keys(rawDemand).forEach(k => {
+      const [path, st] = k.split(':'); const key = BN.resolveBreakthroughPillKey({ path, stage: +st }) || ('P:BT_' + path + '_' + st);
       if (ECO.count(W, key) <= 0) return;
       const cands = stuck.filter(n => n.cult.path === path && n.cult.stage === +st && !BN.heldPill(n) && !n.away).sort((a, b) => scoreFor(W, b) - scoreFor(W, a));
       const w = cands[0]; if (!w || scoreFor(W, w) < 0.35) return; // ที่เหลือไปซื้อเองที่ตลาด
-      ECO.take(W, key, 1); w.inv.pills = w.inv.pills || {}; w.inv.pills[key] = (w.inv.pills[key] || 0) + 1; w.merit = (w.merit || 0) - 4;
+      const q = ECO.pillQuality ? ECO.pillQuality(W, key) : 1;
+      ECO.take(W, key, 1);
+      if (ECO.addPersonalPill) ECO.addPersonalPill(w, key, q, 1);
+      else { w.inv.pills = w.inv.pills || {}; w.inv.pills[key] = (w.inv.pills[key] || 0) + 1; w.inv.pillQuality = w.inv.pillQuality || {}; w.inv.pillQuality[key] = q; }
+      w.merit = (w.merit || 0) - 4;
       W.log('breakthrough', 'สำนักมอบ' + ECO.name(key) + 'ให้ ' + w.h.name.given + ' ก่อนทะลวง', [w.id], {
         storyThreadId: 'thread:cult:' + w.id + ':' + w.cult.stage,
         storyThreadTitleTh: 'เส้นเรื่องการทะลวงด่านของ ' + HC.fullName(w),
         originCauseTh: 'จัดสรรโอสถทะลวงด่านจากคลังให้ศิษย์ที่ติดคอขวดตามคะแนนคุณูปการ',
         consequenceTh: w.h.name.given + ' ได้รับ ' + ECO.name(key) + ' ×1 (หักคุณูปการ 4 แต้ม)',
-        followUpTh: 'พร้อมเข้าสู่การทะลวงด่านด้วยโอกาสสำเร็จที่สูงขึ้น',
+        followUpTh: 'เมื่อได้รับโอสถหนุนนำแล้ว เจ้าตัวพร้อมเข้าปิดด่านทะลวงขั้นด้วยความมั่นใจที่สูงขึ้น',
         promoteChronicle: true
       });
     });
@@ -145,10 +240,40 @@
 
   /* ---- การทะลวงจริง: เตรียมของ ---- */
   BN.prepare = (W, n) => {
+    if (CULT.isAbstainingFromPills && CULT.isAbstainingFromPills(n)) return;
     const c = n.cult, k = BN.heldPill(n);
-    if (k) { n.inv.pills[k]--; if (n.inv.pills[k] <= 0) delete n.inv.pills[k]; const r = ECO.applyPill(W, n, k); if (r) AI.mem(W, n, 'กิน' + r.info.name + 'ก่อนทะลวงขั้น', 0.6); }
-    else if ((c.btBonus || 0) < 0.1 && n.rank >= 2) { // โอสถทั่วไป (ไม่เฉพาะขั้น) จากคลัง
-      for (const key of Object.keys(W.sect.stock)) { const info = ECO.isPill(key) ? ECO.pillInfo(key) : null; if (info && info.effect.breakthroughBonus && !info.effect.btFor && info.tier <= CULT.effectiveTechStage(n) + 1 && W.sect.stock[key] > 0) { ECO.usePill(W, n, key); break; } }
+    if (k) {
+      const q = (n.inv && n.inv.pillQuality && n.inv.pillQuality[k]) || 1;
+      n.inv.pills[k]--;
+      if (n.inv.pills[k] <= 0) {
+        delete n.inv.pills[k];
+        if (n.inv.pillQuality) delete n.inv.pillQuality[k];
+      }
+      const r = ECO.applyQualityPill ? ECO.applyQualityPill(W, n, k, q) : ECO.applyPill(W, n, k, q);
+      if (r) AI.mem(W, n, 'กิน' + r.info.name + 'ก่อนทะลวงขั้น', 0.6);
+    } else if ((c.btBonus || 0) < 0.1 && !n.away && W && W.sect && W.sect.stock) {
+      // โอสถหนุนทะลวงทั่วไปจากกระเป๋าส่วนตัวหรือคลังสำนัก (เรียงตาม breakthroughBonus สูงสุด)
+      const personalGen = Object.keys((n.inv && n.inv.pills) || {}).filter(key => {
+        if (!((n.inv.pills[key] || 0) > 0)) return false;
+        const info = ECO.pillInfo(key);
+        return !!(info && info.effect && info.effect.breakthroughBonus && !info.effect.btFor);
+      }).sort((a, b) => (ECO.pillInfo(b).effect.breakthroughBonus || 0) - (ECO.pillInfo(a).effect.breakthroughBonus || 0));
+      if (personalGen.length > 0) {
+        const gk = personalGen[0];
+        const gq = (n.inv.pillQuality && n.inv.pillQuality[gk]) || 1;
+        n.inv.pills[gk]--;
+        if (n.inv.pills[gk] <= 0) { delete n.inv.pills[gk]; if (n.inv.pillQuality) delete n.inv.pillQuality[gk]; }
+        ECO.applyQualityPill(W, n, gk, gq);
+        return;
+      }
+      if ((n.rank || 0) >= 1) {
+        const sectGen = Object.keys(W.sect.stock).filter(key => {
+          if (!(W.sect.stock[key] > 0) || !ECO.isPill(key)) return false;
+          const info = ECO.pillInfo(key);
+          return !!(info && info.effect && info.effect.breakthroughBonus && !info.effect.btFor && info.tier <= CULT.effectiveTechStage(n) + 1);
+        }).sort((a, b) => (ECO.pillInfo(b).effect.breakthroughBonus || 0) - (ECO.pillInfo(a).effect.breakthroughBonus || 0));
+        if (sectGen.length > 0) ECO.usePill(W, n, sectGen[0]);
+      }
     }
   };
 
@@ -158,15 +283,12 @@
     can: (n, W) => !!(n.cult && n.cult.bn && n.cult.bn.plan === 'wait') && n.h.state.energy > 25 && n.h.state.satiety > 25 && !(n.inj && n.inj.length),
     score(n, W, S) { S.add('ติดคอขวด ต้องเตรียมตัว', 1.7); S.add('ความอดทน', (E(n, 'personality.discipline') - 50) / 120); S.add('ฐานยังไม่มั่น', ((0.1 - (n.cult.found || 0)) * 3)); },
     where(W, n) {
-      const c = n.cult;
-      const isMed = ['XIAN', 'HEART_SOUL', 'KARMA_SAMSARA', 'SAGE_SUPPORT', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE'].includes(c.path);
-      const isCraft = c.path === 'CRAFT_CREATION';
-      const preferAlc = isCraft && ((n.h.skills.ALCHEMY || 0) >= (n.h.skills.FORGING || 0) || c.sub === 'PILL_FURNACE_IMMORTAL' || c.sub === 'POISON_VENOM_CAULDRON');
-      const kind = isMed ? 'meditate' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'lift' : (c.path === 'MECH_PUPPET' || (isCraft && !preferAlc)) ? 'anvil' : (isCraft && preferAlc) ? 'cauldron' : c.path === 'DEMON' ? 'explore' : 'worship';
-      const bk = isMed ? 'meditation_hall' : (c.path === 'BODY' || c.path === 'BEAST_SOVEREIGN') ? 'training_ground' : (c.path === 'MECH_PUPPET' || (isCraft && !preferAlc)) ? 'forge' : (isCraft && preferAlc) ? 'alchemy' : c.path === 'DEMON' ? 'ruin' : 'shrine';
-      let s = AI.freeStation(W, n, kind, bk);
-      if (!s) s = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond');
-      if (s) return { st: s };
+      if (CULT && CULT.resolvePathStations) {
+        const res = CULT.resolvePathStations(W, n, 'consolidate');
+        if (res && res.st) return { st: res.st };
+      }
+      const fallback = AI.freeStation(W, n, 'meditate', 'meditation_hall') || AI.freeStation(W, n, 'relax', 'spirit_pond');
+      if (fallback) return { st: fallback };
       return n.bed != null ? { st: W.map.stations[n.bed] } : null;
     },
     dur: () => 240,
@@ -175,9 +297,9 @@
     inside: true
   };
   // ทะลวงได้เฉพาะเมื่อแผนคือ "ลุย"; start ใหม่ใช้ BN.prepare
-  const AB = AI.ACTS.breakthrough, origCan = AB.can, origDone = AB.done;
+  const AB = AI.ACTS.breakthrough, origCan = AB.can, origStart = AB.start, origDone = AB.done;
   AB.can = (n, W) => origCan(n, W) && !!n.cult.bn && n.cult.bn.plan === 'go';
-  AB.start = (n, W, ctx) => { BN.prepare(W, n); n.cult.lastTry = W.day; n.sealedBt = true; return true; };
+  AB.start = (n, W, ctx) => { BN.prepare(W, n); const ok = origStart ? origStart(n, W, ctx) : true; n.cult.lastTry = W.day; n.sealedBt = true; return ok !== false; };
 
   /* ---- ของวิเศษ: ผจญภัยพบสมบัติ ---- */
   const origResolve = X.resolve;
@@ -207,19 +329,7 @@
   ECO.base = id => trById[id] ? trById[id].value : oBase(id);
   BN.TR_BY_ID = trById;
 
-  /* ---- โอสถทะลวงเฉพาะขั้น: ผลตอนกิน ---- */
-  const oUse = ECO.usePill;
-  ECO.usePill = (W, npc, key) => {
-    const info = ECO.pillInfo(key);
-    if (!info || !info.effect.btFor) return oUse(W, npc, key);
-    if (!ECO.take(W, key, 1)) return null;
-    const c = npc.cult, e = info.effect, m = BN.pillMult(c, e.btFor), msgs = [];
-    c.btBonus = Math.max(c.btBonus || 0, e.breakthroughBonus * m);
-    c.toxic = Math.min(100, (c.toxic || 0) + e.toxicity * (e.btFor.stage > c.stage || e.btFor.path !== c.path ? 1.8 : 1));
-    c.btTaken = (c.btTaken || 0) + 1;
-    msgs.push(m >= 0.99 ? 'โอสถเหมาะกับขั้นนี้' : m < 0.5 ? 'โอสถไม่เหมาะ ผลน้อย' : 'ผลลดลง');
-    HC.bump(npc); return { info, msgs };
-  };
+  /* ---- โอสถทะลวงเฉพาะขั้น: ผลตอนกิน (รวมศูนย์ใน ECO.applyPill พร้อมคูณคุณภาพโอสถแล้ว) ---- */
   BN.inspectBottleneck = (W, n) => CULT.inspectProgressionBottleneck ? CULT.inspectProgressionBottleneck(W, n) : null;
   g.BN = BN;
   if (typeof module === 'object' && module.exports) module.exports = BN;

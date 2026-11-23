@@ -17,10 +17,10 @@ console.log('Testing Southern Spirit River, Fishing, Mysterious Containers & Fis
   console.log('  1. Testing Map Expansion (240x192), Southern Spirit River, Bridges & Station Reachability...');
   const W = SIM.create('fishing-map-audit-1');
   const M = W.map;
-  assert.strictEqual(M.W, 240, 'Map width must remain 240');
-  assert.strictEqual(M.H, 192, 'Map height must be expanded southward to 192');
-  assert.strictEqual(MAP.EXIT.x, 118);
-  assert.strictEqual(MAP.EXIT.y, 188);
+  assert.strictEqual(M.W, 360, 'Map width must be expanded to 360');
+  assert.strictEqual(M.H, 304, 'Map height must be expanded to 304');
+  assert.strictEqual(MAP.EXIT.x, 180);
+  assert.strictEqual(MAP.EXIT.y, 298);
 
   // Verify all 3 Southern River zones + Spirit Pond exist
   ['spirit_pond', 'river_dock', 'river_west', 'river_east'].forEach(bid => {
@@ -29,8 +29,8 @@ console.log('Testing Southern Spirit River, Fishing, Mysterious Containers & Fis
 
   // Verify river channel water tiles are impassable (T.WATER, block === 2, speedAt === 0)
   let waterTiles = 0;
-  for (let y = 164; y <= 176; y++) {
-    for (let x = 20; x < 220; x++) {
+  for (let y = 260; y <= 276; y++) {
+    for (let x = 20; x < 340; x++) {
       const k = y * M.W + x;
       if (M.terrain[k] === MAP.T.WATER) {
         waterTiles++;
@@ -47,7 +47,7 @@ console.log('Testing Southern Spirit River, Fishing, Mysterious Containers & Fis
   for (const st of fishStations) {
     assert.strictEqual(MAP.blocked(M, st.x, st.y), false, `Fishing station ${st.id} at (${st.x},${st.y}) must be walkable`);
     assert.strictEqual(MAP.hasAdjacentWater(M, st.x, st.y), true, `Fishing station ${st.id} at (${st.x},${st.y}) must be adjacent to water`);
-    const p = MAP.findPath(M, 118, 80, st.x, st.y);
+    const p = MAP.findPath(M, 180, 122, st.x, st.y);
     assert(Array.isArray(p) && p.length > 5, `Fishing station ${st.id} in ${st.bkey} must be reachable from plaza`);
     // Ensure path never steps onto T.WATER
     for (const [px, py] of p) {
@@ -56,7 +56,7 @@ console.log('Testing Southern Spirit River, Fishing, Mysterious Containers & Fis
   }
 
   // Verify MAP.EXIT (118, 188) is reachable across the central bridge without stepping on water
-  const exitPath = MAP.findPath(M, 118, 80, MAP.EXIT.x, MAP.EXIT.y);
+  const exitPath = MAP.findPath(M, 180, 122, MAP.EXIT.x, MAP.EXIT.y);
   assert(Array.isArray(exitPath) && exitPath.length > 40, 'MAP.EXIT must be reachable across the central bridge');
   for (const [px, py] of exitPath) {
     assert.notStrictEqual(M.terrain[py * M.W + px], MAP.T.WATER, 'Path to MAP.EXIT must cross bridge, not water');
@@ -69,7 +69,7 @@ console.log('Testing Southern Spirit River, Fishing, Mysterious Containers & Fis
   console.log('  2. Testing Legacy Save Migration & Save/Load Round-Trip Idempotency...');
   const v19Raw = fs.readFileSync(path.join(__dirname, 'fixtures', 'v1_9_synthetic.json'), 'utf8');
   const Wleg = SIM.deserialize(v19Raw);
-  assert.strictEqual(Wleg.map.H, 192, 'Migrated v1.9 save must have expanded 192 height');
+  assert.strictEqual(Wleg.map.H, 304, 'Migrated v1.9 save must have expanded 304 height');
   assert(Wleg.map.byId.river_dock && Wleg.map.byId.river_west && Wleg.map.byId.river_east, 'Migrated save must have Southern River zones');
   assert(Wleg.fishing && Wleg.fishing.zones && Wleg.fishing.zones.river_central, 'Migrated save must initialize W.fishing');
 
@@ -412,14 +412,14 @@ console.log('Testing Southern Spirit River, Fishing, Mysterious Containers & Fis
   assert.strictEqual(pageErrors.length, 0, 'Zero page errors allowed: ' + pageErrors.join('; '));
   assert.strictEqual(consoleErrors.length, 0, 'Zero console errors allowed: ' + consoleErrors.join('; '));
   assert.strictEqual(uiAudit.hasZoneEcology, true, 'River dock building sheet must display Fishing Zone Ecology & 90/10 probabilities');
-  assert.strictEqual(uiAudit.isFishingAct, true, 'Clicking fish-at-zone must start riverFish action');
+  assert.strictEqual(uiAudit.isFishingAct, false, 'Player cannot start an NPC fishing action');
   assert.strictEqual(uiAudit.containerAtlasCell, '70', 'Mystery container must use atlas cell 70');
-  assert.strictEqual(uiAudit.containerRemaining, 0, 'Opening container via UI must consume the container');
+  assert.strictEqual(uiAudit.containerRemaining, 1, 'Observer leaves the container for NPC decisions');
   assert.strictEqual(uiAudit.dishAtlasCell, '69', 'Cooked fish dish must use atlas cell 69');
-  assert.strictEqual(uiAudit.hasFoodBuff, true, 'Eating fish dish via UI must apply food_nourish buff');
+  assert.strictEqual(uiAudit.hasFoodBuff, false, 'Observer cannot command eating');
   assert.strictEqual(uiAudit.fishAtlasCell, '64', 'Tier 1 fish must use atlas cell 64');
-  assert.strictEqual(uiAudit.cookedDishCount, 1, 'Cooking fish via UI must produce cooked fish dish');
-  assert.strictEqual(uiAudit.trashRemaining, 0, 'Discarding river trash via UI must remove trash');
+  assert.strictEqual(uiAudit.cookedDishCount, 1, 'Observer preserves the already held dish');
+  assert.strictEqual(uiAudit.trashRemaining, 2, 'Observer cannot command discarding inventory');
   assert.strictEqual(uiAudit.horizOverflow, false, 'Zero horizontal overflow on 360x800 mobile viewport');
   console.log('    PASS: Headless Chromium UI verification passed with 0 errors and 0 overflow.');
   console.log('ALL SOUTHERN RIVER & FISHING TESTS PASSED.');

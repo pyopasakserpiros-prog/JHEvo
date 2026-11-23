@@ -539,24 +539,44 @@
     SUB_MANUAL: 4
   });
 
-  // จัดลำดับความหายาก 4 ขั้น (Rarity Tier 1..4) ของสายย่อยทั้ง 37 สายสำหรับการสุ่มหีบปริศนา
-  // (โดยไม่กระทบค่า k.tier = 1..2 ที่ใช้ตรวจสิทธิ์หอคัมภีร์ใน studySubpath)
-  const SUBPATH_LOOT_TIER = Object.freeze({
-    // Tier 1 (15 สายพื้นฐานหลัก)
+  // จัดลำดับความหายาก 4 ขั้น (Rarity Tier 1..4) ของสายย่อยทั้ง 286 สายสำหรับการสุ่มหีบปริศนา
+  // (รักษา 37 สายดั้งเดิม และคำนวณอัตโนมัติสำหรับทุกสายย่อยที่เหลือ)
+  const LEGACY_SUBPATH_LOOT_TIER = Object.freeze({
     SWORD_IMMORTAL: 1, FIVE_ELEMENTS: 1, ELIXIR_DAO: 1, ASTRAL_ARRAY: 1,
     TIGER_SOVEREIGN: 1, VAJRA_BODHI: 1, SOLAR_FORGE: 1, WOOD_SPRING_BODY: 1,
     WAR_DEITY: 1, MERCY_DEITY: 1, HARVEST_EARTH_GOD: 1, MEDICINE_BODHI_GOD: 1,
     SHADOW_ASSASSIN: 1, ZEN_VOID_MIND: 1, CALLIGRAPHY_PAINTING_SAGE: 1,
-    // Tier 2 (12 สายเฉพาะทางธาตุและกายา)
     BLOOD_DEMON: 2, PHANTOM_SOUL: 2, SOUND_ZITHER: 2, YIN_YANG_HARMONY: 2,
     BLOOD_DRAGON: 2, THUNDER_BODY: 2, JADE_IMMORTAL_BODY: 2, TITAN_MOUNTAIN_BODY: 2,
     TOTEM_BEAST_GOD: 2, OCEAN_SOVEREIGN: 2, VENOM_GU_SOVEREIGN: 2, NETHER_GHOST_KING: 2,
-    // Tier 3 (6 สายลี้ลับและสายเสริมยุทธภพ)
     FROST_MOON_IMMORTAL: 3, STAR_ARCHER: 3, DEVOURING_FIEND: 3, STAFF_GUARD: 3,
     FATE_ORACLE: 3, TIME_VOID: 3,
-    // Tier 4 (4 สายยอดวิชาล้ำลึกหายาก)
     UNDERWORLD_JUDGE: 4, HEAVEN_DEVOURING_DEMON: 4, DREAM_ILLUSION_WEAVER: 4, MIND_SWORD_TELEKINESIS: 4
   });
+  const SUBPATH_LOOT_TIER = Object.assign({}, LEGACY_SUBPATH_LOOT_TIER);
+  const RARE_APEX_LOOT_PATHS = new Set(['CHRONO_EPOCH', 'VOID_SPACE', 'PRIMORDIAL_CHAOS', 'GRAVITY_DAO', 'DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'VOID_HERETIC_PACT', 'DEVOURING_FLESH', 'NETHER_GRAVE']);
+  FISHING.resolveSubpathLootTier = (subObjOrId, pathId, idx) => {
+    const id = typeof subObjOrId === 'string' ? subObjOrId : (subObjOrId && subObjOrId.id);
+    if (id && LEGACY_SUBPATH_LOOT_TIER[id] != null) return LEGACY_SUBPATH_LOOT_TIER[id];
+    if (id && g.MARTIAL && typeof g.MARTIAL.knowledge === 'function') {
+      const k = g.MARTIAL.knowledge('S:' + id);
+      if (k && Number.isFinite(k.tier)) return Math.max(1, Math.min(4, k.tier >= 5 ? 4 : k.tier));
+    }
+    const i = Number.isFinite(idx) ? idx : 0;
+    const isApex = RARE_APEX_LOOT_PATHS.has(pathId);
+    if (i === 0) return isApex ? 2 : 1;
+    if (isApex) return i >= 4 ? 4 : i >= 2 ? 3 : 2;
+    return i >= 5 ? 4 : i >= 3 ? 3 : 2;
+  };
+  if (CULT && CULT.PATHS) {
+    Object.values(CULT.PATHS).forEach(p => {
+      (p.subPaths || []).forEach((s, idx) => {
+        if (s && s.id && SUBPATH_LOOT_TIER[s.id] == null) {
+          SUBPATH_LOOT_TIER[s.id] = FISHING.resolveSubpathLootTier(s, p.id, idx);
+        }
+      });
+    });
+  }
   FISHING.SUBPATH_LOOT_TIER = SUBPATH_LOOT_TIER;
 
   FISHING.getTierProbabilityTable = tierCount => {
@@ -810,7 +830,8 @@
   FISHING.computeFishQuality = (W, npc, species) => {
     const sk = npc ? FISHING.skillOf(W, npc) : 0;
     const perc = npc && npc.h ? (E(npc, 'intellect.perceptiveness') || 50) : 50;
-    const base = 0.88 + clamp(sk / 180, 0, 0.35) + clamp((perc - 50) / 400, -0.06, 0.12);
+    const luck = npc && npc.h ? (E(npc, 'destiny.luck') || 50) : 50;
+    const base = 0.88 + clamp(sk / 180, 0, 0.35) + clamp((perc - 50) / 400, -0.06, 0.12) + clamp((luck - 50) / 500, -0.05, 0.08);
     const jitter = W && W.rng && W.rng.gauss ? W.rng.gauss(0, 0.05) : 0;
     return Math.round(clamp(base + jitter, 0.75, 1.45) * 100) / 100;
   };
@@ -875,12 +896,16 @@
       };
     }
 
+    const isTideVoyager = !!(npc && npc.cult && npc.cult.path === 'TIDE_VOYAGER');
+    const tideStage = isTideVoyager ? Math.max(1, npc.cult.stage || 1) : 0;
     const sk = npc ? FISHING.skillOf(W, npc) : (opts.anglerSkill || 15);
-    const species = FISHING.pickSpeciesForZone(W, zid, sk, opts.speciesRoll);
+    const effSk = isTideVoyager ? Math.min(100, sk + 10 + tideStage) : sk;
+    const species = FISHING.pickSpeciesForZone(W, zid, effSk, opts.speciesRoll);
     const fourSym = (g.CULT && g.CULT.sectFourSymbolSummary) ? g.CULT.sectFourSymbolSummary(W) : null;
     const hasAzure = !!(fourSym && fourSym.hasAzureDragon);
-    const q = clamp(+(FISHING.computeFishQuality(W, npc, species) + (hasAzure ? 0.12 : 0)).toFixed(2), 0.75, 1.55);
-    const qty = hasAzure ? 2 : 1;
+    const q = clamp(+(FISHING.computeFishQuality(W, npc, species) + (hasAzure ? 0.12 : 0) + (isTideVoyager ? (0.06 + tideStage * 0.01) : 0)).toFixed(2), 0.75, 1.55);
+    const tideBonusCatch = (isTideVoyager && W && W.rng && W.rng.chance && W.rng.chance(Math.min(0.45, 0.18 + tideStage * 0.04))) ? 1 : 0;
+    const qty = (hasAzure ? 2 : 1) + tideBonusCatch;
 
     f.stats.fishCaught += qty;
     f.stats.bySpecies[species.id] = (f.stats.bySpecies[species.id] || 0) + qty;
@@ -940,14 +965,17 @@
       const eq = [];
       const seen = new Set();
       JD.ITEMS.items.forEach(it => {
-        if (!it || it.out !== 'EQUIPMENT' || it.tier !== tier) return;
+        if (!it || (it.out !== 'EQUIPMENT' && !it.slot) || it.tier !== tier) return;
+        if (/^ITEM_PROC_/.test(it.id) || it.isProceduralTemplate) return;
         if (it.legendary || (VC && VC.LEGENDARY_WEAPON_BY_ID && VC.LEGENDARY_WEAPON_BY_ID[it.id])) return;
         seen.add(it.id);
         eq.push({ kind: 'EQUIPMENT', id: it.id, itemDef: it, nameTh: it.nameTh, tier: it.tier });
       });
       JD.ITEMS.recipes.forEach(r => {
         if (!r || r.outType !== 'EQUIPMENT' || r.tier !== tier || r.legendary) return;
+        if (/^REC_PROC_/.test(r.id) || r.proceduralOut) return;
         const id = r.outItemId || r.id;
+        if (/^ITEM_PROC_/.test(id)) return;
         if (seen.has(id) || (VC && VC.LEGENDARY_WEAPON_BY_ID && VC.LEGENDARY_WEAPON_BY_ID[id])) return;
         seen.add(id);
         eq.push({ kind: 'EQUIPMENT', id, recipeDef: r, nameTh: r.outNameTh, tier: r.tier });
@@ -993,11 +1021,11 @@
       const isManual = category === 'SUB_MANUAL';
       const subLib = (W && W.sect && Array.isArray(W.sect.subLibrary)) ? W.sect.subLibrary : [];
       const heldSub = (openerNpc && openerNpc.inv && Array.isArray(openerNpc.inv.subManuals)) ? openerNpc.inv.subManuals : [];
-      const allSubs = Object.values(CULT.PATHS).flatMap(p => p.subPaths.map(s => ({
+      const allSubs = Object.values(CULT.PATHS).flatMap(p => p.subPaths.map((s, idx) => ({
         id: s.id,
         path: p.id,
         nameTh: s.nameTh,
-        lootTier: SUBPATH_LOOT_TIER[s.id] || 1
+        lootTier: SUBPATH_LOOT_TIER[s.id] != null ? SUBPATH_LOOT_TIER[s.id] : FISHING.resolveSubpathLootTier(s, p.id, idx)
       })));
       let list = allSubs.filter(s => {
         if (s.lootTier !== tier) return false;
@@ -1103,8 +1131,10 @@
       let gear = null;
       if (drop.kind === 'LEGENDARY_WEAPON' && VC && VC.mintLegendaryWeapon) {
         gear = VC.mintLegendaryWeapon(W, drop.id, 'fishing_container');
+      } else if (drop.id && /^ITEM_PROC_/.test(drop.id) && ECO.rollProceduralGear) {
+        gear = ECO.rollProceduralGear(W, { maxTier: Math.min(4, Math.max(1, drop.tier || 1)), source: 'fishing_container' });
       } else {
-        gear = ECO.mintGear(drop.itemDef || drop.recipeDef || ECO.itemById[drop.id] || ECO.recipeById[drop.id], 1.05);
+        gear = ECO.mintGear(W, drop.itemDef || drop.recipeDef || ECO.itemById[drop.id] || ECO.recipeById[drop.id], 1.05);
       }
       if (gear) {
         if (openerNpc && !fromSectStock) {
@@ -1590,11 +1620,22 @@
       const origCanCook = AI.ACTS.cook.can;
       AI.ACTS.cook.can = (n, W) => origCanCook(n, W) || FISHING.countCookableFish(W) >= 1;
     }
+    FISHING.hasEdibleFishDish = (W, n) => {
+      if (!W || !n || n.dead) return false;
+      for (const d of FISH_DISHES) {
+        if (n.inv && n.inv.mats && (n.inv.mats[d.id] || 0) > 0) return true;
+        if (ECO.count(W, d.id) > 0) return true;
+      }
+      return false;
+    };
     if (AI.ACTS.eat) {
+      const origCanEat = AI.ACTS.eat.can;
+      AI.ACTS.eat.can = (n, W) => (origCanEat ? origCanEat(n, W) : ECO.count(W, 'meal') >= 1) || FISHING.hasEdibleFishDish(W, n);
       const origStartEat = AI.ACTS.eat.start;
       AI.ACTS.eat.start = function (n, W) {
-        // หากในคลังหรือในกระเป๋ามีอาหารจานปลาและยังไม่มีบัฟอาหาร ให้กินอาหารจานปลาก่อนเพื่อรับบัฟ
-        if (!FISHING.activeFoodBuff(W, n) && n.h.state.satiety < 85) {
+        // หากในคลังหรือในกระเป๋ามีอาหารจานปลาและยังไม่มีบัฟอาหาร (หรือในคลังไม่มี meal ปกติ) ให้กินอาหารจานปลาก่อน
+        const noRegularMeal = ECO.count(W, 'meal') < 1;
+        if ((noRegularMeal || !FISHING.activeFoodBuff(W, n)) && n.h.state.satiety < 88) {
           for (const d of FISH_DISHES) {
             if (n.inv && n.inv.mats && (n.inv.mats[d.id] || 0) > 0) {
               if (FISHING.eatFishDish(W, n, d.id, false).ok) {
@@ -1915,7 +1956,7 @@
         }
         if (ctx.mode === 'fish') {
           { const fk = FISHING.knowledgeOf(W, n); fk.skill = Math.min(100, Math.round((fk.skill + 0.01) * 1000) / 1000); }
-          if (W.t % 65 === 0) {
+          if ((W._isNewCalendarMinute !== false && W.t % 65 === 0)) {
             const f = FISHING.ensure(W);
             const zid = ctx.zoneId || (ctx.st && ctx.st.zoneId) || 'spirit_pond';
             const z = f.zones[zid];

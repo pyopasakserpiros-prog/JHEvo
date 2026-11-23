@@ -64,7 +64,7 @@
   };
   SK.STATUS = {
     burn: { nameTh: 'เผาไหม้', icon: '🔥', dot: true }, bleed: { nameTh: 'เลือดไหล', icon: '🩸', dot: true }, poison: { nameTh: 'พิษ', icon: '☠️', dot: true },
-    slow: { nameTh: 'ชะงัก', icon: '🐌', mods: { cast: -30, move: -30 }, pmods: { eva: -.1 } }, stun: { nameTh: 'มึนงง', icon: '💫' }, silence: { nameTh: 'ผนึกวิชา', icon: '🤐' },
+    slow: { nameTh: 'ฝีเท้าเชื่องช้า', icon: '🐌', mods: { cast: -30, move: -30 }, pmods: { eva: -.1 } }, stun: { nameTh: 'มึนงง', icon: '💫' }, silence: { nameTh: 'ผนึกวิชา', icon: '🤐' },
     weaken: { nameTh: 'อ่อนแรง', icon: '⬇️', pmods: { atk: -.2, matk: -.2 } }, blind: { nameTh: 'ตาพร่า', icon: '🌫️', pmods: { acc: -.3 } },
     armorbreak: { nameTh: 'เกราะแตก', icon: '🧩', pmods: { def: -.15, mdef: -.05 } }, mdefbreak: { nameTh: 'ม่านวิชาแตก', icon: '🔮', pmods: { mdef: -.2 } },
     critUp: { nameTh: 'อสนีสะสม', icon: '⚡', mods: { crit: 10 } }, haste: { nameTh: 'ลมหนุน', icon: '🍃', mods: { cast: 15, move: 10 } }, leech: { nameTh: 'พฤกษาเกาะ', icon: '🌿' },
@@ -104,7 +104,7 @@
     windStride: { nameTh: 'เหินวายุไร้รอย', icon: '🌪️', isBuff: true, pmods: { eva: .22 }, mods: { move: 20, cast: 14, acc: 10 } },
     solarWard: { nameTh: 'ม่านเพลิงสุริยัน', icon: '☀️', isBuff: true, pmods: { def: .18, mdef: .18, atk: .12 }, mods: { pen: 8 } },
     starlightAegis: { nameTh: 'เกราะแสงดาราพิทักษ์', icon: '✨', isBuff: true, pmods: { mdef: .24, def: .16 }, mods: { acc: 14, cast: 10 } },
-    puppetOverclock: { nameTh: 'กลไกเร่งพิกัดสูงสุด', icon: '⚙️', isBuff: true, pmods: { atk: .18, matk: .18, def: .12 }, mods: { cast: 16, pen: 12 } },
+    puppetOverclock: { nameTh: 'กลไกเร่งเฟืองถึงขีดสุด', icon: '⚙️', isBuff: true, pmods: { atk: .18, matk: .18, def: .12 }, mods: { cast: 16, pen: 12 } },
     beastPackFury: { nameTh: 'สัญชาตญาณฝูงอสูรคลั่ง', icon: '🐾', isBuff: true, pmods: { atk: .20, hp: .12 }, mods: { move: 16, crit: 8, pen: 10 } },
     artisanFocus: { nameTh: 'สมาธิเตาหลอมเทวะ', icon: '🔨', isBuff: true, pmods: { atk: .14, matk: .16, def: .14, mdef: .14 }, mods: { acc: 12, pen: 10 } },
     alchemicalHarmony: { nameTh: 'ปราณโอสถประสานชีพจร', icon: '⚗️', hot: true, isBuff: true, pmods: { hp: .14, mdef: .16 }, mods: { cast: 12 } },
@@ -112,7 +112,7 @@
     taunt: { nameTh: 'ยั่วยุดึงความสนใจ', icon: '🤬', tags: ['#CONTROL'] },
     grounded: { nameTh: 'ตรึงปฐพีห้ามเหิน', icon: '🪨', mods: { move: -60 }, pmods: { eva: -.30 }, tags: ['#CONTROL', '#EARTH'] },
     hemorrhage: { nameTh: 'แผลฉีกขาดเลือดทะลัก', icon: '🩸', dot: true, pmods: { def: -.12 }, tags: ['#BLOOD', '#PHYSICAL'] },
-    sporeBloom: { nameTh: 'ดอกสปอร์พิษกลืนชีพ', icon: '🍄', dot: true, pmods: { mdef: -.10 }, tags: ['#WOOD', '#POISON'] },
+    sporeBloom: { nameTh: 'เกสรราพิษกลืนชีพ', icon: '🍄', dot: true, pmods: { mdef: -.10 }, tags: ['#WOOD', '#POISON'] },
     bloodfrostShard: { nameTh: 'ผลึกโลหิตเยือกแข็ง', icon: '🧊', dot: true, mods: { cast: -20, move: -20 }, tags: ['#ICE', '#BLOOD'] },
     healBlock: { nameTh: 'เพลิงพิษผนึกการรักษา', icon: '🚫', pmods: { mdef: -.15 }, tags: ['#FIRE', '#POISON', '#SEAL'] },
     poiseBroken: { nameTh: 'ท่าร่างพังทลาย', icon: '💥', pmods: { def: -.30, mdef: -.30, eva: -.40 }, tags: ['#CONTROL', '#PHYSICAL'] },
@@ -131,7 +131,7 @@
     asuraBloodFrenzy: { nameTh: 'โลหิตมารคลั่งชีพ', icon: '👹', isBuff: true, pmods: { atk: .50, matk: .50, def: -.10 }, mods: { crit: 12, critDmg: 25 }, tags: ['#BLOOD', '#DEMON'] },
     meridianOverdrive: { nameTh: 'ระเบิดชีพจรทะลวงขีดจำกัด', icon: '⚡', isBuff: true, pmods: { atk: 1.0, matk: 1.0 }, mods: { move: 100, cast: 100, crit: 20 }, tags: ['#ACUPOINT'] },
     finalStandImmortal: { nameTh: 'ปราการอมตะเฮือกสุดท้าย', icon: '🛡️', isBuff: true, pmods: { def: .80, mdef: .80 }, tags: ['#SHIELD'] },
-    totemBlessing: { nameTh: 'พรเสาโทเทมบรรพชน', icon: '🗿', isBuff: true, pmods: { atk: .12, matk: .12, def: .12, mdef: .12 }, mods: { acc: 10, cast: 10 }, tags: ['#ASTRAL'] },
+    totemBlessing: { nameTh: 'พรเสาวิญญาณบรรพชน', icon: '🗿', isBuff: true, pmods: { atk: .12, matk: .12, def: .12, mdef: .12 }, mods: { acc: 10, cast: 10 }, tags: ['#ASTRAL'] },
     beastSpiritPossessed: { nameTh: 'สถิตร่างรวมวิญญาณอสูร', icon: '🐉', isBuff: true, pmods: { atk: .24, matk: .20, def: .22, mdef: .20 }, mods: { move: 28, crit: 10, pen: 12 }, tags: ['#SUMMON'] },
     massGuard: { nameTh: 'มวลเกราะดูดซับแรง', icon: '🪐', isBuff: true, pmods: { def: .24, mdef: .18, hp: .10 }, tags: ['#EARTH', '#SHIELD'] },
     sonicHarmonyAura: { nameTh: 'รัศมีคีตาประสาน', icon: '🎵', isBuff: true, pmods: { matk: .16, eva: .12 }, mods: { cast: 18, move: 14, acc: 10 }, tags: ['#SOUND', '#WIND'] },
@@ -143,7 +143,7 @@
     temporalHaste: { nameTh: 'กระแสเวลาเร่งพิกัด', icon: '⏳', isBuff: true, pmods: { matk: .16, eva: .18 }, mods: { cast: 24, move: 22, crit: 8 }, tags: ['#ASTRAL'] },
     literatiDecree: { nameTh: 'โองการอักษรสวรรค์', icon: '🖌️', isBuff: true, pmods: { matk: .20, mdef: .18, acc: .15 }, mods: { pen: 14, cast: 14 }, tags: ['#YANG', '#SEAL'] },
     marionetteLink: { nameTh: 'เส้นไหมเชิดเงาเชื่อมจิต', icon: '🧵', isBuff: true, isTether: true, pmods: { atk: .16, matk: .16, eva: .20 }, mods: { acc: 14, crit: 10 }, tags: ['#YIN', '#CONTROL'] },
-    chaosEntropyShield: { nameTh: 'ม่านหุ่นตุ้นกลืนสรรพธาตุ', icon: '🌌', isBuff: true, pmods: { atk: .18, matk: .18, def: .18, mdef: .18 }, mods: { pen: 16 }, tags: ['#ASTRAL', '#SHIELD'] },
+    chaosEntropyShield: { nameTh: 'ม่านปฐมโกลาหลกลืนสรรพธาตุ', icon: '🌌', isBuff: true, pmods: { atk: .18, matk: .18, def: .18, mdef: .18 }, mods: { pen: 16 }, tags: ['#ASTRAL', '#SHIELD'] },
     meridianSeal: { nameTh: 'เข็มพิษผนึกจุดชีพจร', icon: '🪡', mods: { cast: -35, move: -20 }, pmods: { atk: -.15, matk: -.15 }, tags: ['#ACUPOINT', '#SEAL'] },
     tempoBreak: { nameTh: 'คลื่นเสียงสลายจังหวะ', icon: '🎵', mods: { cast: -30, acc: -14 }, pmods: { eva: -.16 }, tags: ['#SOUND', '#CONTROL'] },
     guLeech: { nameTh: 'คำสาปหนอนกู่สูบวิญญาณ', icon: '🦂', dot: true, pmods: { def: -.14, mdef: -.14 }, tags: ['#POISON', '#WOOD'] },
@@ -167,9 +167,25 @@
     weaponMelt: { nameTh: 'ศาสตราหลอมละลาย', icon: '🫠', pmods: { atk: -.25, def: -.25 }, tags: ['#FIRE', '#METAL'] },
     disarmed: { nameTh: 'ปลดศาสตรา', icon: '⚔️', pmods: { atk: -.25 }, mods: { acc: -15 }, tags: ['#CONTROL', '#METAL'] },
     sporeSeed: { nameTh: 'เมล็ดกาฝากดูดปราณ', icon: '🍄', dot: true, isMark: true, maxStacks: 5, pmods: { mdef: -.10 }, tags: ['#WOOD', '#POISON'] },
-    delayedEcho: { nameTh: 'คลื่นสะท้อนเงาอดีต', icon: '⏳', tags: ['#ASTRAL'] }
+    delayedEcho: { nameTh: 'คลื่นสะท้อนเงาอดีต', icon: '⏳', tags: ['#ASTRAL'] },
+    ironSkin: { nameTh: 'กายาเหล็กไหล', icon: '🛡️', tags: ['#DEF', '#BODY'] },
+    soulHaunt: { nameTh: 'วิญญาณแค้นตามหลอน', icon: '👻', pmods: { mdef: -0.10 }, mods: { acc: -10 }, tags: ['#YIN', '#SOUL'] },
+    necroRot: { nameTh: 'ไอเน่ากลืนชีพ', icon: '🍄', dot: true, pmods: { def: -0.06 }, tags: ['#DECAY', '#POISON'] },
+    deathlessFrame: { nameTh: 'กายไร้ชีพลุกขึ้นสู้', icon: '💀', isBuff: true, pmods: { atk: 0.20, def: -0.10 }, mods: { pen: 10 }, tags: ['#UNDEAD', '#BUFF'] }
   };
   const SUBW = {
+    CORPSE_BELL_HERDER: { summon: 3, control: 2.5, sweep: 2, strike: 1.5 },
+    BEAST_CARCASS_RIDER: { strike: 3, flurry: 2.5, drain: 2, sweep: 1.5 },
+    JADE_COFFIN_WARDEN: { guard: 3, summon: 2.5, channel: 2, strike: 1.5 },
+    ARMORY_OF_THE_DEAD: { strike: 3, pierce: 2.5, guard: 2, burst: 1.5 },
+    GRIEVANCE_LEDGER_KEEPER: { soul: 3.5, pierce: 2.5, control: 2, channel: 1.5 },
+    HUNGRY_GHOST_STEWARD: { drain: 3.5, soul: 2.5, dot: 2, burst: 1.5 },
+    LAST_WISH_MEDIUM: { heal: 3, support: 2.5, soul: 2, guard: 1.5 },
+    WAILING_CHORUS: { wave: 3.5, soul: 2.5, control: 2, sweep: 1.5 },
+    UNDYING_FRAME: { guard: 3.5, strike: 2.5, counter: 2, charge: 1.5 },
+    ROT_BLOOM_HOST: { dot: 3.5, flurry: 2.5, drain: 2, strike: 1.5 },
+    MARROW_STILLNESS_SAGE: { guard: 3, meditate: 2.5, counter: 2, strike: 1.5 },
+    COLD_PULSE_REVENANT: { drain: 3, strike: 2.5, flurry: 2, execute: 1.5 },
     SWORD_IMMORTAL: { strike: 3, pierce: 3, flurry: 2, burst: 1.5, dot: .5 },
     FIVE_ELEMENTS: { sweep: 3, dot: 2, strike: 2, control: 1.2, burst: 1 },
     ELIXIR_DAO: { heal: 2.5, support: 2, drain: 2.5, dot: 2.5, guard: 1.2, strike: 1 },
@@ -220,26 +236,15 @@
     ZITHER_HEART_BOW: {"snipe":3,"control":3,"channel":2.5,"barrage":2,"support":1.5},
     HEART_BLADE_MEDITATION: {"execute":3.5,"snipe":3,"pierce":2.5,"strike":2,"counter":1.5},
     VOID_SPEAR_MIND: {"pierce":3.5,"channel":2.5,"control":2.5,"sweep":2,"counter":1.5},
-    IRON_COLOSSUS: {"guard":3.5,"strike":3,"sweep":2.5,"counter":2,"pierce":1.5},
-    THOUSAND_THREAD_PUPPETEER: {"control":3.5,"flurry":3,"summon":2.5,"channel":2,"pierce":1.5},
-    SPIRIT_ARTILLERY_ENGINEER: {"snipe":3.5,"barrage":3.5,"blast":2.5,"pierce":2},
-    CLOCKWORK_SWARM_WEAVER: {"barrage":3.5,"flurry":3,"dot":2.5,"summon":2,"sweep":1.5},
     SOUL_VESSEL_AVATAR: {"summon":3.5,"guard":3,"counter":2.5,"strike":2,"channel":1.5},
-    FORTRESS_BASTION_ARCHITECT: {"shield":3.5,"guard":3,"support":2.5,"blast":2,"control":1.5},
     ASTRAL_CLOCKWORK_PRIME: {"channel":3.5,"blast":3,"control":2.5,"support":2,"snipe":1.5},
-    RED_THREAD_ARBITER: {"control":3.5,"counter":3,"pierce":2.5,"channel":2,"strike":1.5},
     SIX_PATHS_WHEEL: {"channel":3.5,"blast":3,"control":2.5,"counter":2,"sweep":1.5},
     ASURA_JUDGMENT_BLADE: {"execute":3.5,"strike":3,"burst":2.5,"pierce":2,"counter":1.5},
     LOTUS_MERCY_PURIFIER: {"heal":3.5,"shield":3,"support":2.5,"guard":2,"blast":1},
-    PAST_LIFE_CHRONICLER: {"summon":3.5,"channel":3,"support":2.5,"control":2,"strike":1.5},
     REVERSED_RETRIBUTION: {"counter":3.5,"guard":3,"drain":2.5,"execute":2,"strike":1.5},
     BODHI_VOW_GUARDIAN: {"guard":3.5,"shield":3.5,"heal":2.5,"counter":2,"support":2},
     MYRIAD_BEAST_PACK: {"summon":3.5,"flurry":3,"sweep":2.5,"support":2,"charge":1.5},
-    SYMBIOTIC_FANG_FUSION: {"flurry":3.5,"strike":3,"drain":2.5,"execute":2,"charge":2},
     COLOSSUS_SHIELD_TAMER: {"guard":3.5,"shield":3,"counter":2.5,"sweep":2,"strike":1.5},
-    MOUNT_CHARGER: {"charge":3.5,"pierce":3,"sweep":2.5,"strike":2,"evade":1.5},
-    PRIMORDIAL_BLOOD_AWAKENER: {"burst":3.5,"support":3,"summon":2.5,"drain":2,"strike":2},
-    SWARM_INSECT_EMPEROR: {"dot":3.5,"barrage":3,"drain":2.5,"control":2,"sweep":1.5},
     ABYSSAL_DRAGON_TOTEM: {"burst":3.5,"sweep":3,"pierce":2.5,"summon":2.5,"charge":2},
     HEAVENLY_GOLEM: {"guard":3.5,"strike":3,"sweep":2.5,"counter":2,"pierce":1.5},
     THOUSAND_THREAD_ASSASSIN: {"control":3.5,"flurry":3,"summon":2.5,"channel":2,"pierce":1.5},
@@ -265,15 +270,12 @@
     SPIRIT_SWORD_ARTIFICER: {"pierce":3.5,"flurry":3,"strike":2.5,"execute":2,"burst":1.5},
     RUNE_ARRAY_ENGRAVER: {"shield":3.5,"control":3,"blast":2.5,"snipe":2.5,"support":2},
     DIVINE_FLAME_SMELTER: {"blast":3.5,"burst":3,"sweep":2.5,"pierce":2,"shield":2},
-    GRAND_STRATEGIST: {"command":4,"support":3,"control":2.5,"shield":2,"blast":1.5},
-    IMPERIAL_PEACE_SOVEREIGN: {"command":3.5,"support":3.5,"heal":2.5,"shield":2.5},
-    IRON_LEGION_MARSHAL: {"command":3.5,"charge":3,"pierce":2.5,"guard":2},
-    HEAVENLY_MANDATE_CHANCELLOR: {"command":3.5,"support":3,"control":2.5,"channel":2},
-    BATTLE_ARRAY_TACTICIAN: {"command":3.5,"control":3,"shield":2.5,"sweep":2},
-    GRAND_FORMATION_ARCHITECT: {"control":3.5,"shield":3,"command":2.5,"blast":2.5},
+    BATTLEFIELD_STRATEGIST: {"command":4,"support":3,"control":2.5,"shield":2,"blast":1.5},
+    SECT_STEWARD: {"command":3.5,"support":3.5,"heal":2.5,"shield":2.5},
+    IMPERIAL_SEAL_CHANCELLOR: {"command":3.5,"support":3,"control":2.5,"channel":2},
+    EARTH_VEIN_WARDEN: {"control":3.5,"shield":3,"command":2.5,"blast":2.5},
     THUNDER_TALISMAN_ADEPT: {"blast":3.5,"burst":3,"snipe":2.5,"control":2},
-    SEAL_SCRIPT_EXORCIST: {"control":3.5,"shield":3,"counter":2.5,"pierce":2},
-    ASTRAL_LEVIATHAN_KRAKEN: {"blink":3.5,"evade":3,"burst":2.5,"sweep":2}
+    SEAL_SCRIPT_EXORCIST: {"control":3.5,"shield":3,"counter":2.5,"pierce":2}
   };
   function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0); }
   function rnd(h, k) { let x = (h ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0; x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; x = Math.imul(x ^ (x >>> 13), 3266489917) >>> 0; return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
@@ -287,6 +289,7 @@
     const A = SK.ARCH[arch], tier = t.tier || 1;
     const el = SK.ELEM[t.element] || SK.ELEM.NEUTRAL;
     const isPrimary = Array.isArray(t.moveDefs) && t.moveDefs[0] === m;
+    const isOffOrCounter = !!(A.off || arch === 'counter');
     const prof = {
       id: isPrimary ? t.id : m.id,
       moveId: m.id,
@@ -308,26 +311,29 @@
       elemTh: el.nameTh,
       cd: m.cd || A.cd,
       wind: m.wind || A.wind,
-      hits: m.hits != null ? m.hits : A.hits,
-      M: m.M != null ? m.M : (m.mult != null ? m.mult : 1.2),
+      hits: !isOffOrCounter ? 0 : (m.hits != null ? m.hits : A.hits),
+      M: !isOffOrCounter ? 0 : (m.M != null ? m.M : (m.mult != null ? m.mult : 1.2)),
       costPct: m.costPct != null ? m.costPct : (m.qiCost != null ? Math.round(m.qiCost * 0.45 * 10) / 10 : Math.round(4 * A.cost * (1 + 0.45 * (tier - 1)) * 10) / 10),
-      pen: m.pen != null ? m.pen : (m.penAdd != null ? m.penAdd : (A.penAdd || 0)),
+      pen: !isOffOrCounter ? 0 : (m.pen != null ? m.pen : (m.penAdd != null ? m.penAdd : (A.penAdd || 0))),
       critAdd: m.critAdd || 0,
       aoe: m.aoe != null ? !!m.aoe : !!A.aoe,
-      steal: m.steal != null ? m.steal : (A.steal || 0),
-      dot: m.dot || 0,
-      dotKind: m.dotKind || 'bleed',
+      steal: m.steal != null ? m.steal : (m.lifesteal != null ? m.lifesteal : (A.steal || 0)),
+      dot: m.dot || (arch === 'dot' ? Math.round((0.45 + 0.12 * (tier - 1)) * 100) / 100 : 0),
+      dotKind: m.dotKind || (({ FIRE: 'burn', BLOOD_DEMON: 'bleed', WOOD_LIFE: 'poison' })[t.element] || 'bleed'),
       recoil: m.recoil != null ? m.recoil : (A.recoil || 0),
       self: !!(m.self || A.self),
       team: !!(m.team || A.team),
-      channel: m.channel || null,
+      channel: m.channel || (arch === 'channel' ? { ticks: 3, tickM: Math.round((0.45 + 0.08 * (tier - 1)) * 100) / 100, finishM: Math.round((0.90 + 0.15 * (tier - 1)) * 100) / 100, interruptForce: 15 } : null),
       shield: m.shield || ((arch === 'guard' || arch === 'shield') ? Math.round((0.14 + 0.035 * (tier - 1)) * 100) / 100 : 0),
       heal: m.heal || (arch === 'heal' ? Math.round((0.16 + 0.04 * (tier - 1)) * 100) / 100 : 0),
       grantBuff: m.grantBuff || t.grantBuff || null,
-      support: m.support || ((arch === 'support' || arch === 'buff') ? { kind: m.grantBuff || t.grantBuff || (m.sx && m.sx.k) || 'morale', dur: (m.sx && m.sx.dur) || (12 + tier * 2) } : null),
-      summon: m.summon || null,
-      rider: m.rider !== undefined ? m.rider : (m.status && !A.ctrl ? m.status : ((m.sx && m.sx.k && !A.self && !A.team) ? m.sx.k : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null))),
+      support: m.support || ((arch === 'support' || arch === 'buff') ? { kind: (m.grantBuff && (!g.STATS || !g.STATS.BUFF_CATALOG || !g.STATS.BUFF_CATALOG[m.grantBuff] || g.STATS.BUFF_CATALOG[m.grantBuff].kind !== 'debuff')) ? m.grantBuff : (t.grantBuff && (!g.STATS || !g.STATS.BUFF_CATALOG || !g.STATS.BUFF_CATALOG[t.grantBuff] || g.STATS.BUFF_CATALOG[t.grantBuff].kind !== 'debuff')) ? t.grantBuff : ((m.sx && m.sx.k && g.STATS && g.STATS.BUFF_CATALOG && g.STATS.BUFF_CATALOG[m.sx.k] && g.STATS.BUFF_CATALOG[m.sx.k].kind !== 'debuff') ? m.sx.k : 'morale'), dur: (m.sx && m.sx.dur) || (12 + tier * 2) } : null),
+      summon: m.summon || (arch === 'summon' ? { dur: 14 + tier * 2, hpPct: Math.round((0.35 + 0.05 * (tier - 1)) * 100) / 100, statPct: Math.round((0.50 + 0.05 * (tier - 1)) * 100) / 100, nameSuffix: 'ร่างอวตาร' } : null),
+      rider: m.rider !== undefined ? m.rider : (m.status && !A.ctrl ? m.status : ((m.sx && m.sx.k && ((!A.self && !A.team) || arch === 'counter')) ? m.sx.k : (!A.self && !A.team && A.off && !A.ctrl ? el.st : null))),
       ctrl: m.ctrl !== undefined ? m.ctrl : (A.ctrl ? (m.status || (m.sx && m.sx.k) || el.ctrl) : null),
+      sx: m.sx || null,
+      statusChance: m.statusChance != null ? m.statusChance : null,
+      statusDur: m.statusDur != null ? m.statusDur : null,
       shatterShield: !!m.shatterShield,
       qiRestorePct: m.qiRestorePct || 0,
       cleanseDebuffs: !!m.cleanseDebuffs,
@@ -379,13 +385,16 @@
       requiresWeapon: t.requiresWeapon,
       moves: [m.nameTh]
     };
-    prof.range = m.range || t.range || SK.resolveMoveSpatialSpec(prof, null);
-    prof.summary = SK.summary(prof) + ((t.weaponTypes || t.armorTypes) ? ' · ' + g.JD.MARTIAL.types[(t.weaponTypes || t.armorTypes)[0]] + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : '');
+    prof.explicitRange = m.range || t.range || null;
+    prof.range = prof.explicitRange || SK.resolveMoveSpatialSpec(prof, null);
+    const _wtM = (t.weaponTypes && t.weaponTypes.length) ? t.weaponTypes[0] : ((t.armorTypes && t.armorTypes.length) ? t.armorTypes[0] : null);
+    prof.summary = SK.summary(prof) + (_wtM ? ' · ' + (g.JD.MARTIAL.types[_wtM] || _wtM) + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : '');
     return (moveCache[key] = prof);
   };
 
   SK.profile = t => {
     if (!t || t.passive || t.cat === 'PASSIVE') return null; if (cache[t.id]) return cache[t.id];
+    const subId = (g.CULT && g.CULT.resolveSubId && t.sub) ? g.CULT.resolveSubId(t.sub) : t.sub;
     const h = hash(t.id); let arch;
     if (t.combatArch && SK.ARCH[t.combatArch]) arch = t.combatArch;
     else if (t.cat === 'FORBIDDEN_ART' || t.cat === 'FORBIDDEN_TECHNIQUE') arch = 'forbid';
@@ -396,36 +405,53 @@
       const isBuff = /ปลุกขวัญ|อวยพร|หนุน|ประสาน|คุ้มกัน|กำลังใจ|ศรัทธา|เชื่อมใจ/.test(t.nameTh || '');
       arch = isBuff ? 'support' : 'heal';
     }
-    else if (t.cat === 'COMBAT_TECHNIQUE') {
-      const w = Object.assign({}, SUBW[t.sub] || { strike: 3, flurry: 1, sweep: 1 });
+    else if (Array.isArray(t.moveDefs) && t.moveDefs.length) {
+      const m0 = SK.moveProfile(t, t.moveDefs[0]);
+      const prof = Object.assign({}, m0, { id: t.id, tech: t.id, moveId: t.moveDefs[0].id, nameTh: t.nameTh, moves: t.moves || t.moveDefs.map(x => x.nameTh) });
+      return (cache[t.id] = prof);
+    } else if (t.cat === 'COMBAT_TECHNIQUE') {
+      const w = Object.assign({}, SUBW[subId] || { strike: 3, flurry: 1, sweep: 1 });
       if (t.tier < 3) { delete w.burst; delete w.summon; }
       if (t.tier < 2) { delete w.control; delete w.counter; delete w.channel; }
       const ks = Object.keys(w), tot = ks.reduce((s, k) => s + w[k], 0); let r = rnd(h, 1) * tot; arch = ks[ks.length - 1];
       for (const k of ks) { r -= w[k]; if (r <= 0) { arch = k; break; } }
-    } else if (Array.isArray(t.moveDefs) && t.moveDefs.length) {
-      const m0 = SK.moveProfile(t, t.moveDefs[0]);
-      const prof = Object.assign({}, m0, { id: t.id, tech: t.id, moveId: t.moveDefs[0].id, nameTh: t.nameTh, moves: t.moves || t.moveDefs.map(x => x.nameTh) });
-      return (cache[t.id] = prof);
+    } else if ((t.cat === 'QI_MANTRA' || t.cat === 'BODY_MANTRA' || t.cat === 'FAITH_MANTRA') && Array.isArray(t.moves) && t.moves.length) {
+      const nm = (t.nameTh || '') + ' ' + (t.moves[0] || '');
+      if (/ฟื้น|น้ำพุ|อายุวัฒนะ|เมตตา|โอสถ|เยียวยา/.test(nm)) arch = 'heal';
+      else if (/ระฆัง|เกราะ|วัชระ|คุ้มกาย|ปราการ|โล่/.test(nm)) arch = 'guard';
+      else if (/หนุน|อวยพร|ค่ายกล|ประสาน|ขวัญ/.test(nm)) arch = 'support';
+      else {
+        const w = Object.assign({}, SUBW[subId] || { strike: 3, flurry: 1, sweep: 1 });
+        if (t.tier < 3) { delete w.burst; delete w.summon; }
+        if (t.tier < 2) { delete w.control; delete w.counter; delete w.channel; }
+        const ks = Object.keys(w), tot = ks.reduce((s, k) => s + w[k], 0); let r = rnd(h, 1) * tot; arch = ks[ks.length - 1];
+        for (const k of ks) { r -= w[k]; if (r <= 0) { arch = k; break; } }
+      }
     } else return (cache[t.id] = null); // วิชาอาชีพ/ไม่ใช่การรบ
     const A = SK.ARCH[arch], tier = t.tier, tierMult = 1 + 0.12 * (tier - 1) + Math.min(0.18, 0.0006 * Math.max(0, (t.power || 40) - 40 * tier * 0.8));
     const cd = Math.round(A.cd * (0.85 + 0.3 * rnd(h, 2)));
     const wind0 = Math.max(2, Math.round(A.wind * (0.9 + 0.2 * rnd(h, 4)))), hits = A.hits;
     const fill = (cd - wind0) / 4, tot = A.e * (cd / 4) * tierMult - fill;
-    let M = hits ? Math.max(0.9, tot / hits) : 0, dotTot = 0;
-    if (arch === 'dot') { M = 0.9; dotTot = Math.max(0.5, tot - 0.9); }
-    if (arch === 'counter') M = Math.max(1.5, A.e * (cd / 4) * tierMult * 0.8);
+    let M = hits ? Math.min(4.8, Math.max(0.9, tot / hits)) : 0, dotTot = 0;
+    if (arch === 'dot') { M = 0.9; dotTot = Math.min(4.0, Math.max(0.5, tot - 0.9)); }
+    if (arch === 'counter') M = Math.min(4.2, Math.max(1.5, A.e * (cd / 4) * tierMult * 0.8));
     const el = SK.ELEM[t.element] || SK.ELEM.NEUTRAL;
     let type = 'm'; const P = t.path;
     if (P === 'BODY') type = 'p';
-    else if (P === 'BEAST_SOVEREIGN') type = (t.sub === 'SWARM_GU_HIVE_MASTER' || t.sub === 'SWARM_INSECT_EMPEROR' || t.sub === 'PRIMORDIAL_BLOOD_MUTATOR' || t.sub === 'PRIMORDIAL_BLOOD_AWAKENER' || t.sub === 'CELESTIAL_ASTRAL_FAIRY_TAMER') ? (rnd(h, 3) < 0.45 ? 'p' : 'm') : 'p';
-    else if (P === 'MECH_PUPPET') type = (t.sub === 'HEAVENLY_GOLEM' || t.sub === 'IRON_COLOSSUS' || t.sub === 'CELESTIAL_BALLISTA' || t.sub === 'SPIRIT_ARTILLERY_ENGINEER' || t.sub === 'FLYING_BLADE_ORBITER' || t.sub === 'CLOCKWORK_SWARM_WEAVER') ? 'p' : (rnd(h, 3) < 0.5 ? 'p' : 'm');
-    else if (P === 'KARMA_SAMSARA') type = (t.sub === 'ASURA_JUDGMENT_BLADE' || t.sub === 'REVERSED_RETRIBUTION') ? 'p' : 'm';
-    else if (P === 'SAGE_SUPPORT') type = (t.sub === 'WAR_BANNER_CHORISTER') ? 'p' : 'm';
-    else if (P === 'CRAFT_CREATION') type = (t.sub === 'HEAVENLY_ANVIL_SMITH' || t.sub === 'SPIRIT_SWORD_ARTIFICER') ? 'p' : 'm';
-    else if (P === 'GOD') type = (t.sub === 'WAR_DEITY' || t.sub === 'TOTEM_BEAST_GOD') ? 'p' : 'm';
-    else if (P === 'DEMON') type = (t.sub === 'SHADOW_ASSASSIN' ? (rnd(h, 3) < 0.85 ? 'p' : 'm') : t.sub === 'HEAVEN_DEVOURING_DEMON' ? (rnd(h, 3) < 0.5 ? 'p' : 'm') : 'm');
-    else if (P === 'HEART_SOUL') type = (t.sub === 'MIND_SWORD_TELEKINESIS' && rnd(h, 3) < 0.35) ? 'p' : 'm';
-    else type = (t.sub === 'SWORD_IMMORTAL' ? rnd(h, 3) < 0.7 : t.sub === 'BLOOD_DEMON' ? rnd(h, 3) < 0.4 : rnd(h, 3) < 0.12) ? 'p' : 'm';
+    else if (P === 'BEAST_SOVEREIGN') type = (subId === 'SWARM_GU_HIVE_MASTER' || subId === 'PRIMORDIAL_BLOOD_MUTATOR' || subId === 'CELESTIAL_ASTRAL_FAIRY_TAMER') ? (rnd(h, 3) < 0.45 ? 'p' : 'm') : 'p';
+    else if (P === 'MECH_PUPPET') type = (subId === 'HEAVENLY_GOLEM' || subId === 'CELESTIAL_BALLISTA' || subId === 'FLYING_BLADE_ORBITER') ? 'p' : (rnd(h, 3) < 0.5 ? 'p' : 'm');
+    else if (P === 'KARMA_SAMSARA') type = (subId === 'ASURA_JUDGMENT_BLADE' || subId === 'REVERSED_RETRIBUTION') ? 'p' : 'm';
+    else if (P === 'SAGE_SUPPORT') type = (subId === 'WAR_BANNER_CHORISTER') ? 'p' : 'm';
+    else if (P === 'CRAFT_CREATION') type = (subId === 'HEAVENLY_ANVIL_SMITH' || subId === 'SPIRIT_SWORD_ARTIFICER') ? 'p' : 'm';
+    else if (P === 'GOD') type = (subId === 'WAR_DEITY' || subId === 'TOTEM_BEAST_GOD') ? 'p' : 'm';
+    else if (P === 'DEMON') type = (subId === 'SHADOW_ASSASSIN' ? (rnd(h, 3) < 0.85 ? 'p' : 'm') : subId === 'HEAVEN_DEVOURING_DEMON' ? (rnd(h, 3) < 0.5 ? 'p' : 'm') : 'm');
+    else if (P === 'HEART_SOUL') type = (subId === 'MIND_SWORD_TELEKINESIS' && rnd(h, 3) < 0.35) ? 'p' : 'm';
+    else {
+      const pw = (g.CULT && g.CULT.PATHS && g.CULT.PATHS[P] && g.CULT.PATHS[P].statWeights) || (g.JD && g.JD.CULT && g.JD.CULT.paths && g.JD.CULT.paths[P] && g.JD.CULT.paths[P].statWeights);
+      if (pw && (pw.atk || 1) > (pw.matk || 1) + 0.06) type = 'p';
+      else if (pw && (pw.matk || 1) > (pw.atk || 1) + 0.06) type = 'm';
+      else type = (subId === 'SWORD_IMMORTAL' ? rnd(h, 3) < 0.7 : subId === 'BLOOD_DEMON' ? rnd(h, 3) < 0.4 : rnd(h, 3) < 0.35) ? 'p' : 'm';
+    }
     const prof = { id: t.id, tech: t.id, nameTh: t.nameTh, tier, grade: t.grade || 'Common', legendary: !!t.legendary, fxKind: t.fxKind || null, arch, archTh: A.nameTh, icon: A.icon, type, element: t.element, elementProfile: t.elementProfile || (g.ELEM && g.ELEM.getTargetProfile(t)) || null, elemTh: el.nameTh, cd,
       hits, wind: wind0, M: Math.round(M * 100) / 100, costPct: Math.round(4 * A.cost * (1 + 0.45 * (tier - 1)) * 10) / 10, pen: A.penAdd || 0, aoe: !!A.aoe, steal: A.steal || 0, dot: Math.round(dotTot * 100) / 100,
       recoil: A.recoil || 0, self: !!A.self, team: !!A.team, channel: !!A.channel, rider: !A.self && !A.team && A.off && !A.ctrl ? el.st : null, ctrl: A.ctrl ? el.ctrl : null, moves: t.moves || [] };
@@ -435,7 +461,7 @@
     prof.grantBuff = t.grantBuff || null;
     if (arch === 'support' || arch === 'buff') {
       prof.support = {
-        kind: t.grantBuff || ((t.sub === 'WAR_DEITY' || t.element === 'LIGHTNING') ? 'morale' : (t.element === 'WIND' ? 'haste' : 'holyAura')),
+        kind: t.grantBuff || ((subId === 'WAR_DEITY' || t.element === 'LIGHTNING') ? 'morale' : (t.element === 'WIND' ? 'haste' : 'holyAura')),
         dur: 12 + tier * 2
       };
     }
@@ -444,7 +470,7 @@
         dur: 14 + tier * 2,
         hpPct: Math.round((0.35 + 0.05 * (tier - 1)) * 100) / 100,
         statPct: Math.round((0.50 + 0.05 * (tier - 1)) * 100) / 100,
-        nameSuffix: (t.path === 'MECH_PUPPET' ? 'หุ่นกลศึก' : t.path === 'BEAST_SOVEREIGN' ? 'อสูรคู่สัญญา' : t.path === 'KARMA_SAMSARA' ? 'เงาอดีตชาติ' : t.sub === 'TOTEM_BEAST_GOD' ? 'เทพอสูร' : t.sub === 'PHANTOM_SOUL' ? 'ร่างเงามายา' : t.sub === 'NETHER_GHOST_KING' ? 'ภูตยมโลก' : t.sub === 'DREAM_ILLUSION_WEAVER' ? 'ร่างมายาฝัน' : 'ร่างอวตาร')
+        nameSuffix: (t.path === 'MECH_PUPPET' ? 'หุ่นกลศึก' : t.path === 'BEAST_SOVEREIGN' ? 'อสูรคู่สัญญา' : t.path === 'KARMA_SAMSARA' ? 'เงาอดีตชาติ' : subId === 'TOTEM_BEAST_GOD' ? 'เทพอสูร' : subId === 'PHANTOM_SOUL' ? 'ร่างเงามายา' : subId === 'NETHER_GHOST_KING' ? 'ภูตยมโลก' : subId === 'DREAM_ILLUSION_WEAVER' ? 'ร่างมายาฝัน' : 'ร่างอวตาร')
       };
     }
     if (arch === 'channel') {
@@ -478,8 +504,10 @@
     prof.coCast = t.coCast || m0.coCast || null;
     prof.tags = t.tags || m0.tags || null;
     prof.weaponTypes = t.weaponTypes; prof.armorTypes = t.armorTypes; prof.requiresWeapon = t.requiresWeapon;
-    prof.range = t.range || m0.range || SK.resolveMoveSpatialSpec(prof, null);
-    prof.summary = SK.summary(prof) + ((t.weaponTypes || t.armorTypes) ? ' · ' + g.JD.MARTIAL.types[(t.weaponTypes || t.armorTypes)[0]] + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : ''); return (cache[t.id] = prof);
+    prof.explicitRange = t.range || m0.range || null;
+    prof.range = prof.explicitRange || SK.resolveMoveSpatialSpec(prof, null);
+    const _wtM = (t.weaponTypes && t.weaponTypes.length) ? t.weaponTypes[0] : ((t.armorTypes && t.armorTypes.length) ? t.armorTypes[0] : null);
+    prof.summary = SK.summary(prof) + (_wtM ? ' · ' + (g.JD.MARTIAL.types[_wtM] || _wtM) + ' ' + (t.requiresWeapon ? 'จำเป็นต้องใช้อาวุธนี้' : 'ถนัด ×1.15 / อื่น ×0.65') + '' : ''); return (cache[t.id] = prof);
   };
 
   SK.summary = p => {
@@ -573,6 +601,7 @@
     if (!n || !n.cult || !techId) return { gained: 0, unlockedNewStage: false };
     const t = CULT.tech(techId);
     const prevStage = t ? SK.unlockedStage(n, t) : 1;
+    const prevMoves = (t && Array.isArray(t.moveDefs)) ? SK.unlockedMoves(n, t).length : 0;
     n.cult.tm = n.cult.tm || {};
     const add = Number.isFinite(amt) && amt > 0 ? amt : 1;
     n.cult.tm[techId] = (n.cult.tm[techId] || 0) + add;
@@ -580,7 +609,9 @@
       g.ELEM.gainMastery(n, t, 'practice', W, { sourceId: techId, scale: Math.min(1.5, add) });
     }
     const newStage = t ? SK.unlockedStage(n, t) : 1;
-    if (newStage > prevStage) {
+    const newMoves = (t && Array.isArray(t.moveDefs)) ? SK.unlockedMoves(n, t).length : 0;
+    if (newStage > prevStage || newMoves > prevMoves) {
+      n._skListCache = null;
       if (g.MARTIAL && g.MARTIAL.invalidateMartialCaches) g.MARTIAL.invalidateMartialCaches(n); else if (g.STATS) g.STATS.dirty(n);
       if (W && W.log && t && Array.isArray(t.stages)) {
         const stObj = t.stages.find(s => s.stage === newStage);
@@ -597,16 +628,20 @@
     if (!n.cult) return [];
     const c = n.cult, tl = c.techs ? c.techs.length : 0, tSig = c.techs ? c.techs.join(',') : '';
     const eq = n.equip || {};
+    const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage;
     const slotSig = it => {
       if (!it || (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(n, it))) return '';
-      const mSig = Array.isArray(it.skillModifiers) ? it.skillModifiers.map(m => m ? ((m.targetTechId || m.targetArch || '') + ':' + (m.multAdd || 0) + ':' + (m.hitsAdd || 0) + ':' + (m.cdDelta || 0) + ':' + (m.penAdd || 0) + ':' + (m.critAdd || 0) + ':' + (m.costMult || 1) + ':' + (m.addRider || '') + ':' + (m.grantBuff || '') + ':' + (m.addElementalFusion || '') + ':' + (m.composablePatch && m.composablePatch.action || '')) : '').join(';') : '';
+      const mSig = Array.isArray(it.skillModifiers) ? it.skillModifiers.map(m => m ? ((m.targetTechId || m.matchTechId || m.targetArch || m.matchArch || m.arch || m.matchElement || m.element || '') + ':' + (m.multAdd || 0) + ':' + (m.hitsAdd || 0) + ':' + (m.cdDelta || 0) + ':' + (m.penAdd || 0) + ':' + (m.critAdd || 0) + ':' + (m.costMult || 1) + ':' + (m.makeAoe ? 1 : 0) + ':' + (m.addRider || '') + ':' + (m.grantBuff || '') + ':' + (m.addElementalFusion || '') + ':' + (m.composablePatch && m.composablePatch.action || '')) : '').join(';') : '';
       const rSig = it.runeInscriptions ? Object.entries(it.runeInscriptions).map(([rk, rv]) => rk + ':' + (rv && (rv.reactionId || rv.mult || rv) || '')).join(';') : '';
       const gSig = Array.isArray(it.grantedSkills) ? it.grantedSkills.join(',') : '';
       return (it.uid || it.id || '') + ':' + (it._modVer || 0) + ':' + mSig + ':' + rSig + ':' + gSig;
     };
     const eqKey = slotSig(eq.WEAPON) + '|' + slotSig(eq.ARMOR) + '|' + slotSig(eq.ACCESSORY);
+    const archState = n.archetypeMasteryState;
+    const archId = (archState && archState.archetypeId) || n.subpathArchetype || null;
+    const archTier = (archState && archState.tier) || n.subpathArchetypeTier || 0;
     const slc = n._skListCache;
-    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === c.stage && slc.mantra === c.mantra && slc.tl === tl && slc.tSig === tSig && slc.eqKey === eqKey && slc.ver === (n._passVer || 0)) {
+    if (slc && slc.path === c.path && slc.sub === c.sub && slc.st === effSt && slc.mantra === c.mantra && slc.tl === tl && slc.tSig === tSig && slc.eqKey === eqKey && slc.archId === archId && slc.archTier === archTier && slc.ver === (n._passVer || 0)) {
       return slc.out;
     }
     const activeIds = (g.MARTIAL ? g.MARTIAL.activeTechs(n) : n.cult.techs).slice();
@@ -617,7 +652,7 @@
     }
     if (n.cult.mantra && (!g.MARTIAL || !g.MARTIAL.canActivateMantra || g.MARTIAL.canActivateMantra(n, n.cult.mantra))) {
       const mTech = CULT.tech(n.cult.mantra);
-      if (mTech && Array.isArray(mTech.moveDefs) && mTech.moveDefs.length && !activeIds.includes(mTech.id)) {
+      if (mTech && ((Array.isArray(mTech.moveDefs) && mTech.moveDefs.length) || (Array.isArray(mTech.moves) && mTech.moves.length)) && !activeIds.includes(mTech.id)) {
         activeIds.push(mTech.id);
       }
     }
@@ -647,7 +682,15 @@
         }
       }
     }
-    n._skListCache = { path: c.path, sub: c.sub, st: c.stage, mantra: c.mantra, tl, tSig, eqKey, ver: n._passVer || 0, out };
+    if (SK.getArchetypeSignatureSkills && archId && archTier >= 4) {
+      const sigSkills = SK.getArchetypeSignatureSkills(archId, archTier);
+      if (Array.isArray(sigSkills)) {
+        for (const sm of sigSkills) {
+          if (sm && sm.id && !out.some(x => x.id === sm.id)) out.push(sm);
+        }
+      }
+    }
+    n._skListCache = { path: c.path, sub: c.sub, st: effSt, mantra: c.mantra, tl, tSig, eqKey, archId, archTier, ver: n._passVer || 0, out };
     return out;
   };
 
@@ -755,10 +798,15 @@
     }
     const arch = p.arch || 'strike';
     const def = SK.ARCH_RANGE_DEFAULTS[arch] || SK.ARCH_RANGE_DEFAULTS.strike;
-    const explicit = p.range && typeof p.range === 'object' ? p.range : null;
-    const nameStr = ((p.nameTh || '') + ' ' + (p.parentNameTh || '')).trim();
-    const wTypes = Array.isArray(p.weaponTypes) ? p.weaponTypes : (p.reqWeapon || []);
-    const primaryWpn = wTypes[0] || (u && SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u).weaponType : 'FIST');
+    const explicit = (p.explicitRange && typeof p.explicitRange === 'object')
+      ? p.explicitRange
+      : (p.range && typeof p.range === 'object' && !p.range.source ? p.range : null);
+    const moveNameOnly = (p.nameTh || '').trim();
+    const nameStr = (moveNameOnly + ' ' + (p.parentNameTh || '')).trim();
+    const wTypes = Array.isArray(p.weaponTypes) && p.weaponTypes.length ? p.weaponTypes : (Array.isArray(p.reqWeapon) && p.reqWeapon.length ? p.reqWeapon : []);
+    const primaryWpn = (u && SK.weaponTacticalProfile && (!wTypes.length || wTypes.includes(SK.weaponTacticalProfile(u).weaponType)))
+      ? SK.weaponTacticalProfile(u).weaponType
+      : (wTypes[0] || (u && SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u).weaponType : 'FIST'));
 
     let minR = explicit && Number.isFinite(explicit.min) ? explicit.min : def.min;
     let maxR = explicit && Number.isFinite(explicit.max) ? explicit.max : def.max;
@@ -778,7 +826,7 @@
         if (arch === 'snipe' || /เกาทัณฑ์|ศร/.test(nameStr)) { minR = Math.max(minR, 1.35); minRangePenalty = Math.max(minRangePenalty, 0.35); }
         requiresLoS = !/อุกกาบาต|ดาราร่วง|สายฟ้าฟาด/.test(nameStr);
         source = 'TECHNIQUE_OVERRIDE_LONG';
-      } else if (/คลื่นเสียง|พิณ|ยันต์|ค่ายกล|อาคม|ลำแสง|คลื่นมังกร|คลื่นปราณ|พายุ|ซัดคลื่น|หอกโลหิต/.test(nameStr)) {
+      } else if (/คลื่นเสียง|พิณ|ยันต์|ค่ายกล|อาคม|ลำแสง|คลื่นมังกร|คลื่นปราณ|พายุ|ซัดคลื่น|หอกโลหิต/.test(nameStr) && !(p.type === 'p' && ['FIST', 'SPEAR', 'STAFF', 'BLADE', 'CLAW'].includes(primaryWpn) && !/ซัดคลื่น|ลำแสง|หอกโลหิต/.test(moveNameOnly))) {
         maxR = Math.max(maxR, 3.60);
         if (/คลื่นเสียง|พิณ/.test(nameStr) && p.aoe) { shape = 'CONE'; radius = Math.max(radius, 2.8); requiresLoS = false; }
         source = 'TECHNIQUE_OVERRIDE_MID';
@@ -854,9 +902,20 @@
   };
 
   /* ศัตรู/ผู้ช่วยรบ: สร้างชุดวิชาที่มีระยะและบทบาทหลากหลายตามชนิด/อาวุธ/ระดับ */
+  SK.beastFamily = u => {
+    const id = String(u.speciesId || '');
+    return String(u.archetype || u.family || (/WOLF|HOUND/.test(id) ? 'CANINE' :
+      /TIGER|PANTHER|LION/.test(id) ? 'FELINE' : /BEAR/.test(id) ? 'URSINE' :
+      /BOAR/.test(id) ? 'BOAR' : /PYTHON|SERPENT|SNAKE|DRAGON/.test(id) ? 'SERPENT' :
+      /ROC|HAWK|GARUDA/.test(id) ? 'AVIAN' : /TURTLE|TORTOISE/.test(id) ? 'SHELL' :
+      /SCORPION|MOTH|SPIDER/.test(id) ? 'ARTHROPOD' : /STAG|KIRIN|QILIN/.test(id) ? 'UNGULATE' : 'CHIMERA')).toUpperCase();
+  };
   SK.foeSkills = u => {
-    const species = u && JD.BEASTS && JD.BEASTS.species
-      ? JD.BEASTS.species.find(s => s.id === u.speciesId || s.id === u.sp || s.nameTh === u.name)
+    const allBeasts = (g.CULT && typeof g.CULT.allBeastSpecies === 'function')
+      ? g.CULT.allBeastSpecies()
+      : ((JD.BEASTS && JD.BEASTS.species) || []).concat((JD.BEASTS && JD.BEASTS.kings) || []);
+    const species = u && allBeasts.length
+      ? allBeasts.find(s => s.id === u.speciesId || s.id === u.sp || s.nameTh === u.name)
       : null;
     const sourceProfile = (u && u.elementProfile) || (species && species.elementProfile) || null;
     const rawElement = (u && u.element) || (species && species.element) || null;
@@ -884,9 +943,34 @@
     const t = u ? (u.tier || 1) : 1, L = [];
     const wProf = SK.weaponTacticalProfile ? SK.weaponTacticalProfile(u) : { weaponType: 'FIST', reachClass: 'SHORT_SWIFT' };
     if (u && u.wild) {
-      L.push(mk('strike', 'ตะปบกัดฉีก', t, 'p', { range: { min: 0, max: 1.45, shape: 'SINGLE' } }));
-      if (t >= 3) L.push(mk('control', 'คำรามสะท้านใจ', t, 'm', { ctrl: 'stun', aoe: true, range: { min: 0, max: 2.6, shape: 'CIRCLE_SELF', radius: 2.4 } }));
-      if (t >= 4) L.push(mk('burst', 'พลังอสูรบรรพกาลปะทุ', t, 'm', { aoe: true, range: { min: 0, max: 3.2, shape: 'CIRCLE_TARGET', radius: 2.4 } }));
+      const fam = SK.beastFamily(u);
+      L.push(mk(['CANINE','FELINE'].includes(fam) && t >= 2 ? 'flurry' : 'strike',
+        ['BOAR','UNGULATE'].includes(fam) ? 'เขี้ยวเขากระแทก' : fam === 'AVIAN' ? 'กรงเล็บวิหค' : 'ตะปบกัดฉีก', t, 'p'));
+      if (u.aquaticHunt) L.push(mk('wave', 'คลื่นปราณซัดตลิ่ง', t, 'm', {
+        range: { min: 0, max: 4.25, shape: 'SINGLE', requiresLoS: false }
+      }));
+      if (['BOAR','UNGULATE','CANINE'].includes(fam)) L.push(mk('charge', 'อสูรพุ่งทะลวง',t,'p'));
+      if (['URSINE','SHELL'].includes(fam)) L.push(mk('guard', 'เกราะกายอสูร',t,'p',{shield:0.12,self:true}));
+      if (['AVIAN','PLANT','PLANT_SPIRIT','CHIMERA'].includes(fam))
+        L.push(mk('snipe', fam === 'AVIAN' ? 'ขนศรปราณวิหค' : 'ซัดปราณอสูร',t,'m'));
+      if (['SERPENT','ARTHROPOD'].includes(fam)) L.push(mk('dot','พิษเขี้ยวและหนามอสูร',t,'m',{dotKind:'poison'}));
+      if (['PLANT','PLANT_SPIRIT'].includes(fam)) L.push(mk('control','เถาวัลย์พันธนาการ',t,'m',{ctrl:'root'}));
+      if (t >= 3) L.push(mk('control','ปราณอสูรสะกดศัตรู',t,'m',
+        {ctrl:rawElement === 'WATER_ICE' ? 'slow' : rawElement === 'LIGHTNING' ? 'stun' : 'weaken'}));
+      if (t >= 5) L.push(mk('burst','ปราณอสูรบรรพกาลปะทุ',t,'m',{aoe:true}));
+      const ability = u.specialAbility;
+      if (ability) {
+        const defs = {
+          ABIL_IRON_MARROW_GUARD:['counter',{shield:0.12,self:true}],
+          ABIL_THUNDER_TUSK_STAMPEDE:['charge',{pen:25,ctrl:'armorbreak'}],
+          ABIL_SOLAR_STAR_AEGIS:['guard',{shield:0.18,self:true}],
+          ABIL_MIST_QILIN_BLESSING:['heal',{heal:0.10,overhealBarrier:true,team:true,aoe:true}],
+          ABIL_FROST_PEARL_MAELSTROM:['control',{ctrl:'slow',aoe:true}],
+          ABIL_BODHI_THORN_SANCTUARY:['support',{heal:0.06,shield:0.10,team:true,aoe:true,grantBuff:'vitalRegen'}]
+        };
+        const spec = defs[ability.id];
+        if (spec) L.push(mk(spec[0],ability.nameTh,t,'m',Object.assign({id:ability.id,beastNativeAbility:ability.id},spec[1])));
+      }
     } else if (u && u.kind === 'beast') {
       const fam = String(u.family || (species && species.family) || '').toUpperCase();
       const nm = String(u.name || '');
@@ -900,7 +984,7 @@
       if (t >= 4) L.push(mk('burst', 'พลังอสูรบรรพกาลปะทุ', t, 'm', { aoe: true, range: { min: 0, max: 3.6, shape: 'CIRCLE_TARGET', radius: 2.5 } }));
     } else {
       const wType = wProf.weaponType || 'SWORD';
-      if (wType === 'BOW' || wType === 'FOCUS' || wType === 'ZITHER' || wType === 'BRUSH') {
+      if (wType === 'BOW' || wType === 'FOCUS' || wType === 'ZITHER' || wType === 'BRUSH' || wType === 'ABACUS' || wType === 'FAN') {
         L.push(mk('snipe', wType === 'BOW' ? 'ศรทะลวงใจ' : 'คลื่นปราณจู่โจมไกล', t, wType === 'BOW' ? 'p' : 'm', { range: { min: 1.2, max: wType === 'BOW' ? 5.2 : 4.2, shape: 'SINGLE', requiresLoS: true } }));
         L.push(mk('strike', 'ซัดปราณป้องกันตัวระยะประชิด', Math.max(1, t - 1), 'p', { knockback: { dist: 1.4 }, range: { min: 0, max: 1.4, shape: 'SINGLE' } }));
         if (t >= 2) L.push(mk('barrage', 'ระดมซัดศรปราณ', t, wType === 'BOW' ? 'p' : 'm', { aoe: true, range: { min: 1.0, max: 4.5, shape: 'CIRCLE_TARGET', radius: 2.4, requiresLoS: true } }));
@@ -1181,25 +1265,39 @@
       return { weaponType: 'FIST', reachClass: 'SHORT_SWIFT', engageRange: 1.7, isHeavyFist: false, hasLightness: false, hasDefenseTech: false, spec: SK.WEAPON_TACTICS.FIST };
     }
     const eqW = u.equip ? u.equip.WEAPON : (u.weaponType || null);
+    const vSub = (eqW && typeof eqW === 'object') ? (eqW.visualSubtype || '') : '';
     const stc = u._activeStance || u._combatStance || '';
     const cSub = (u.cult && u.cult.sub) || u.subPath || 'NONE';
     const cPath = (u.cult && u.cult.path) || u.path || 'NONE';
     const tl = (u.cult && u.cult.techs) ? u.cult.techs.length : (u.skl ? u.skl.length : 0);
     const wtc = u._wpTacCache;
-    if (wtc && wtc.eqW === eqW && wtc.stc === stc && wtc.cSub === cSub && wtc.cPath === cPath && wtc.tl === tl && wtc.pver === (u._passVer || 0)) return wtc.out;
+    if (wtc && wtc.eqW === eqW && wtc.vSub === vSub && wtc.stc === stc && wtc.cSub === cSub && wtc.cPath === cPath && wtc.tl === tl && wtc.pver === (u._passVer || 0)) return wtc.out;
     const wType = u.foe
       ? SK.inferFoeWeaponType(u)
       : ((g.MARTIAL && g.MARTIAL.equippedType) ? g.MARTIAL.equippedType(u) : (u.weaponType || 'FIST'));
     const sub = (u.cult && u.cult.sub) || u.subPath || 'NONE';
     const path = (u.cult && u.cult.path) || u.path || 'NONE';
     const isHeavyFist = wType === 'FIST' && (path === 'BODY' || SK.HEAVY_FIST_SUBPATHS.includes(sub) || (u.foe && (u.fourSymbol === 'BLACK_TORTOISE' || u.bloodlineTrait === 'IRON_CARAPACE')));
+    const isHeavyWeapon = vSub === 'HEAVY_SWORD' || vSub === 'HAMMER' || !!(eqW && eqW.reqStrength >= 55);
+    const isFlyingSwordSub = ['MIND_SWORD_TELEKINESIS', 'FLYING_BLADE_ORBITER', 'CELESTIAL_STAR_SWORD'].includes(sub) && ['SWORD', 'BLADE', 'FOCUS'].includes(wType);
+    const isThrowingDagger = vSub === 'DAGGER' && !!(eqW && (eqW.id === 'LEG_WPN_XIAOLI_HEART_DAGGER' || /มีดบิน/.test(eqW.nameTh || '')));
+    const isMeleeDagger = vSub === 'DAGGER' && !isThrowingDagger;
     const baseSpec = SK.WEAPON_TACTICS[wType] || SK.WEAPON_TACTICS.FIST;
-    const reachClass = isHeavyFist ? 'HEAVY_BREAKER' : baseSpec.reachClass;
+    const reachClass = (isHeavyFist || isHeavyWeapon)
+      ? 'HEAVY_BREAKER'
+      : isThrowingDagger
+        ? 'RANGED_KITE'
+        : isMeleeDagger
+          ? 'SHORT_SWIFT'
+          : isFlyingSwordSub
+            ? 'MID_TACTICAL'
+            : baseSpec.reachClass;
     const hasLightness = u.foe ? !!(u.hasLightness || (u.skl && u.skl.some(s => s.arch === 'charge' || s.arch === 'blink' || s.arch === 'evade'))) : SK.hasLightnessOrGapCloser(u);
     const hasDefenseTech = u.foe ? !!(u.hasDefenseTech || u.fourSymbol === 'BLACK_TORTOISE' || (u.skl && u.skl.some(s => s.arch === 'guard' || s.arch === 'shield'))) : SK.hasDefensiveTech(u);
     const stanceSpec = (!u.foe && g.STATS && g.STATS.getActiveStanceSpec) ? g.STATS.getActiveStanceSpec(u) : null;
     const stanceRangeDelta = (u._activeStance === 'THUNDER_STEP_STANCE' || u._activeStance === 'PUPPET_OVERDRIVE_MODE') ? 0.55 : 0;
-    const engageRange = +((baseSpec.engageRange || 1.7) + stanceRangeDelta).toFixed(2);
+    const baseEngage = isThrowingDagger ? 3.2 : isFlyingSwordSub ? 2.55 : isMeleeDagger ? 1.65 : (baseSpec.engageRange || 1.7);
+    const engageRange = +(baseEngage + stanceRangeDelta).toFixed(2);
     const bandObj = SK.classifyRangeBand(engageRange);
     const resObj = {
       weaponType: wType,
@@ -1217,7 +1315,7 @@
       descTh: baseSpec.descTh,
       spec: baseSpec
     };
-    u._wpTacCache = { eqW, stc, cSub, cPath, tl, pver: u._passVer || 0, out: resObj };
+    u._wpTacCache = { eqW, vSub, stc, cSub, cPath, tl, pver: u._passVer || 0, out: resObj };
     return resObj;
   };
 
@@ -1815,14 +1913,14 @@
     },
     sig_iai_crimson_moon_slash: {
       id: 'sig_iai_crimson_moon_slash',
-      nameTh: 'เพลงดาบอิไอผ่าจันทราโลหิตไร้ปราณ',
+      nameTh: 'ดาบชักฝักจันทร์สีชาดสะบั้นพริบตา',
       icon: '⚔️',
       shape: 'iai_crimson_moon_slash',
       role: 'OFFENSE',
       primary: '#e63946',
       secondary: '#f1faee',
       accent: '#ffd166',
-      descTh: 'ประกายดาบอิไอไร้ปราณชักฟันเสี้ยววินาทีเกิดเป็นวงพระจันทร์เสี้ยวสีชาดตัดผ่ามิติ'
+      descTh: 'ประกายดาบชักฝักไร้ปราณชักฟันเสี้ยววินาทีเกิดเป็นวงพระจันทร์เสี้ยวสีชาดตัดผ่ามิติ'
     },
     sig_shinobi_phantom_clone_ambush: {
       id: 'sig_shinobi_phantom_clone_ambush',
@@ -1870,7 +1968,7 @@
     },
     sig_khmer_sacred_yantra_seal: {
       id: 'sig_khmer_sacred_yantra_seal',
-      nameTh: 'มหายันต์เก้ายอดอาคมขอมคงกระพัน',
+      nameTh: 'มหายันต์อาคมโบราณคงกระพันชาตรี',
       icon: '📿',
       shape: 'khmer_sacred_yantra_seal',
       role: 'DEFENSE',
@@ -1914,14 +2012,14 @@
     },
     sig_primordial_beast_totem: {
       id: 'sig_primordial_beast_totem',
-      nameTh: 'เสาโทเท็มอัญเชิญจตุรเทพราชันอสูร',
+      nameTh: 'เสาขวัญวิญญาณหมื่นอสูรบรรพกาล',
       icon: '🐺',
       shape: 'primordial_beast_totem_gate',
       role: 'SUMMON',
       primary: '#e09f3e',
       secondary: '#51cf66',
       accent: '#ff4d6d',
-      descTh: 'เสาโทเท็มบรรพกาลผุดขึ้นพร้อมเงาปีกคุนเผิงและเขี้ยวอสูรเทาเที่ยคำรามสะท้านภพ'
+      descTh: 'เสาขวัญวิญญาณบรรพกาลผุดขึ้นพร้อมเงาปีกคุนเผิงและเขี้ยวอสูรเทาเที่ยคำรามสะท้านภพ'
     },
     sig_heaven_brush_astrolabe: {
       id: 'sig_heaven_brush_astrolabe',
@@ -1965,7 +2063,7 @@
       primary: '#f4a261',
       secondary: '#ffd166',
       accent: '#ff4d00',
-      descTh: 'เตาหลอมสามขาสวรรค์ลอยเด่นกลางหาวพร้อมเพลิงสาม昧และค้อนเทวะตีหลอมศาสตรา'
+      descTh: 'เตาหลอมสามขาสวรรค์ลอยเด่นกลางหาวพร้อมเพลิงสมาธิแท้และค้อนเทวะตีหลอมศาสตรา'
     },
     sig_tidal_maelstrom_anchors: {
       id: 'sig_tidal_maelstrom_anchors',
@@ -2035,8 +2133,8 @@
       primary: '#738b43', secondary: '#c1121f', accent: '#e9edc9', descTh: 'เถาวัลย์เหล็กไขว้รัดจากพื้นพร้อมหนามล็อกข้อต่อ ไม่ซ้ำกับภาพบัวหรือหมอกพิษ'
     },
     sig_arena_crowd_roar: {
-      id: 'sig_arena_crowd_roar', nameTh: 'สังเวียนกึกก้องเสียงเชียร์', icon: '🏟️', shape: 'arena_crowd_roar', role: 'COMBAT_SUPPORT',
-      primary: '#f77f00', secondary: '#e9c46a', accent: '#fff3b0', descTh: 'แนวอัฒจันทร์โค้งล้อมวงประลอง ปล่อยคลื่นเสียงเชียร์เป็นจังหวะหนุนหมัดเด็ด'
+      id: 'sig_arena_crowd_roar', nameTh: 'สังเวียนกึกก้องเสียงโห่ร้อง', icon: '🏟️', shape: 'arena_crowd_roar', role: 'COMBAT_SUPPORT',
+      primary: '#f77f00', secondary: '#e9c46a', accent: '#fff3b0', descTh: 'แนวอัฒจันทร์โค้งล้อมวงประลอง ปล่อยคลื่นเสียงโห่ร้องเป็นจังหวะหนุนหมัดเด็ด'
     }
   };
   SK.SIGNATURE_VFX_CATALOG.sig_divine_crucible_forge = {
@@ -2095,7 +2193,10 @@
     LORE_ARCHIVIST: 'sig_heaven_brush_astrolabe',
     FORTUNE_GAMBLER: 'sig_golden_abacus_wheel',
     SPIRIT_HUSBANDRY: 'sig_shennong_emerald_lotus',
-    ARENA_GLORY: 'sig_imperial_eight_gates_banner'
+    ARENA_GLORY: 'sig_imperial_eight_gates_banner',
+    CORPSE_SOVEREIGN: 'sig_myriad_puppet_barrage',
+    WRAITH_GRIEVANCE: 'sig_nether_grave_soul_eruption',
+    DEATHLESS_CADAVER: 'sig_blood_lotus_apocalypse'
   });
 
   SK.TECH_TO_SIGNATURE_VFX = {
@@ -2164,6 +2265,19 @@
 
     // 3. GOD
     LEG_V240_GOD: 'sig_pantheon_deity_descent',
+    // JS2 v3.7.0c: 12 Legendary & Transcendent Dao Tier-7 Apex Signatures
+    LEG_V370_LEG_READ_FORM_BLADE: 'sig_iai_crimson_moon_slash',
+    LEG_V370_LEG_TRIAGE_MERIDIAN: 'sig_shennong_emerald_lotus',
+    LEG_V370_LEG_STORM_CALLER_TEMPEST: 'sig_thunder_god_halberd',
+    LEG_V370_LEG_JADE_CARAVAN_VOYAGER: 'sig_eight_directions_palm',
+    LEG_V370_LEG_OATH_JUDGE_WARDEN: 'sig_golden_buddha_bell',
+    LEG_V370_LEG_ASHEN_KILN_ALCHEMY: 'sig_shinobi_mudra_firestorm',
+    LEG_V370_TRANS_CONSTELLATION_RELAY: 'sig_heavens_sound_requiem',
+    LEG_V370_TRANS_FIELD_CLAUSE_SOVEREIGN: 'sig_taiji_yin_yang_crush',
+    LEG_V370_TRANS_TEMPO_SOVEREIGN: 'sig_void_spatial_slash',
+    LEG_V370_TRANS_SEALKEEPER_FORBIDDEN_KEY: 'sig_myriad_puppet_barrage',
+    LEG_V370_TRANS_PRIMAL_VORTEX_MIRROR: 'sig_void_spatial_slash',
+    LEG_V370_TRANS_DYNASTIC_MANDATE_WEAVER: 'sig_pantheon_deity_descent',
     ART190_GOD_040: 'sig_pantheon_deity_descent',
     ART190_GOD_075: 'sig_soul_scorching_flame',
     MP_STAFF_EARTH_GOD_BLESSING_T7: 'sig_shennong_emerald_lotus',
@@ -2625,7 +2739,7 @@
   SK.resolveCommonVfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const id = techOrMove.tech || techOrMove.id;
-    const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
+    const tech = (g.CULT && g.CULT.tech && g.CULT.tech(id)) || techOrMove;
     if (!tech || tech.legendary || tech.tier > 2 || tech.signatureVfx || tech.fxKind ||
         SK.TECH_TO_SIGNATURE_VFX[id] || techOrMove.signatureVfx ||
         (moveOpt && moveOpt.signatureVfx)) return null;
@@ -2862,14 +2976,16 @@
   SK.resolveT3Vfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const id = techOrMove.tech || techOrMove.id;
-    const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
+    const tech = (g.CULT && g.CULT.tech && g.CULT.tech(id)) || techOrMove;
     if (!tech || tech.tier !== 3 || tech.legendary || tech.fxKind || tech.signatureVfx ||
         techOrMove.signatureVfx || SK.TECH_TO_SIGNATURE_VFX[id] ||
         (moveOpt && (moveOpt.signatureVfx || moveOpt.fxKind || moveOpt.legendary))) return null;
     const moveId = moveOpt && (moveOpt.moveId || moveOpt.id);
     const move = (tech.moveDefs || []).find(m => m.id === moveId);
     if (move && (move.signatureVfx || move.fxKind || move.legendary || move.arch === 'forbid')) return null;
-    return SK.TECH_TO_T3_VFX[id] || null;
+    if (SK.TECH_TO_T3_VFX && SK.TECH_TO_T3_VFX[id]) return SK.TECH_TO_T3_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_') || tech.path === 'CORPSE_SOVEREIGN' || tech.path === 'WRAITH_GRIEVANCE' || tech.path === 'DEATHLESS_CADAVER' || String(id).startsWith('TECH_NECRO_UNI_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T3_VFX, tech, id); if (_tv) return _tv; }
+    return SK.TECH_TO_T3_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 'bone_ribs' : tech.cat === 'FAITH_MANTRA' ? 'faith_lamella' : 'healing_chime') : null);
   };
 
   // Reviewed T7 IDs, not an automatic route for future/unreviewed content.
@@ -2980,7 +3096,7 @@
       "family": "galaxy_arrow",
       "variant": 18,
       "oldSignature": "sig_meteor_sword_rain",
-      "nameTh": "มหาคัมภีร์ศรทางช้างเผือกทะลวงจักรวาล"
+      "nameTh": "มหาคัมภีร์ศรธารดาราทะลวงพิภพ"
     },
     "MP_BLADE_SOVEREIGN_HEAVEN_REND_T7": {
       "family": "myriad_blades",
@@ -3220,7 +3336,7 @@
       "family": "zither_chords",
       "variant": 58,
       "oldSignature": "sig_heavens_sound_requiem",
-      "nameTh": "เคล็ดวิชาสายวาทยกรสวรรค์ประสานคีตา (คีตายุทธ)"
+      "nameTh": "เคล็ดวิชาจ้าวสังคีตประสานทำนองฟ้า"
     },
     "TECH_V200_VENOM_GU_ACT_06": {
       "family": "venom_hive",
@@ -3299,14 +3415,40 @@
       "variant": 71,
       "oldSignature": "sig_divine_crucible_forge",
       "nameTh": "มหาคัมภีร์เตาหลอมสวรรค์รังสรรค์หมื่นศาสตรา"
-    }
+    },
+    "LEG_V370_LEG_READ_FORM_BLADE": { "family": "void_blade", "variant": 72, "oldSignature": "sig_iai_crimson_moon_slash", "nameTh": "มหาคมกระบี่อ่านช่องฟ้าสะบั้นจุดตาย" },
+    "LEG_V370_LEG_TRIAGE_MERIDIAN": { "family": "vital_garden", "variant": 73, "oldSignature": "sig_shennong_emerald_lotus", "nameTh": "มหาเข็มชีพจรประคองสหายคืนชีวิต" },
+    "LEG_V370_LEG_STORM_CALLER_TEMPEST": { "family": "cloud_thunder", "variant": 74, "oldSignature": "sig_thunder_god_halberd", "nameTh": "มหาอสนีบัญชาพายุเจ็ดคาบสมุทร" },
+    "LEG_V370_LEG_JADE_CARAVAN_VOYAGER": { "family": "earth_veins", "variant": 75, "oldSignature": "sig_eight_directions_palm", "nameTh": "มหาด่านคาราวานหยกพิทักษ์หมื่นลี้" },
+    "LEG_V370_LEG_OATH_JUDGE_WARDEN": { "family": "gold_balance", "variant": 76, "oldSignature": "sig_golden_buddha_bell", "nameTh": "มหาตราตุลาการสัตย์สาบานสะกดยุทธภพ" },
+    "LEG_V370_LEG_ASHEN_KILN_ALCHEMY": { "family": "forge_lattice", "variant": 77, "oldSignature": "sig_shinobi_mudra_firestorm", "nameTh": "มหาเตาเถ้าคืนชีวิตหลอมโอสถนิรันดร์" },
+    "LEG_V370_TRANS_CONSTELLATION_RELAY": { "family": "astral_ladle", "variant": 78, "oldSignature": "sig_heavens_sound_requiem", "nameTh": "มหาค่ายประสานปราณหมู่ดาวค้ำฟ้า" },
+    "LEG_V370_TRANS_FIELD_CLAUSE_SOVEREIGN": { "family": "rune_brush", "variant": 79, "oldSignature": "sig_taiji_yin_yang_crush", "nameTh": "มหาธรรมนูญฟ้าขีดเขตบัญญัติพิภพ" },
+    "LEG_V370_TRANS_TEMPO_SOVEREIGN": { "family": "epoch_glass", "variant": 80, "oldSignature": "sig_void_spatial_slash", "nameTh": "มหาจังหวะกาลตัดห้วงลมหายใจฟ้า" },
+    "LEG_V370_TRANS_SEALKEEPER_FORBIDDEN_KEY": { "family": "puppet_lines", "variant": 81, "oldSignature": "sig_myriad_puppet_barrage", "nameTh": "มหากุญแจผนึกต้องห้ามสะกดหมื่นมาร" },
+    "LEG_V370_TRANS_PRIMAL_VORTEX_MIRROR": { "family": "dream_loom", "variant": 82, "oldSignature": "sig_void_spatial_slash", "nameTh": "มหากระจกวนปราณสะท้อนหมื่นสรรพวิชา" },
+    "LEG_V370_TRANS_DYNASTIC_MANDATE_WEAVER": { "family": "celestial_edict", "variant": 83, "oldSignature": "sig_pantheon_deity_descent", "nameTh": "มหาตราโองการทอชะตาแผ่นดินนิรันดร์" },
+    "LEG_V397_CORPSE_SOVEREIGN": { "family": "puppet_lines", "variant": 79, "oldSignature": "sig_myriad_puppet_barrage", "nameTh": "มหาขบวนศพหมื่นร่างข้ามขุนเขาเซียงซี" },
+    "LEG_V397_WRAITH_GRIEVANCE": { "family": "void_rift", "variant": 80, "oldSignature": "sig_nether_grave_soul_eruption", "nameTh": "มหาบัญชีหนี้เลือดเก้าพันวิญญาณทวงแค้น" },
+    "LEG_V397_DEATHLESS_CADAVER": { "family": "crimson_inferno", "variant": 81, "oldSignature": "sig_blood_lotus_apocalypse", "nameTh": "มหากายอมตะไร้ชีพเย้ยยมทูตร้อยครา" }
   };
   SK.resolveT7Vfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const id = techOrMove.tech || techOrMove.id;
-    const tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
+    const tech = (g.CULT && g.CULT.tech && g.CULT.tech(id)) || techOrMove;
     if (!tech || tech.tier !== 7 || tech.legendary || techOrMove.legendary || tech.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary))) return null;
-    return SK.T7_VFX_CATALOG[id] || null;
+    if (SK.T7_VFX_CATALOG && SK.T7_VFX_CATALOG[id]) return SK.T7_VFX_CATALOG[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_'))) {
+      const _t7Fam = {
+        LEG_READ_FORM_BLADE: 'myriad_blades', LEG_TRIAGE_MERIDIAN: 'lotus_bloom', LEG_STORM_CALLER_TEMPEST: 'thunder_cataclysm',
+        LEG_JADE_CARAVAN_VOYAGER: 'earth_shatter', LEG_OATH_JUDGE_WARDEN: 'golden_sanctum', LEG_ASHEN_KILN_ALCHEMY: 'crimson_inferno',
+        TRANS_CONSTELLATION_RELAY: 'star_constellation', TRANS_FIELD_CLAUSE_SOVEREIGN: 'imperial_seal', TRANS_TEMPO_SOVEREIGN: 'void_rift',
+        TRANS_SEALKEEPER_FORBIDDEN_KEY: 'void_rift', TRANS_PRIMAL_VORTEX_MIRROR: 'star_constellation', TRANS_DYNASTIC_MANDATE_WEAVER: 'golden_sanctum',
+        CORPSE_SOVEREIGN: 'void_rift', WRAITH_GRIEVANCE: 'void_rift', DEATHLESS_CADAVER: 'crimson_inferno'
+      }[tech.path] || 'star_constellation';
+      return { family: _t7Fam, variant: 1, nameTh: tech.nameTh || 'มหาเคล็ดบ่มเพาะ' };
+    }
+    return SK.T7_VFX_CATALOG[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? { family: 'myriad_blades', variant: 1, nameTh: tech.nameTh || 'มหาเคล็ดบ่มเพาะ' } : null);
   };
 
 
@@ -3745,6 +3887,8 @@
     if(!tech||tech.tier!==6||tech.legendary||techOrMove.legendary||tech.fxKind||techOrMove.fxKind||(moveOpt&&(moveOpt.fxKind||moveOpt.legendary||moveOpt.signatureVfx)))return null;
     const move=moveOpt&&(tech.moveDefs||[]).find(m=>m.id===moveOpt.id);
     if(move&&(move.fxKind||move.legendary||move.signatureVfx))return null;
+    if (SK.TECH_TO_T6_VFX && SK.TECH_TO_T6_VFX[id]) return SK.TECH_TO_T6_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_') || tech.path === 'CORPSE_SOVEREIGN' || tech.path === 'WRAITH_GRIEVANCE' || tech.path === 'DEATHLESS_CADAVER' || String(id).startsWith('TECH_NECRO_UNI_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T6_VFX, tech, id); if (_tv) return _tv; }
     return SK.TECH_TO_T6_VFX[id]||null;
   };
 
@@ -4100,7 +4244,7 @@
     "shapeId": 39
   },
   "t5_samadhi_furnace_fire": {
-    "nameTh": "เพลิงสามเณรเตาหลอม",
+    "nameTh": "เพลิงสมาธิแท้หลอมสวรรค์",
     "primary": "#e08e6d",
     "accent": "#f7d5c6",
     "motion": "rise",
@@ -4205,7 +4349,7 @@
     "shapeId": 54
   },
   "t5_void_rift_prism": {
-    "nameTh": "ปริซึมผ่ามิติว่างเปล่า",
+    "nameTh": "ผลึกเจ็ดแสงผ่ามิติสุญตา",
     "primary": "#a594c9",
     "accent": "#e0d8f0",
     "motion": "sweep",
@@ -4558,7 +4702,9 @@
     if (!tech || tech.tier !== 5 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T5_VFX[id] || null;
+    if (SK.TECH_TO_T5_VFX && SK.TECH_TO_T5_VFX[id]) return SK.TECH_TO_T5_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_') || tech.path === 'CORPSE_SOVEREIGN' || tech.path === 'WRAITH_GRIEVANCE' || tech.path === 'DEATHLESS_CADAVER' || String(id).startsWith('TECH_NECRO_UNI_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T5_VFX, tech, id); if (_tv) return _tv; }
+    return SK.TECH_TO_T5_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't5_totem_beast_crest' : tech.cat === 'FAITH_MANTRA' ? 't5_nether_ghost_lantern' : 't5_ocean_tide_trident') : null);
   };
 
   SK.T4_VFX_FAMILIES = {
@@ -5520,13 +5666,43 @@
   "TECH_V234_STRATEGY_GOVERNANCE_PAS_02": "t4_command_banner_thrust",
   "TECH_V234_STRATEGY_GOVERNANCE_AUX_02": "t4_tactical_shield_wall"
 };
+
+  SK._pickThematicDaoVfx = (mapObj, tech, id) => {
+    const vals = Object.values(mapObj || {});
+    if (!vals.length) return null;
+    const p = tech && tech.path || '';
+    const kwRe = {
+      LEG_READ_FORM_BLADE: /sword|blade|slash|cut|arc/i,
+      LEG_TRIAGE_MERIDIAN: /lotus|heal|jade|pulse|calm|chime|water|light/i,
+      LEG_STORM_CALLER_TEMPEST: /thunder|storm|lightning|wind|gale|frost/i,
+      LEG_JADE_CARAVAN_VOYAGER: /earth|shield|gold|iron|guard|stride/i,
+      LEG_OATH_JUDGE_WARDEN: /gold|bell|seal|light|lotus|judgment|sword/i,
+      LEG_ASHEN_KILN_ALCHEMY: /fire|flame|ember|ash|earth|cauldron|burn/i,
+      TRANS_CONSTELLATION_RELAY: /star|astral|lotus|light|chord|zither|heal/i,
+      TRANS_FIELD_CLAUSE_SOVEREIGN: /seal|array|gate|banner|imperial|earth/i,
+      TRANS_TEMPO_SOVEREIGN: /wind|void|chrono|wave|water|step|arc/i,
+      TRANS_SEALKEEPER_FORBIDDEN_KEY: /seal|chain|void|shadow|ward|talisman/i,
+      TRANS_PRIMAL_VORTEX_MIRROR: /mirror|star|vortex|water|astral|arc/i,
+      TRANS_DYNASTIC_MANDATE_WEAVER: /imperial|gold|star|banner|seal|light/i,
+      CORPSE_SOVEREIGN: /shadow|void|puppet|bone|dark|earth/i,
+      WRAITH_GRIEVANCE: /shadow|void|soul|wisp|dark|ghost/i,
+      DEATHLESS_CADAVER: /blood|crimson|bone|poison|dark|flame/i
+    }[p];
+    const filtered = kwRe ? vals.filter(v => kwRe.test(String(typeof v === 'string' ? v : (v && (v.family || v.id || ''))))) : [];
+    const pool = filtered.length ? filtered : vals;
+    const h = Math.abs(String(id || '').split('').reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0));
+    return pool[h % pool.length];
+  };
+
   SK.resolveT4Vfx = (techOrMove, moveOpt) => {
     if (!techOrMove) return null;
     const id = techOrMove.tech || techOrMove.id, tech = g.CULT && g.CULT.tech ? g.CULT.tech(id) : techOrMove;
     if (!tech || tech.tier !== 4 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T4_VFX[id] || null;
+    if (SK.TECH_TO_T4_VFX[id]) return SK.TECH_TO_T4_VFX[id];
+    if (tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_') || tech.path === 'CORPSE_SOVEREIGN' || tech.path === 'WRAITH_GRIEVANCE' || tech.path === 'DEATHLESS_CADAVER' || String(id).startsWith('TECH_NECRO_UNI_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T4_VFX, tech, id); if (_tv) return _tv; }
+    return ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't4_tactical_shield_wall' : tech.cat === 'FAITH_MANTRA' ? 't4_five_element_flags' : 't4_bagua_trigram_ring') : null);
   };
 
   SK.T3_EXT_VFX_CATALOG = {
@@ -6705,7 +6881,9 @@
     if (!tech || tech.tier !== 2 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T2_VFX[id] || null;
+    if (SK.TECH_TO_T2_VFX && SK.TECH_TO_T2_VFX[id]) return SK.TECH_TO_T2_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_') || tech.path === 'CORPSE_SOVEREIGN' || tech.path === 'WRAITH_GRIEVANCE' || tech.path === 'DEATHLESS_CADAVER' || String(id).startsWith('TECH_NECRO_UNI_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T2_VFX, tech, id); if (_tv) return _tv; }
+    return SK.TECH_TO_T2_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 't2_heavy_shoulder_ram' : tech.cat === 'FAITH_MANTRA' ? 't2_incense_prayer_wisp' : 't2_golden_shield_glint') : null);
   };
 
   SK.T1_EXT_VFX_CATALOG = {
@@ -7132,7 +7310,9 @@
     if (!tech || tech.tier !== 1 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T1_VFX[id] || null;
+    if (SK.TECH_TO_T1_VFX && SK.TECH_TO_T1_VFX[id]) return SK.TECH_TO_T1_VFX[id];
+    if (tech && tech.path && (tech.path.startsWith('LEG_') || tech.path.startsWith('TRANS_') || tech.path === 'CORPSE_SOVEREIGN' || tech.path === 'WRAITH_GRIEVANCE' || tech.path === 'DEATHLESS_CADAVER' || String(id).startsWith('TECH_NECRO_UNI_'))) { const _tv = SK._pickThematicDaoVfx && SK._pickThematicDaoVfx(SK.TECH_TO_T1_VFX, tech, id); if (_tv) return _tv; }
+    return SK.TECH_TO_T1_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? (tech.cat === 'BODY_MANTRA' ? 'iron_palm' : tech.cat === 'FAITH_MANTRA' ? 'incense_wisp' : 'twin_balance') : null);
   };
 
   SK.T6_EXT_VFX_FAMILIES = {
@@ -7293,7 +7473,7 @@
     if (!tech || tech.tier !== 6 || tech.legendary || techOrMove.legendary || tech.fxKind || techOrMove.fxKind || (moveOpt && (moveOpt.fxKind || moveOpt.legendary || moveOpt.signatureVfx))) return null;
     const move = moveOpt && (tech.moveDefs || []).find(m => m.id === moveOpt.id);
     if (move && (move.fxKind || move.legendary || move.signatureVfx)) return null;
-    return SK.TECH_TO_T6_EXT_VFX[id] || SK.TECH_TO_T6_VFX[id] || null;
+    return SK.TECH_TO_T6_EXT_VFX[id] || SK.TECH_TO_T6_VFX[id] || ((tech.cat === 'QI_MANTRA' || tech.cat === 'BODY_MANTRA' || tech.cat === 'FAITH_MANTRA') ? 'void' : null);
   };
 
   SK.SUBPATH_VFX_MOTIFS = {
@@ -8982,3 +9162,81 @@
   g.SK = SK;
   if (typeof module === 'object' && module.exports) module.exports = SK;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+;(function syncSkillsPolishV260() {
+  const gObj = typeof globalThis !== "undefined" ? globalThis : window;
+  const SK = gObj.SK;
+  if (!SK) return;
+  if (SK.STATUS && SK.STATUS.slow) SK.STATUS.slow.nameTh = "ฝีเท้าเชื่องช้า";
+  if (SK.SUBPATH_ARCHETYPES_V235) {
+    for (const spec of Object.values(SK.SUBPATH_ARCHETYPES_V235)) {
+      if (spec && typeof spec.nameTh === "string") {
+        spec.nameTh = spec.nameTh.replace(/\s*\([A-Za-z\s\-]+\)\s*$/, "").trim();
+      }
+    }
+  }
+})();
+
+/* === CARBON_COMPENDIA_SKILLS_AND_VERSES_V260 === */
+;(function initCarbonSkillsAndVerses() {
+  const g = typeof globalThis !== 'undefined' ? globalThis : window;
+  const SK = g.SK, JD = g.JD, CULT = g.CULT, HC = g.HC, U = g.U;
+  if (!SK || !JD) return;
+
+  // 1. Register Sovereign Statuses into SK.STATUS & SK.SOVEREIGN_STATUS_CATALOG
+  SK.SOVEREIGN_STATUS_CATALOG = {
+    sov_origin_sunder: { id: 'sov_origin_sunder', nameTh: 'สะบั้นปราณต้นกำเนิด', kind: 'debuff', dur: 12 },
+    sov_veil_blindspot: { id: 'sov_veil_blindspot', nameTh: 'เร้นจุดบอดสายตา', kind: 'buff', dur: 10 },
+    sov_lineage_aegis: { id: 'sov_lineage_aegis', nameTh: 'ปราการเจ็ดชั่วรุ่น', kind: 'buff', dur: 14 },
+    sov_cocoon_stasis: { id: 'sov_cocoon_stasis', nameTh: 'ดักแด้ทอชะตากำเนิดใหม่', kind: 'buff', dur: 4 },
+    sov_chrono_bookmark: { id: 'sov_chrono_bookmark', nameTh: 'ตราคั่นเวลากาลนิรันดร์', kind: 'buff', dur: 16 },
+    sov_coffin_suppressed: { id: 'sov_coffin_suppressed', nameTh: 'หีบหมื่นศาสตราสะกดข่ม', kind: 'debuff', dur: 10 },
+    sov_dao_scar_burn: { id: 'sov_dao_scar_burn', nameTh: 'รอยแผลเต๋ากัดกร่อน', kind: 'debuff', dur: 12 },
+    sov_fourth_verse_zenith: { id: 'sov_fourth_verse_zenith', nameTh: 'รู้แจ้งกระบวนท่าที่สี่ของตน', kind: 'buff', dur: 20 }
+  };
+  SK.STATUS = SK.STATUS || {};
+  for (const [k, v] of Object.entries(SK.SOVEREIGN_STATUS_CATALOG)) {
+    if (!SK.STATUS[k]) SK.STATUS[k] = v;
+  }
+
+  // 2. Index Sovereign Combat Techniques (TCMB_SOV_01..06)
+  SK.SOVEREIGN_COMBAT_TECHS = {};
+  (JD.TECH.sovereignCombatArts || []).forEach(t => {
+    if (!t || !t.id) return;
+    SK.SOVEREIGN_COMBAT_TECHS[t.id] = t;
+    if (t.shortId) SK.SOVEREIGN_COMBAT_TECHS[t.shortId] = t;
+  });
+
+  // 3. Deterministic Self-Authored 4th Verse Synthesizer (0 W.rng calls!)
+  SK.synthesizeFourthVerse = (W, npc, techOrId) => {
+    if (!npc) return null;
+    const t = typeof techOrId === 'string' ? ((CULT && CULT.tech && CULT.tech(techOrId)) || SK.SOVEREIGN_COMBAT_TECHS[techOrId]) : techOrId;
+    if (!t) return null;
+    npc.authoredSovereignVerses = npc.authoredSovereignVerses || {};
+    if (npc.authoredSovereignVerses[t.id]) return npc.authoredSovereignVerses[t.id];
+
+    const given = (npc.h && npc.h.name && npc.h.name.given) || 'ไร้ชื่อ';
+    const pathKey = (npc.cult && npc.cult.path) || 'XIAN';
+    const elem = t.element || 'ASTRAL_VOID';
+    const verse4 = {
+      verse: 4,
+      id: t.id + '_V4_' + String(npc.id || 'NPC'),
+      parentTechId: t.id,
+      authorNpcId: npc.id,
+      nameTh: 'บทที่ 4 (บัญญัติเอง) · ' + given + 'ผ่าวิถี' + t.nameTh.slice(0, 18),
+      arch: 'burst',
+      type: 'm',
+      M: 4.65,
+      cd: 5,
+      qi: 52,
+      element: elem,
+      path: pathKey,
+      isSelfAuthoredFourthVerse: true,
+      descTh: 'กระบวนท่าที่สี่ซึ่ง ' + (HC ? HC.fullName(npc) : given) + ' บัญญัติขึ้นเองหลังบรรลุความเข้าใจเต็มร้อย'
+    };
+    npc.authoredSovereignVerses[t.id] = verse4;
+    if (t.shortId) npc.authoredSovereignVerses[t.shortId] = verse4;
+    return verse4;
+  };
+})();

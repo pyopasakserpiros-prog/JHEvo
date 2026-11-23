@@ -1,0 +1,18 @@
+{
+  "AGENTS.md": {
+    "byte_identical_to_base": true,
+    "sha256": "41610ec4de7f5d620c5de0a605094e64d95ec9a67acf41365dec30e83e7d29d3"
+  },
+  "GAME_SOURCE/js/human_core.js": {
+    "byte_identical_to_base": true,
+    "sha256": "a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542"
+  },
+  "GAME_SOURCE/index.html": {
+    "byte_identical_to_base": true,
+    "sha256": "6e1b20505257db44f67ac60cd90cef468238d9a4f15c89458c35140e8f6f5832"
+  },
+  "GAME_SOURCE/test/load.js": {
+    "byte_identical_to_base": true,
+    "sha256": "49e0d863bf41f72ecc1f1e97c239834cb0bf2d98ef2d4e5833bab42deab043ba"
+  }
+}

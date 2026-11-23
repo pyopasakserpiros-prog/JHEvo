@@ -1,0 +1,308 @@
+JS2 v3.9.6 — AI-Agent Patch Spec: Complete Equipment & Gear Audit (24 Teams)
+1. Audit Metadata & Hard Invariants (AGENTS.md)
+Codebase Target: JianghuSect Evolution (JS2 v3.9.6), GAME_SOURCE/
+Audit Mode: 100% Read-Only (0 game files modified during audit)
+Hard Locks (NEVER MODIFY):
+AGENTS.md (SHA-256 f8f0e6cb90f0ad4b3524b204f7ede97f351c0dac1540cd96c40723c888af0fb4)
+GAME_SOURCE/js/human_core.js (SHA-256 a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542, HC.FINGERPRINT === '155:2f9c9dd7')
+Observer-Autonomy Invariant: Zero player-control shortcuts; all equipment acquisition, crafting, refining, equipping, swapping, repairing, and resonance activation must function autonomously via SIM.tick / AI / ECO / EXT.
+Verification Baseline: node test/run_parallel.js (206/206 PASS) + node test/smoke_check.js + node test/perf_budget.js + zero NaN/exception regressions.
+2. 100% Coverage Summary (24 Non-Overlapping Subagent Teams)
+Equipable Items Audited: 1,011 / 1,011 (EQ_ALL = JD.ITEMS.items.filter(it => !!it.slot): WEAPON 624, ACCESSORY 256, ARMOR 131; T1:112, T2:124, T3:169, T4:161, T5:166, T6:131, T7:148) across Teams 1–20 (50–51 items/team, 0 gaps, 0 overlaps).
+Resonance Sets Audited: 77 / 77 (JD.MARTIAL.RESONANCE_SETS 74 + JD.v320ResonanceSets 3) — Team 21.
+Crafting, Recipes & Code-Zero Reachability: 1,263 / 1,263 recipes (1,008 equipment recipes) + 279 referenced materials + autonomous SIM.tick crafting — Team 22. Code Zero Verdict: 0 / 1,011 strictly Edit-Hub-only (984 craftable via recipes + 27 legendaries via CLUE_LEG_* chains).
+Core Runtime, Combat Procs, AI Loop & Save/Load: STATS.gearStats/gearScore/gearStateSig, MARTIAL.weaponCompatibility, COMBAT.runItemEffectProcs, 3-seed × 60-day live SIM.tick (387,180 ticks total), and SIM.serialize/SIM.deserialize round-trip — Team 23.
+Art Catalog, VFX, UI & Non-Slotted Items: docs/ITEM_ART_CATALOG.json (9 sheets × 64 cells = 576 cells), 27+40 Legendary Visual Identities, 64 Equipment Skill VFX + 17 aliases vs 132 effectIds, 174 UI archetypes, and non-slotted TOOL (6) / TALISMAN (55, incl. 24 unslotted) / FORMATION_PART (17) — Team 24.
+3. Deduplicated Bug Count Summary
+Severity Level | Description | Count | Bug IDs
+P0 Critical | Critical Live-Sim Disarming | 1 | BUG-E01
+P1 High | Stat/Save Corruption, Dead Systems, Economy Exploits, UI Leaks | 19 | BUG-E02 – BUG-E20
+P2 Medium | Caches, Combat Edge Cases, Balance, VFX/Art, Localization | 17 | BUG-E21 – BUG-E37
+P3 Low | Schema Hygiene, Boilerplate Text, Minor UI Polish | 5 | BUG-E38 – BUG-E42
+Total | Deduplicated Confirmed Bugs | 42 | 
+
+4. P0 Critical Bug (1)
+BUG-E01 [P0] ECO.recordWeaponKill Raises minStage Above Wielder's Stage (Self-Disarms Up to 28% of Living Sect) & Skips Martial Cache Invalidation
+Provenance: Team 23 (EQ23-01)
+Files & Lines: GAME_SOURCE/js/economy.js:3081–3116 (3100–3101, 3113), GAME_SOURCE/js/proficiency.js:107–108
+Root Cause: At 3/10/25 kills, ECO.recordWeaponKill increments wpn.tier and unconditionally sets wpn.minStage = Math.max(wpn.minStage || 1, Math.min(wpn.tier, 6)) without bounding minStage by CULT.effectiveTechStage(npc). The evolved weapon immediately fails MARTIAL.gearUsable(npc, wpn) ((it.minStage || 1) > effSt), dropping all weapon stats to 0, reverting MARTIAL.equippedType to 'FIST', blocking weapon-required moves, and disabling weapon procs/sets. Line 3113 also omits MARTIAL.invalidateMartialCaches(npc) and HC.bump(npc).
+Live Runtime Proof: 3-seed × 60-day SIM.tick (Seeds 101/202/303): 22 living NPCs (7/4/11, up to 28% of sect) ended Day 60 with !MARTIAL.gearUsable(n, n.equip.WEAPON) (e.g., Seed 101 n_master Stage 4 wielding uid_ITEM190_EQ_002_2 with minStage: 5; isolated Stage 1 SWORD_IMMORTAL + T1 EQ_V320_DAGGER_T1 after 3 kills → minStage: 2, usable: false, equippedType: 'FIST', atk 114 -> 104 -> 97 after cache flush).
+Patch Spec:
+In js/economy.js:3101, bound minStage by wielder's effective stage:const ownerEffSt = (npc && npc.cult) ? (g.CULT?.effectiveTechStage ? g.CULT.effectiveTechStage(npc) : (npc.cult.stage || 1)) : 6;wpn.minStage = Math.max(wpn.minStage || 1, Math.min(wpn.tier, 6, ownerEffSt));
+At js/economy.js:3113, call g.MARTIAL?.invalidateMartialCaches?.(npc) and HC.bump?.(npc).
+5. P1 High-Severity Bugs (19)
+BUG-E02 [P1] Save/Load Round-Trip Permanently Inflates Equipment Stats & Double-Applies effects/combatMult/defMult
+Provenance: Teams 1, 2, 4, 9, 13, 15, 19, 20, 23 (EQ01-01, EQ02-01, EQ04-01, EQ09-01, EQ13-01, EQ15-01, EQ19-01, EQ20-03, EQ23-02)
+Files & Lines: GAME_SOURCE/js/sim.js:1323–1324 (SIM.serialize, PERSISTED_UNDERSCORE_KEYS), GAME_SOURCE/js/stats.js:240–258, 262–343 (ST.gearStats)
+Root Cause: SIM.serialize strips _stSig (omitted from PERSISTED_UNDERSCORE_KEYS) while persisting computed it.st. On SIM.deserialize, js/stats.js:244 (if (it.st && !it._stSig && !it.baseSt)) promotes already-finalized it.st into it.baseSt, then re-applies effects/fx passive stats (stats.js:267–303), combatMult/defMult (309–318), artisan, deeds, lineage, and dormant (0.5625×) a second time.
+Live Runtime Proof: Confirmed on 50/51 ITEM190_* (ITEM190_TAL_003 eva 21.6->43.2, ITEM190_EQ_001 pen 10->20, score 247.5->351.8), 26/31 MP_*, 50/50 EQ_V234_WPN_*, 48/50 EQ_V234_ARM/ACC, 48/50 ECO2_EQ_*/EQ_V222_* (ECO2_EQ_026_RING_3 +60.9%), 23/23 EQ_V240_* (+7.2% to +13.4%), and 3-seed Day-60 Save/Load (8/29/18 gearStatDiffs, 8/21/12 npcStatDiffs).
+Patch Spec:
+Add '_stSig' to PERSISTED_UNDERSCORE_KEYS in js/sim.js:1323.
+Guard js/stats.js:244–248 so cached it.st is never promoted to it.baseSt when !it._stSig on standard minted gear (it.uid or ECO.itemById[it.id]); recompute s cleanly from deterministic base when _stSig is absent.
+BUG-E03 [P1] ECO.mintGear Omits baseQ/baseTier When Cloning it.st, Disabling Quality (q) & Catalyst Refinement Scaling (200+ Items)
+Provenance: Teams 3, 6, 7, 8 (EQ03-04, EQ06-01, EQ07-01, EQ08-01)
+Files & Lines: GAME_SOURCE/js/economy.js:670, GAME_SOURCE/js/martial.js:1452, GAME_SOURCE/js/stats.js:254–257
+Root Cause: js/economy.js:670 sets gOut.baseSt = Object.assign({}, it.st) without setting baseTier or baseQ, making js/martial.js:1452 (if (source.st && !it.baseSt && !source.fixedStats)) dead code. js/stats.js:254–257 computes origQ = it.baseQ || q → scale = 1.0 for all q (0.7–1.5) and tier upgrades.
+Live Runtime Proof: Confirmed across 200+ EQ_V320_* and ITEM_EQ_* items: T1->T5 upgrade yields 0 stat gain; ECO.refineGearWithCatalyst (q 1.0->1.2) gives +0.9% score instead of +20%; q=0.7 rolls stronger than catalog q=1.0.
+Patch Spec: In js/economy.js:670, always set gOut.baseTier = it.tier || 1; gOut.baseQ = it.q || 1; whenever gOut.baseSt is initialized from it.st.
+BUG-E04 [P1] ECO.mintGear Corrupts String combatKeywords into Character-Indexed Objects ({"0":"K","1":"W",...}), Causing 100% Keyword Loss on All 24 EQ_V240_* Items
+Provenance: Teams 19, 20 (EQ19-02, EQ20-01)
+Files & Lines: GAME_SOURCE/js/economy.js:671, GAME_SOURCE/data/data_ecology.js:10820–10872, GAME_SOURCE/js/combat.js:7650–7653
+Root Cause: EQ_V240_* stores combatKeywords as string arrays (['KW_ABSORB_RELEASE', ...]). ECO.mintGear runs it.combatKeywords.map(k => Object.assign({}, k)), turning every string into {'0':'K','1':'W',...} with no .id/.kw. COMBAT.resolveUnitKeywords (combat.js:7651) reads undefined and drops every keyword.
+Live Runtime Proof: ECO.mintGear(W, EQ_V240_ROSARY_T4/T5, 1).combatKeywords[0] returns {"0":"K","1":"W",...}; 24/24 EQ_V240_* items resolve 0 keywords in combat.
+Patch Spec: In js/economy.js:671, replace .map(k => Object.assign({}, k)) with .map(k => (typeof k === 'string' ? k : Object.assign({}, k))).
+BUG-E05 [P1] Authored stats & fixedStats Completely Ignored Across 270+ Items (EQ_V234_*, EQ_V200_*, EQ_V230_*, REL_V230_*, EQ_V240_*) & Lost 1.25× Legendary Stat Multiplier
+Provenance: Teams 12–20 (EQ12-01, EQ13-05, EQ14-03, EQ15-02, EQ16-02, EQ17-01, EQ18-03, EQ19-03, EQ20-02)
+Files & Lines: GAME_SOURCE/data/data_martial.js:49085–49215, 49405–49409, 51519–52418, GAME_SOURCE/data/data_ecology.js:10873, GAME_SOURCE/js/economy.js:670, GAME_SOURCE/js/martial.js:1452, GAME_SOURCE/js/stats.js:243–261, GAME_SOURCE/js/visitors_clues.js:1182
+Root Cause:
+EQ_V234_*, ITEM_V234_TOOL_*, EQ_V200_WPN_*, EQ_V230_WPN_* (incl. 1.25× legendary scaling at data_martial.js:52023–52025), and 31 REL_V230_* write stats to .stats (0 readers in js/).
+All 24 EQ_V240_* write stats to .fixedStats, which visitors_clues.js:1182 only honors for VC.LEGENDARY_WEAPON_BY_ID. All 270+ items fall back to generic hash-rolled GT[tier-1] stats.
+Live Runtime Proof: T7 Legendary EQ_V230_WPN_NEEDLE_06 (price 2320) rolled gearScore = 2477.7 vs non-legendary EQ_V200_WPN_NEEDLE_T7 (price 1255) at 2629.3; EQ_V240_ROSARY_T5 lost authored def/cast (matk 3.1× off); REL_V230_ASTRO_DIVINATION dropped hp/critDmg/pen/eva.
+Patch Spec: WARNING — do not blindly rename .stats → .st on EQ_V234_*/EQ_V200_*/EQ_V230_*/REL_V230_* (their linear values are 5×–24× below T5–T7 GT curves). Instead:
+Apply combatMult: 1.25 (or legendary multiplier in STATS.gearStats) on legendary: true T7 EQ_V230_WPN_*/REL_V230_*.
+Wire fixedStats (with baseTier/baseQ scaling) in js/economy.js:670 for EQ_V240_* after verifying tier parity.
+Remove dead .stats or convert to stat-weight profiles consumed by STATS.gearStats.
+BUG-E06 [P1] EQ_V320_GS_* skillModifiers Ignores targetArch (Unconditional Filter Bypass), Uses Invalid Arches (parry/aoe/smite) & Dead poiseAdd
+Provenance: Teams 2, 3 (EQ02-02, EQ03-01)
+Files & Lines: GAME_SOURCE/js/martial.js:1401, GAME_SOURCE/data/data_expansion.js (EQ_V320_GS_*)
+Root Cause: js/martial.js:1401 checks mod.matchArch || mod.arch (omitting mod.targetArch), causing all 16 EQ_V320_GS_* modifiers to apply unconditionally to every move of every archetype. Additionally, parry/aoe/smite match 0 moves in JD.TECH, and poiseAdd (EQ_V320_GS_FIST_T3) has 0 readers in js/.
+Patch Spec:
+Update js/martial.js:1401 to read mod.matchArch || mod.arch || mod.targetArch.
+Map parry/aoe/smite on EQ_V320_GS_* to valid JD.TECH archetypes (DEF/AOE/BURST etc.).
+Wire poiseAdd in MARTIAL.applyEquipmentSkillModifiers or replace with a supported modifier field.
+BUG-E07 [P1] Own-Path & Granted-Skill Weapon Incompatibilities (0.65× Penalty), skillModifiers.element Mismatches, T2–T3 Granting Unusable T4–T5 Skills & Dropped reqPath
+Provenance: Teams 12, 13, 14, 17, 18 (EQ12-02/03/04, EQ13-03, EQ14-01/02/07, EQ17-04, EQ18-01/02)
+Files & Lines: GAME_SOURCE/js/economy.js:669, GAME_SOURCE/js/proficiency.js:107, GAME_SOURCE/data/data_martial.js:49080–49125, 51649, 51965–52056, GAME_SOURCE/js/martial.js:385–390, 1403–1404
+Root Cause:
+ECO.mintGear drops reqPath (economy.js:669), bypassing path locks on 13+ EQ_V234_WPN_* items.
+60+ EQ_V234_WPN_* (44/50 in T12 + 16/20 in T14), 7 EQ_V200/V230_WPN_* (T17: ABACUS_T2/T4/T6, ROSARY_04, CLAW_03/05, NEEDLE_02), and 3 EQ_V230_WPN_* (T18: ABACUS_04 SEVERE_MISMATCH, ASTROLABE_01/02 ADAPTED_WEAPON) inflict 0.65× damage / +10–25% Qi cost / -4..-12 ACC on their own path or own grantedSkills.
+107 EQ_V234_WPN_* (42/50 T12 + 45/50 T13 + 20/20 T14) and 8 EQ_V230_WPN_ASTROLABE/ABACUS_* (T18) have skillModifiers[0].element !== grantedSkills[0].element / pObj.element, so their skill modifiers never fire on their own skills.
+6 T2–T3 EQ_V234_WPN_* weapons (T14) grant T4–T5 skills unusable at minStage.
+Patch Spec:
+Copy reqPath in ECO.mintGear (economy.js:669) and enforce it in MARTIAL.gearUsable (proficiency.js:107).
+Align weapon subType with JD.CULT.paths[path].weapons and MP_BASE_* weaponTypes (or grant weapon-compatible skills).
+Set skillModifiers[0].element to [ws.el, pObj.element] (array already supported by martial.js:1404) or match grantedSkills[0].element.
+Cap granted skill tier <= item.tier (or minStage + 1).
+BUG-E08 [P1] Auxiliary & Crafting Tool Bonuses Dead at Runtime: CULT.auxiliaryArtBonus Never Called for cultRate/FORGING/ALCHEMY (24 ITEM_V234_TOOL_*) + ECO.equippedToolBonus Ignores ITEM190_TOOL_* & Zeroes EQ_V320_AUX_*
+Provenance: Teams 2, 16, 24 (EQ02-03, EQ16-01, EQ24-08)
+Files & Lines: GAME_SOURCE/js/cultivation.js:8717–8756, GAME_SOURCE/js/economy.js:605–618, GAME_SOURCE/js/explore.js:8312
+Root Cause: CULT.auxiliaryArtBonus(npc, domainKey) implements cultRate, FORGING, ALCHEMY, and EXPLORE for all 24 ITEM_V234_TOOL_* items, but across all of js/ it is ONLY called for 'EXPLORE' (explore.js:8312). Meanwhile, ECO.equippedToolBonus (economy.js:605–618) ignores ITEM190_TOOL_001/002/004, zeroes yieldBonusRatio: 0.14 on EQ_V320_AUX_T1_HERB, and truncates EQ_V320_AUX_T2_ALCH.
+Live Runtime Proof: Equipping ITEM_V234_TOOL_001 (cultRate: 0.14, FORGING: 0.15): CULT.rate(npc, 1.0) unchanged (0.7899976), ECO.successChance unchanged (0.5068446), ECO.equippedToolBonus returns {0,0,0}. Equipping ITEM_V234_TOOL_002 (ALCHEMY: 0.29): ECO.successChance unchanged (0.4730305).
+Patch Spec:
+Wire CULT.auxiliaryArtBonus(npc, 'cultRate') into CULT.rate().
+Fold CULT.auxiliaryArtBonus(npc, domain) (FORGING/ALCHEMY) plus EFX_FORGING_STABILIZATION (src.craft === domain) and yieldBonusRatio into ECO.equippedToolBonus(npc, domain) (avoiding double-counting with economy.js:2959).
+BUG-E09 [P1] All 3 v3.2.0 Resonance Sets Have Dead 3pc Combat Riders (status: undefined) & List Major Path IDs in subpaths
+Provenance: Teams 3, 21 (EQ03-05, EQ21-01, EQ21-02)
+Files & Lines: GAME_SOURCE/data/data_expansion.js:9229–9259, GAME_SOURCE/js/combat.js:1781, 2255–2273, GAME_SOURCE/js/martial.js:825, 842–843
+Exact Set IDs: RES_V320_IRON_PATINA, RES_V320_TWIN_STAR_BOND, RES_V320_ARCHIVIST_RELIC
+Root Cause:
+V320_SETS authors bonus3.rider with { id, trigger, chance, effect, pct, descTh } instead of { status, selfBuff, chance, dur, bonusDmgMult, descTh }; combat.js:2255–2273 calls ST.addStatus(tgt, undefined, 8) (no-op).
+subpaths contains Major Path IDs (BODY, ASTRO_DIVINATION, INK_LITERATI, etc.) instead of Subpath IDs, so rs.subpaths.includes(c.sub) is always false, denying +35 score and 1.10× subScale.
+Live Runtime Proof: Live COMBAT.strike with forced proc: 74/74 non-v320 sets applied riders; 3/3 v320 sets emitted lastResonanceTrigger.status === undefined with 0 shield/heal/status applied, and isSubpathMatch === false on matching-path NPCs.
+Patch Spec:
+Add canonical status, selfBuff, dur, bonusDmgMult to all 3 V320_SETS riders (and optionally handle rd.effect === 'shield'|'heal' in combat.js:2262–2270).
+Expand subpaths to actual subpath IDs or check rs.subpaths.includes(c.sub) || rs.subpaths.includes(c.path) in martial.js:825, 842.
+BUG-E10 [P1] Sanctum Guardian Resonance Lookup Indexes Array MARTIAL.RESONANCE_SETS by String Key (fl.subPath), Leaking Raw English Code IDs
+Provenance: Team 21 (EQ21-03)
+Files & Lines: GAME_SOURCE/js/explore.js:7850, 7858, 7878
+Root Cause: MARTIAL.RESONANCE_SETS[fl.subPath] treats a 77-element Array as a dictionary, always returning undefined, leaking 'ชุดสัจธรรมSWORD_IMMORTAL' and emitting invalid guardian.resonanceSetId = 'RES_SWORD_IMMORTAL'.
+Patch Spec: Replace explore.js:7850 with MARTIAL.RESONANCE_SETS.find(s => Array.isArray(s.subpaths) && s.subpaths.includes(fl.subPath)) || { id: null, nameTh: 'ชุดสัจธรรมโบราณ' }.
+BUG-E11 [P1] Resonance Set Resolution & Tagging Defects: Singular resonanceSetId Hijack (+60 vs +47), 17 V215 Phantom Set IDs & explicitPieces Ignores resonanceSetIds
+Provenance: Teams 5, 7, 9, 10, 11, 21 (EQ05-01, EQ07-02, EQ09-02, EQ10-01/04, EQ11-01/02/03, EQ21-05)
+Files & Lines: GAME_SOURCE/data/data_martial.js:45565, 46116–46208, GAME_SOURCE/js/martial.js:785–824
+Root Cause:
+17 V215 weapons (zitherDefs/brushDefs/whipDefs) reference 4 nonexistent set IDs (RES_GHOST_NETHER_SOUL [5], RES_DEMON_SHADOW_REAPER [6], RES_YIN_YANG_COSMIC [1], RES_BEAST_TOTEM_ALPHA [5]).
+37 T3–T7 ITEM_EQ_* + 7 MECH/KARMA/BEAST items set singular resonanceSetId = matched[0], awarding explicitPieces * 60 (+60/+120) in martial.js:824 that hijacks NPC subpath-matched sets (+47) across 439+ combos while ignoring resonanceSetIds.
+T3 items are tagged with minTier: 4 sets.
+Patch Spec:
+Remap the 4 phantom set IDs in data_martial.js to canonical sets (RES_NINE_DAO_NETHER_GRAVE, RES_SHADOW_ASHURA_SLAYER, RES_FIVE_ELEMENTS_ELIXIR, RES_BEAST_SOVEREIGN_PACT).
+In martial.js:824, check resonanceSetIds membership (only awarding +60 explicit priority for dedicated single-set items, not multi-set generic ITEM_EQ_*), and do not tag T3 items with minTier: 4 sets.
+BUG-E12 [P1] Combat Keyword & Effect Bugs: KW_REFLECT Cap Saturation, KW_PIERCE Param Loss, EFX_V234_BUFF_STEALER Clones Instead of Stealing & Dead EFX_CLEAR_DEBUFFS
+Provenance: Teams 3, 4, 15 (EQ03-02, EQ04-02, EQ04-03, EQ15-03)
+Files & Lines: GAME_SOURCE/js/combat.js:6772–6781, 7668, 7670, GAME_SOURCE/js/economy.js:2867
+Root Cause:
+KW_REFLECT (combat.js:7670) adds percentage-point pct (12/16) directly as a ratio, immediately saturating the 0.35 cap.
+KW_PIERCE (combat.js:7668) ignores kp.pct (8/22) and vsShield, falling back to 12.
+EFX_V234_BUFF_STEALER (combat.js:6772–6781) calls ST.clearStatus (target.sx) without removing the buff from target.buffs, cloning the buff instead of stealing it.
+EFX_CLEAR_DEBUFFS on EQ_V320_GS_ROBE_T5 has only a pill handler (economy.js:2867) and 0 combat equipment handlers.
+Patch Spec:
+Normalize KW_REFLECT pct > 1 ? pct / 100 : pct at combat.js:7670.
+Read kp.pct and kp.vsShield in KW_PIERCE (combat.js:7668).
+Delete the stolen key from target.buffs in EFX_V234_BUFF_STEALER (combat.js:6772–6781).
+Add an onStruck/combatTick cleanse handler for EFX_CLEAR_DEBUFFS in COMBAT.runItemEffectProcs.
+BUG-E13 [P1] Rift Shard #10 (TIANGU_FOLDED_TREASURY) Pushes Procedural Gear Rewards to Orphaned W.sect.armory (Permanent Loot Loss)
+Provenance: Team 22 (EQ22-01)
+Files & Lines: GAME_SOURCE/js/explore.js:8897–8904
+Root Cause: Pushes rolled T3–T5 ITEM_PROC_* gear to W.sect.armory (0 readers anywhere in js/) instead of W.sect.gear (js/sim.js:326).
+Patch Spec: Change W.sect.armory → W.sect.gear at js/explore.js:8901–8902.
+BUG-E14 [P1] Lv1 Sect Mine & Herb Garden Drop Endgame T3–T7 Exotic Materials (MAT_V230_008 Val 620 on Day 1)
+Provenance: Team 22 (EQ22-02)
+Files & Lines: GAME_SOURCE/js/economy.js:1185–1186, 1218
+Root Cause: HERBS[1..4] and ORES[1..3] hardcode 11 MAT_V230_* items of tiers T3–T7 and mismatched categories (ORE/BEAST_PART/CATALYST/ARTIFACT_MAT), and ECO.mineYield (line 1218) allows tier = 2 at mine.level === 1.
+Live Runtime Proof: 60×4h ECO.mineYield at Lv1 yielded T7 MAT_V230_008 (val 620) ×11, T5 MAT_V230_005 ×8, T4 MAT_V230_004 ×23; Lv1 harvestHerb yielded T3 ORE MAT_V230_002 ×104.
+Patch Spec: Remove tier/category-mismatched MAT_V230_* IDs from HERBS[1..4]/ORES[1..3] (economy.js:1185–1186) and gate tier = 2 behind b.level >= 2 (economy.js:1218).
+BUG-E15 [P1] EXT.quotePrice Direct Buy/Sell Arbitrage Loop (sect-sell > sect-buy)
+Provenance: Team 22 (EQ22-03)
+Files & Lines: GAME_SOURCE/js/external_market.js:137–138
+Root Cause: With high trading skill + FREE_TRADE_TREATY + tollDiscount, sect-buy multiplier drops to 0.9118 while sect-sell rises to 0.9824.
+Live Runtime Proof: EXT.quotePrice(W, 'MAT_ORE_METEOR_IRON_5', 'sect-buy', 100) === 326 vs 'sect-sell' === 351 (+25 stones infinite profit per unit).
+Patch Spec: Enforce strict bid-ask invariant in EXT.quotePrice: cap sect-sell <= 0.94 and floor sect-buy >= 1.02 (assert sellPrice < buyPrice).
+BUG-E16 [P1] Two Nonexistent Material IDs in slotOptions of All 6 Procedural Weapon Recipes
+Provenance: Teams 17, 22 (EQ17-03, EQ22-04)
+Files & Lines: GAME_SOURCE/data/data_martial.js:51809, 51818, GAME_SOURCE/js/economy.js:351–389
+Exact Recipes: REC_PROC_ROSARY, REC_PROC_CLAW, REC_PROC_NEEDLE, REC_PROC_FAN, REC_PROC_ASTROLABE, REC_PROC_ABACUS
+Root Cause: slotOptions[0].options[3] references nonexistent MAT_ORE_VOID_SILVER_4 and slotOptions[1].options[1] references nonexistent MAT_BP_SERPENT_GALL_2 (12 dead slots; permanently stock 0).
+Patch Spec: Replace MAT_ORE_VOID_SILVER_4 with MAT_ORE_MITHRIL_JADE_4 (or MAT_ORE_THUNDER_JADE_4) and MAT_BP_SERPENT_GALL_2 with MAT_BP_BOAR_CORE_2 (or MAT_BP_PYTHON_GALL_3).
+BUG-E17 [P1] Severe Recipe Material Tier Inversion (T1–T4 Weapons Requiring T5–T7 Materials) & EQ_V234_* Dead Gather Pools / Terrain Mismatch
+Provenance: Teams 12, 13, 14, 15, 17 (EQ12-07, EQ13-06, EQ14-04, EQ15-04, EQ17-02)
+Files & Lines: GAME_SOURCE/data/data_martial.js:48959–48976, 49110–49228, 51688–51987, GAME_SOURCE/js/explore.js:7094, 7604, GAME_SOURCE/js/wild_resources.js:67
+Root Cause:
+20 V200/V230/PROC recipes (e.g., T1 REC_V200_WPN_FAN_T1 requires 2× T7 MAT_V234_014, input cost 730 vs output 220; all 4 REC_PROC_* T1 recipes require T5 MAT_V234_005) and 23/50 T13 EQ_V234_WPN_* recipes require T5–T7 materials for T1–T4 weapons.
+v234GatherPool/v234MatIds/MYRIAD_WORLD:*/PAGODA_TRIAL:* have 0 readers in js/; data_martial.js loads before explore.js; CATALYST/ARTIFACT_MAT unmapped in explore.js:7094 & wild_resources.js:67; terrain: 'ruin' mismatches 'ruins'; explore.js:7604 excludes T2/T6/T7 recipes (tier >= 3 && <= 5).
+Patch Spec:
+Filter recipe MAT_V234_*/MAT_V230_* inputs by mat.tier <= recipe.tier and replace procMatShard = 'MAT_V234_005' with a T1–T2 material.
+Fix terrain: 'ruin' → 'ruins', map CATALYST/ARTIFACT_MAT in explore.js:7094 & wild_resources.js:67, and expand explore.js:7604 tier range to cover discoverable T2/T6/T7 recipes.
+BUG-E18 [P1] Fishing Treasure Pool Leaks All 18 Raw ITEM_PROC_* Templates (16.1% of T1 Pool) & Mints Unrolled Templates
+Provenance: Team 10 (EQ10-02)
+Files & Lines: GAME_SOURCE/js/fishing.js:967–979, 1132
+Root Cause: Fishing equipment drop filter does not exclude ITEM_PROC_* procedural templates (it.procedural or /^ITEM_PROC_/), causing 16.1% of T1 drops to mint unrolled template shells instead of calling ECO.rollProceduralGear or filtering them out.
+Patch Spec: In js/fishing.js:968, exclude ITEM_PROC_* templates (if (/^ITEM_PROC_/.test(it.id) || it.isProceduralTemplate) return;).
+BUG-E19 [P1] 24 Unslotted TALISMAN Consumables (ITEM_V234_TAL_001..024) Are Dead-End Items Misclassified as T1 MATERIAL (materials:powder)
+Provenance: Team 24 (EQ24-01)
+Files & Lines: GAME_SOURCE/data/data_martial.js:49359, GAME_SOURCE/js/economy.js:754–757, 974, GAME_SOURCE/js/ui.js:2094–2123, 6518–6544, GAME_SOURCE/js/sect.js:3650–3700
+Root Cause: ITEM_V234_TAL_001..024 (REC_V234_253..276) have cat: 'TALISMAN', out: 'CONSUMABLE', slot: undefined, tier: 3..7, maxCharges: 3..4, but ECO.pillInfo rejects them, economy.js:754 dumps them in W.sect.stock, UI.buildSectStockItems/UI.buildPersonalBagItems misclassify them as kind: 'MATERIAL', tier: 1, Common, materials:powder with no canUse/canEquip action, and SECT.EDITOR.catalog omits all 24.
+Patch Spec: Either (A) convert ITEM_V234_TAL_001..024 to slotted ACCESSORY charge-talismans (slot: 'ACCESSORY', out: 'EQUIPMENT', isChargeTalisman: true, gearType: 'CHARM'), OR (B) extend ECO.pillInfo/ECO.isPill and ui.js:2094, 6518 to support cat === 'TALISMAN' && out === 'CONSUMABLE' with ECO.itemById[id] metadata and register them in SECT.EDITOR.catalog.
+BUG-E20 [P1] 100% of Equipment UI Tooltips & Refine Dropdown Leak Raw English Enums/IDs (WEAPON/ARMOR/ACCESSORY, EFX_*, compatiblePath, provenanceLoreId)
+Provenance: Teams 2, 3, 19, 24 (EQ02-06, EQ03-07, EQ19-04, EQ24-02)
+Files & Lines: GAME_SOURCE/js/ui.js:2150, 2152, 2294, 6320, 6322, 6401, 6415, 6445–6446, 8196
+Root Cause: ui.js renders raw eq.slot, raw eq.compatiblePath, raw eq.provenanceLoreId (incl. dangling LORE_BEIMING_EMPEROR), and ef.nameTh || ef.effectId (1,020/1,071 effect entries lack nameTh). Live test of all 174 archetypes returned 348/348 (100%) rows with leaked English tokens.
+Patch Spec:
+Add SLOT_TH = { WEAPON: 'อาวุธ', ARMOR: 'ชุดเกราะ', ACCESSORY: 'เครื่องประดับ' } and replace all 7 raw slot interpolations.
+Map eq.compatiblePath via CULT.pathNameTh.
+Resolve ef.effectId via SK.EQUIP_EFFECT_VFX_CATALOG / EFX_NAME_TH map at ui.js:6322.
+Map provenanceLoreId to Thai lore titles at ui.js:6320.
+6. P2 Medium-Severity Bugs (17)
+BUG-E21 [P2] STATS.gearStateSig, getBaseFast, STATS.get, and SK.list (mSig) Cache Invalidation Gaps
+Provenance: Teams 17, 23 (EQ17-07, EQ23-03)
+Files & Lines: GAME_SOURCE/js/stats.js:231–239, 989–991, 1342, GAME_SOURCE/js/economy.js:2171–2174, GAME_SOURCE/js/skills.js:613
+Root Cause: (1) STATS.gearStateSig omits affixes, combatMult, defMult, artisan.defenseBonus, fx/effects, broken, attunedStars. (2) getBaseFast hashes socketedRunes.length instead of rune IDs/elements and omits attunedStars. (3) ECO.wearGear only calls STATS.dirty(ownerNpc) on /10 durability buckets, causing STATS.get vs STATS.explain drift below 50% dur (dur 45->41: 1323 vs 1317). (4) SK.list mSig (skills.js:613) omits m.multPct and m.addGrantBuff used by 46 EQ_V200/V230_WPN_* items.
+Patch Spec: Extend STATS.gearStateSig with those fields; hash rune IDs in getBaseFast; call STATS.dirty(ownerNpc) in ECO.wearGear whenever durRatio < 0.50 or crossing 0.78/0.50/0.30; update skills.js:613 to hash (m.multAdd || m.multPct || 0) and (m.grantBuff || m.addGrantBuff || '').
+BUG-E22 [P2] CPE.buy Equips minStage === effSt + 1 Unusable Gear & Direct Equip Paths Skip MARTIAL.invalidateMartialCaches
+Provenance: Team 23 (EQ23-06)
+Files & Lines: GAME_SOURCE/js/cpeco.js:545, 560, GAME_SOURCE/js/sect.js:2800–2802, GAME_SOURCE/js/external_market.js:883–886, 898–901
+Root Cause: CPE.buy allows minStage <= effSt + 1 and equips boughtGear without checking MARTIAL.gearUsable, replacing a usable weapon with an unusable one. CPE.buy, SECT.distributeSectStock, and external_market.js mutate n.equip[slot] without calling MARTIAL.invalidateMartialCaches(n) or HC.bump(n).
+Patch Spec: In cpeco.js:553–560, equip only if MARTIAL.gearUsable(n, boughtGear), else store in n.inv.gear; call MARTIAL.invalidateMartialCaches(n) and HC.bump(n) at all 3 equip sites.
+BUG-E23 [P2] EFX_V320_PAIRED_LINK Procs Unconditionally Without Pair + PAIR_YITIAN_TULONG Unreachable (Both WEAPON)
+Provenance: Teams 20, 23 (EQ20-06, EQ23-05)
+Files & Lines: GAME_SOURCE/js/combat.js:6833–6837, 6944–6948, GAME_SOURCE/js/visitors_clues.js:1142–1143, GAME_SOURCE/js/economy.js:3145–3153
+Root Cause: (1) Neither EFX_V320_PAIRED_LINK handler checks ECO.evaluatePairedItems(actor).active, healing 10–16% Max HP + clarityLotus on unpaired items. (2) LEG_WPN_YITIAN_SWORD and LEG_WPN_TULONG_SABER are both slot: 'WEAPON' with pairId: 'PAIR_YITIAN_TULONG', while ECO.evaluatePairedResonance only checks same-NPC WEAPON+ARMOR/ACCESSORY.
+Patch Spec: Gate both EFX_V320_PAIRED_LINK blocks with ECO.evaluatePairedItems(actor)?.active; extend ECO.evaluatePairedResonance (or combat ally aura) to detect squadmate WEAPON+WEAPON pairs for PAIR_YITIAN_TULONG.
+BUG-E24 [P2] COMBAT.strike Omits W.t in Resonance Rider ST.addStatus Calls (Immediate Expiration When ST.now Lags W.t)
+Provenance: Team 21 (EQ21-07)
+Files & Lines: GAME_SOURCE/js/combat.js:2264, 2268
+Root Cause: Omits 5th now argument (W.t), defaulting to ST.now; when ST.now < W.t, purgeExpired deletes the rider status immediately (50/77 sets failed before syncing ST.now = W.t).
+Patch Spec: Pass W.t explicitly at combat.js:2264 and 2268.
+BUG-E25 [P2] 8 Unregistered EQ_V240_* combatKeywords (22 Wasted Slots) + LEG_WPN_CHUNQIU_JUDGMENT_BRUSH Applies Ghost Status 'focusUp'
+Provenance: Teams 19, 20, 24 (EQ19-02, EQ20-04, EQ20-05, EQ24-04)
+Files & Lines: GAME_SOURCE/data/data_ecology.js:10820–10849, GAME_SOURCE/js/combat.js:7538–7546, 7653, GAME_SOURCE/js/visitors_clues.js:504, 1543
+Root Cause: (1) KW_AURA_PULSE, KW_DELAYED_DETONATION, KW_EXECUTE_CULL, KW_GUARD_COUNTER, KW_OVERHEAL_BARRIER, KW_PULL_VORTEX, KW_SHATTER_ARMOR, KW_TETHER_LINK are absent from all 3 keyword catalogs (combat.js:7653 skips them; ui.js:6314 leaks raw English IDs). (2) EFX_LEG_CHUNQIU_VERDICT_SEAL calls ST.addStatus(attacker, 'focusUp', ...) which does not exist in SK.STATUS or ST.BUFF_CATALOG.
+Patch Spec: Register the 8 KW_* IDs (with Thai labels + combat handlers) or remap to existing catalog IDs; change 'focusUp' to 'literatiDecree' via ST.applyNamedBuff at visitors_clues.js:504, 1543.
+BUG-E26 [P2] Widespread effects[].params Schema Mismatches & Unhandled EFX_INTENT_SENSE Across 100+ Items
+Provenance: Teams 3, 4, 10, 11, 12, 13, 14, 15, 16, 18, 19 (EQ03-03, EQ04-05, EQ10-05, EQ11-04, EQ12-06, EQ13-04, EQ14-08, EQ15-06, EQ16-03, EQ18-05, EQ19-06)
+Files & Lines: GAME_SOURCE/js/stats.js:267–303, GAME_SOURCE/js/combat.js:6661–6910, GAME_SOURCE/js/cultivation.js:8743–8751, GAME_SOURCE/data/data_martial.js:49224–49227, 52059, 52430, GAME_SOURCE/data/data_ecology.js:9286–10886
+Root Cause: Authored params keys do not match runtime readers across multiple families:
+EFX_V234_ELEMENTAL_REACTOR (EQ_V234_ACC_047) omits bonusMult (loses +71 atk/matk); EFX_V234_DEBUFF_EXTENDER (045) places extendDur on effects[0]; EFX_ARMOR_FRACTURE on EQ_V230_WPN_ABACUS_01..06 lacks armorReductionRatio (+0 pen); EFX_BARRIER_SHIELD on 31 REL_V230_* passes shieldPct without barrierCapacity (falls back to flat +16 def/mdef); EFX_INTENT_SENSE (ECO2_EQ_007_BOW_3) has 0 combat handlers; EFX_SWORD_STORM_STRIKE ignores slashPower/maxTargets/armorPenRatio; EFX_FINAL_STAND_SHIELD ignores shieldRatio; EFX_DAMAGE_REFLECT hardcodes 240 cap ignoring maxReflectCap; paralyzeChance/stunChance/stealChance ignored → 100% proc; EFX_HASTE_STEP has no onHit handler; EFX_V234_EMERGENCY_AEGIS ignores thresholdHpPct; EFX_WEAPON_MAGNET_DISARM on armor only triggers onHit not onStruck; EFX_V320_CHARGE_RELEASE STRIKE charges onStruck; EFX_V200_BODHI_MERIT_PULSE ignores bonusDmgMult.
+Patch Spec: Align per-effect params maps in data_martial.js:49224–49227, 52059 and add fallback key reads in stats.js:267–303, combat.js:6661–6910, and cultivation.js:8743–8751; add EFX_INTENT_SENSE and onStruck EFX_WEAPON_MAGNET_DISARM handlers in combat.js.
+BUG-E27 [P2] ECO.wearGear breakTransformInto In-Place it.st Mutation Overwritten by STATS.gearStats & Latent Infinite 1.25^N Loop
+Provenance: Teams 22, 23 (EQ22-09, EQ23-04)
+Files & Lines: GAME_SOURCE/js/economy.js:2151–2161
+Root Cause: ECO.wearGear bumps it.tier and scales it.st[k] *= 1.25 in place without clearing breakTransformInto/awakenedCoreOnBreak or checking !it.transformedFromBreak. Because it.tier changes gearStateSig, the next STATS.gearStats(it) immediately discards the 1.25× mutation; meanwhile, repeated breaks would trigger unbounded tier/stat loops if flags are ever populated.
+Patch Spec: Guard with !it.transformedFromBreak, delete breakTransformInto/awakenedCoreOnBreak, scale it.q (capped at 1.85) instead of mutating it.st, clear it.st/it._stSig, and call STATS.gearStats(it) + STATS.dirty(ownerNpc).
+BUG-E28 [P2] ECO.findCatalystRefinementCandidate Only Checks availCats[0] + ECO.applyTranscendentMaterialInfusions Leaves gear.defMult Stale
+Provenance: Team 22 (EQ22-05, EQ22-06)
+Files & Lines: GAME_SOURCE/js/economy.js:1737–1774, 4099
+Root Cause: (1) findCatalystRefinementCandidate only inspects availCats[0]; holding a T6 catalyst (minGearTier: 4) blocks T4 catalysts from refining T3 gear. (2) Line 4099 sets gear.defenseMult without syncing gear.defMult = gear.defenseMult (defMult stays 0.06 vs defenseMult: 0.30).
+Patch Spec: Loop for (const cat of availCats) in economy.js:1737–1773; add gear.defMult = gear.defenseMult; after economy.js:4099.
+BUG-E29 [P2] All 55 Nine-Dao Pagoda Armor Pieces Define hp: 0.08 Flat HP (+0.1 HP at T5) & Omit dur/maxDur/Unique UID (Save/Load Drift)
+Provenance: Teams 21, 23 (EQ21-04, EQ23-07)
+Files & Lines: GAME_SOURCE/js/explore.js:8144, GAME_SOURCE/js/economy.js:2474–2475
+Root Cause: EX.pagodaSetPieces authors st: { def: 12, mdef: 10, hp: 0.08 } (evaluated as flat +0.1 HP), omits dur/maxDur/repairCount, and uses non-unique static UIDs, causing fieldDiffs on Save/Load.
+Patch Spec: Mint Pagoda pieces via ECO.nextGearUid with dur: 100, maxDur: 100, repairCount: 0, move st → baseSt with T5 flat hp: 360–420, and call STATS.gearStats.
+BUG-E30 [P2] Resonance Registry Split Excludes v3.2.0 Sets from Crafted-Gear Tagging, Authored v320 Accessories Mismatch slots.ACCESSORY & T2–T3 EQ_V230_WPN_* Tagged with minTier: 4 Sets
+Provenance: Teams 17, 18, 21 (EQ17-05, EQ18-04, EQ21-06)
+Files & Lines: GAME_SOURCE/data/data_expansion.js:8285, 9233, 9245, 9388, GAME_SOURCE/js/economy.js:2041–2054, GAME_SOURCE/data/data_martial.js:52046–52047
+Root Cause: (1) JD.MARTIAL.v320ResonanceSets stays [] and economy.js:2041 iterates JD.MARTIAL.RESONANCE_SETS (74), excluding RES_V320_* from crafted gear. (2) RES_V320_IRON_PATINA.slots.ACCESSORY omits 'BRACELET' (EQ_V320_SET_PATINA_BRAC) and RES_V320_TWIN_STAR_BOND.slots.ACCESSORY omits 'RING' (EQ_V320_SET_TWIN_RING). (3) 12 T2–T3 EQ_V230_WPN_* items carry RES_NINE_DAO_* (minTier: 4), permanently failing itemMatchesResonanceSet.
+Patch Spec: Iterate MARTIAL.RESONANCE_SETS in economy.js:2041; assign JD.MARTIAL.v320ResonanceSets = V320_SETS; add 'BRACELET'/'RING' to the respective V320_SETS allowlists; guard data_martial.js:52046–52047 with tier >= 4.
+BUG-E31 [P2] ECO.mintGear Ignores Authored durability, Drops charges: 4, Shares Mutable effects/fx Array Reference & Drops REC190_CORE_* craftBonusPath
+Provenance: Teams 1, 2 (EQ01-02, EQ01-03, EQ01-04, EQ02-04)
+Files & Lines: GAME_SOURCE/js/economy.js:669–677, GAME_SOURCE/js/stats.js:1449–1450
+Root Cause: ECO.mintGear overwrites authored durability (30/80) with 100, drops charges: 4 when maxCharges is omitted (ITEM190_CORE_010..012), fails to propagate REC190_CORE_001..009 craftBonusPath: 'ARRAY'/craftBonusScore, and stats.js:1449–1450 shares mutable effects/fx array references with the catalog.
+Patch Spec: Honor it.durability for dur/maxDur, initialize maxCharges = it.maxCharges || it.charges, propagate recipe craftBonusPath/craftBonusScore, and deep-clone effects/fx arrays.
+BUG-E32 [P2] Recipe & Economic Integrity Defects: 24 Recipes Lack outItemId, 313 Recipes Have 0.06×–4.31× Cost/Value Imbalance, Duplicate matId in 4 RAW Recipes & T7 Necklace heritage_only Cost Inversion
+Provenance: Teams 6, 8, 11, 22 (EQ06-02, EQ08-02, EQ11-05, EQ22-07, EQ22-08)
+Files & Lines: GAME_SOURCE/data/data_items.js, GAME_SOURCE/data/data_ecology.js:8153, GAME_SOURCE/js/economy.js:440–451, 697–701, 1368
+Root Cause: (1) 15 REC140_* + 9 SRC110_MW_REC_* lack outItemId, minting unregistered/untradable gear IDs (EXT.isTradable === false). (2) 114 recipes exceed 1.5× profit (up to 4.31× on REC190_CORE_011) and 199 collapse below 0.5× (down to 0.06× on ECO2_REC_EQ_*_6, input cost 12.5k vs value 736). (3) Duplicate matId in 4 T5–T6 RAW weapon recipes under-reports sect demand (economy.js:1368). (4) T7 Necklace recipes require heritage_only MAT_TR_WORLD_FORGE_SHARD (2.44× cost inversion). (5) 3 v215 BEAST_PART materials have 0 wildlife drops & unmapped terrain: 'swamp'.
+Patch Spec: Bind outItemId (or fallback in EXT.isTradable/EXT.basePrice) for the 24 recipes; normalize value vs inputCost within 1.15×–1.8×; merge duplicate matId entries; fix terrain: 'swamp' and T7 Necklace material cost.
+BUG-E33 [P2] EQ_V240_*_IMMORTAL_MARROW_T7 Hardcoded to tier: 6 (Epic) + Missing recipeId/slot/minStage on EQ_V240_ROSARY_T4 + 5 V212 Weapons Break minStage Curve
+Provenance: Teams 9, 19, 20 (EQ09-03, EQ19-05, EQ20-08)
+Files & Lines: GAME_SOURCE/data/data_ecology.js:10846, 10849, 10853–10912, GAME_SOURCE/data/data_martial.js (V212)
+Root Cause: EQ_V240_ARMOR_IMMORTAL_MARROW_T7 and EQ_V240_ACC_IMMORTAL_MARROW_T7 hardcode tier: 6 (Epic, minStage: 5), making the tier >= 7 ? 'Mythic' branch dead code. v240NewGearSpecs omits recipeId on items and slot/gearType/minStage/facilityLevel on recipes. 5 V212 weapons have inverted minStage (3 T6 at Stage 3, 2 T4 at Stage 2).
+Patch Spec: Set tier: 7 at data_ecology.js:10846, 10849; populate recipeId and recipe metadata at data_ecology.js:10854–10911; align the 5 V212 weapons' minStage to Math.max(1, tier - 1).
+BUG-E34 [P2] Missing weaponType/armorType on MP_* Items, SECT.EDITOR.spawnItem Downgrades ITEM_PROC_DAGGER → ITEM_PROC_BLADE & 3 EQ_SAGE_* Items Missing out: 'EQUIPMENT'
+Provenance: Teams 4, 10, 24 (EQ04-04, EQ10-03, EQ24-07)
+Files & Lines: GAME_SOURCE/data/data_martial.js (MP_*, EQ_SAGE_*), GAME_SOURCE/js/sect.js (SECT.EDITOR.spawnItem), GAME_SOURCE/js/fishing.js:968
+Root Cause: Missing weaponType/armorType on MP_* breaks TRAIT_LONG_RANGE_DEADEYE and weapon-bound checks; SECT.EDITOR.spawnItem silently maps ITEM_PROC_DAGGER to ITEM_PROC_BLADE; 3 EQ_SAGE_* items (EQ_SAGE_ZITHER_NEEDLE_5, EQ_SAGE_DEW_ROBE_5, EQ_SAGE_LANTERN_CHARM_5) omit out: 'EQUIPMENT' and are excluded by fishing.js:968.
+Patch Spec: Backfill weaponType/armorType on MP_*, preserve DAGGER in SECT.EDITOR.spawnItem, add out: 'EQUIPMENT', cat: 'EQUIPMENT' on the 3 EQ_SAGE_* items, and check (it.out === 'EQUIPMENT' || it.slot) in fishing.js:968.
+BUG-E35 [P2] 63 of 132 Equipment effectIds — Including All 27 EFX_LEG_* Legendary Procs — Unmapped in SK.EQUIP_EFFECT_VFX_CATALOG
+Provenance: Team 24 (EQ24-05)
+Files & Lines: GAME_SOURCE/js/skills.js:8181–8788, GAME_SOURCE/js/combat.js:6987
+Root Cause: All 27 EFX_LEG_*, 9 EFX_V320_*, and 26 high-frequency EFX_* (EFX_HASTE_STEP [39], EFX_QI_RESERVOIR [38], EFX_MIND_SHIELD [21], etc.) fall into SK.resolveEquipEffectVfx's arbitrary string-hash fallback (skills.js:8783–8786).
+Patch Spec: Add semantic entries in SK.EQUIP_EFFECT_VFX_ALIASES (skills.js:8759) for all 27 EFX_LEG_*, all EFX_V320_*, and the 26 common combat effects.
+BUG-E36 [P2] 40 Legendary-Grade Equipment Items Lack Render.LEGENDARY_GEAR_VISUALS Entries & SWORD Has No Distinct Mythic Art Cell
+Provenance: Team 24 (EQ24-06)
+Files & Lines: GAME_SOURCE/docs/ITEM_ART_CATALOG.json (tierFamilies.SWORD.cells: [56..62, 62]), GAME_SOURCE/js/render.js:565, GAME_SOURCE/js/ui.js:341
+Root Cause: 40 v2.3.0/v3.2.0 legendaries (3 EQ_V320_LORE_*, 6 EQ_V230_WPN_*_06, 31 REL_V230_*) have no entry in Render.LEGENDARY_GEAR_VISUALS (27 only), and SWORD is the only family lacking a dedicated index-7 mythic cell (EQ_V320_LORE_SWORD_T7 renders as materials:sword-t7).
+Patch Spec: Add fallback legendary aura/visual rendering in render.js when eq.legendary || eq.grade === 'Legendary', and assign a dedicated sword-mythic cell in ITEM_ART_CATALOG.json (then re-run node GAME_SOURCE/tools/build_item_art.js).
+BUG-E37 [P2] 260+ Equipment & Talisman Items Leak Raw Internal IDs into Authored Thai descTh
+Provenance: Teams 3, 4, 12, 13, 14, 16, 17, 19, 20, 24 (EQ03-06, EQ04-08, EQ12-05, EQ13-02, EQ14-05, EQ16-04, EQ17-06, EQ20-07, EQ24-03)
+Files & Lines: GAME_SOURCE/data/data_expansion.js:9309 (29 EQ_V320_* leak KW_* + v3.2.0), GAME_SOURCE/data/data_martial.js:49111 (144 EQ_V234_* leak TECH_V234_*), 49359 (24 ITEM_V234_TAL_* leak STARFALL_COLLAPSE etc.), 49416 (24 ITEM_V234_TOOL_* leak TECH_V234_*_AUX_*), 51722 (42 EQ_V200_WPN_* leak camelCase buff IDs), GAME_SOURCE/data/data_ecology.js:10885 (24 EQ_V240_* leak KW_* + omit top-level descTh).
+Patch Spec: Resolve every interpolated kwId, grantedTechId, fusionKey, and ws.buff to its localized Thai nameTh (and strip v3.2.0) across all 6 generator sites.
+7. P3 Low-Severity / Polish Bugs (5)
+BUG-E38 [P3] Boilerplate / Inaccurate descTh on EQ_V234_ARM_* & EQ_V234_ACC_* + Missing descTh/price/cat on ECO2_EQ_* & V230 Templates
+Provenance: Teams 14, 15, 16, 18 (EQ14-06, EQ15-05, EQ16-05, EQ18-06)
+Files & Lines: GAME_SOURCE/data/data_martial.js:49229, 52027–52066, 52385–52437, GAME_SOURCE/data/data_ecology.js:9255–9480
+Patch Spec: Generate EQ_V234_ARM/ACC descTh dynamically from actual efx1/efx2; add descTh/price: value to ECO2_EQ_001..007; add cat: 'EQUIPMENT' (and rarity: 'Legendary', unique: true when legendary: true) on V230 templates.
+BUG-E39 [P3] Dead Metadata (isAuxiliaryTool, bonusPath, bonusSubpath, sourceInfoTh), Unrounded Float Artifacts (583.4430000000001, 0.16999999999999998) & CJK '琴' Icon
+Provenance: Teams 4, 5, 13, 16, 20 (EQ04-09, EQ05-02, EQ13-07, EQ16-06)
+Patch Spec: Wire or strip dead metadata keys; round float values via Math.round(v * 1000) / 1000; replace CJK '琴' icon with a standard Thai/emoji icon.
+BUG-E40 [P3] "Refined" (ประณีต) Grade Omitted in Stock/Shop/Bag Detail Rarity Labels
+Provenance: Team 24 (EQ24-09)
+Files & Lines: GAME_SOURCE/js/ui.js:3456, 3598, 6817
+Patch Spec: Insert : selItem.rarity === "Refined" ? "● ประณีต" before : "ทั่วไป" at all 3 sites.
+BUG-E41 [P3] unequip-bag and unequip-sect Omit G.R.invalidate(), Leaving Canvas Equipment Sprite Stale
+Provenance: Team 24 (EQ24-10)
+Files & Lines: GAME_SOURCE/js/ui.js:1639–1650
+Patch Spec: Add if (G.R && G.R.invalidate) G.R.invalidate(); to unequip-bag (1641) and unequip-sect (1647).
+BUG-E42 [P3] ITEM190_TOOL_001..006 Mis-Iconed as CHARM Instead of AUX_TOOL + Minor Legendary Polish
+Provenance: Teams 20, 24 (EQ24-08, Team 20 Minor Notes)
+Files & Lines: GAME_SOURCE/js/ui.js:409, GAME_SOURCE/js/visitors_clues.js:101, 108, 1688
+Patch Spec: Map cat === 'TOOL' → 'AUX_TOOL' in ui.js:409; use p.bonusDmgMult || 0.14 on LEG_ARM_SHADOW_KIRIN_CUIRASS (visitors_clues.js:1688); align LEG_WPN_XUANTIE_HEAVY_SWORD reqStrength: 58 vs minStrength: 60; localize (#6 Beast King) → (#6 ราชันอสูร).
+8. 24-Team Audit Provenance Index
+Create a compact Markdown table listing all 24 Teams:
+Teams 1–11 (EQ_ALL[0..560], 51 items each): ITEM190_*, EQ_V320_*, MP_*, ITEM_EQ_*, MECH/KARMA/BEAST, ITEM_PROC_*, EQ_V215_* → BUG-E02, E03, E06, E08, E09, E11, E12, E18, E20, E26, E31, E32, E33, E34, E37, E39
+Teams 12–16 (EQ_ALL[561..810], 50 items each): EQ_V234_WPN_*, EQ_V234_ARM_*, EQ_V234_ACC_*, ITEM_V234_TOOL_*, EQ_V200_WPN_* → BUG-E02, E05, E07, E08, E12, E17, E26, E37, E38, E39
+Teams 17–20 (EQ_ALL[811..1010], 50 items each): EQ_V200_WPN_*, ITEM_PROC_*, EQ_V230_WPN_*, REL_V230_*, ECO2_EQ_*, EQ_V222_*, EQ_V240_*, LEG_* → BUG-E02, E04, E05, E07, E16, E17, E20, E21, E23, E25, E26, E30, E33, E37, E38, E39, E42
+Team 21 (All 77 Resonance Sets) → BUG-E09, E10, E11, E24, E29, E30
+Team 22 (All 1,011 Reachability & 1,263 Recipes) → BUG-E13, E14, E15, E16, E27, E28, E32
+Team 23 (Core Runtime, Combat, AI 3×60d Sim & Save/Load) → BUG-E01, E02, E21, E22, E23, E27, E29
+Team 24 (Art Catalog, VFX, UI & Non-Slotted Edge Cases) → BUG-E08, E19, E20, E25, E34, E35, E36, E37, E40, E41, E42
+9. Deterministic 3-Wave AI Patch Execution Order & Verification Gate
+Wave 1 — Core Runtime, Save/Load & Progression Blockers (Zero Regression Risk):
+BUG-E01 (recordWeaponKill minStage cap + cache flush), BUG-E02 (_stSig serialization + gearStats guard), BUG-E03 (baseTier/baseQ), BUG-E04 (combatKeywords string clone), BUG-E08 (auxiliaryArtBonus + equippedToolBonus), BUG-E13 (W.sect.armory → W.sect.gear), BUG-E14 (Lv1 mine/herb pool), BUG-E15 (EXT.quotePrice spread), BUG-E21 (cache signatures), BUG-E22 (CPE.buy usability + cache flush).
+Gate 1: node test/run_parallel.js (206/206 PASS) + 3-seed × 60-day Save/Load parity (0 unusable equipped weapons, 0 stat inflation diffs).
+Wave 2 — Combat, Resonance Sets, Recipes & Item Schema:
+BUG-E05 (legendary 1.25× + fixedStats), BUG-E06 (targetArch), BUG-E07 (weapon compat + reqPath + skillModifiers.element), BUG-E09–BUG-E12 (Resonance sets, Sanctum lookup, KW_REFLECT/KW_PIERCE/BUFF_STEALER/CLEAR_DEBUFFS), BUG-E16–BUG-E19 (slotOptions, recipe tier inversion, fishing ITEM_PROC_*, 24 ITEM_V234_TAL_*), BUG-E23–BUG-E34.
+Gate 2: node test/run_parallel.js + node test/smoke_check.js + node test/perf_budget.js + live equip/combat sweep over all 1,011 items and 77 resonance sets.
+Wave 3 — UI Localization, Visuals, VFX & Hygiene:
+BUG-E20 (UI English enum/ID leaks), BUG-E35 (63 VFX aliases incl. 27 EFX_LEG_*), BUG-E36 (40 legendary visuals + sword-mythic cell + node tools/build_item_art.js), BUG-E37–BUG-E42.
+Final Gate: Verify AGENTS.md and js/human_core.js SHA-256 checksums unchanged + 206/206 parallel tests PASS + 0 English ID leaks across all 1,011 item tooltips.

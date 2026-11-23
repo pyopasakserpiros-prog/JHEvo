@@ -1,16 +1,16 @@
-# JianghuSect v3.1.1 — Source Tree
+# JianghuSect 2 v3.0.0 — Source Tree
 
 This folder contains the editable source and tests for the current game.
 
 ## Version identity
 
-- Package release: JS2-v2.4.0
+- Package release: JS2-v3.0.0 Living Continent
 - Runtime: `SIM.VERSION 1.10.11`
-- Patch: `SIM.PATCH_VERSION 2.4.0`
+- Patch: `SIM.PATCH_VERSION 3.0.0`
 - Elemental authority: `ELEM.VERSION 2.0.1`
-- Save marker: `2.4.0-tactical-composable-grand-dao`
+- Save marker: `3.0.0-living-continent`
 
-The runtime and patch version fields identify engine and data revisions; the package release is v3.1.0.
+The atlas uses the same fixed 1,000 × 1,000 li frame as its travel simulation. Both the overview painting and the detailed zoom art are embedded in the offline build. See the [Living Continent report](../PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md).
 
 ## Files
 
@@ -43,3 +43,14 @@ Browser tests require the available Playwright/Chromium environment. If browser 
 - Use current system authorities; avoid parallel state.
 - Keep the standalone offline-capable.
 - Old-save backward compatibility is not required; new-schema save/load is required.
+
+
+## อัปเดตสถานะล่าสุด: แก้ไขครบหมวด 01–13 (V2.6.0 Complete Audit Remediation)
+- แก้ไขและตรวจสอบครบทุกหมวด **01 ถึง 13** (รวมหมวด 13 `13_JS2_Deep_Audit_Lore_Cosmology_CanonSync_Terminology_and_Worldbuilding.pdf` และ `13B_JS2_Deep_Audit_Lore_Part2_LowerWorldCeiling_StageTitles_PowerScaling_SubpathBoilerplate_and_CanonCrises.pdf`)
+- ชุดทดสอบถดถอยใหม่: `GAME_SOURCE/test/v260_bugfix_category_13_suite.js` และรายงานฉบับสมบูรณ์ `PATCH_REPORTS/BUGFIX_CATEGORY_13_JS2_V2_6_0.md`
+- ผลรันชุดทดสอบทั้งหมดในโปรเจกต์: **ผ่านครบ 100% (0 errors, 0 warnings)** โดยรักษา `AGENTS.md` และ `human_core.js` (`155:2f9c9dd7`) ไม่เปลี่ยนแปลง
+
+
+## สถานะปล่อยตัวเต็ม (Final Release Ready — 174/174 Test Suites PASS)
+- ตรวจสอบและเก็บรายละเอียดครบทุกหมวด **01 ถึง 13** พร้อมชุดทดสอบตรวจสอบขั้นสุดท้าย `GAME_SOURCE/test/v260_final_release_audit_suite.js` และรายงานสรุป `PATCH_REPORTS/FINAL_RELEASE_MASTER_AUDIT_01_13_JS2_V2_6_0.md`
+- ชุดทดสอบทั้งหมด **174/174 ชุด** (`node tools/run_parallel_tests.js` และ `node tools/validate_data_schema.js`) ผ่านครบ 100% (`0 errors, 0 warnings, 0 failures`)

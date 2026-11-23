@@ -49,15 +49,15 @@ UI.updateHud = () => { hudUpdates++; };
 UI.buildHud();
 const speedBar = document.getElementById('speedBar');
 const speeds = speedBar.buttons.map(b => +b.dataset.sp);
-assert.deepStrictEqual(speeds, [0, 1, 2, 4, 8, 16, 32, 48]);
-for (const expected of [16, 32]) {
+assert.deepStrictEqual(speeds, [0, 1, 2, 4, 8, 16, 32, 48, 96]);
+for (const expected of [16, 32, 48, 96]) {
   const button = speedBar.buttons.find(b => +b.dataset.sp === expected);
   assert(button, `missing ${expected}× button`);
   speedBar.onclick({ target: { closest: () => button } });
   assert.strictEqual(UI.G.speed, expected, `clicking ${expected}× should set G.speed`);
 }
-assert.strictEqual(hudUpdates, 2, 'speed changes should refresh the HUD');
-assert.match(perf, /\[1, 4, 16, 32, 48\]/, 'performance test should include 32×');
+assert.strictEqual(hudUpdates, 4, 'speed changes should refresh the HUD');
+assert.match(perf, /\[1, 4, 16, 32, 48, 96\]/, 'performance test should include 96×');
 assert.match(css, /@media\(max-width:699px\)[\s\S]*#speedBar button\{flex:1 1 0;min-width:0/, 'mobile speed controls should fit one row');
 console.log('PASS speed button list: ' + speeds.join('×, ') + '×');
 console.log('PASS clicking 16× and 32× changes G.speed and refreshes the HUD');

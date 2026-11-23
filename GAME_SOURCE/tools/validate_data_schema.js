@@ -13,7 +13,7 @@
  */
 
 const G = require('../test/load');
-const { JD, ECO, SIM, SECT, SK, STATS, COMBAT, CULT, MARTIAL } = G;
+const { JD, ECO, SIM, SECT, SK, STATS, COMBAT, CULT, MARTIAL, VC } = G;
 
 const errors = [];
 const warnings = [];
@@ -122,6 +122,11 @@ const recipeIds = new Set();
 const outToInputsGraph = new Map();
 
 for (const r of allRecipes) {
+  if (['ALCHEMY','FORGING','ARRAY','TALISMAN'].includes(r.craft)) {
+    const hall = r.craft === 'ALCHEMY' ? 'alchemy' : 'forge';
+    const cap = SECT.FACILITY_SPECS[hall] && SECT.FACILITY_SPECS[hall].maxLevel;
+    check(!cap || (r.facilityLevel || 1) <= cap, `Recipe ${r.id} requires unreachable ${hall} level ${r.facilityLevel} (cap ${cap})`);
+  }
   check(r.id && typeof r.id === 'string', `Recipe missing valid id: ${JSON.stringify(r)}`);
   recipeIds.add(r.id);
 
@@ -179,7 +184,7 @@ console.log(`  ✓ Audited ${allRecipes.length} recipes and verified acyclic cra
 // 3. Audit Subpaths across all 12 Cultivation Paths
 console.log('\n▶ [3/6] Auditing Cultivation Paths, Subpaths & 9-Stage Tracks...');
 const majorPaths = Object.keys(JD.CULT.paths || {});
-check(majorPaths.length === 43, `Expected 43 major cultivation paths, found ${majorPaths.length}`);
+check(majorPaths.length === 58, `Expected 58 major cultivation paths, found ${majorPaths.length}`);
 const allSubPaths = Object.entries(JD.CULT.paths || {}).flatMap(([pk, p]) => (p.subPaths || []).map(s => Object.assign({ path: pk }, s)));
 const subPathIds = new Set();
 for (const sp of allSubPaths) {
@@ -195,14 +200,34 @@ for (const sp of allSubPaths) {
   check(tr && Array.isArray(tr.realms) && tr.realms.length === 9,
     `Subpath ${sp.id} missing 9-stage progression track in CULT.trackDef`);
 }
+  if (CULT && CULT.PATH_DESCRIPTORS) {
+    for (const pk of majorPaths) {
+      const desc = CULT.PATH_DESCRIPTORS[pk];
+      check(desc && desc.resourceModel && desc.archetypeRole, `Path ${pk} missing PATH_DESCRIPTORS resourceModel/archetypeRole`);
+      check(desc && Array.isArray(desc.stations) && desc.stations.length >= 2, `Path ${pk} missing PATH_DESCRIPTORS stations`);
+      const sc = desc && desc.scaling;
+      check(sc && Number.isFinite(sc.hpGrowthPerNormStage) && sc.mantraPerTier, `Path ${pk} missing PATH_DESCRIPTORS scaling`);
+      check(sc && sc.combatOffenseBaseMult >= 1.09 && sc.combatDefenseTakenMult <= 0.93, `Path ${pk} combat base mult out of parity bounds`);
+    }
+  }
 console.log(`  ✓ Audited ${allSubPaths.length} subpaths across ${majorPaths.length} cultivation paths`);
 
 // 4. Audit Martial Arts, Techniques, Composable Keywords & Strict Arch/Status/Buff Checks
 console.log('\n▶ [4/6] Auditing Martial Arts, Composable Specs & Keyword Strictness...');
-const techniques = [
-  ...(Array.isArray(JD.MARTIAL?.techniques) ? JD.MARTIAL.techniques : Object.values(JD.MARTIAL?.techniques || {})),
-  ...(Array.isArray(JD.MARTIAL?.v200Techniques) ? JD.MARTIAL.v200Techniques : [])
-];
+const _techSeen = new Set();
+const techniques = [];
+for (const _arr of [
+  Array.isArray(JD.MARTIAL?.techniques) ? JD.MARTIAL.techniques : Object.values(JD.MARTIAL?.techniques || {}),
+  Array.isArray(JD.MARTIAL?.v200Techniques) ? JD.MARTIAL.v200Techniques : [],
+  Array.isArray(JD.TECH?.techniques) ? JD.TECH.techniques : Object.values(JD.TECH?.techniques || {})
+]) {
+  for (const _t of _arr) {
+    if (_t && !_techSeen.has(_t)) {
+      _techSeen.add(_t);
+      techniques.push(_t);
+    }
+  }
+}
 check(techniques.length > 0, 'JD.MARTIAL.techniques must not be empty');
 
 const validPaths = new Set([...Object.keys(JD.CULT.paths), 'ANY', 'XIAN', 'MO', 'BUDDHA', 'DAO', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL', 'MECH_PUPPET', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'ARRAY_TALISMAN', 'STRATEGY_GOVERNANCE', 'CONFUCIAN', 'EXTERNAL']);
@@ -214,6 +239,16 @@ for (const tech of techniques) {
 
   if (tech.path) {
     check(validPaths.has(tech.path), `Technique ${tech.id} has invalid path: ${tech.path}`);
+  }
+  if (tech.sub && tech.sub !== 'NONE') {
+    check(subPathIds.has(tech.sub), `Technique ${tech.id} references non-canonical subpath: ${tech.sub}`);
+  }
+  if (Array.isArray(tech.preferredSubs)) {
+    for (const ps of tech.preferredSubs) {
+      if (ps && ps !== 'NONE') {
+        check(subPathIds.has(ps), `Technique ${tech.id} preferredSubs contains non-canonical subpath: ${ps}`);
+      }
+    }
   }
 
   // Strict composable spec validation (no silent fallbacks!)
@@ -246,7 +281,7 @@ for (const tech of techniques) {
       if (move.arch) {
         check(!!(SK.ARCH && SK.ARCH[move.arch]), `Technique ${tech.id} move ${move.id} uses unregistered arch: ${move.arch}`);
       }
-      const isDefensiveOrBuff = move.arch === 'guard' || move.arch === 'heal' || move.arch === 'buff' || move.arch === 'shield' || move.arch === 'evade' || move.arch === 'stance' || move.type === 'p' || move.type === 'b' || move.M === 0;
+      const isDefensiveOrBuff = ['guard', 'heal', 'buff', 'shield', 'evade', 'stance', 'support', 'command', 'harmonize', 'karmaReversal', 'meditate', 'field', 'stealth'].includes(move.arch) || move.type === 'b';
       if (!isDefensiveOrBuff) {
         check(typeof move.M === 'number' && !isNaN(move.M) && move.M > 0, `Technique ${tech.id} move ${move.id} invalid attack multiplier M: ${move.M}`);
       }
@@ -254,7 +289,40 @@ for (const tech of techniques) {
     }
   }
 }
-console.log(`  ✓ Audited ${techniques.length} martial techniques (zero unknown archetypes, statuses, buffs, or composable keywords)`);
+for (const [legKey, legItem] of Object.entries((VC && VC.LEGENDARY_EQUIPMENT) || {})) {
+  if (legItem && Array.isArray(legItem.preferredSubs)) {
+    for (const ps of legItem.preferredSubs) {
+      if (ps && ps !== 'NONE') {
+        check(subPathIds.has(ps), `LEGENDARY_EQUIPMENT[${legKey}] (${legItem.id || ''}) preferredSubs contains non-canonical subpath: ${ps}`);
+      }
+    }
+  }
+}
+for (const pk of Object.keys((MARTIAL && MARTIAL.PROFILES) || {})) {
+  check(subPathIds.has(pk), `MARTIAL.PROFILES contains non-canonical subpath key: ${pk}`);
+}
+for (const sk of Object.keys((MARTIAL && MARTIAL.SUB_EQUIP_BONUSES) || {})) {
+  check(subPathIds.has(sk), `MARTIAL.SUB_EQUIP_BONUSES contains non-canonical subpath key: ${sk}`);
+}
+const mantrasList = Array.isArray(JD.TECH?.mantras) ? JD.TECH.mantras : [];
+for (const mt of mantrasList) {
+  check(mt && typeof mt.id === 'string', `Mantra missing id`);
+  check(mt.nameTh && typeof mt.nameTh === 'string' && !/[\u4e00-\u9fff]/.test(mt.nameTh), `Mantra ${mt.id} missing or unlocalized nameTh: ${mt.nameTh}`);
+}
+const extraMantras = Array.isArray(JD.TECH?.extraMantras) ? JD.TECH.extraMantras : [];
+const expNonCombat = Array.isArray(JD.TECH?.expansionNonCombatArts) ? JD.TECH.expansionNonCombatArts : [];
+for (const em of extraMantras) {
+  check(em && typeof em.id === 'string' && typeof em.nameTh === 'string', `Extra mantra missing id/nameTh`);
+  check(!!(CULT && CULT.tech && CULT.tech(em.id)), `Extra mantra ${em.id} not indexed in CULT.tech`);
+}
+for (const enc of expNonCombat) {
+  check(enc && typeof enc.id === 'string' && typeof enc.nameTh === 'string', `Expansion art missing id/nameTh`);
+  check(!!(CULT && CULT.tech && CULT.tech(enc.id)), `Expansion art ${enc.id} not indexed in CULT.tech`);
+}
+for (const p of (JD.CORE?.patriarchPreHistoryTemplates || [])) {
+  check(!/โลกเบื้องบน|สวรรค์ชั้นบน|Upper World/i.test(JSON.stringify(p)), `Pre-history plaque ${p.id} leaks Upper-World lore`);
+}
+console.log(`  ✓ Audited ${techniques.length} martial techniques, ${mantrasList.length} base mantras, ${extraMantras.length} extra mantras & ${expNonCombat.length} Carbon non-combat/sovereign arts`);
 
 // 5. Audit Effects, Buffs, Parameters & Source Integrity
 console.log('\n▶ [5/6] Auditing Effects, Buffs, Parameters & Acquisition Sources...');
@@ -291,8 +359,59 @@ for (const kind of kinds) {
 }
 console.log(`  ✓ Verified Editor catalog (${catalog.length} entries across ${kinds.size} categories, tested spawns: ${testedSpawns})`);
 
+// Continental data shares one coordinate frame with the atlas and travel graph.
+console.log('\n▶ Checking continental geography and court seats...');
+const {EXPED} = G, worldMap = EXPED.ensureWorldTopology(W);
+const cityIds = new Set();
+for (const [i,row] of JD.CONTINENT.rows.entries()) {
+  const [id,nameTh,x,y,tier,owner] = row;
+  check(/^(CITY|TOWN|PASS)_[A-Za-z0-9_]+$/.test(id) && !cityIds.has(id),'Duplicate or malformed city ID ' + id);
+  cityIds.add(id);
+  check(typeof nameTh === 'string' && nameTh.length > 0,'City name is missing: ' + id);
+  check([x,y].every(v => Number.isFinite(v) && v >= 0 && v <= 100),'City outside the coordinate frame: ' + id);
+  check(Number.isInteger(tier) && tier >= 1 && tier <= 5,'Invalid settlement tier: ' + id);
+  check(owner === -1 || !!JD.CONTINENT.polities[owner],'City has an invalid polity: ' + id);
+  const node = EXPED.SETTLEMENTS[id];
+  check(node?.order === i+1,'Gazetteer order differs from runtime: ' + id);
+  const route = EXPED.planContinentalRoute(W,worldMap,node);
+  check(route?.targetId === id && route.distanceLi > 0,'No path from the home sect: ' + id);
+}
+const edgeIds = new Set();
+for (const [a,b,terrain,bends = []] of JD.CONTINENT.roads) {
+  const key = [a,b].sort((x,y) => x-y).join(':');
+  check(!edgeIds.has(key) && Number.isInteger(a) && Number.isInteger(b) &&
+    a >= 0 && b >= 0 && a !== b && Math.max(a,b) <= cityIds.size,'Duplicate or invalid road ' + key);
+  edgeIds.add(key);
+  check(!terrain || ['forest','mountain','desert','plains','marsh','water'].includes(terrain),'Unknown road terrain at ' + key);
+  check(bends.every(p => p.length === 2 && p.every(n => Number.isFinite(n) && n >= 0 && n <= 100)),'Invalid road bend at ' + key);
+}
+const courtState = W.world.continent, holders = new Set();
+for (const def of JD.CONTINENT.polities) {
+  const row = JD.CONTINENT.rows[def.capital-1];
+  check(!!row && EXPED.SETTLEMENTS[row[0]]?.polityId === def.id && row[4] >= 4,'Invalid capital for ' + def.id);
+  const court = courtState.courts[def.id];
+  check(!!court && Object.values(court.seats).some(s => s.role === 'ruler'),'Court requires a governing office: ' + def.id);
+  for (const seat of Object.values(court?.seats || {})) {
+    check(EXPED.SETTLEMENTS[seat.stationId]?.polityId === def.id,'Office without a station in its polity: ' + seat.id);
+    if (seat.holderId) {
+      check(!!courtState.figures[seat.holderId] && !holders.has(seat.holderId),'Unknown or duplicate office holder: ' + seat.holderId);
+      holders.add(seat.holderId);
+    }
+  }
+}
+check(EXPED.LI_PER_MAP_UNIT === 10,'Continental scale must remain 10 li per map unit');
+console.log('  ✓ Verified ' + cityIds.size + ' settlements, ' + edgeIds.size + ' authored links and ' + JD.CONTINENT.polities.length + ' courts');
+
 // Report Summary
 console.log('\n====================================================');
+for (const def of Object.values(JD.CORE.curatedTraits || {})) {
+  if (def.category !== 'ACQUIRED' || !String(def.id).startsWith('TR_AC_')) continue;
+  check(Array.isArray(def.modifiers), 'Acquired trait requires a modifier array: ' + def.id);
+  const specialChannels = new Set(['combat.powerMult','cultivation.breakthroughBonus','cultivation.tribulationResist','craft.successBonus','craft.inventionBonus','destiny.luck','destiny.karma']);
+  for (const m of def.modifiers || []) {
+    check(['ADD','MULT'].includes(m.op) && Number.isFinite(m.value) && (!!G.HC.DEF[m.stat] || specialChannels.has(m.stat)), 'Unsupported acquired modifier: ' + def.id + '/' + m.stat);
+  }
+}
 console.log('                VALIDATION SUMMARY                  ');
 console.log('====================================================');
 console.log(`Errors:   ${errors.length}`);

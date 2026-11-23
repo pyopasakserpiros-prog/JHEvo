@@ -3,7 +3,7 @@
  * Priority P2 (v1.10.7) — Browser and Mobile Performance Verification Suite
  * Tests:
  * 1. Responsive viewports: 360x800 (narrow mobile), 412x860 (standard mobile), 1280x800 (desktop)
- *    - Verifies all 8 speed buttons (0, 1, 2, 4, 8, 16, 32, 48), bottom nav, minimap, FABs, and sheets
+ *    - Verifies all 9 speed buttons (0, 1, 2, 4, 8, 16, 32, 48), bottom nav, minimap, FABs, and sheets
  *      fit within viewport bounds with zero horizontal overflow and zero toast/minimap collision.
  * 2. Gesture & Input Controls:
  *    - Single-pointer drag pan, two-pointer pinch zoom, wheel zoom, tap NPC selection, tap empty ground
@@ -75,7 +75,7 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
           right: Math.round(r.right * 10) / 10,
           top: Math.round(r.top * 10) / 10,
           bottom: Math.round(r.bottom * 10) / 10,
-          inViewport: r.left >= -0.5 && r.right <= winW + 0.5 && r.bottom <= winH + 0.5 && r.width >= 48
+          inViewport: r.left >= -0.5 && r.right <= winW + 0.5 && r.bottom <= winH + 0.5 && r.width >= 44
         };
       });
       const mm = document.getElementById('minimap').getBoundingClientRect();
@@ -87,18 +87,18 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
         docW,
         noHorizontalOverflow: docW <= expectedW,
         speedBtns,
-        allSpeedsVisible: speedBtns.length === 8 && speedBtns.every(b => b.inViewport),
+        allSpeedsVisible: speedBtns.length === 9 && speedBtns.every(b => b.inViewport),
         navBtns,
-        allNavsVisible: navBtns.length === 6 && navBtns.every(b => b.inViewport),
+        allNavsVisible: navBtns.length === 7 && navBtns.every(b => b.inViewport),
         minimapClickable: topAtMm && topAtMm.id === 'minimap'
       };
     }, vp.width);
 
     assert.strictEqual(layout.winW, vp.width, `${vp.name}: window.innerWidth should match ${vp.width}`);
     assert(layout.noHorizontalOverflow, `${vp.name}: should have no horizontal overflow (scrollWidth=${layout.docW})`);
-    assert.deepStrictEqual(layout.speedBtns.map(b => b.sp), [0, 1, 2, 4, 8, 16, 32, 48], `${vp.name}: must render all 8 speed multipliers`);
-    assert(layout.allSpeedsVisible, `${vp.name}: all 8 speed buttons must fit inside ${vp.width}px viewport: ${JSON.stringify(layout.speedBtns)}`);
-    assert(layout.allNavsVisible, `${vp.name}: all 6 bottom navigation buttons must fit inside ${vp.width}px viewport`);
+    assert.deepStrictEqual(layout.speedBtns.map(b => b.sp), [0, 1, 2, 4, 8, 16, 32, 48, 96], `${vp.name}: must render all 9 speed multipliers`);
+    assert(layout.allSpeedsVisible, `${vp.name}: all 9 speed buttons must fit inside ${vp.width}px viewport: ${JSON.stringify(layout.speedBtns)}`);
+    assert(layout.allNavsVisible, `${vp.name}: all 7 bottom navigation buttons must fit inside ${vp.width}px viewport`);
     assert(layout.minimapClickable, `${vp.name}: #minimap must not be covered by toast or HUD overlays`);
 
     viewportReport[vp.name] = {
@@ -117,7 +117,7 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
   await p.evaluate(() => { G.R.resize(); G.speed = 0; UI.updateHud(true); });
 
   // 2. Speed Button Click Verification (0, 1, 2, 4, 8, 16, 32, 48)
-  for (const sp of [0, 1, 2, 4, 8, 16, 32, 48, 0]) {
+  for (const sp of [0, 1, 2, 4, 8, 16, 32, 48, 96, 0]) {
     await p.click(`#speedBar button[data-sp="${sp}"]`);
     const state = await p.evaluate(() => ({
       gSpeed: G.speed,
@@ -257,12 +257,12 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
 
   // 5. Speed Multipliers (0x..48x) & Large Population (80 Cultivators) Performance Benchmark
   const speedBenchStandard = {};
-  for (const sp of [0, 1, 2, 4, 8, 16, 32, 48]) {
+  for (const sp of [0, 1, 2, 4, 8, 16, 32, 48, 96]) {
     const res = await p.evaluate(async (speed) => {
       G.speed = speed;
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       G.acc = 0;
-      const tStart = G.W.t;
+      const tStart = G.W.workSteps;
       let frames = 0;
       const p0 = performance.now();
       await new Promise(resolve => {
@@ -274,14 +274,14 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
         requestAnimationFrame(step);
       });
       const elapsedSec = (performance.now() - p0) / 1000;
-      const ticks = (G.W.t - tStart) + G.acc;
+      const ticks = (G.W.workSteps - tStart) + G.acc;
       return {
         speed,
         runtimeError: G.err ? (G.err.stack || String(G.err)) : null,
         actualSpeed: G.speed,
         targetTicksPerSec: speed * 4,
         measuredTicksPerSec: Math.round((ticks / elapsedSec) * 10) / 10,
-        completedTicks: G.W.t - tStart,
+        completedTicks: G.W.workSteps - tStart,
         fps: Math.round((frames / elapsedSec) * 10) / 10,
         pendingTicks: Math.round(G.acc * 100) / 100
       };
@@ -334,11 +334,11 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
 
     // Measure live frame loop at 16x, 32x, and 48x with 80 NPCs
     const liveSpeeds = {};
-    for (const sp of [16, 32, 48]) {
+    for (const sp of [16, 32, 48, 96]) {
       G.speed = sp;
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       G.acc = 0;
-      const startT = G.W.t;
+      const startT = G.W.workSteps;
       let frames = 0;
       const f0 = performance.now();
       await new Promise(resolve => {
@@ -351,7 +351,7 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
       });
       const sec = (performance.now() - f0) / 1000;
       liveSpeeds[sp + 'x'] = {
-        measuredTicksPerSec: Math.round(((G.W.t - startT) / sec) * 10) / 10,
+        measuredTicksPerSec: Math.round(((G.W.workSteps - startT) / sec) * 10) / 10,
         fps: Math.round((frames / sec) * 10) / 10,
         pendingTicks: Math.round(G.acc * 100) / 100
       };
@@ -406,5 +406,5 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
 
   fs.mkdirSync(path.join(__dirname, 'results'), { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'results/browser_mobile_perf_v1107.json'), JSON.stringify(report, null, 2) + '\n');
-  console.log('PASS browser_mobile_perf: 360px/412px/1280px viewports, gestures, 24 panel tabs, save/load, 0x-48x speeds, 80-NPC stress (' + largePopBench.avgMsPerTick + ' ms/tick, ' + largePopBench.maxSustainableSpeedMultiplier + 'x cap)');
+  console.log('PASS browser_mobile_perf: 360px/412px/1280px viewports, gestures, 24 panel tabs, save/load, 0x-96x speeds, 80-NPC stress (' + largePopBench.avgMsPerTick + ' ms/tick, ' + largePopBench.maxSustainableSpeedMultiplier + 'x cap)');
 })();

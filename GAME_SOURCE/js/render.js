@@ -5,8 +5,437 @@
   'use strict';
   const U = g.U, MAP = g.MAP, HC = g.HC, CULT = g.CULT, SECT = g.SECT, AI = g.AI;
   const clamp = U.clamp, T = MAP.T, TS = 16;
-  const R = {};
+  const R = { TILE_SIZE: TS };
   const FONT = '"Noto Sans Thai","Sarabun","Leelawadee UI",system-ui,sans-serif';
+  // Art coordinates are relative to the beast's feet. Each layer uses the
+  // species palette; lifted wings have their own pivot and animation.
+  const wildModels = {
+    wolf: { top: 24, layers: [
+      ['shade', 'M-11-10Q-19-6-24-10L-19-12-14-17Z M-9-10-7-1-3-1-4-12Z M6-12 7-2 11-2 11-13Z'],
+      ['body', 'M-15-11Q-15-19-5-18L3-18 7-21 9-27 13-22 17-24 17-19 23-15 21-12 13-12 10-6 8 0 4 0 4-9-6-8-11 0-15 0-12-9Z'],
+      ['light','M-12-14Q-9-19 2-16L7-19 13-18 10-13 3-10-3-12Z'],
+      ['eye','M15-18 18-17 15-16Z']
+    ] },
+    fox: { top: 26, layers: [
+      ['shade','M-9-9Q-27-5-25-20Q-21-12-10-17Z'],
+      ['light','M-25-20Q-25-13-21-12L-18-14Z'],
+      ['body','M-13-12Q-10-19 2-15L7-18 7-26 13-22 16-26 17-18 23-13 16-12 11-8 10-1 7-1 6-9-5-8-9 0-13 0-11-7Z'],
+      ['light','M9-17 16-17 23-13 16-12 11-8 6-9Z'],
+      ['eye','M15-17 18-16 15-15Z']
+    ] },
+    cat: { top: 22, layers: [
+      ['shade','M-11-13C-24-7-30-15-23-21L-21-20C-26-14-20-13-11-17Z M-9-12-5-2 0-2-3-10Z M8-13 11-2 15-2 14-12Z'],
+      ['body','M-16-11Q-16-19-5-17Q3-15 8-18L12-18Q11-24 16-21L18-19Q23-19 23-14L20-10 14-10 12-1 7-1 8-9-6-8-12 0-17 0-13-8Z'],
+      ['light','M-13-14Q-9-18 3-15L10-17 9-12Q-3-10-13-14Z M16-12 22-15 22-12 19-10Z'],
+      ['eye','M17-17 21-16 18-15Z']
+    ] },
+    bear: { top: 25, layers: [
+      ['shade','M-12-11-10-2-5-2-5-12Z M7-13 9-2 15-2 14-13Z'],
+      ['body','M-20-10Q-22-20-12-20Q-6-27 7-22L12-21Q11-26 16-25L19-22 25-17 24-12 17-10 16-1 10-1 8-9-6-7-12 0-19 0-17-8Z'],
+      ['light','M-14-19Q-4-27 7-21L12-17 7-11 0-12Z M18-17 25-17 24-12 19-12Z'],
+      ['eye','M18-19 21-18 19-17Z']
+    ] },
+    boar: { top: 26, layers: [
+      ['shade','M-14-10-12-2-8-2-7-11Z M5-12 6-2 11-2 13-12Z'],
+      ['body','M-19-7Q-22-18-13-19L-8-23-4-20 0-26 4-21 7-24 10-19 12-23 17-18 24-15 24-9 16-7 13 0 8 0 8-7-9-7-11 0-17 0-16-6Z'],
+      ['light','M-17-15-10-19-5-14-2-19 4-19 6-13 1-8-5-10-11-8Z M18-14 24-15 24-10 20-9Z'],
+      ['ivory','M15-9Q22-9 24-15Q24-7 21-6Q18-5 15-9Z'],
+      ['eye','M15-17 19-16 16-15Z']
+    ] },
+    stag: { top: 35, layers: [
+      ['shade','M-11-12-9-1-6-1-7-12Z M5-14 8-2 11-2 9-15Z'],
+      ['body','M-17-13Q-18-21-9-20L3-17 7-24 7-28 12-26 17-28 17-24 23-22 21-18 15-18 12-10 9 0 6 0 6-10-6-12-14 0-17 0-14-10Z'],
+      ['light','M-14-16Q-7-21 4-15L6-18 8-13 3-11-7-13Z M12-23 17-25 22-21 16-20Z'],
+      ['ivory','M13-26 10-31 4-33 2-37 6-35 9-35 7-39 11-36 13-31 16-32 19-37 19-32 17-29 15-25Z'],
+      ['eye','M16-24 19-23 16-22Z']
+    ] },
+    goat: { top: 31, layers: [
+      ['shade','M-12-11-9-1-6-1-7-12Z M8-13 10-2 13-2 12-13Z'],
+      ['body','M-17-17-13-22-13-18Q-8-20 1-17L7-21 11-26 15-25 18-23 22-21 20-17 16-16 15-12 12-16 9-6 8 0 5 0 5-11-6-9-12 0-16 0-12-10Q-18-13-17-17Z'],
+      ['ivory','M11-24Q6-29 8-34Q10-30 15-28L16-24Z M15-26Q14-32 19-34L18-29 19-25Z'],
+      ['light','M-14-17Q-7-19 1-15L6-18 5-13-1-10-8-12Z'],
+      ['eye','M16-23 19-22 16-21Z']
+    ] },
+    bull: { top: 28, layers: [
+      ['shade','M-13-12-11-2-7-2-7-12Z M8-13 9-2 14-2 13-14Z'],
+      ['body','M-20-7-17-16Q-10-22 1-21L10-24 16-21 21-22 25-17 24-10 19-8 13-11 11-1 6-1 7-10-7-10-13 0-18 0-15-9Z'],
+      ['ivory','M12-21Q7-21 6-27Q11-24 16-24L19-21Q26-22 27-27Q30-20 23-18L18-19Z'],
+      ['light','M-14-16 0-18 4-20 10-21 11-16 5-11-1-15-8-13Z'],
+      ['eye','M20-17 23-16 20-15Z']
+    ] },
+    serpent: { top: 25, shadow: 18, layers: [
+      ['body','M-23-7C-27-2-16 1-5-2C10-6 16-2 19-5C25-11 12-14 10-16C8-18 17-18 22-18L25-21 21-25 15-27 8-24C-3-18 3-12 10-10C-2-8-16-3-23-7Z'],
+      ['light','M-24-6C-17-3-10-7 2-9C-1-16 4-22 12-24L18-24C10-22 8-19 10-16C12-13 23-13 20-7C13-5 10-8-4-4C-14-1-22-2-24-6Z'],
+      ['eye','M18-24 22-22 19-21Z']
+    ] },
+    cobra: { top: 33, shadow: 16, layers: [
+      ['body','M-21-5C-25 1-10 1-1-3L11-3C23-4 16-12 5-12C3-13 5-16 7-17Q0-18 0-25Q0-34 11-33Q23-33 24-25Q24-18 16-16C11-14 19-17 21-9C25 0-8 6-21-5Z'],
+      ['light','M6-26Q1-29 10-31L19-29 21-25 17-20 13-22 10-19 4-22Z M14-14Q30-3 3-2L-8-2Q16-6 14-14Z'],
+      ['shade','M9-29 16-30 21-27 21-24 16-22 9-24 7-26Z'],
+      ['eye','M16-27 20-26 16-25Z']
+    ] },
+    bird: { top: 34, hover: 3, layers: [
+      ['shade','M-6-14-19-12-24-4-11-7 1-14Z'],
+      ['body','M-13-23Q-5-26 3-22L9-27 17-26 23-21 17-21 16-17 10-14 2-10-13-12-21-8-20-13-26-14Z'],
+      ['wing','M-1-15Q-15-19-24-37Q-16-34-12-28L-15-37Q-6-32-4-25L-5-34Q3-30 7-23L6-19Z'],
+      ['light','M-13-20Q-6-24 4-20L10-23 15-19 10-15 0-12Z M12-26 17-26 23-21 17-21Z'],
+      ['eye','M15-24 18-23 15-22Z']
+    ] },
+    crane: { top: 33, hover: 2, layers: [
+      ['shade','M-3-10-13-3-20-4-20-2-11-1 2-9Z'],
+      ['body','M-22-14-12-22Q-6-23 4-17L8-18Q12-22 8-26Q8-34 18-34L25-31 19-29 15-30Q18-23 16-19Q12-9-3-9Z'],
+      ['wing','M-4-12Q-18-13-24-28Q-14-27-10-23L-12-31Q-5-29 2-20L2-15Z'],
+      ['light','M-11-17Q-8-21 4-16L9-19 12-17 4-12-5-12Z'],
+      ['eye','M16-33 19-32 17-31Z']
+    ] },
+    bat: { top: 28, hover: 4, layers: [
+      ['wing','M-1-15Q-13-12-29-28L-25-16-26-7Q-20-12-14-6Q-9-12-3-7Z M5-13Q16-26 27-28L23-18 26-8Q18-13 13-6Q9-12 5-7Z'],
+      ['body','M-8-15-8-23-2-19Q2-22 6-19L12-23 11-16 13-12 8-8 4-3 1-8Q-9-8-8-15Z'],
+      ['light','M-4-14 1-17 8-16 11-12 7-10 1-11Z'],
+      ['eye','M7-15 10-14 7-13Z']
+    ] },
+    turtle: { top: 23, layers: [
+      ['shade','M-12-11-15-2-8-2-5-11Z M6-12 9-2 15-2 14-11Z'],
+      ['body','M-16-11Q-16-17-10-21L-2-24 7-22 13-18 16-12 17-15 23-16 26-13 25-9 15-7 14 0 8 0 6-6-7-5-11 0-17 0-15-5-23-5Z'],
+      ['light','M-14-12-9-18-4-15-6-10Z M-6-19-1-22 6-20 3-16-3-16Z M-4-14 3-14 6-10 2-7-5-10Z M5-15 8-19 12-15 14-11 8-11Z'],
+      ['eye','M21-14 24-13 22-12Z']
+    ] },
+    scorpion: { top: 30, layers: [
+      ['shade','M-10-13-18-8-21-3-18-3-11-8-5-9Z M-5-12-14-3-14 0-10-1-4-7 6-8Z M1-11-3-1-1 1 4-5 10-7Z'],
+      ['body','M-12-8Q-18-14-11-22Q-5-28 3-25L6-29 11-27 8-24 7-21C2-24-4-23-8-17L-9-14Q0-16 7-12L13-16 19-18 25-14 21-13 25-8 17-8 14-12 9-8 13-5 20-6 26-3 21-2 24 1 17 2 9-3 3-5-6-4Z'],
+      ['light','M-11-12-7-13-4-10-7-7-10-8Z M-3-13 2-13 5-11 1-7-3-8Z M7-11 11-12 14-9 11-6 8-7Z'],
+      ['eye','M9-10 11-10 10-8Z']
+    ] },
+    beetle: { top: 22, layers: [
+      ['shade','M-12-13-21-15-18-10-11-8-19-4-18-1-8-5-10 0-7 1-2-6 3-5 7 1 10 0 6-7 12-6 19-3 20-5 11-11Z'],
+      ['body','M-21-10Q-22-18-12-22Q-1-25 7-19L12-16 15-17 18-22 21-22 19-16 26-17 25-13 18-11 16-8 8-8 5-5Q-16 0-21-10Z'],
+      ['light','M-18-11Q-20-18-10-20Q-1-22 5-17L-9-12-17-8Z M-12-8 6-15 8-12 3-8-12-5Z'],
+      ['eye','M15-14 18-14 17-12Z']
+    ] },
+    spider: { top: 25, layers: [
+      ['shade','M-11-14-22-23-28-13-26-9-22-17-13-8Z M-5-14-17-19-22-4-19-1-16-13-8-7Z M2-14 7-22 16-13 17-8 8-16 6-10Z M5-10 14-16 24-10 24-5 14-10 10-5Z'],
+      ['body','M-22-13Q-22-23-11-24Q0-25 3-16Q8-18 14-14L17-12 22-11 19-7 13-9Q6-6 1-10Q-10-2-21-9Z'],
+      ['light','M-18-14Q-19-21-10-22Q-4-21-1-17L-5-11-14-9Z'],
+      ['eye','M11-14 16-12 13-10 11-12 8-11 8-13Z']
+    ] },
+    crawler: { top: 18, shadow: 19, layers: [
+      ['shade','M-18-11-24-12-25-8-20-5-17-5-22-9Z M-11-10-15-3-12-2-7-8Z M-2-9-4-2-1-1 3-9Z M7-13 8-3 11-3 12-11Z M16-16 22-21 23-19 20-13Z'],
+      ['body','M-24-10Q-18-14-13-10Q-9-15-4-11Q1-16 7-12Q8-19 15-16L20-18 25-15 25-11 19-7 13-8 9-6 3-6-4-4-10-4-15-5-22-6Z'],
+      ['light','M-21-10-17-11-13-9-17-7Z M-11-10-7-12-4-10-7-7Z M-2-11 2-13 6-11 3-7Z M8-13 12-16 15-13 13-10Z'],
+      ['eye','M19-15 23-14 20-12Z']
+    ] },
+    ant: { top: 21, layers: [
+      ['shade','M-11-10-19-18-24-13-23-10-18-14-9-6Z M-3-12-9-2-6-1 1-10Z M5-12 9-3 13-2 10-11Z M12-14 21-22 19-22 12-17Z'],
+      ['body','M-23-12Q-24-19-14-20Q-7-20-5-14L0-12Q0-17 6-17L11-13 13-18 19-17 22-13 25-17 26-13 23-8 19-7 13-9 9-9Q5-6 0-8L-6-9Q-14-3-22-8Z'],
+      ['light','M-20-14Q-16-20-9-16L-9-13-16-9Z M1-13 6-15 8-12 5-10Z'],
+      ['eye','M17-16 20-14 17-13Z']
+    ] },
+    mantis: { top: 26, layers: [
+      ['shade','M-10-12-16-4-22-3-24-1-14-1-7-8Z M-1-12 4-5 8-3 10-5 5-10Z'],
+      ['body','M-24-11Q-20-17-10-15L-2-11 6-17 8-23 14-26 19-24 20-20 13-17 11-12 16-9 21-17 24-17 21-7 16-5 9-9 3-8Q-10-5-24-11Z'],
+      ['light','M-23-11Q-18-16-11-14L0-11-9-9Z M10-22 14-25 18-23 16-20Z'],
+      ['eye','M14-23 17-22 15-21Z']
+    ] },
+    moth: { top: 31, hover: 4, layers: [
+      ['shade','M-5-15Q-19-13-20-5Q-12 2-5-6L3-14Z M6-15Q23-15 24-5Q19 3 10-6Z'],
+      ['wing','M-3-12Q-21-9-28-27Q-27-36-16-31Q-7-30 1-20Z M7-12Q23-10 29-27Q30-34 21-32Q11-29 4-20Z'],
+      ['light','M-5-17Q-17-15-24-26Q-23-32-14-27Q-7-25-5-17Z M10-17Q24-16 25-26Q24-29 17-26Q12-22 10-17Z'],
+      ['body','M-7-9-4-18 0-24-3-30 1-28 4-24 8-28 11-29 7-23Q13-20 10-15L5-10 0-4Z'],
+      ['eye','M6-22 9-21 7-19Z']
+    ] },
+    treant: { top: 36, layers: [
+      ['shade','M-6-16-13-5-23 0-13 1-9-1-4 2 0-6 4-4 12 1 17 0 9-4 7-16Z'],
+      ['body','M-11-24-18-26-23-31-25-30-22-23-12-17-6-12-9-5-2-4 2-14 6-11 8-5 15-5 12-12 10-21 19-23 22-29 26-31 23-34 19-31 15-30 14-34 11-33 10-27 7-25 5-31 2-36-2-34-3-29-8-31-11-36-15-36-13-31-12-27Z'],
+      ['light','M-9-27-2-29 3-26 8-26 9-21 5-19 2-21-2-17-6-19Z M-19-30-22-35-29-33-27-29Z M20-30 29-35 27-29Z'],
+      ['eye','M0-23 3-23 2-20Z M5-23 8-24 8-21Z']
+    ] },
+    mushroom: { top: 24, layers: [
+      ['body','M-8-13Q-20-12-17-18Q-11-26-1-25Q11-25 18-17Q21-13 12-12L5-13 7-2 13-1 7 2 1 0-4 2-12 0-6-4-5-12Z'],
+      ['light','M-15-17Q-8-25-1-23Q11-24 17-17L11-15 1-16-6-15Z'],
+      ['ivory','M-8-20-5-21-2-19-5-17Z M5-22 8-21 10-19 6-19Z'],
+      ['eye','M-1-10 2-10 1-8Z M4-10 6-10 6-8Z']
+    ] },
+    flower: { top: 28, layers: [
+      ['body','M-3-14Q-15-23-12-26Q-7-24-2-20L0-30 5-28 6-21 13-28 17-25 12-18Q26-21 22-16Q15-10 6-10L6-4 20-7 15-1 4 0-1 2-8 1-17-4-19-10-6-5-4-10Q-13-9-22-15Q-20-20-3-14Z'],
+      ['light','M-12-15-3-15 3-20 8-17 16-17 10-12 4-11-1-10-8-12Z'],
+      ['eye','M-1-16 1-18 6-17 8-15 4-13 0-14Z']
+    ] },
+    vine: { top: 29, shadow: 17, layers: [
+      ['shade','M-4-11Q-8-21-16-24L-22-22-24-17-21-19-16-19-8-6-23-3-24 0-10-1-4-5 0 1 10 2 14 0 7-1 5-8Z'],
+      ['body','M-8-7Q-13-15-7-23L-9-29-3-27 0-24 4-29 7-29 7-24 14-27 19-24 16-19 20-17Q25-21 24-26Q29-21 26-17Q22-11 13-12L7-16 9-7 17-5 24-5 19-1 8-2 2-9-2-8-7-1-14 0-12-4Z'],
+      ['light','M-9-13-4-22 1-20 4-23 9-21 13-22 14-19 6-15 2-16-2-12Z'],
+      ['eye','M6-20 10-20 8-18Z']
+    ] },
+    drake: { top: 26, shadow: 18, layers: [
+      ['shade','M-9-11-13-3-8-2-4-10Z M6-14 10-2 15-2 14-12Z'],
+      ['body','M-31-7Q-25-6-19-13L-14-17-13-22-8-19-6-24-1-21 4-25 9-22 13-25 16-23 18-20 23-21 25-18 29-17 28-12 20-12 15-10 13-1 7-1 6-9-7-8-15 0-21 0-17-8Q-25-3-31-7Z'],
+      ['light','M-16-13-8-17-4-14 0-19 4-16 9-20 15-19 12-13 1-11-7-12Z'],
+      ['eye','M20-19 24-18 21-16Z']
+    ] },
+    crocodile: { top: 17, shadow: 22, layers: [
+      ['shade','M-12-9-16-1-11 0-6-7Z M8-10 10-1 17-1 15-9Z'],
+      ['body','M-32-10Q-23-6-15-11L-13-16-7-14-4-18 2-16 6-18 11-14 17-15 22-12 32-11 33-9 21-7 32-6 31-3 17-3 10-7 4-6-12-6Q-27-2-32-10Z'],
+      ['light','M-14-11-8-14-5-11-1-14 3-11 6-14 12-11 8-8-12-8Z'],
+      ['eye','M16-14 19-13 17-11Z']
+    ] },
+    frog: { top: 20, layers: [
+      ['shade','M-1-7-8-2-16 0-23 0-19-3-11-7Z M6-8 15-1 21-1 18 1 11 1 5-3Z'],
+      ['body','M-22-8Q-23-17-14-18L-6-18Q1-25 7-19Q14-22 17-17L22-15 24-11 20-7 14-6 13-1 10 0 6-6-1-7-8-3-17-2-18-5Z'],
+      ['light','M-18-10Q-17-17-10-17Q-4-17 0-12L-3-9-9-7Z M14-12 23-12 20-8 12-8Z'],
+      ['eye','M14-17 18-16 16-14Z']
+    ] },
+    squirrel: { top: 31, layers: [
+      ['shade','M-13-6Q-25-3-28-16Q-31-22-26-28Q-22-34-15-29Q-9-25-14-19Q-22-22-20-15L-11-13Z'],
+      ['body','M-16-5Q-22-9-16-16L-7-18 1-15 6-23 7-29 12-30 14-23 18-23 23-18 21-14 16-14 12-9 12-4 19-3 19-1 8-1 5-9 0-6-10-3-8 0-17 0Z'],
+      ['light','M-18-10Q-9-17 2-12L7-15 10-12 5-7-2-7-12-5Z'],
+      ['eye','M16-21 19-20 17-18Z']
+    ] },
+    snail: { top: 22, layers: [
+      ['body','M-25-1-22-5-18-6Q-24-11-18-21Q-13-29-2-24Q9-21 7-9L11-7 15-13 13-19 16-19 18-13 21-19 23-18 20-12 25-8 23-4 18-3 16 0Z'],
+      ['light','M-17-12Q-20-17-14-21Q-10-24-5-20Q1-15-3-11Q-6-8-10-11Q-13-14-9-16L-7-13-5-14-6-18Q-16-20-16-13L-13-8Q-4-4 1-11Q4-17-1-21Q-10-27-17-20L-20-13Z'],
+      ['eye','M19-11 22-10 21-8Z']
+    ] },
+    porcupine: { top: 25, layers: [
+      ['body','M-21-8-27-14-19-14-26-22-15-19-17-27-8-21-5-28 1-21 6-25 8-18 13-21 16-17 23-13 25-9 20-6 12-6 11-1 6-1 5-6-10-6-13 0-18 0-17-6Z'],
+      ['light','M-21-17-14-16-19-23-10-18-12-24-5-19-3-24 2-18 5-21 6-15-1-11-10-13Z'],
+      ['eye','M16-15 19-14 17-12Z']
+    ] },
+    shark: { top: 29, hover: 4, shadow: 23, layers: [
+      ['body','M-18-14-28-10-27-28-17-21-10-20Q-5-22-1-22L5-34 10-23Q24-24 32-16L29-12 17-10 13-4 6-4 10-11-7-11-18-9Z'],
+      ['light','M-16-18Q-4-24 11-21Q25-22 31-16L24-14 11-15 0-13-9-15Z'],
+      ['ivory','M14-13 28-14 25-10 22-13 20-10 18-12 16-10Z'],
+      ['eye','M22-19 25-18 23-17Z']
+    ] },
+    crab: { top: 25, shadow: 20, layers: [
+      ['shade','M-14-13-24-11-26-4-23-4-20-9-12-8Z M-5-10-12-5-12 1-9 0-7-4 1-9Z M5-11 14-5 16 0 19-1 19-6 12-12Z'],
+      ['body','M-18-14Q-11-23 1-21Q14-20 18-12L21-14 22-20 28-24 31-20 28-16 32-15 29-10 22-10 17-7Q5-2-7-6L-19-8-25-12-32-14-31-21-27-23-27-17-22-20-19-17-22-13Z'],
+      ['light','M-13-15Q-6-22 6-18L13-14 9-10 0-14-9-10Z'],
+      ['eye','M11-18 13-16 11-14Z M5-19 7-17 5-15Z']
+    ] },
+    whale: { top: 30, hover: 2, shadow: 25, layers: [
+      ['body','M-22-13-31-19-38-18-34-13-38-8-32-7-23-10Q-13-19-9-22Q8-32 23-25Q33-24 35-18L33-11 27-7 16-5-3-6Q-16-6-22-13Z'],
+      ['light','M-19-12Q-5-8 8-10Q28-9 33-15L33-10 25-7 12-5-5-6Z'],
+      ['shade','M-5-11Q3-13 10-11-1-4-15 1-13-3Z'],
+      ['eye','M24-19 27-18 25-16Z']
+    ] },
+    dragon: { top: 37, hover: 4, shadow: 25, layers: [
+      ['shade','M-29-7Q-35-10-30-19L-29-13Q-19-24-14-22-12-26-8-23-6-29-2-26 2-31 4-24 7-27 9-21 12-28 15-23 21-30 21-21Q18-10 7-9Q-7-13-16-12Z'],
+      ['body','M-32-8Q-25-8-21-14Q-12-25-3-20Q5-16 11-22L14-30 17-32 19-35 22-31 26-32 28-29 33-28 34-24 27-22 21-22Q18-11 7-11Q-3-13-5-10L-5-4-11-1-12-4-8-7-8-13Q-14-15-18-11L-18-7-22-4-26-6-25-8Q-29-6-32-8Z'],
+      ['light','M-24-10Q-14-24-4-18Q6-14 13-21L19-29 25-30 28-27 33-27 31-24 23-24 18-20Q11-12 0-15Q-12-19-24-10Z'],
+      ['ivory','M19-30 14-35 9-36 7-40 12-38 16-37 17-39 19-35 23-33Z M26-24 30-24 28-20Z'],
+      ['eye','M24-29 27-28 25-26Z']
+    ] },
+    phoenix: { top: 38, hover: 5, shadow: 21, layers: [
+      ['shade','M-9-19Q-18-13-35-2Q-33-11-27-14Q-37-12-41-7Q-40-17-25-21Q-37-19-39-22Q-25-27-10-25Z'],
+      ['light','M-10-16Q-19-10-32-5Q-25-13-19-16L-34-13Q-25-21-11-23Z'],
+      ['body','M-19-20Q-6-27 5-22L9-27 10-32 15-30 16-35 19-31 23-32 24-28 31-26 24-23 20-20 14-15 4-15-5-11-17-14Z'],
+      ['wing','M-2-16Q-14-15-25-30L-28-39Q-19-37-14-28L-16-39Q-8-36-4-26L-6-37Q4-32 6-25L12-31Q13-21 4-17Z'],
+      ['ivory','M-3-20Q-9-23-13-29L-4-24Q-3-28-3-29L2-22 6-25 4-20Z M20-29 25-28 31-26 23-25Z'],
+      ['eye','M20-29 23-28 21-26Z']
+    ] },
+    taotie: { top: 33, shadow: 22, layers: [
+      ['shade','M-12-13-18-4-12-1-9-3-5-14Z M7-14 9-2 16-1 17-13Z M-16-15Q-24-10-28-16Q-21-16-22-24L-18-22Z'],
+      ['body','M-22-14-19-23-13-22-14-29-6-25 0-31 4-26 12-27 17-23 22-25 28-20 29-10 23-5 15-7 12 1 5 1 6-10-9-9-15 1-21 1-19-9Z'],
+      ['light','M-18-19-13-22-8-21-3-25 2-24 3-18 9-19 11-16 8-11 2-13-5-11-10-15-16-12Z M12-22 20-23 26-19 22-14 15-14Z'],
+      ['shade','M13-14Q20-17 28-15L27-9Q23-3 16-9Z'],
+      ['ivory','M15-15 20-15 18-11Z M23-15 27-15 25-11Z M19-8 21-11 23-7Z'],
+      ['eye','M19-20 23-19 20-17Z']
+    ] }
+  };
+
+  const wildFamilies = {
+    CANINE: 'wolf', FELINE: 'cat', URSINE: 'bear', BOAR: 'boar', UNGULATE: 'stag',
+    SERPENT: 'serpent', AVIAN: 'bird', SHELL: 'turtle', ARTHROPOD: 'beetle',
+    PLANT: 'treant', PLANT_SPIRIT: 'treant', CHIMERA: 'drake', AQUATIC: 'shark'
+  };
+  // Explicit art overrides for hybrids, special anatomy and legacy species
+  // whose combat archetype is broader than the animal described in the catalog.
+  const wildSpeciesArt = {
+    BEAST_MIST_WOLF: ['wolf', 'rime'],
+    BEAST_IRON_BOAR: ['boar', 'plates'],
+    BEAST_MIST_JADE_STAG: ['stag', 'leaves', null, ['#4f8174', '#c5f2ce']],
+    BEAST_EMERALD_PYTHON: ['serpent', 'scales'],
+    BEAST_SAND_SCORPION: ['scorpion', 'embers'],
+    BEAST_THUNDER_DRAKE_LIZARD: ['drake', 'bolt'],
+    BEAST_FROST_BEAR: ['bear', 'rime'],
+    BEAST_FROST_MIST_KIRIN: ['stag', 'kirin', 'rime'],
+    BEAST_THUNDER_ROC: ['bird', 'bolt'],
+    BEAST_BLOOD_TIGER: ['cat', 'stripes', 'fangs', ['#833b49', '#f8ad92']],
+    BEAST_ABYSSAL_DRAGON: ['dragon', null, 'hydra'],
+    ECO2_BEAST_SHELL_5: ['turtle', 'plates', 'dragonHead'],
+    ECO2_BEAST_AQUATIC_1: ['shark', 'scales'],
+    ECO2_BEAST_AQUATIC_2: ['shark', 'spots'],
+    ECO2_BEAST_AQUATIC_3: ['crocodile', 'spikes'],
+    ECO2_BEAST_AQUATIC_4: ['shark', 'embers'],
+    ECO2_BEAST_AQUATIC_5: ['whale', 'stars'],
+    ECO2_BEAST_AQUATIC_6: ['dragon', 'scales'],
+    ECO2_BEAST_MYTHIC_3: ['turtle', 'stars', 'dragonHead'],
+    ECO2_BEAST_MYTHIC_6: ['whale', 'stars', 'wings'],
+    BEAST_V222_FROST_GLACIER_WYRM: ['dragon', 'rime'],
+    BEAST_V222_SOLAR_GOLD_TORTOISE: ['turtle', 'embers'],
+    BEAST_V222_ABYSSAL_LEVIATHAN_CRAB: ['crab', 'rime'],
+    BEAST_V222_CELESTIAL_LOTUS_CRANE: ['crane', 'leaves'],
+    BEAST_V240_MAELSTROM_LEVIATHAN_SERPENT: ['serpent', 'rime', 'hydra'],
+    BEAST_ABYSSAL_LEVIATHAN_TURTLE: ['turtle', 'spikes', 'dragonHead'],
+    BEAST_YIN_SHADOW_BAT_3: ['bat'],
+    BEAST_LAVA_FLAME_TORTOISE_4: ['turtle', 'embers'],
+    BEAST_BLOOD_FIEND_HOUND_4: ['wolf', 'fangs'],
+    BEAST_ANCIENT_TREANT_SERPENT_4: ['serpent', 'leaves'],
+    BEAST_THUNDER_HORN_STAG_4: ['stag', 'bolt'],
+    BEAST_ASTRAL_VOID_HAWK_5: ['bird', 'stars'],
+    BEAST_MYTHIC_TAOTIE_SHADOW: ['taotie', 'stars'],
+    BEAST_MYTHIC_CELESTIAL_QILIN_SOVEREIGN: ['stag', 'kirin', 'stars'],
+    BEAST_V222_MIRAGE_SILK_MOTH: ['moth'],
+    BEAST_V222_GALE_SABERTOOTH_TIGER: ['cat', 'stripes', 'fangs'],
+    BEAST_V222_BLOOD_KIRIN_WOLF: ['wolf', 'kirin'],
+    BEAST_V222_SHADOW_STALKER_PANTHER: ['cat', 'stars'],
+    BEAST_V222_THUNDER_ROC_FALCON: ['bird', 'bolt'],
+    BEAST_V222_FLAME_MANE_LION_BOAR: ['boar', 'embers'],
+    BEAST_V222_THUNDER_HOOF_QILIN_STAG: ['stag', 'kirin', 'bolt'],
+    BEAST_V222_NETHER_SCORPION_EMPEROR: ['scorpion', 'stars'],
+    BEAST_V222_IRON_WING_GARUDA: ['phoenix', 'plates'],
+    BEAST_V222_ASTRAL_NINE_TAIL_FOX: ['fox', 'stars', 'tails'],
+    BEAST_V222_VOID_DEVOURING_CHIMERA: ['taotie', 'embers', 'wings'],
+    BEAST_V240_ABYSSAL_IRON_BEAR: ['bear', 'plates'],
+    BEAST_V240_THUNDER_TUSK_BOAR_KING: ['boar', 'bolt', 'spikes'],
+    BEAST_V240_STARLIGHT_VOID_TORTOISE: ['turtle', 'stars', 'spikes'],
+    BEAST_V240_CELESTIAL_JADE_QILIN_STAG: ['stag', 'kirin', 'leaves'],
+    BEAST_V240_IMMORTAL_BODHI_TREANT: ['treant', 'stars', 'canopy'],
+    KING_EMERALD_SERPENT_SOUTH: ['serpent', 'scales', 'hydra'],
+    KING_FROST_SOVEREIGN_BEAR: ['bear', 'rime', 'spikes'],
+    KING_SCORPION_EMPEROR_WEST: ['scorpion', 'embers', 'spikes'],
+    KING_BLOOD_TIGER_CENTRAL: ['cat', 'stripes', 'spikes', ['#6e2939', '#f68e7f']],
+    KING_THUNDER_ROC_EAST: ['phoenix', 'bolt'],
+    KING_KUNLUN_DRAGON: ['dragon', 'plates', 'spikes'],
+    ECO2_BEAST_ARTHROPOD_1: ['mantis'],
+    ECO2_BEAST_ARTHROPOD_2: ['crawler', 'embers'],
+    ECO2_BEAST_ARTHROPOD_4: ['spider'],
+    ECO2_BEAST_ARTHROPOD_5: ['scorpion', 'bolt'],
+    ECO2_BEAST_AVIAN_2: ['crane'],
+    ECO2_BEAST_AVIAN_6: ['phoenix', 'embers'],
+    ECO2_BEAST_CANINE_5: ['fox', 'rime', 'tails'],
+    ECO2_BEAST_CHIMERA_1: ['fox', null, 'wings'],
+    ECO2_BEAST_CHIMERA_2: ['cat', 'stripes', 'wings'],
+    ECO2_BEAST_CHIMERA_3: ['goat', 'kirin', 'plates'],
+    ECO2_BEAST_CHIMERA_4: ['cat', 'stripes', 'feathers'],
+    ECO2_BEAST_CHIMERA_5: ['stag', 'kirin', 'embers'],
+    ECO2_BEAST_CHIMERA_6: ['taotie', 'stars', 'crystals'],
+    ECO2_BEAST_FELINE_1: ['cat', 'stripes'],
+    ECO2_BEAST_FELINE_2: ['cat', 'spots'],
+    ECO2_BEAST_FELINE_3: ['cat', 'stripes', 'fangs'],
+    ECO2_BEAST_FELINE_4: ['cat', 'spots', 'embers'],
+    ECO2_BEAST_FELINE_5: ['cat', 'stripes', 'rime'],
+    ECO2_BEAST_FELINE_6: ['cat', 'stripes', 'bolt'],
+    ECO2_BEAST_PLANT_SPIRIT_1: ['mushroom'],
+    ECO2_BEAST_PLANT_SPIRIT_2: ['vine'],
+    ECO2_BEAST_PLANT_SPIRIT_3: ['treant', 'leaves'],
+    ECO2_BEAST_PLANT_SPIRIT_4: ['flower'],
+    ECO2_BEAST_PLANT_SPIRIT_5: ['vine', 'spots', 'canopy'],
+    ECO2_BEAST_PLANT_SPIRIT_6: ['treant', 'plates', 'canopy'],
+    ECO2_BEAST_SERPENT_4: ['cobra', 'rime'],
+    ECO2_BEAST_SERPENT_6: ['cobra', 'stars', 'crystals'],
+    ECO2_BEAST_SHELL_1: ['turtle', 'leaves'],
+    ECO2_BEAST_SHELL_2: ['turtle', 'leaves'],
+    ECO2_BEAST_SHELL_3: ['turtle', 'plates', 'spikes'],
+    ECO2_BEAST_SHELL_4: ['turtle', 'embers'],
+    ECO2_BEAST_SHELL_6: ['turtle', 'plates', 'crystals'],
+    ECO2_BEAST_UNGULATE_1: ['stag', 'spots'],
+    ECO2_BEAST_UNGULATE_2: ['goat'],
+    ECO2_BEAST_UNGULATE_3: ['bull', 'plates'],
+    ECO2_BEAST_UNGULATE_5: ['bull', 'embers'],
+    ECO2_BEAST_MYTHIC_1: ['dragon', 'scales', 'sun'],
+    ECO2_BEAST_MYTHIC_2: ['phoenix', 'embers', 'sun'],
+    ECO2_BEAST_MYTHIC_4: ['cat', 'stripes', 'crystals'],
+    ECO2_BEAST_MYTHIC_5: ['stag', 'kirin', 'sun'],
+    ECO2_BEAST_MYTHIC_7: ['taotie', 'stars', 'wings'],
+    ECO2_BEAST_MYTHIC_8: ['treant', 'stars', 'canopy'],
+    SRC110_MW_BEAST_001: ['serpent', 'leaves'],
+    SRC110_MW_BEAST_002: ['squirrel'],
+    SRC110_MW_BEAST_003: ['beetle', 'leaves'],
+    SRC110_MW_BEAST_010: ['frog', 'spots'],
+    SRC110_MW_BEAST_011: ['crocodile', 'plates'],
+    SRC110_MW_BEAST_013: ['snail'],
+    SRC110_MW_BEAST_018: ['goat', 'rime'],
+    SRC110_MW_BEAST_026: ['porcupine', 'embers'],
+    SRC110_MW_BEAST_034: ['ant'],
+    SRC110_MW_BEAST_035: ['shark', 'plates']
+  };
+  const wildPalette = {
+    WIND: ['#597a78', '#c8f2b8'], WOOD_LIFE: ['#4c7966', '#c1ed86'],
+    FIRE: ['#9b4838', '#ffd17a'], LIGHTNING: ['#505a95', '#e0c6ff'],
+    WATER_ICE: ['#688ca5', '#d7f7ff'], EARTH_METAL: ['#776451', '#ebc688'],
+    ASTRAL: ['#554977', '#e8d6ff'], ASTRAL_VOID: ['#554977', '#e8d6ff'],
+    YIN_SHADOW: ['#444259', '#e6b6e9'], BLOOD_DEMON: ['#782c40', '#ffac9c'],
+    LIGHT_YANG: ['#967231', '#fff0a3'], NEUTRAL: ['#7c725e', '#efd8a6']
+  };
+  const wildMarkings = {
+    stripes: ['shade','M-13-17-9-17-11-11Z M-7-17-2-16-4-11Z M1-16 6-16 3-11Z M14-19 16-18 14-15Z'],
+    spots: ['ivory','M-13-15-10-16-9-14-11-12Z M-6-15-4-16-2-14-4-12Z M1-15 4-15 4-13 2-12Z'],
+    scales: ['light','M-9-8-6-10-3-9-6-7Z M1-11 4-12 7-11 4-9Z M10-17 13-19 16-18 14-16Z'],
+    plates: ['light','M-15-16-11-20-6-19-7-16-11-13Z M-4-17 0-21 5-18 3-15-1-13Z M7-18 11-21 15-19 12-14 8-14Z'],
+    leaves: ['light','M-8-16Q-16-16-21-23Q-11-24-8-16Z M-4-17Q-11-20-12-26Q-3-24-4-17Z M-1-15Q5-24 10-24Q10-17-1-15Z'],
+    stars: ['ivory','M-12-16-11-19-10-16-7-15-10-14-11-11-12-14-15-15Z M3-16 4-19 5-16 8-15 5-14 4-11 3-14 0-15Z'],
+    rime: ['ivory','M-13-17-9-23-6-19-3-22 0-19 5-21 4-16-2-15-6-17-10-14Z'],
+    embers: ['light','M-14-14Q-18-19-17-24Q-15-19-12-18Q-12-23-9-25Q-10-20-5-18Q-1-22 4-24Q0-19 1-15Z'],
+    bolt: ['ivory','M-6-20 5-20-1-15 6-15-5-9-2-14-8-14Z'],
+    kirin: ['ivory','M8-22Q4-30 8-38L10-29 13-26 14-21Z M-10-18-7-23-3-21-5-17Z M-4-17 1-22 5-20 2-16Z'],
+    fangs: ['ivory','M16-13 19-13 19-7 17-6Z M20-12 23-13 22-8Z'],
+    dragonHead: ['light','M16-12Q15-22 22-20L25-24 27-19 31-16 28-12Z'],
+    crystals: ['light','M-18-18-20-26-14-31-11-24-13-18Z M-10-19-10-30-4-36 1-29-2-20Z M1-20 6-34 11-33 10-24 7-18Z'],
+    spikes: ['light','M-16-18-16-27-10-21-8-31-2-23 0-34 7-26 10-30 14-22 9-19Z']
+  };
+  const wildBacks = {
+    tails: ['shade','M-8-9Q-25-5-35-12L-24-13Q-34-15-37-20L-23-19Q-34-23-35-28L-22-24Q-31-31-30-35L-18-29Q-25-37-22-40L-13-32Q-16-40-13-42L-7-31Q-8-40-3-43L-1-30Q1-38 7-40L6-28Q9-34 16-36L11-24Q7-12-8-9Z'],
+    wings: ['wing','M-6-10Q-28-16-32-32Q-19-29-10-24L-13-35Q2-32 6-17L7-13-4-14Z'],
+    feathers: ['wing','M-8-9Q-24-11-34-30L-24-26-28-35-17-28-18-38Q-9-34-4-25L0-31 4-21 2-15Z'],
+    sun: ['light','M-20-27-25-33-18-32-18-39-13-35-9-41-7-35-1-38-1-32 3-29-1-28Q-8-40-20-27Z'],
+    canopy: ['light','M-26-26-31-31-24-36-21-34-19-41-11-39-7-43 0-40 8-43 13-38 21-41 26-35 32-35 35-30 28-24 22-30 14-28 6-33 0-29-9-34-16-30-22-31Z'],
+    hydra: ['shade','M-13-7-9-10Q-11-15-29-16L-32-21-30-25-24-23-25-20Q-16-20-10-17Q-15-25-26-26L-28-30-24-34-19-32-20-29Q-14-29-10-24Q-12-35-18-35L-19-40-13-42-9-39-11-36Q-4-32-3-23Q-2-33-5-38L-3-43 3-43 6-39 2-37Q5-30 4-23Q6-30 9-33L7-37 11-41 16-40 17-36 14-34Q11-26 12-21Q20-27 23-33L22-37 27-40 31-37 32-33 27-31Q23-23 20-20Q29-25 33-26L35-31 39-30 42-26 40-22 35-22Q27-20 23-17Q36-19 38-17L43-20 46-16 46-12 41-10 36-12Q25-9 12-10L1-7Z']
+  };
+  const wildPaths = new Map();
+  const wildSpecies = new Map();
+  for (const species of g.JD.BEASTS.species || []) wildSpecies.set(species.id, species);
+  for (const king of g.JD.BEASTS.kings || []) wildSpecies.set(king.id, { ...wildSpecies.get(king.species), ...king });
+  const wildTierScale = [0, .77, .90, 1.01, 1.14, 1.29, 1.47, 1.69];
+  const wildTierMark = { 3: 'spots', 4: 'plates', 5: 'crystals', 6: 'spikes', 7: 'stars' };
+  const noWildOverrides = [];
+
+  R.resolveWildBeastArt = b => {
+    const id = b.speciesId || b.sp || '';
+    const species = wildSpecies.get(id);
+    const [shape, marking, trim, artPalette] = wildSpeciesArt[id] || noWildOverrides;
+    const family = b.archetype || b.family || species?.archetype || species?.family;
+    const model = wildModels[shape || wildFamilies[family] || 'drake'];
+    const tier = clamp(Math.floor(Number(b.tier || species?.tier) || 1), 1, 7);
+    const palette = artPalette || wildPalette[b.element || species?.element] || wildPalette.NEUTRAL;
+    const visual = b.visual || species?.visual;
+    const raid = g.WILD?.raidProfile(b);
+    const raidScale = raid?.grade === 'TRANSCENDENT' ? 2.25 : raid?.grade === 'LEGENDARY' ? 1.6 : raid ? 1.16 : 1;
+    const scale = raidScale * wildTierScale[tier] * clamp(.9 + .1 * (Number(visual?.scale) || 1), .95, 1.06)
+      * (b.legendary ? 1.08 : 1);
+    return { model, tier, scale, palette, visual, marking, trim, raid };
+  };
+
+  function paintWildLayer(ctx, layer, colors, flap) {
+    const [role, d] = layer;
+    if (!wildPaths.has(d)) wildPaths.set(d, new Path2D(d));
+    const path = wildPaths.get(d);
+    if (role === 'wing') {
+      ctx.save();
+      ctx.translate(1, -15);
+      ctx.rotate(flap);
+      ctx.translate(-1, 15);
+    }
+    ctx.fillStyle = colors[role];
+    if (role === 'wing' || role === 'body') {
+      ctx.lineWidth = 1.15;
+      ctx.strokeStyle = '#17242a';
+      ctx.stroke(path);
+    }
+    ctx.fill(path);
+    if (role === 'wing') ctx.restore();
+  }
+
   const TW_CACHE = new Map();
   function measureCached(ctx, font, text) {
     const k = font + '|' + text;
@@ -19,7 +448,7 @@
     return w;
   }
 
-  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78', ASTRO_DIVINATION: '#74c0fc', BUDDHA_DHARMA: '#fcc419', VOID_SPACE: '#9775fa', SONIC_HARMONY: '#63e6be', VENOM_GU: '#a9e34b', PRIMORDIAL_SHIFTER: '#ff8787', CELESTIAL_WEATHER: '#4dabf7', WANDERING_DAO: '#69db7c', MERCANTILE_DAO: '#ffd43b', DRAGON_VEIN_GEOMANCY: '#d9a97c', GRAVITY_DAO: '#845ef7', CHRONO_EPOCH: '#e599f7', INK_LITERATI: '#adb5bd', SOUL_PUPPETRY: '#da77f2', PRIMORDIAL_CHAOS: '#ff6b6b', SHADOW_SAMURAI: '#e63946', NINPO_SHADOW: '#4a4e69', NINPO_ELEMENTAL: '#f77f00', DIVINE_SUMMONER: '#ffd166', DIVINE_POSSESSION: '#ff9f1c', DIVINE_CHANNELER: '#4cc9f0', VOID_HERETIC_PACT: '#7209b7', OCCULT_MAGE: '#d97706', DEVOURING_FLESH: '#9b2226', NETHER_GRAVE: '#6c757d', ANCESTRAL_RITUAL: '#e9c46a', TIDE_VOYAGER: '#0077b6', LORE_ARCHIVIST: '#8ecae6', FORTUNE_GAMBLER: '#ffb703', SPIRIT_HUSBANDRY: '#52b788', ARENA_GLORY: '#f4a261' };
+  const PATH_COL = { XIAN: '#5ab4d8', BODY: '#e07d5b', GOD: '#e6c055', DEMON: '#b28cd9', HEART_SOUL: '#8ec8d0', MECH_PUPPET: '#8ecae6', KARMA_SAMSARA: '#b5838d', BEAST_SOVEREIGN: '#e09f3e', SAGE_SUPPORT: '#76c893', CRAFT_CREATION: '#f4a261', ARRAY_TALISMAN: '#64c3ce', STRATEGY_GOVERNANCE: '#d4bb78', ASTRO_DIVINATION: '#74c0fc', BUDDHA_DHARMA: '#fcc419', VOID_SPACE: '#9775fa', SONIC_HARMONY: '#63e6be', VENOM_GU: '#a9e34b', PRIMORDIAL_SHIFTER: '#ff8787', CELESTIAL_WEATHER: '#4dabf7', WANDERING_DAO: '#69db7c', MERCANTILE_DAO: '#ffd43b', DRAGON_VEIN_GEOMANCY: '#d9a97c', GRAVITY_DAO: '#845ef7', CHRONO_EPOCH: '#e599f7', INK_LITERATI: '#adb5bd', SOUL_PUPPETRY: '#da77f2', PRIMORDIAL_CHAOS: '#ff6b6b', SHADOW_SAMURAI: '#e63946', NINPO_SHADOW: '#4a4e69', NINPO_ELEMENTAL: '#f77f00', DIVINE_SUMMONER: '#ffd166', DIVINE_POSSESSION: '#ff9f1c', DIVINE_CHANNELER: '#4cc9f0', VOID_HERETIC_PACT: '#7209b7', OCCULT_MAGE: '#d97706', DEVOURING_FLESH: '#9b2226', NETHER_GRAVE: '#6c757d', ANCESTRAL_RITUAL: '#e9c46a', TIDE_VOYAGER: '#0077b6', LORE_ARCHIVIST: '#8ecae6', FORTUNE_GAMBLER: '#ffb703', SPIRIT_HUSBANDRY: '#52b788', ARENA_GLORY: '#f4a261', LEG_READ_FORM_BLADE: '#38bdf8', LEG_TRIAGE_MERIDIAN: '#34d399', LEG_STORM_CALLER_TEMPEST: '#60a5fa', LEG_JADE_CARAVAN_VOYAGER: '#f59e0b', LEG_OATH_JUDGE_WARDEN: '#fbbf24', LEG_ASHEN_KILN_ALCHEMY: '#ea580c', TRANS_CONSTELLATION_RELAY: '#a78bfa', TRANS_FIELD_CLAUSE_SOVEREIGN: '#e11d48', TRANS_TEMPO_SOVEREIGN: '#06b6d4', TRANS_SEALKEEPER_FORBIDDEN_KEY: '#7c3aed', TRANS_PRIMAL_VORTEX_MIRROR: '#ec4899', TRANS_DYNASTIC_MANDATE_WEAVER: '#d97706', CORPSE_SOVEREIGN: '#8d7b68', WRAITH_GRIEVANCE: '#7b8cde', DEATHLESS_CADAVER: '#9c6644' };
   // Ordinary martial casts use the real weapon family for their motion language.
   // Legendary named arts deliberately keep their authored, higher-priority motifs.
   R.WEAPON_MOTION_VFX = Object.freeze({
@@ -136,8 +565,18 @@
   R.LEGENDARY_GEAR_VISUALS = Object.freeze(Object.fromEntries(((g.VC && g.VC.LEGENDARY_EQUIPMENT) || [])
     .filter(it => relicByVisual[it.visualKey]).map(it => [it.id, Object.freeze({ ...relicByVisual[it.visualKey],
       id: it.id, nameTh: it.nameTh, slot: it.slot })])));
+  const v230RelicList = ((g.JD && g.JD.ITEMS && g.JD.ITEMS.items) || []).filter(it => it && /^REL_V230_/.test(it.id));
+  R.GRAND_DAO_RELIC_VISUALS = Object.freeze(Object.fromEntries(v230RelicList.map(it => {
+    const vk = it.visualKey || 'vis_yitian_sword';
+    const base = relicByVisual[vk] || relicByVisual.vis_yitian_sword;
+    return [it.id, Object.freeze({ ...base, id: it.id, nameTh: it.nameTh, slot: it.slot || 'WEAPON' })];
+  })));
+  R.APEX_PATH_ART_VISUALS = Object.freeze({
+    LEG_V240_GOD: Object.freeze({ id: 'LEG_V240_GOD', motif: 'legend_celestial_mandate', path: 'GOD', primary: '#ffd166', secondary: '#ff9e00', accent: '#ffffff', passive: false }),
+    LEG_V240_CRAFT_CREATION: Object.freeze({ id: 'LEG_V240_CRAFT_CREATION', motif: 'legend_qiankun_taiji', path: 'CRAFT_CREATION', primary: '#ff4d00', secondary: '#ffd166', accent: '#fff3b0', passive: false })
+  });
   R.resolveLegendaryGearVisual = item => item && item.legendary === true
-    ? (R.LEGENDARY_GEAR_VISUALS[item.id] || null) : null;
+    ? (R.LEGENDARY_GEAR_VISUALS[item.id] || (R.GRAND_DAO_RELIC_VISUALS && R.GRAND_DAO_RELIC_VISUALS[item.id]) || null) : null;
 
 
   // Legendary apex presentation: exact identities, themed scenes, and bounded spectacle.
@@ -157,7 +596,8 @@
     NINPO_SHADOW:'shadow_court',NINPO_ELEMENTAL:'seal_obelisk',DIVINE_SUMMONER:'deity_throne',DIVINE_POSSESSION:'beast_avatar',
     DIVINE_CHANNELER:'storm_spire',VOID_HERETIC_PACT:'void_maw',OCCULT_MAGE:'seal_obelisk',DEVOURING_FLESH:'beast_avatar',
     NETHER_GRAVE:'grave_procession',ANCESTRAL_RITUAL:'grave_procession',TIDE_VOYAGER:'ocean_pillars',LORE_ARCHIVIST:'ink_landscape',
-    FORTUNE_GAMBLER:'fortune_table',SPIRIT_HUSBANDRY:'jade_garden',ARENA_GLORY:'sword_constellation'
+    FORTUNE_GAMBLER:'fortune_table',SPIRIT_HUSBANDRY:'jade_garden',ARENA_GLORY:'sword_constellation',LEG_READ_FORM_BLADE:'sword_constellation',LEG_TRIAGE_MERIDIAN:'jade_garden',LEG_STORM_CALLER_TEMPEST:'storm_spire',LEG_JADE_CARAVAN_VOYAGER:'fortune_table',LEG_OATH_JUDGE_WARDEN:'lotus_sanctuary',LEG_ASHEN_KILN_ALCHEMY:'seal_obelisk',TRANS_CONSTELLATION_RELAY:'star_orrery',TRANS_FIELD_CLAUSE_SOVEREIGN:'imperial_gates',TRANS_TEMPO_SOVEREIGN:'epoch_dial',TRANS_SEALKEEPER_FORBIDDEN_KEY:'void_maw',TRANS_PRIMAL_VORTEX_MIRROR:'taiji_court',TRANS_DYNASTIC_MANDATE_WEAVER:'imperial_gates',
+    CORPSE_SOVEREIGN:'grave_procession',WRAITH_GRIEVANCE:'grave_procession',DEATHLESS_CADAVER:'beast_avatar'
   };
   R.LEGENDARY_APEX_BUDGET = Object.freeze({ radiusMin:60,radiusMax:84,fieldMax:136,maxFull:2,maxFullLow:1,maxRecipients:8 });
   R.LEGENDARY_SCENES = Object.freeze(Object.fromEntries(Object.values(R.LEGENDARY_ART_VISUALS).filter(a=>!a.passive).map((a,i)=>{
@@ -1293,7 +1733,22 @@
     LORE_ARCHIVIST:       { id: 'LORE_ARCHIVIST',       nameTh: 'วิถีอาลักษณ์หอคัมภีร์',    moteShape: 'bamboo_slip_glyph',      apexCrownShape: 'myriad_canon_archive_wheel', family: 'SONIC_LITERATI',  primary: '#8ecae6', secondary: '#ffd166', accent: '#ffffff', maxStage: 8 },
     FORTUNE_GAMBLER:      { id: 'FORTUNE_GAMBLER',      nameTh: 'วิถีเดิมพันชะตา',         moteShape: 'fate_dice_card',         apexCrownShape: 'heavenly_roulette_dice',     family: 'FORTUNE_TRADE',   primary: '#ffb703', secondary: '#ef476f', accent: '#06d6a0', maxStage: 8 },
     SPIRIT_HUSBANDRY:     { id: 'SPIRIT_HUSBANDRY',     nameTh: 'วิถีเกษตรวิญญาณ',        moteShape: 'sprouting_vine_flower',  apexCrownShape: 'world_tree_canopy_roots',    family: 'LIFE_ALCHEMY',    primary: '#52b788', secondary: '#ffd166', accent: '#b7e4c7', maxStage: 8 },
-    ARENA_GLORY:          { id: 'ARENA_GLORY',          nameTh: 'วิถีเกียรติยุทธ์ประลอง',   moteShape: 'champion_laurel_halberd',apexCrownShape: 'gladiator_champion_crown',   family: 'COMMAND_MARTIAL', primary: '#f4a261', secondary: '#e63946', accent: '#ffd166', maxStage: 8 }
+    ARENA_GLORY:          { id: 'ARENA_GLORY',          nameTh: 'วิถีเกียรติยุทธ์ประลอง',   moteShape: 'champion_laurel_halberd',apexCrownShape: 'gladiator_champion_crown',   family: 'COMMAND_MARTIAL', primary: '#f4a261', secondary: '#e63946', accent: '#ffd166', maxStage: 8 },
+    LEG_READ_FORM_BLADE: { id: 'LEG_READ_FORM_BLADE', nameTh: 'วิถีกระบี่อ่านช่องฟ้า', moteShape: 'leg_read_form_blade_mote', apexCrownShape: 'leg_read_form_blade_crown', family: 'BLADE_AURA', primary: '#38bdf8', secondary: '#bae6fd', accent: '#fbbf24', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_TRIAGE_MERIDIAN: { id: 'LEG_TRIAGE_MERIDIAN', nameTh: 'วิถีชีพจรประคองสหาย', moteShape: 'leg_triage_meridian_mote', apexCrownShape: 'leg_triage_meridian_crown', family: 'JADE_LOTUS', primary: '#34d399', secondary: '#a7f3d0', accent: '#fef08a', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_STORM_CALLER_TEMPEST: { id: 'LEG_STORM_CALLER_TEMPEST', nameTh: 'วิถีจอมพายุบัญชาฟ้า', moteShape: 'leg_storm_caller_tempest_mote', apexCrownShape: 'leg_storm_caller_tempest_crown', family: 'STORM_TEMPEST', primary: '#60a5fa', secondary: '#93c5fd', accent: '#fde047', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_JADE_CARAVAN_VOYAGER: { id: 'LEG_JADE_CARAVAN_VOYAGER', nameTh: 'วิถีจอมคาราวานหยก', moteShape: 'leg_jade_caravan_voyager_mote', apexCrownShape: 'leg_jade_caravan_voyager_crown', family: 'GOLDEN_CARAVAN', primary: '#f59e0b', secondary: '#fde68a', accent: '#10b981', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_OATH_JUDGE_WARDEN: { id: 'LEG_OATH_JUDGE_WARDEN', nameTh: 'วิถีผู้คุมสัตย์สาบาน', moteShape: 'leg_oath_judge_warden_mote', apexCrownShape: 'leg_oath_judge_warden_crown', family: 'OATH_BALANCE', primary: '#fbbf24', secondary: '#fef08a', accent: '#ef4444', maxStage: 8, grade: 'LEGENDARY' },
+    LEG_ASHEN_KILN_ALCHEMY: { id: 'LEG_ASHEN_KILN_ALCHEMY', nameTh: 'วิถีเตาเถ้าคืนชีวิต', moteShape: 'leg_ashen_kiln_alchemy_mote', apexCrownShape: 'leg_ashen_kiln_alchemy_crown', family: 'ASHEN_CERAMIC', primary: '#ea580c', secondary: '#fdba74', accent: '#94a3b8', maxStage: 8, grade: 'LEGENDARY' },
+    TRANS_CONSTELLATION_RELAY: { id: 'TRANS_CONSTELLATION_RELAY', nameTh: 'วิถีประสานปราณหมู่ดาว', moteShape: 'trans_constellation_relay_mote', apexCrownShape: 'trans_constellation_relay_crown', family: 'STAR_CONSTELLATION', primary: '#a78bfa', secondary: '#ddd6fe', accent: '#fde047', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_FIELD_CLAUSE_SOVEREIGN: { id: 'TRANS_FIELD_CLAUSE_SOVEREIGN', nameTh: 'วิถีธรรมนูญฟ้าขีดเขต', moteShape: 'trans_field_clause_sovereign_mote', apexCrownShape: 'trans_field_clause_sovereign_crown', family: 'IMPERIAL_CHARTER', primary: '#e11d48', secondary: '#fda4af', accent: '#fbbf24', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_TEMPO_SOVEREIGN: { id: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'วิถีปรมาจารย์จังหวะกาล', moteShape: 'trans_tempo_sovereign_mote', apexCrownShape: 'trans_tempo_sovereign_crown', family: 'RIVER_CADENCE', primary: '#06b6d4', secondary: '#a5f3fc', accent: '#f59e0b', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_SEALKEEPER_FORBIDDEN_KEY: { id: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'วิถีผู้ถือกุญแจผนึก', moteShape: 'trans_sealkeeper_forbidden_key_mote', apexCrownShape: 'trans_sealkeeper_forbidden_key_crown', family: 'FORBIDDEN_KEY', primary: '#7c3aed', secondary: '#c4b5fd', accent: '#f43f5e', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_PRIMAL_VORTEX_MIRROR: { id: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'วิถีกระจกสะท้อนหมื่นวิชา', moteShape: 'trans_primal_vortex_mirror_mote', apexCrownShape: 'trans_primal_vortex_mirror_crown', family: 'MIRROR_VORTEX', primary: '#ec4899', secondary: '#fbcfe8', accent: '#38bdf8', maxStage: 8, grade: 'TRANSCENDENT' },
+    TRANS_DYNASTIC_MANDATE_WEAVER: { id: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'วิถีทอชะตาแผ่นดิน', moteShape: 'trans_dynastic_mandate_weaver_mote', apexCrownShape: 'trans_dynastic_mandate_weaver_crown', family: 'DYNASTIC_LOOM', primary: '#d97706', secondary: '#fde68a', accent: '#2563eb', maxStage: 8, grade: 'TRANSCENDENT' },
+    CORPSE_SOVEREIGN:     { id: 'CORPSE_SOVEREIGN',     nameTh: 'วิถีจอมคุมศพ',            moteShape: 'copper_bell_talisman',   apexCrownShape: 'copper_bell_coffin_procession', family: 'ABYSS_DEMON', primary: '#8d7b68', secondary: '#d4a373', accent: '#e9c46a', maxStage: 8 },
+    WRAITH_GRIEVANCE:     { id: 'WRAITH_GRIEVANCE',     nameTh: 'วิถีวิญญาณแค้น',          moteShape: 'wailing_wisp_tear',      apexCrownShape: 'grievance_ledger_wailing_ring', family: 'ABYSS_DEMON', primary: '#7b8cde', secondary: '#c8d1ff', accent: '#e63946', maxStage: 8 },
+    DEATHLESS_CADAVER:    { id: 'DEATHLESS_CADAVER',    nameTh: 'วิถีกายไร้ชีพ',           moteShape: 'cracked_rib_ember',      apexCrownShape: 'stilled_heart_bone_lotus',      family: 'ABYSS_DEMON', primary: '#9c6644', secondary: '#e6ccb2', accent: '#7f5539', maxStage: 8 }
   });
 
   R.resolvePathVisualSignature = pKey => {
@@ -1326,20 +1781,30 @@
     return { rawStage, maxStage, normStage, tierBand, isApex, isPenultimate, isMidTier, pathId: pKey, sig };
   };
 
-  // Pillar 2A: 12 Elements & 34 Elemental Fusions VFX Palette
+  // Pillar 2A: 12 Elements, Canonical ELEM Keys & 34 Elemental Fusions VFX Palette
   R.ELEMENT_VFX_PALETTE = Object.freeze({
-    METAL:     { primary: '#f8f9fa', secondary: '#ffd166', accent: '#90e0ef', style: 'razor_silver' },
-    WOOD:      { primary: '#52b788', secondary: '#b7e4c7', accent: '#f8c2d8', style: 'vine_blossom' },
-    WATER:     { primary: '#00b4d8', secondary: '#90e0ef', accent: '#caf0f8', style: 'tidal_wave' },
-    FIRE:      { primary: '#ff4d00', secondary: '#ffb703', accent: '#fff3b0', style: 'lotus_inferno' },
-    EARTH:     { primary: '#d4a373', secondary: '#e9c46a', accent: '#ccd5ae', style: 'monolith_amber' },
-    WIND:      { primary: '#80ed99', secondary: '#c7f9cc', accent: '#ffffff', style: 'gale_vortex' },
-    LIGHTNING: { primary: '#7209b7', secondary: '#4cc9f0', accent: '#f72585', style: 'thunder_arc' },
-    ICE:       { primary: '#48cae4', secondary: '#ade8f4', accent: '#ffffff', style: 'frost_crystal' },
-    LIGHT:     { primary: '#ffd60a', secondary: '#ffc300', accent: '#ffffff', style: 'radiant_sun' },
-    DARK:      { primary: '#5a189a', secondary: '#9d4edd', accent: '#ff006e', style: 'abyss_eclipse' },
-    SPACE:     { primary: '#3a0ca3', secondary: '#4361ee', accent: '#4cc9f0', style: 'void_rift' },
-    TIME:      { primary: '#f4a261', secondary: '#e9c46a', accent: '#e0fbfc', style: 'chrono_wheel' },
+    METAL:       { primary: '#f8f9fa', secondary: '#ffd166', accent: '#90e0ef', style: 'razor_silver' },
+    EARTH_METAL: { primary: '#d4a373', secondary: '#ffd166', accent: '#f8f9fa', style: 'razor_silver' },
+    WOOD:        { primary: '#52b788', secondary: '#b7e4c7', accent: '#f8c2d8', style: 'vine_blossom' },
+    WOOD_LIFE:   { primary: '#52b788', secondary: '#b7e4c7', accent: '#f8c2d8', style: 'vine_blossom' },
+    WATER:       { primary: '#00b4d8', secondary: '#90e0ef', accent: '#caf0f8', style: 'tidal_wave' },
+    WATER_ICE:   { primary: '#48cae4', secondary: '#90e0ef', accent: '#caf0f8', style: 'frost_crystal' },
+    FIRE:        { primary: '#ff4d00', secondary: '#ffb703', accent: '#fff3b0', style: 'lotus_inferno' },
+    EARTH:       { primary: '#d4a373', secondary: '#e9c46a', accent: '#ccd5ae', style: 'monolith_amber' },
+    WIND:        { primary: '#80ed99', secondary: '#c7f9cc', accent: '#ffffff', style: 'gale_vortex' },
+    LIGHTNING:   { primary: '#7209b7', secondary: '#4cc9f0', accent: '#f72585', style: 'thunder_arc' },
+    ICE:         { primary: '#48cae4', secondary: '#ade8f4', accent: '#ffffff', style: 'frost_crystal' },
+    LIGHT:       { primary: '#ffd60a', secondary: '#ffc300', accent: '#ffffff', style: 'radiant_sun' },
+    LIGHT_YANG:  { primary: '#ffd60a', secondary: '#ffc300', accent: '#ffffff', style: 'radiant_sun' },
+    DARK:        { primary: '#5a189a', secondary: '#9d4edd', accent: '#ff006e', style: 'abyss_eclipse' },
+    YIN_SHADOW:  { primary: '#5a189a', secondary: '#9d4edd', accent: '#ff006e', style: 'abyss_eclipse' },
+    DARK_YIN:    { primary: '#5a189a', secondary: '#9d4edd', accent: '#ff006e', style: 'abyss_eclipse' },
+    SPACE:       { primary: '#3a0ca3', secondary: '#4361ee', accent: '#4cc9f0', style: 'void_rift' },
+    VOID:        { primary: '#3a0ca3', secondary: '#4361ee', accent: '#4cc9f0', style: 'void_rift' },
+    ASTRAL:      { primary: '#74c0fc', secondary: '#4361ee', accent: '#e0fbfc', style: 'void_rift' },
+    BLOOD_DEMON: { primary: '#d90429', secondary: '#9b2226', accent: '#ffccd5', style: 'abyss_eclipse' },
+    NEUTRAL:     { primary: '#a5d9df', secondary: '#e9cd85', accent: '#ffffff', style: 'razor_silver' },
+    TIME:        { primary: '#f4a261', secondary: '#e9c46a', accent: '#e0fbfc', style: 'chrono_wheel' },
     FUSION_SAMADHI_FIRE:    { primary: '#ff0055', secondary: '#ffbe0b', accent: '#ffffff', style: 'fusion_dual_spiral' },
     FUSION_FROST_THUNDER:   { primary: '#00f5d4', secondary: '#9b5de5', accent: '#ffffff', style: 'fusion_dual_spiral' },
     FUSION_KARMA_BLOOD:     { primary: '#d90429', secondary: '#7209b7', accent: '#ffccd5', style: 'fusion_dual_spiral' },
@@ -1454,7 +1919,7 @@
       canvas,
       ctx: canvas.getContext('2d'),
       W: null,
-      cam: { x: 118 * TS, y: 70 * TS, z: 1.2 },
+      cam: { x: 180 * TS, y: 122 * TS, z: 1.2 },
       chunks: new Map(),
       buildingSprites: new Map(),
       apCache: new Map(),
@@ -1745,13 +2210,16 @@
         items.push({ y: MAP.BTYPES[b.type].open ? b.y - 100 : b.y + b.h, b, k: 'b' });
       });
       W.npcs.forEach(n => {
-        if (n.dead || n.away || (n.hidden && !n.travel)) return;
+        if (n.dead || n.away) return;
+        const showIndoor = n.hidden && !n.travel && (c.z >= 1.65 || this.selected === n.id);
+        if (n.hidden && !n.travel && !showIndoor) return;
         const p = this.npcPos(n);
         if (p.x * TS < c.x - hw - 40 || p.x * TS > c.x + hw + 40 || p.y * TS < c.y - hh - 60 || p.y * TS > c.y + hh + 40) return;
-        items.push({ y: p.y, n, p, k: 'n' });
+        items.push({ y: p.y + (showIndoor ? 6 : 0), n, p, k: 'n' });
       });
       (W.foes || []).forEach(f => {
-        if (!f.gone && !f.dead && Math.abs(f.x * TS - c.x) < hw + 50 && Math.abs(f.y * TS - c.y) < hh + 50) items.push({ y: f.y, f, k: 'f' });
+        const margin = f.raidGrade ? 220 : f.wild ? 100 : 50;
+        if (!f.gone && !f.dead && Math.abs(f.x * TS - c.x) < hw + margin && Math.abs(f.y * TS - c.y) < hh + margin) items.push({ y: f.y, f, k: 'f' });
       });
       (W.world && Array.isArray(W.world.visitors) ? W.world.visitors : []).forEach(v => {
         if (!v || v.untilDay < W.day) return;
@@ -1760,7 +2228,8 @@
         if (Math.abs(v.x * TS - c.x) < hw + 45 && Math.abs(v.y * TS - c.y) < hh + 55) items.push({ y: v.y, v, k: 'v' });
       });
       (W.wildlife?.beasts || []).forEach(b => {
-        if (!b.fighting && !b.dead && !b.gone && Math.abs(b.x * TS - c.x) < hw + 50 && Math.abs(b.y * TS - c.y) < hh + 50) items.push({ y: b.y, w: b, k: 'w' });
+        const margin = b.raidGrade ? 220 : 100;
+        if (!b.fighting && !b.dead && !b.gone && Math.abs(b.x * TS - c.x) < hw + margin && Math.abs(b.y * TS - c.y) < hh + margin) items.push({ y: b.y, w: b, k: 'w' });
       });
       (W.wildResources?.nodes || []).forEach(rn => {
         if (rn.remaining > 0 && Math.abs(rn.x * TS - c.x) < hw + 40 && Math.abs(rn.y * TS - c.y) < hh + 40) items.push({ y: rn.y, res: rn, k: 'res' });
@@ -1785,6 +2254,7 @@
         else this.drawDeco(ctx, it.d, night);
       }
 
+      this.drawTranscendentScars(ctx);
       this.drawCastEffects(ctx);
       if (this.opts.livingFauna !== false) {
         this.drawLivingFloraAndFauna(ctx, hour, night);
@@ -1849,6 +2319,7 @@
         this.drawCelestialPhenomena(ctx, hour, night);
       }
       this.drawHeavenlyTribulationSkyGlaze(ctx);
+      this.drawTranscendentCutIn(ctx);
       this.drawOverlayText(ctx);
       this.updateAdaptiveQuality(performance.now() - drawStart);
     },
@@ -1884,12 +2355,30 @@
               const rx = (useTgt ? proc.targetX : pos.x) * TS, ry = (useTgt ? proc.targetY : pos.y) * TS;
               const ox = pos.x * TS, oy = pos.y * TS;
               this.castActive.delete(procKey);
-              if(this.castActive.size>=24) this.castActive.delete(this.castActive.keys().next().value);
+              if(this.castActive.size>=24) {
+                let evKey = null;
+                for (const [k2, fx2] of this.castActive) { if (!fx2.transcendent && !fx2.legendary && !fx2.relicId && (fx2.tier || 1) <= 2) { evKey = k2; break; } }
+                this.castActive.delete(evKey || this.castActive.keys().next().value);
+              }
               this.castActive.set(procKey,{ownerId:a.id,relicId:spec.id,kind:'relic',x:rx,y:ry,originX:ox,originY:oy,angle:Math.atan2(ry-oy,rx-ox),start:this.castClock,life:R.legendarySceneLife({relicId:spec.id})});
             }
           }
         }
         this.ingestEquipAndActionProcs(a, kind, key, pos, hw, hh, present);
+        const procs = g.COMBAT && g.COMBAT.transcendentVisualProcs && g.COMBAT.transcendentVisualProcs(a);
+        if (procs) {
+          for (const [type, proc] of procs) {
+            const id = 'trans:' + key + ':' + type;
+            present.add(id);
+            if (this.castSeen.get(id) === proc) continue;
+            this.castSeen.set(id, proc);
+            const x = proc.x * TS, y = proc.y * TS;
+            if (a.away || a.gone || a.hidden || W.t < proc.t || W.t - proc.t > 8 ||
+                Math.abs(x - this.cam.x) > hw + 150 || Math.abs(y - this.cam.y) > hh + 150) continue;
+            const art = R.transcendentProcSpec(proc);
+            if (art) this.queueTranscendentCast(id, a, proc, art);
+          }
+        }
         const event = a.castFx;
         if (!event) return;
         const stamp = event.seq + '|' + event.t;
@@ -1899,6 +2388,13 @@
         const actorPos = pos;
         const x = event.x * TS, y = event.y * TS;
         const techObj = (event.techId && g.CULT && g.CULT.tech) ? g.CULT.tech(event.techId) : null;
+        const transcendent = R.transcendentCastSpec(techObj, event.techId, event.moveId);
+        if (transcendent) {
+          if (Math.abs(x - this.cam.x) <= hw + 150 && Math.abs(y - this.cam.y) <= hh + 150) {
+            this.queueTranscendentCast(key, a, event, transcendent);
+          }
+          return;
+        }
         const padding=event.legendary||(techObj&&techObj.legendary)||/^legend_/.test(event.motif||event.fxKind||'')?176:96;
         if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x - this.cam.x) > hw + padding || Math.abs(y - this.cam.y) > hh + padding) return;
         const authoredMove = techObj && (techObj.moveDefs || []).find(move => move.id === event.moveId);
@@ -1929,7 +2425,14 @@
         if(t5Vfx&&!isLegend&&shown&&shown.t5Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.52)return;
         if(t4Vfx&&!isLegend&&shown&&shown.t4Vfx&&shown.techId===event.techId&&shown.kind===(forbidden?'forbidden':'normal')&&this.castClock-shown.start<shown.life*.50)return;
         this.castActive.delete(key);
-        if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
+        if (this.castActive.size >= 24) {
+          let evKey = null;
+          for (const [k2, fx2] of this.castActive) { if (!fx2.transcendent && !fx2.legendary && !fx2.relicId && (fx2.tier || 1) <= 2) { evKey = k2; break; } }
+          if (!evKey && isLegend) {
+            for (const [k2, fx2] of this.castActive) { if (!fx2.transcendent && !fx2.legendary && !fx2.relicId) { evKey = k2; break; } }
+          }
+          this.castActive.delete(evKey || this.castActive.keys().next().value);
+        }
         const elemKey = event.element || (techObj && techObj.element) || (a.cult && a.cult.element) || null;
         const fusionKey = event.fusionId || event.fusion || null;
         const originX = Number.isFinite(event.originX) ? event.originX * TS : actorPos.x * TS;
@@ -2832,8 +3335,15 @@
       const sceneLimit=this.resolveQuality()==='low'?R.LEGENDARY_APEX_BUDGET.maxFullLow:R.LEGENDARY_APEX_BUDGET.maxFull;
       const fullScenes=new Set(),sceneOwners=new Set();
       const candidates=[...this.castActive.values()].reverse();
+      const transcendentFull = new Set();
+      for (const f of candidates) {
+        if (transcendentFull.size >= sceneLimit) break;
+        if (!f.transcendent || (f.transcendent.presentationRank || 3) < 3 || sceneOwners.has(f.ownerId)) continue;
+        transcendentFull.add(f);
+        sceneOwners.add(f.ownerId);
+      }
       for(const f of candidates){
-        if(fullScenes.size>=sceneLimit)break;
+        if(fullScenes.size + transcendentFull.size>=sceneLimit)break;
         if(!(f.relicId||f.legendary||(f.motif&&String(f.motif).startsWith('legend_'))))continue;
         if(f.ownerId&&sceneOwners.has(f.ownerId))continue;
         fullScenes.add(f);if(f.ownerId)sceneOwners.add(f.ownerId);
@@ -2848,6 +3358,14 @@
       for(const f of candidates){if(t4Full.size>=t4Limit)break;if(!f.t4Vfx||f.legendary||f.relicId||(f.ownerId&&(t4Owners.has(f.ownerId)||t5Owners.has(f.ownerId)||t6Owners.has(f.ownerId)||t7Owners.has(f.ownerId)||sceneOwners.has(f.ownerId))))continue;t4Full.add(f);if(f.ownerId)t4Owners.add(f.ownerId);}
       for (const fx of this.castActive.values()) {
         const p = clamp((this.castClock - fx.start) / fx.life, 0, 1), fade = Math.min(1, (1 - p) * 2.8), r = reduced ? 23 : 18 + p * 13;
+        if (fx.transcendent) {
+          this.drawTranscendentDelivery(ctx, fx, p);
+          ctx.save();
+          ctx.translate(fx.x, fx.y - 7);
+          this.drawTranscendentScene(ctx, fx, p, reduced, transcendentFull.has(fx));
+          ctx.restore();
+          continue;
+        }
         this.drawCastTargetMarks(ctx, fx, p, reduced);
         this.drawRangedAndSpatialDeliveryVfx(ctx, fx, p, reduced);
         ctx.save(); ctx.translate(fx.x, fx.y - 7); ctx.globalAlpha = fade; ctx.lineCap = 'round';
@@ -2855,7 +3373,7 @@
           this.drawEquipEffectVfx(ctx, fx, p, reduced);
         } else if (fx.combatActionVfx) {
           this.drawCombatActionVfx(ctx, fx, p, reduced);
-        } else if (fx.relicId && R.LEGENDARY_GEAR_VISUALS[fx.relicId]) {
+        } else if (fx.relicId && (R.LEGENDARY_GEAR_VISUALS[fx.relicId] || (R.GRAND_DAO_RELIC_VISUALS && R.GRAND_DAO_RELIC_VISUALS[fx.relicId]))) {
           this.drawLegendaryRelicScene(ctx,fx,p,reduced,fullScenes.has(fx));
         } else if (fx.legendary || (fx.motif && String(fx.motif).startsWith('legend_'))) {
           this.drawLegendaryArtVfx(ctx,fx,p,reduced,fullScenes.has(fx));
@@ -3182,7 +3700,7 @@
     // T7 equipment has owner-bound, type-aware accents, not fabricated relic procs.
     drawT7EquipmentGlyph(ctx,type,r){
       if(!ctx)return false;
-      type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY',PENDANT:'NECKLACE',BOSS_TROPHY:'ORNAMENT',TALISMAN:'CHARM',FIST_PALM:'FIST'})[type]||type;
+      type=({LIGHT_ARMOR:'LIGHT',HEAVY_ARMOR:'HEAVY',PENDANT:'NECKLACE',BOSS_TROPHY:'ORNAMENT',TALISMAN:'CHARM',FIST_PALM:'FIST',SHOES:'CHARM'})[type]||type;
       if(R.WEAPON_MOTION_VFX[type])return this.drawWeaponMotionVfx(ctx,{weaponType:type,tier:7,angle:-.35},.5,r,true,.66);
       ctx.save();ctx.scale(r,r);ctx.strokeStyle='#d4ca9d';ctx.lineWidth=1/r;
       const line=(ps,closed=false)=>{ctx.beginPath();ps.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(closed)ctx.closePath();ctx.stroke();};
@@ -3587,14 +4105,14 @@
       }
       // วาดคลื่นน้ำและเงาปลาใน「ธารน้ำปราณทักษิณ」(y = 165..176) เมื่อกล้องส่องลงมาด้านใต้
       const hh = this.vh / 2 / this.cam.z;
-      if (this.cam.y + hh >= 160 * TS && this.effectiveQuality !== 'low') {
+      if (this.cam.y + hh >= 248 * TS && this.effectiveQuality !== 'low') {
         ctx.save();
         ctx.strokeStyle = 'rgba(230,252,255,.34)';
         ctx.lineWidth = 0.9;
         for (let i = 0; i < 28; i++) {
           const rx = ((i * 83 + t * 9) % (216 * TS)) + 12 * TS;
           const tx = Math.floor(rx / TS);
-          if ((tx >= 62 && tx <= 64) || (tx >= 116 && tx <= 120) || (tx >= 172 && tx <= 174)) continue;
+          if ((tx >= 92 && tx <= 94) || (tx >= 178 && tx <= 182) || (tx >= 264 && tx <= 266)) continue;
           const cy = (MAP.riverCenterY ? MAP.riverCenterY(tx) : 170) * TS + ((i % 5) - 2) * 7;
           ctx.beginPath();
           ctx.moveTo(rx, cy);
@@ -3606,7 +4124,7 @@
         for (let i = 0; i < 12; i++) {
           const fx = ((i * 137 + t * (12 + (i % 3) * 4)) % (160 * TS)) + 40 * TS;
           const tx = Math.floor(fx / TS);
-          if ((tx >= 115 && tx <= 121) || (tx >= 61 && tx <= 65) || (tx >= 171 && tx <= 175)) continue;
+          if ((tx >= 177 && tx <= 183) || (tx >= 91 && tx <= 95) || (tx >= 263 && tx <= 267)) continue;
           const fy = (MAP.riverCenterY ? MAP.riverCenterY(tx) : 170) * TS + Math.sin(t * 1.6 + i) * 14;
           ctx.beginPath();
           ctx.ellipse(fx, fy, 4.2, 1.8, Math.sin(t * 2 + i) * 0.15, 0, Math.PI * 2);
@@ -3711,7 +4229,7 @@
       if (!isActive) return;
 
       const colHex = R.resolveBarrierColor(W);
-      const cx = 118 * TS, cy = 75 * TS, rx = 92 * TS, ry = 58 * TS;
+      const cx = 180 * TS, cy = 126 * TS, rx = 110 * TS, ry = 74 * TS;
       const pulse = 0.5 + 0.5 * Math.sin(this.t * 1.8);
 
       ctx.save();
@@ -3817,7 +4335,15 @@
       ctx.restore();
 
       const shell = this.getBuildingSprite(b);
-      ctx.drawImage(shell, x - 22, y - 44, w + 48, h + 68);
+      const isCutaway = (z >= 1.65 && b.inside && b.inside.length > 0) || (this.selected && b.inside && b.inside.includes(this.selected));
+      if (isCutaway) {
+        ctx.save();
+        ctx.globalAlpha = 0.36;
+        ctx.drawImage(shell, x - 22, y - 44, w + 48, h + 68);
+        ctx.restore();
+      } else {
+        ctx.drawImage(shell, x - 22, y - 44, w + 48, h + 68);
+      }
 
       // If Peak Sanctuary was recently founded, render dissipating mist fade-out
       if (b.isPeakSanctuary && b.mistFadeStartT != null && this.W && (this.W.t - b.mistFadeStartT) < 60) {
@@ -4012,22 +4538,13 @@
         ctx.strokeStyle = 'rgba(92,68,42,.55)';
         ctx.lineWidth = 1.6;
         ctx.strokeRect(x + 3, y + 3, w - 6, h - 6);
-      } else if (b.type === 'spirit_pond') {
-        ctx.strokeStyle = 'rgba(115,108,92,.75)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x, y, w, h);
-      } else if (b.type === 'river_dock' || b.type === 'river_west' || b.type === 'river_east') {
-        // วาดเสาไม้ท่าน้ำและราวสะพานข้ามธารน้ำปราณทักษิณ
-        ctx.strokeStyle = 'rgba(122,88,52,.65)';
-        ctx.lineWidth = 1.6;
-        if (b.type === 'river_dock') {
-          const bx0 = 116 * TS, bx1 = 121 * TS, by0 = 165 * TS, by1 = 176 * TS;
-          ctx.strokeRect(bx0, by0, bx1 - bx0, by1 - by0);
-          ctx.fillStyle = '#6e4726';
-          for (let py = by0; py <= by1; py += 16) {
-            ctx.fillRect(bx0 - 2, py - 2, 4, 4);
-            ctx.fillRect(bx1 - 2, py - 2, 4, 4);
-          }
+      } else if (b.type === 'river_dock') {
+        // วาดเสาไม้ท่าน้ำข้ามธารน้ำปราณทักษิณโดยไม่มีกรอบเส้นทึบปิดกั้นผืนน้ำ
+        const bx0 = 116 * TS, bx1 = 121 * TS, by0 = 165 * TS, by1 = 176 * TS;
+        ctx.fillStyle = '#6e4726';
+        for (let py = by0; py <= by1; py += 16) {
+          ctx.fillRect(bx0 - 2, py - 2, 4, 4);
+          ctx.fillRect(bx1 - 2, py - 2, 4, 4);
         }
       }
       this.drawSpot(ctx, b, x, y, w, h);
@@ -4065,31 +4582,35 @@
       const eqAcc = accObj ? (accObj.visualKey || accObj.id || '') : '';
       const cPath = (n && n.cult) ? n.cult.path : 'MORTAL';
       const cStage = (n && n.cult && n.cult.stage) ? n.cult.stage : 0;
-      const wUsable = !!(wpnObj && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpnObj)));
+      const wUsable = !!(wpnObj && (wpnObj.weaponSoul || !g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpnObj)));
       const wTier = wpnObj ? (wpnObj.tier || 1) : 0;
       const aTier = armObj ? (armObj.tier || 1) : 0;
       const accTier = accObj ? (accObj.tier || 1) : 0;
-      const wStars = wpnObj ? (wpnObj.stars || wpnObj.star || (wpnObj.quality === 'Masterwork' || wpnObj.legendary ? 3 : wpnObj.quality === 'Refined' ? 2 : wTier >= 5 ? 2 : wTier >= 3 ? 1 : 0)) : 0;
-      const aStars = armObj ? (armObj.stars || armObj.star || (armObj.legendary ? 3 : aTier >= 5 ? 2 : aTier >= 3 ? 1 : 0)) : 0;
-      const accStars = accObj ? (accObj.stars || accObj.star || (accObj.legendary ? 3 : accTier >= 5 ? 2 : accTier >= 3 ? 1 : 0)) : 0;
+      const wStars = wpnObj ? (wpnObj.attunedStars || wpnObj.stars || wpnObj.star || (wpnObj.quality === 'Masterwork' || wpnObj.legendary ? 3 : wpnObj.quality === 'Refined' ? 2 : wTier >= 5 ? 2 : wTier >= 3 ? 1 : 0)) : 0;
+      const aStars = armObj ? (armObj.attunedStars || armObj.stars || armObj.star || (armObj.legendary ? 3 : aTier >= 5 ? 2 : aTier >= 3 ? 1 : 0)) : 0;
+      const accStars = accObj ? (accObj.attunedStars || accObj.stars || accObj.star || (accObj.legendary ? 3 : accTier >= 5 ? 2 : accTier >= 3 ? 1 : 0)) : 0;
       const petObj = (n && Array.isArray(n.pets) && n.pets[0]) ? n.pets[0] : (n && n.pet ? n.pet : null);
       const petSig = petObj ? `${petObj.speciesId || petObj.id || 'pet'}:${petObj.stage || petObj.tier || 1}:${petObj.awakenedSymbol || ''}` : '';
       const legendaryGear = Object.values((n && n.equip) || {}).filter(it => it && R.resolveLegendaryGearVisual(it) &&
         (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n,it))).map(it => R.resolveLegendaryGearVisual(it));
       const gearIdentity = Object.entries((n && n.equip) || {}).map(([slot,it]) => slot+':'+(it && it.id)+':'+!!(it && it.legendary)).join('|') + '|' + legendaryGear.map(it=>it.id).join(',');
-      const sig = `${gearIdentity}|${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${cStage}|${eqW}|${wUsable ? 1 : 0}|${wTier}:${wStars}|${eqA}:${aTier}:${aStars}|${eqAcc}:${accTier}:${accStars}|${petSig}`;
+      const bioAge = (n && g.HC && g.HC.bioAge) ? g.HC.bioAge(n) : ((n && g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22);
+      const ageY = (n && g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22;
+      const marksLen = (b.marks && b.marks.length) || 0;
+      const sig = `${gearIdentity}|${b.skinHex}|${b.hairHex}|${b.eyeHex}|${hs}|${b.heightCm}|${n?.h?.sex}|${n?.rank}|${cPath}|${cStage}|${eqW}|${wUsable ? 1 : 0}|${wTier}:${wStars}|${eqA}:${aTier}:${aStars}|${eqAcc}:${accTier}:${accStars}|${petSig}|${bioAge >= 62 ? 1 : 0}|${marksLen}`;
 
       if (this.apCache && n && n.id) {
         const cached = this.apCache.get(n.id);
         if (cached && cached.sig === sig) return cached;
       }
 
-      const ageY = (n && g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22;
       const isF = n?.h?.sex === 'F';
+      const wTypeResolved = (wpnObj && g.MARTIAL && g.MARTIAL.gearType) ? g.MARTIAL.gearType(wpnObj) : (eqW || null);
+      const resEval = (n && !n.foe && g.MARTIAL && g.MARTIAL.evaluateResonanceSet) ? g.MARTIAL.evaluateResonanceSet(n) : null;
       const ap = {
         sig,
         skin: b.skinHex || '#e8c49c',
-        hair: ageY >= 62 ? '#b8bec4' : (b.hairHex || '#222024'),
+        hair: (b.hairHex === '#e9edf5') ? '#e9edf5' : (bioAge >= 62 ? '#b8bec4' : (b.hairHex || '#222024')),
         eye: b.eyeHex || '#222024',
         long: /ยาว|ปล่อย|ถัก/.test(hs) || (isF && !/สั้น|โกน/.test(hs)),
         bun: /มวย|รวบ|ปิ่น/.test(hs) || (!/โกน/.test(hs) && (n?.rank >= 2 || !isF)),
@@ -4122,9 +4643,9 @@
         totalGearStars: Math.min(9, wStars + aStars + accStars),
         weaponStars: wStars,
         weaponElement: (wpnObj && (wpnObj.element || (Array.isArray(wpnObj.runes) && wpnObj.runes[0]))) || (n && n.cult && n.cult.element) || null,
-        activeSetCount: [wpnObj, armObj, accObj].filter(Boolean).length,
-        hasFlyingSword: !!(wUsable && (wTier >= 4 || (wpnObj && wpnObj.legendary) || (cStage >= 3 && (cPath === 'SWORD' || cPath === 'XIAN' || wpnObj)))),
-        hasWeaponSoul: !!(wUsable && (wTier >= 6 || (wpnObj && (wpnObj.legendary || wpnObj.weaponSoul || wpnObj.spiritNameTh)))),
+        activeSetCount: (resEval && resEval.active) ? (resEval.pieces || 3) : 0,
+        hasFlyingSword: !!(wUsable && (wTypeResolved === 'SWORD' || (wpnObj && wpnObj.type === 'SWORD') || cPath === 'SWORD_DOMAIN' || (cPath === 'XIAN' && (!wpnObj || wTypeResolved === 'SWORD'))) && (wTier >= 4 || (wpnObj && wpnObj.legendary) || cStage >= 3)),
+        hasWeaponSoul: !!(wUsable && (wTier >= 6 || (wpnObj && (wpnObj.legendary || wpnObj.weaponSpirit || wpnObj.imbuedElderSoul || wpnObj.weaponSoul || wpnObj.spiritNameTh)))),
         hasSilkRibbon: (n && n.cult ? R.resolveCultivationVisualState(n).normStage >= 7 : cStage >= 7) || (armObj && armObj.visualKey === 'vis_celestial_crane_robe'),
         hasPet: !!petObj,
         petSpeciesId: petObj ? (petObj.speciesId || petObj.id || 'SPIRIT_BEAST') : null,
@@ -4160,29 +4681,37 @@
 
       const ap = this.appearance(n);
       const sc = ap.scale * 1.15 * (n.rank === 6 ? 1.08 : 1);
-      const qgInfo = (g.CULT && g.CULT.QINGGONG && n.cult) ? g.CULT.QINGGONG.resolveNpcMode(W, n) : null;
-      const qgMode = (moving || act === 'qinggong') && qgInfo ? qgInfo.modeId : 'MORTAL_WALK';
-      const isAerialFlight = (moving || act === 'qinggong') && (qgMode === 'SWORD_FLIGHT' || qgMode === 'CELESTIAL_LEVITATION');
+      const mount = moving && n.path && act !== 'fight' ? g.EXPED?.travelMount(n) : null;
+      const ridingAirborne = !!mount && R.isAirborneMount(mount);
+      const qgInfo = !mount && act !== 'fight' && (moving || act === 'qinggong') && n.cult ? CULT.QINGGONG?.resolveNpcMode(W, n) : null;
+      const qgMode = qgInfo && (!qgInfo.airborne || n.aerialFlightActive || act === 'qinggong')
+        ? qgInfo.modeId : 'MORTAL_WALK';
+      const ridingSword = qgMode === 'SWORD_FLIGHT';
+      const isAerialFlight = ridingAirborne || ridingSword || qgMode === 'CELESTIAL_LEVITATION';
       const isLeapBound = (moving || act === 'qinggong') && qgMode === 'LEAP_BOUND';
       const isWaterDrift = (moving || act === 'qinggong') && qgMode === 'WATER_LOTUS_DRIFT';
       const ph = this.t * (act === 'fight' || n.run ? 14 : (qgMode !== 'MORTAL_WALK' ? 13 : 9)) + (n.n || 0) * 1.7;
-      const step = isAerialFlight ? 0 : (moving ? Math.sin(ph) : 0);
-      const aerialLift = qgMode === 'CELESTIAL_LEVITATION'
+      const step = mount || isAerialFlight ? 0 : (moving ? Math.sin(ph) : 0);
+      const motionTime = (mount || ridingSword) && this.isReducedMotion() ? 0 : this.t;
+      const aerialLift = mount
+        ? (ridingAirborne ? 24 + Math.sin(motionTime * 5) * 1.9 : 12 + Math.sin(motionTime * 8) * .9)
+        : qgMode === 'CELESTIAL_LEVITATION'
         ? (14.5 + Math.sin(this.t * 3.8 + (n.n || 0)) * 2.4)
         : qgMode === 'SWORD_FLIGHT'
-        ? (11.5 + Math.sin(this.t * 5.0 + (n.n || 0)) * 1.8)
+        ? (11.5 + Math.sin(motionTime * 5.0 + (n.n || 0)) * 1.8)
         : isLeapBound
         ? (Math.abs(Math.sin(this.t * 7.2 + (n.n || 0))) * 13.5)
         : isWaterDrift
         ? (2.2 + Math.sin(this.t * 4.5 + (n.n || 0)) * 0.8)
         : 0;
       const bob = moving
-        ? (isAerialFlight ? aerialLift : (Math.abs(Math.sin(ph)) * 1.35 + aerialLift))
+        ? (isAerialFlight || mount ? aerialLift : (Math.abs(Math.sin(ph)) * 1.35 + aerialLift))
         : (act === 'qinggong' ? aerialLift : (act === 'cultivate' || act === 'sleep' ? 0 : Math.sin(this.t * 2 + (n.n || 0)) * 0.25));
       const face = n.face >= 0 ? 1 : -1;
-      const pose = (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining' || act === 'mantra') ? 'sit'
-        : (act === 'sleep' && !n.hidden) ? 'lie'
-        : (act === 'pray' || act === 'flatter') ? 'bow'
+      const inDoStage = !moving && (!n.act || n.act.stage !== 'move');
+      const pose = (inDoStage && (act === 'cultivate' || act === 'breakthrough' || act === 'paidTraining' || act === 'mantra')) ? 'sit'
+        : (inDoStage && act === 'sleep' && !n.hidden) ? 'lie'
+        : (inDoStage && (act === 'pray' || act === 'flatter')) ? 'bow'
         : 'stand';
 
       ctx.save();
@@ -4210,11 +4739,12 @@
 
       // Companion Spirit Beast beside disciple on map (Pillar 1D)
       if (ap.hasPet) {
-        this.drawCompanionPets(ctx, n, p, sc);
+        this.drawCompanionPets(ctx, n, p, sc, mount);
       }
 
       // Legendary passive/mantra aura (pure read-only)
       this.drawLegendaryAura(ctx, n, act);
+      this.drawTranscendentAura(ctx, n, -bob);
 
       // Era 5 Pillar 1 & 3: Realm Halo, Path Signature Motes, Equipment Tier Glow & Set Resonance
       if (this.opts.realmHalos !== false) {
@@ -4264,21 +4794,33 @@
       }
 
       ctx.scale(face * sc, sc);
-      const robe = ap.robe, sash = ap.sash;
+      const robe = n.isNecroThrall ? '#8d7b68' : ap.robe, sash = n.isNecroThrall ? '#d4a373' : ap.sash;
       const lunge = act === 'fight' && n.act.ctx && n.fx && this.W.t - n.fx.t < 3 ? 3 : 0;
       if (pose === 'lie') { ctx.rotate(-1.5); ctx.translate(0, -4); }
       const legL = pose === 'sit' ? 0 : step * 2.5, legR = pose === 'sit' ? 0 : -step * 2.5;
 
       const by = -bob;
-      // Patch v5.4.0: Underfoot Mount / Sword Flight / Celestial Cloud / Phantom Blink Clones
+      if (mount) R.drawTravelMount(ctx, mount, by, motionTime, this.isReducedMotion());
+      // Patch v5.4.0: Underfoot Sword Flight / Celestial Cloud / Phantom Blink Clones
       if (qgMode !== 'MORTAL_WALK' && (moving || act === 'qinggong')) {
         this.drawQinggongBodyEffects(ctx, n, ap, qgMode, qgInfo, by, step);
       }
 
       // Boots / Crossed legs (elevated by `by` when airborne or leaping!)
       ctx.fillStyle = '#2d313b';
-      if (pose === 'sit') {
+      if (mount) {
+        // Torso sits on the saddle. The near knee and boot overlap the flank.
+        ctx.fillStyle = '#293435';
+        ctx.beginPath(); ctx.ellipse(0, by - 3, 5.4, 1.9, 0, 0, 7); ctx.fill();
+        ctx.strokeStyle = shade(robe, -.27);
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(-2, by - 5); ctx.lineTo(2.6, by - 1); ctx.lineTo(1.5, by + 3.3); ctx.stroke();
+        ctx.fillStyle = '#202a2e'; ctx.fillRect(.6, by + 2.2, 3.5, 2.1);
+      } else if (pose === 'sit') {
         ctx.beginPath(); ctx.ellipse(0, -2 + by, 5.8, 2.2, 0, 0, 7); ctx.fill();
+      } else if (ridingSword) {
+        ctx.fillRect(-4.9, by - 4.5, 3, 4.5);
+        ctx.fillRect(2.8, by - 5.3, 3.4, 5.3);
       } else if (isAerialFlight) {
         // Poised immortal / sword-rider stance with boots resting atop the flying sword or cloud
         ctx.fillRect(-3.0, -5.5 + by, 2.4, 5.5);
@@ -4351,6 +4893,11 @@
         ctx.restore();
       }
 
+      const transcendentArmor = n.equip && n.equip.ARMOR;
+      const transcendentAccessory = n.equip && n.equip.ACCESSORY;
+      if (R.isTranscendent(transcendentArmor)) R.drawWornTranscendent(ctx, n, transcendentArmor, 0, -10 + by, 14);
+      if (R.isTranscendent(transcendentAccessory)) R.drawWornTranscendent(ctx, n, transcendentAccessory, 4.6, -7 + by, 6.5);
+
       // Rank Sash & Hanging Jade Pendant (玉佩)
       ctx.fillStyle = sash;
       ctx.fillRect(-4.1 * ap.slim, -9.3 + by, 8.2 * ap.slim, 1.9);
@@ -4361,7 +4908,11 @@
 
       // Context-Sensitive Arms & Sleeves
       let armA = -0.2 + (moving ? -step * 0.55 : 0), armB = 0.2 + (moving ? step * 0.55 : 0);
-      if (act === 'practice' || act === 'skillDrill' || (act === 'fight' && lunge)) {
+      if (mount) {
+        armA = .95; armB = 1.2;
+      } else if (ridingSword) {
+        armA = .75; armB = -.84;
+      } else if (act === 'practice' || act === 'skillDrill' || (act === 'fight' && lunge)) {
         armA = -1.35 + Math.sin(this.t * 9 + (n.n || 0)) * 0.85;
       } else if (pose === 'sit') {
         armA = 0.85; armB = 0.85;
@@ -4381,9 +4932,9 @@
       ctx.beginPath(); ctx.arc(3 + Math.sin(armA) * 6 + lunge, -12 + by + Math.cos(armA) * 5.5, 1.45, 0, 7); ctx.fill();
 
       // Weapon / Activity Prop + Legendary Weapon Visual Silhouette
-      if (ap.weaponVisualKey && ap.weaponUsable) {
+      if (!ridingSword && ap.weaponVisualKey && ap.weaponUsable) {
         this.drawLegendaryWeaponVisual(ctx, n, ap, armA, by, lunge, act);
-      } else if (ap.weaponVisualKey && !ap.weaponUsable) {
+      } else if (!ridingSword && ap.weaponVisualKey && !ap.weaponUsable) {
         // Sealed / dormant scabbard on back when weapon requirements are not met
         ctx.save();
         ctx.strokeStyle = "#5c6470";
@@ -4391,8 +4942,8 @@
         ctx.beginPath(); ctx.moveTo(-3.2, -13 + by); ctx.lineTo(2.4, -5 + by); ctx.stroke();
         ctx.restore();
       }
-      this.drawProp(ctx, n, act, armA, by, lunge, ap);
-      if (this.opts.flyingSwords !== false) {
+      if (!ridingSword) this.drawProp(ctx, n, act, armA, by, lunge, ap);
+      if (!ridingSword && this.opts.flyingSwords !== false) {
         this.drawOrbitingFlyingWeapon(ctx, n, ap, by, act);
       }
       if (this.opts.combatSlashes !== false) {
@@ -4440,8 +4991,8 @@
         ctx.beginPath(); ctx.moveTo(0.5, hy + 2.8); ctx.lineTo(2.8, hy + 2.8); ctx.lineTo(1.8, hy + 5.6); ctx.closePath(); ctx.fill();
       }
 
-      // Rank Headwear / Coronet
-      if (n.rank === 6) {
+      // Rank Headwear / Coronet (suppress upright coronet when lying flat)
+      if (pose !== 'lie' && n.rank === 6) {
         ctx.fillStyle = '#f2cf52';
         ctx.fillRect(-3.6, hy - 6.4, 7.2, 2.1);
         ctx.fillRect(-1.1, hy - 8.8, 2.2, 2.6);
@@ -4472,8 +5023,14 @@
       // Unflipped HUD overlays: HP bar, Nameplate, Acting Office Seal, Action Bubble
       const showName = this.opts.names && (z >= 1.05 || sel);
       ctx.textAlign = 'center';
-      if (act === 'fight') {
-        this.hpBar(ctx, x, y - 30 * sc, n.h.state.hp / CULT.hpMax(n), 15);
+      const isSparring = act === 'pair' && n.act && n.act.ctx && n.act.ctx.pair && n.act.ctx.pair.type === 'spar';
+      if (act === 'fight' || isSparring) {
+        const effHm = (g.COMBAT && g.COMBAT.hpMax) ? g.COMBAT.hpMax(n) : ((g.STATS && g.STATS.hpMax) ? g.STATS.hpMax(n) : CULT.hpMax(n));
+        this.hpBar(ctx, x, y - 30 * sc, n.h.state.hp / Math.max(1, effHm), 15);
+        const qMax = (CULT && CULT.qiMax) ? CULT.qiMax(n) : 100;
+        const qFrac = Math.max(0, Math.min(1, (n.h.state.qi || 0) / Math.max(1, qMax)));
+        ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x - 15, y - 26.5 * sc, 30, 2);
+        ctx.fillStyle = '#38bdf8'; ctx.fillRect(x - 15, y - 26.5 * sc, Math.round(30 * qFrac), 2);
       }
       if (showName) {
         ctx.font = (sel ? '600 ' : '') + '9px ' + FONT;
@@ -4510,8 +5067,15 @@
       }
       if (n.fx && this.W.t - n.fx.t < 4) {
         const age = (this.W.t - n.fx.t);
+        const fxTxt = String(n.fx.text || '');
+        const isDmgFx = /(?:^|✦)-/.test(fxTxt);
+        const isHealFx = /^\+/.test(fxTxt);
+        if (isDmgFx && age < 0.35) {
+          ctx.save(); ctx.strokeStyle = 'rgba(255,95,80,.75)'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(x, y - 12 * sc, 11 * sc, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+        }
         ctx.font = 'bold 10px ' + FONT;
-        ctx.fillStyle = /^-/.test(n.fx.text) ? '#ff6b5e' : '#ffe27a';
+        ctx.fillStyle = isHealFx ? '#4ade80' : isDmgFx ? '#ff6b5e' : '#ffe27a';
         ctx.strokeStyle = 'rgba(0,0,0,.7)';
         ctx.lineWidth = 2.4;
         const fy = y - 38 * sc - age * 3;
@@ -4631,7 +5195,10 @@
     /* ---------- Physical Outsider / Visitor Sprite on Sect Map (Pure Read-Only) ---------- */
     drawVisitor(ctx, v, hour) {
       const z = this.cam.z;
-      const x = v.x * TS, y = v.y * TS;
+      const a = this.alpha == null ? 1 : this.alpha;
+      const vx = (Number.isFinite(v._px) && Math.hypot(v.x - v._px, v.y - v._py) < 4) ? (v._px + (v.x - v._px) * a) : v.x;
+      const vy = (Number.isFinite(v._py) && Math.hypot(v.y - v._py, v.x - v._px) < 4) ? (v._py + (v.y - v._py) * a) : v.y;
+      const x = vx * TS, y = vy * TS;
       const roleColors = {
         merchant: '#d4a373',
         trader: '#d4a373',
@@ -4708,6 +5275,10 @@
       const wType = (ap && ap.weaponType) || (n.act && n.act.ctx && n.act.ctx.skill) || '';
 
       if (act === 'practice' || act === 'skillDrill' || act === 'fight' || act === 'guard' || (act === 'pair' && n.act?.ctx?.pair?.type === 'spar')) {
+        if (ap && ap.weaponUsable && R.isTranscendent(weapon)) {
+          R.drawWornTranscendent(ctx, n, weapon, hx + 4, hy - 4, 22, armA * .42);
+          return;
+        }
         if (ap && ap.weaponUsable && relicByVisual[ap.weaponVisualKey]) return;
         if (!weapon && (wType === 'FIST_PALM' || wType === 'MOVEMENT' || wType === 'BODY_REFINING' || wType === 'SOUL_DIVINE' || wType === 'POISON' || !wType)) {
           // Unarmed / Palm / Body / Movement build: draw martial palm-qi aura instead of a fake sword
@@ -4898,58 +5469,155 @@
     },
 
     drawWild(ctx, b) {
-      const x = b.x * TS, y = b.y * TS, id = b.speciesId || '', large = b.tier >= 6;
-      const sp = (g.JD && g.JD.BEASTS && g.JD.BEASTS.species && g.JD.BEASTS.species.find(s => s.id === id));
-      const arch = sp?.archetype || (/PYTHON|SNAKE|SERPENT/.test(id) ? 'SERPENT' : /ROC|BIRD|PHOENIX|AVIAN/.test(id) ? 'AVIAN' : /TURTLE|TORTOISE|SHELL/.test(id) ? 'SHELL' : /FISH|AQUATIC|CARP|SHARK|WHALE/.test(id) ? 'AQUATIC' : 'CANINE');
-      const body = sp?.visual?.body || (large ? '#78518b' : b.tier >= 3 ? '#b27b55' : '#9d8b70');
-      const accent = sp?.visual?.accent || (large ? '#c99aeb' : '#e9c586');
+      const alpha = this.alpha == null ? 1 : this.alpha;
+      const dx = b.x - b._px, dy = b.y - b._py;
+      const localStep = dx * dx + dy * dy < 16;
+      const x = (localStep ? b._px + dx * alpha : b.x) * TS;
+      const y = (localStep ? b._py + dy * alpha : b.y) * TS;
+      const zoom = this.cam.z;
+      const { model, tier, scale, palette, visual, marking, trim, raid } = R.resolveWildBeastArt(b);
+      const body = visual?.body || palette[0];
+      const light = visual?.accent || palette[1];
+      const ink = '#18232e';
+      const colors = { body, light, shade: ink, wing: body, ivory: palette[1],
+        eye: b.aggressive || b.fighting ? '#ffea8d' : '#fff3d5' };
+      const detail = zoom >= .42 && this.resolveQuality() !== 'low';
+      const reduced = this.isReducedMotion();
+      const moving = localStep && dx * dx + dy * dy > .001;
+      const time = reduced ? 0 : (this.t || 0) + (b.px || 0) * .37 + (b.py || 0) * .19;
+      const hover = model.hover || (trim === 'wings' || trim === 'feathers' ? 3 : 0);
+      const rate = hover ? 3.3 : moving ? 8 : 2.8;
+      const lift = hover + (reduced ? 0 : Math.sin(time * rate) * (hover ? 1.6 : moving ? 1.1 : .45));
+      const flap = reduced ? 0 : Math.sin(time * (b.fighting ? 6.6 : 4.4)) * .19;
+      const face = !b.fighting && moving && Math.abs(dx) > .015 ? Math.sign(dx) : (b.face < 0 ? -1 : 1);
+      const shadow = model.shadow || 14;
 
       ctx.save();
       ctx.translate(x, y);
-      if (this.cam.z >= .42) this.drawCommonStatusAuras(ctx, b, 0);
-      ctx.fillStyle = 'rgba(0,0,0,.22)';
-      ctx.beginPath(); ctx.ellipse(0, 1, large ? 13 : 9, large ? 5 : 3.5, 0, 0, 7); ctx.fill();
-
-      if (arch === 'SERPENT') {
-        ctx.strokeStyle = body; ctx.lineWidth = large ? 7 : 4.5;
-        ctx.beginPath(); ctx.moveTo(-11, -2); ctx.bezierCurveTo(-5, -12, 1, 5, 9, -6); ctx.stroke();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(9, -7, large ? 5 : 3.8, 0, 7); ctx.fill();
-      } else if (arch === 'AVIAN') {
-        ctx.fillStyle = body;
-        ctx.beginPath(); ctx.moveTo(large ? -16 : -11, -11); ctx.quadraticCurveTo(0, -3, large ? 16 : 11, -11); ctx.lineTo(large ? 7 : 5, 0); ctx.lineTo(large ? -7 : -5, 0); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(0, -8, large ? 5.5 : 4, 0, 7); ctx.fill();
-      } else if (arch === 'AQUATIC') {
-        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -7, large ? 12 : 8.5, large ? 6 : 4.5, 0, 0, 7); ctx.fill();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.moveTo(large ? -10 : -7, -7); ctx.lineTo(large ? -16 : -12, -12); ctx.lineTo(large ? -16 : -12, -2); ctx.closePath(); ctx.fill();
-      } else if (arch === 'SHELL') {
-        ctx.fillStyle = body; ctx.beginPath(); ctx.arc(0, -6, large ? 10 : 7.5, Math.PI, 0); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(large ? 9 : 6.5, -6, large ? 4 : 3, 0, 7); ctx.fill();
-      } else if (arch === 'ARTHROPOD') {
-        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -7, large ? 10 : 7, large ? 6 : 4.5, 0, 0, 7); ctx.fill();
-        ctx.fillStyle = accent; ctx.fillRect(-7, -3, 2, 4); ctx.fillRect(-2, -3, 2, 4); ctx.fillRect(3, -3, 2, 4); ctx.fillRect(large ? 8 : 6, -10, 3, 3);
-      } else if (arch === 'PLANT') {
-        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -6, large ? 7 : 5, large ? 10 : 7.5, 0, 0, 7); ctx.fill();
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(0, large ? -15 : -11, large ? 5 : 3.8, 0, 7); ctx.fill();
-      } else {
-        const radX = large ? 13 : (arch === 'BOAR' || arch === 'URSINE' ? 10.5 : 8.5);
-        const radY = large ? 8.5 : (arch === 'BOAR' || arch === 'URSINE' ? 7 : 5.5);
-        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -7, radX, radY, 0, 0, 7); ctx.fill();
-        ctx.fillRect(-radX * 0.7, -4, 2.6, 5); ctx.fillRect(radX * 0.5, -4, 2.6, 5);
-        ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(radX * 0.75, -10, large ? 5.5 : 4.2, 0, 7); ctx.fill();
-        if (arch === 'UNGULATE' || arch === 'CHIMERA') {
-          ctx.strokeStyle = accent; ctx.lineWidth = 1.4;
-          ctx.beginPath(); ctx.moveTo(radX * 0.6, -13); ctx.lineTo(radX * 0.5, -18); ctx.stroke();
+      const groundRing = b.legendary || tier >= 6;
+      ctx.fillStyle = '#17252651';
+      ctx.beginPath();
+      ctx.ellipse(0, 1, shadow * scale, 3.9 * scale, 0, 0, 7);
+      ctx.fill();
+      if (b.aquaticHunt) {
+        ctx.strokeStyle = '#b9f1ff99';
+        ctx.lineWidth = 1.1;
+        for (let i = 0; i < 2; i++) {
+          ctx.beginPath();
+          ctx.ellipse(0, 2 + i * 3, (shadow + i * 4) * scale, (2.4 + i) * scale, 0, 0, Math.PI);
+          ctx.stroke();
         }
       }
-      if (b.legendary) {
-        ctx.strokeStyle = 'rgba(219,160,255,.85)'; ctx.lineWidth = 1.8;
-        ctx.beginPath(); ctx.ellipse(0, 0, large ? 18 : 13, large ? 7.5 : 5.5, 0, 0, 7); ctx.stroke();
+      if (groundRing) {
+        ctx.lineWidth = 1.05;
+        ctx.strokeStyle = light;
+        ctx.globalAlpha *= .68;
+        ctx.beginPath();
+        ctx.ellipse(0, 1, (shadow + 4) * scale, 5.2 * scale, 0, .25, 3.02);
+        ctx.stroke();
+        if (tier === 7 && detail) {
+          ctx.beginPath();
+          ctx.ellipse(0, 1, (shadow + 8) * scale, 8.1 * scale, 0, .42, 2.72);
+          ctx.stroke();
+        }
+        ctx.globalAlpha /= .68;
       }
-      if (this.cam.z > 0.8) {
-        ctx.fillStyle = 'rgba(20,35,29,.78)';
-        ctx.font = '9px ' + FONT;
+      if (raid) {
+        const rings = raid.grade === 'TRANSCENDENT' ? 3 : raid.grade === 'LEGENDARY' ? 2 : 1;
+        const centerY = -model.top * scale * .43;
+        const radius = (shadow + 6) * scale;
+        const pulse = b.raidPulse || b.raidPulseFlash;
+        ctx.save();
+        if (pulse) {
+          const cx = pulse.x * TS - x, cy = pulse.y * TS - y;
+          ctx.strokeStyle = b.raidPulse ? '#ffc78c' : '#fff2de';
+          ctx.fillStyle = b.raidPulse ? '#f4795940' : '#fff1aa58';
+          ctx.lineWidth = b.raidPulse ? 2 : 4;
+          if (b.raidPulse) ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          ctx.arc(cx, cy, pulse.radius * TS, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        if (rings >= 2 && detail) {
+          const aura = ctx.createRadialGradient(0, centerY, radius * .1, 0, centerY, radius * 1.45);
+          aura.addColorStop(0, raid.color + '68');
+          aura.addColorStop(.55, raid.color + '28');
+          aura.addColorStop(1, raid.color + '00');
+          ctx.fillStyle = aura;
+          ctx.fillRect(-radius * 1.45, centerY - radius * 1.45, radius * 2.9, radius * 2.9);
+        }
+        ctx.strokeStyle = raid.color;
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < rings; i++) {
+          ctx.globalAlpha = .70 - i * .15;
+          ctx.beginPath();
+          const spin = time * (i % 2 ? -.15 : .18) + i * 2.1;
+          ctx.ellipse(0, centerY, radius * (1 + i * .16), radius * (.74 + i * .13), -.28 + i * .27, spin, spin + 4.6);
+          ctx.stroke();
+        }
+        if (rings === 3 && detail) {
+          ctx.globalAlpha = .86;
+          ctx.fillStyle = '#e5fdff';
+          for (let i = 0; i < 8; i++) {
+            const a = time * .17 + i * Math.PI / 4;
+            const dx = Math.cos(a) * radius * 1.32, dy = centerY + Math.sin(a) * radius;
+            ctx.beginPath();
+            ctx.moveTo(dx, dy - 6); ctx.lineTo(dx + 3, dy);
+            ctx.lineTo(dx, dy + 6); ctx.lineTo(dx - 3, dy); ctx.closePath(); ctx.fill();
+          }
+        }
+        ctx.restore();
+      }
+      if (zoom >= .42) this.drawCommonStatusAuras(ctx, b, 0);
+
+      ctx.save();
+      ctx.translate(0, -lift * scale);
+      ctx.scale(face * scale, scale);
+      ctx.lineJoin = 'round';
+      if (typeof Path2D === 'function') {
+        const back = wildBacks[trim];
+        if (back) paintWildLayer(ctx, back, colors, flap);
+        for (const layer of model.layers) {
+          if (zoom >= .35 || (layer[0] !== 'eye' && layer[0] !== 'ivory')) paintWildLayer(ctx, layer, colors, flap);
+        }
+        if ((zoom >= .42 && marking) || detail || tier >= 5) {
+          const mark = wildMarkings[marking || (tier >= 3 && !trim ? wildTierMark[tier] : null)];
+          if (mark) paintWildLayer(ctx, mark, colors, flap);
+        }
+        if (wildMarkings[trim]) paintWildLayer(ctx, wildMarkings[trim], colors, flap);
+      } else {
+        ctx.fillStyle = body;
+        ctx.beginPath(); ctx.ellipse(0, -8, shadow * .8, 5, 0, 0, 7); ctx.fill();
+      }
+      ctx.restore();
+
+      const top = Math.max(model.top, wildBacks[trim] ? 43 : 0, wildMarkings[trim] || marking === 'kirin' ? 38 : 0);
+      const labelY = -(top + lift + 6) * scale;
+      const showHealth = zoom >= .55 && b.fighting && Number.isFinite(b.hp) && b.hpMax > 0;
+      if (showHealth) this.hpBar(ctx, 0, labelY, b.hp / b.hpMax, shadow * scale * 1.5);
+      if (zoom > .8 || (raid && zoom >= .55)) {
+        ctx.font = (groundRing ? 'bold ' : '') + '9px ' + FONT;
         ctx.textAlign = 'center';
-        ctx.fillText(b.name + ' · ' + b.tier, 0, -24);
+        ctx.lineWidth = 2.3;
+        ctx.strokeStyle = '#1b2a28';
+        ctx.fillStyle = raid?.color || (groundRing ? palette[1] : '#f8f2dc');
+        const label = (b.name || b.nameTh || '') + ' · ' + (raid?.nameTh || 'T' + tier);
+        const textY = labelY - (showHealth ? 5 : 0);
+        ctx.strokeText(label, 0, textY);
+        ctx.fillText(label, 0, textY);
+      }
+      if (b.fx && this.W && this.W.t - b.fx.t < 4) {
+        const bAge = this.W.t - b.fx.t;
+        const bTxt = String(b.fx.text || '');
+        ctx.font = 'bold 10px ' + FONT;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = /^\+/.test(bTxt) ? '#4ade80' : /(?:^|✦)-/.test(bTxt) ? '#ff6b5e' : '#ffe27a';
+        ctx.strokeStyle = 'rgba(0,0,0,.72)';
+        ctx.lineWidth = 2.4;
+        const bFy = labelY - 12 - bAge * 3;
+        ctx.strokeText(bTxt, 0, bFy);
+        ctx.fillText(bTxt, 0, bFy);
       }
       ctx.restore();
     },
@@ -4998,7 +5666,10 @@
     },
 
     drawFoe(ctx, f) {
-      const x = f.x * TS, y = f.y * TS, z = this.cam.z, t = this.t + f.x;
+      const a = this.alpha == null ? 1 : this.alpha;
+      const fx = (Number.isFinite(f._px) && Math.hypot(f.x - f._px, f.y - f._py) < 4) ? (f._px + (f.x - f._px) * a) : f.x;
+      const fy = (Number.isFinite(f._py) && Math.hypot(f.y - f._py, f.x - f._px) < 4) ? (f._py + (f.y - f._py) * a) : f.y;
+      const x = fx * TS, y = fy * TS, z = this.cam.z, t = this.t + f.x;
       if (z < 0.42) {
         ctx.fillStyle = '#e0463a';
         ctx.beginPath(); ctx.arc(x, y - 4, Math.max(2.5 / z, 5), 0, 7); ctx.fill();
@@ -5027,9 +5698,9 @@
         ctx.fillStyle = '#3a2a2a';
         ctx.fillRect(-3, -6, 2.6, 6);
         ctx.fillRect(0.6, -6, 2.6, 6);
-        ctx.fillStyle = f.boss ? '#7a1f1f' : '#4a3a4a';
+        ctx.fillStyle = f.isNecroThrall ? '#8d7b68' : (f.boss ? '#7a1f1f' : '#4a3a4a');
         ctx.beginPath(); ctx.moveTo(-4.5, -5 - bob); ctx.lineTo(4.5, -5 - bob); ctx.lineTo(3.6, -13 - bob); ctx.lineTo(-3.6, -13 - bob); ctx.fill();
-        ctx.fillStyle = '#c99a78';
+        ctx.fillStyle = f.isNecroThrall ? '#d4a373' : '#c99a78';
         ctx.beginPath(); ctx.arc(0, -17 - bob, 4.8, 0, 7); ctx.fill();
         ctx.fillStyle = '#222';
         ctx.fillRect(-4.4, -19.6 - bob, 8.8, 2.2);
@@ -5090,6 +5761,21 @@
         ctx.font = '12px ' + FONT; ctx.textAlign = 'center'; ctx.fillStyle = '#ffe27a'; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.lineWidth = 3;
         ctx.strokeText('🏆 ประลองยุทธ์สำนัก', (tg.x + tg.w / 2) * TS, (tg.y - 0.3) * TS);
         ctx.fillText('🏆 ประลองยุทธ์สำนัก', (tg.x + tg.w / 2) * TS, (tg.y - 0.3) * TS);
+      }
+      if (Array.isArray(W.fights) && W.fights.length && this.cam.z >= 0.65) {
+        const KIND_LABELS = { spar: '🥋 ซ้อมมือ', feud: '🩸 ดวลสะสางแค้น', leadership: '👑 ชิงตำแหน่งเจ้าสำนัก', tourney: '🏆 ประลองยุทธ์', raid: '⚔️ ต้านผู้บุกรุก', hunt: '🐾 ล่าอสูร' };
+        W.fights.forEach(fg => {
+          if (!fg || fg.over) return;
+          const bList = (W.wildlife && Array.isArray(W.wildlife.beasts)) ? W.wildlife.beasts : [];
+          const units = [].concat(fg.A || [], fg.B || []).map(id => (W.byId && W.byId[id]) || (W.foes && W.foes.find(x => x && x.id === id)) || bList.find(x => x && x.id === id)).filter(u => u && !u.dead && Number.isFinite(u.x) && Number.isFinite(u.y));
+          if (!units.length) return;
+          const cx = units.reduce((s, u) => s + u.x, 0) / units.length * TS;
+          const cy = (units.reduce((s, u) => s + u.y, 0) / units.length - 2.6) * TS;
+          const fLabel = KIND_LABELS[fg.kind] || (fg.serious ? '⚔️ ศึกดวลเป็นตาย' : '🥋 ประลองยุทธ์');
+          ctx.font = '600 9.5px ' + FONT; ctx.textAlign = 'center';
+          ctx.fillStyle = fg.serious ? '#ffb27a' : '#a5f3fc'; ctx.strokeStyle = 'rgba(0,0,0,.78)'; ctx.lineWidth = 2.5;
+          ctx.strokeText(fLabel, cx, cy); ctx.fillText(fLabel, cx, cy);
+        });
       }
       if (W.sect.festival && W.sect.festival.until > W.t && W.sect.festival.kind === 'banquet') {
         const pl = W.map.byId.plaza;
@@ -5759,6 +6445,154 @@
           ctx.fill();
           break;
         }
+        case 'LEG_READ_FORM_BLADE': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(-9, 3); ctx.lineTo(0, -13); ctx.lineTo(9, 3); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 4.5, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'LEG_TRIAGE_MERIDIAN': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, 4); ctx.moveTo(-7, -4); ctx.lineTo(7, -4); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 7.5, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'LEG_STORM_CALLER_TEMPEST': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.8;
+          ctx.beginPath(); ctx.moveTo(-4, -13); ctx.lineTo(3, -5); ctx.lineTo(-2, -4); ctx.lineTo(5, 5); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 8.5, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+          break;
+        }
+        case 'LEG_JADE_CARAVAN_VOYAGER': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.strokeRect(-7, -10, 14, 10);
+          ctx.fillStyle = col2; ctx.beginPath(); ctx.arc(-4, -5, 2.2, 0, Math.PI * 2); ctx.arc(4, -5, 2.2, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'LEG_OATH_JUDGE_WARDEN': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(0, 4); ctx.moveTo(-9, -8); ctx.lineTo(9, -8); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(-7, -3, 3.2, 0, Math.PI); ctx.arc(7, -3, 3.2, 0, Math.PI); ctx.stroke();
+          break;
+        }
+        case 'LEG_ASHEN_KILN_ALCHEMY': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.7;
+          ctx.beginPath(); ctx.arc(0, -3, 7, 0.2, Math.PI - 0.2); ctx.closePath(); ctx.stroke();
+          ctx.fillStyle = col2; ctx.beginPath(); ctx.moveTo(-4, -10); ctx.lineTo(0, -15); ctx.lineTo(4, -10); ctx.fill();
+          break;
+        }
+        case 'TRANS_CONSTELLATION_RELAY': {
+          ctx.strokeStyle = col2; ctx.lineWidth = 1.3;
+          ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(-8, 2); ctx.lineTo(8, 2); ctx.closePath(); ctx.stroke();
+          ctx.fillStyle = col1;
+          ctx.beginPath(); ctx.arc(0, -13, 2.6, 0, Math.PI * 2); ctx.arc(-8, 2, 2.4, 0, Math.PI * 2); ctx.arc(8, 2, 2.4, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'TRANS_FIELD_CLAUSE_SOVEREIGN': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.7;
+          ctx.strokeRect(-8, -11, 16, 14);
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.moveTo(-8, -4); ctx.lineTo(8, -4); ctx.moveTo(0, -11); ctx.lineTo(0, 3); ctx.stroke();
+          break;
+        }
+        case 'TRANS_TEMPO_SOVEREIGN': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.arc(0, -4, 8.2, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(0, -11); ctx.moveTo(0, -4); ctx.lineTo(6, -1); ctx.stroke();
+          break;
+        }
+        case 'TRANS_SEALKEEPER_FORBIDDEN_KEY': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.7;
+          ctx.beginPath(); ctx.arc(0, -9, 4.2, 0, Math.PI * 2); ctx.moveTo(0, -5); ctx.lineTo(0, 5); ctx.moveTo(0, 1); ctx.lineTo(4.5, 1); ctx.moveTo(0, 4); ctx.lineTo(3.5, 4); ctx.stroke();
+          break;
+        }
+        case 'TRANS_PRIMAL_VORTEX_MIRROR': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(0, -4, 8.5, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 4.2, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(6, 2); ctx.stroke();
+          break;
+        }
+        case 'TRANS_DYNASTIC_MANDATE_WEAVER': {
+          ctx.strokeStyle = col1; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(8, -4); ctx.lineTo(0, 6); ctx.lineTo(-8, -4); ctx.closePath(); ctx.stroke();
+          ctx.fillStyle = col2; ctx.beginPath(); ctx.arc(0, -4, 3.0, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'CORPSE_SOVEREIGN': {
+          // copper_bell_coffin_procession: 3 copper bells above a rectangular coffin outline
+          ctx.strokeStyle = col1;
+          ctx.lineWidth = 1.6;
+          ctx.strokeRect(-7.5, -4.5, 15.0, 9.0);
+          ctx.strokeStyle = col2;
+          ctx.lineWidth = 1.1;
+          ctx.strokeRect(-5.5, -2.5, 11.0, 5.0);
+          for (let b = -1; b <= 1; b++) {
+            const bx = b * 5.2;
+            const swing = Math.sin(t * 2.8 + b) * 0.8;
+            ctx.fillStyle = col2;
+            ctx.beginPath();
+            ctx.arc(bx + swing, -9.5, 2.1, Math.PI, 0);
+            ctx.lineTo(bx + swing + 2.4, -7.0);
+            ctx.lineTo(bx + swing - 2.4, -7.0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = acc;
+            ctx.beginPath(); ctx.arc(bx + swing, -6.5, 0.9, 0, Math.PI * 2); ctx.fill();
+          }
+          break;
+        }
+        case 'WRAITH_GRIEVANCE': {
+          // grievance_ledger_wailing_ring: ring of 7 wailing wisp teardrops around an open ledger in the center
+          ctx.fillStyle = col2;
+          ctx.strokeStyle = col1;
+          ctx.lineWidth = 1.3;
+          ctx.beginPath();
+          ctx.moveTo(-5.0, -5.5); ctx.lineTo(0, -4.2); ctx.lineTo(5.0, -5.5);
+          ctx.lineTo(5.0, 1.5); ctx.lineTo(0, 2.8); ctx.lineTo(-5.0, 1.5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, -4.2); ctx.lineTo(0, 2.8); ctx.stroke();
+          for (let i = 0; i < 7; i++) {
+            const a = t * 1.1 + (i * Math.PI * 2) / 7;
+            const wx = Math.cos(a) * 10.2, wy = -1.5 + Math.sin(a) * 7.2;
+            ctx.fillStyle = i % 2 === 0 ? col1 : acc;
+            ctx.beginPath();
+            ctx.moveTo(wx, wy - 2.6);
+            ctx.quadraticCurveTo(wx + 2.1, wy + 0.5, wx, wy + 2.2);
+            ctx.quadraticCurveTo(wx - 2.1, wy + 0.5, wx, wy - 2.6);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'DEATHLESS_CADAVER': {
+          // stilled_heart_bone_lotus: 6 bone-petalled lotus around a muted/stilled heart
+          const petals = lowQuality ? 4 : 6;
+          for (let i = 0; i < petals; i++) {
+            const a = (i * Math.PI * 2) / petals - Math.PI / 2;
+            ctx.save();
+            ctx.translate(Math.cos(a) * 7.2, -2.0 + Math.sin(a) * 5.8);
+            ctx.rotate(a + Math.PI / 2);
+            ctx.fillStyle = col2;
+            ctx.strokeStyle = col1;
+            ctx.lineWidth = 1.1;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 2.1, 4.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+          }
+          ctx.fillStyle = acc;
+          ctx.strokeStyle = col1;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(0, 1.8);
+          ctx.bezierCurveTo(-4.2, -1.2, -3.8, -5.2, 0, -2.8);
+          ctx.bezierCurveTo(3.8, -5.2, 4.2, -1.2, 0, 1.8);
+          ctx.fill();
+          ctx.stroke();
+          break;
+        }
         case 'ARENA_GLORY':
         default: {
           // ช่อมงกุฎชัยพฤกษ์เจ้ายุทธจักร & คมทวนคู่ไขว้ (Champion Laurel Wreath + Crossed Halberds)
@@ -6003,6 +6837,53 @@
           ctx.fill();
           break;
         }
+        case 'leg_read_form_blade_mote':
+        case 'trans_field_clause_sovereign_mote': {
+          ctx.beginPath(); ctx.moveTo(mx, my - 3.0); ctx.lineTo(mx + 2.4, my); ctx.lineTo(mx, my + 3.0); ctx.lineTo(mx - 2.4, my); ctx.closePath(); ctx.fill();
+          break;
+        }
+        case 'leg_triage_meridian_mote':
+        case 'trans_constellation_relay_mote': {
+          ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.3;
+          ctx.beginPath(); ctx.moveTo(mx - 2.6, my); ctx.lineTo(mx + 2.6, my); ctx.moveTo(mx, my - 2.6); ctx.lineTo(mx, my + 2.6); ctx.stroke();
+          break;
+        }
+        case 'leg_storm_caller_tempest_mote':
+        case 'trans_tempo_sovereign_mote': {
+          ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.3;
+          ctx.beginPath(); ctx.moveTo(mx - 1.8, my - 2.6); ctx.lineTo(mx + 1.4, my); ctx.lineTo(mx - 1.2, my + 2.6); ctx.stroke();
+          break;
+        }
+        case 'leg_jade_caravan_voyager_mote':
+        case 'leg_ashen_kiln_alchemy_mote': {
+          ctx.fillRect(mx - 2.0, my - 2.0, 4.0, 4.0);
+          break;
+        }
+        case 'leg_oath_judge_warden_mote':
+        case 'trans_sealkeeper_forbidden_key_mote': {
+          ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(mx, my, 2.3, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'trans_primal_vortex_mirror_mote':
+        case 'trans_dynastic_mandate_weaver_mote': {
+          ctx.beginPath(); ctx.moveTo(mx, my - 3.2); ctx.lineTo(mx + 2.6, my + 1.8); ctx.lineTo(mx - 2.6, my + 1.8); ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.7; ctx.stroke();
+          break;
+        }
+        case 'copper_bell_talisman': {
+          ctx.beginPath(); ctx.arc(mx, my - 0.5, 1.8, Math.PI, 0); ctx.lineTo(mx + 2.0, my + 1.8); ctx.lineTo(mx - 2.0, my + 1.8); ctx.closePath(); ctx.fill();
+          break;
+        }
+        case 'wailing_wisp_tear': {
+          ctx.beginPath(); ctx.moveTo(mx, my - 2.5); ctx.quadraticCurveTo(mx + 1.8, my + 0.5, mx, my + 2.1); ctx.quadraticCurveTo(mx - 1.8, my + 0.5, mx, my - 2.5); ctx.fill();
+          break;
+        }
+        case 'cracked_rib_ember': {
+          ctx.beginPath(); ctx.arc(mx, my, 2.0, -0.8, 0.8); ctx.stroke();
+          ctx.beginPath(); ctx.arc(mx, my, 2.0, Math.PI - 0.8, Math.PI + 0.8); ctx.stroke();
+          break;
+        }
         default: {
           // Lotus / Leaf / Flame / Eye / Mirror / Needle / Thread organic curve
           ctx.beginPath();
@@ -6042,13 +6923,36 @@
       return true;
     },
 
-    drawCompanionPets(ctx, n, p, sc) {
-      const pet = (n && Array.isArray(n.pets) && n.pets[0]) ? n.pets[0] : (n && n.pet ? n.pet : null);
+    drawCompanionPets(ctx, n, p, sc, mount) {
+      let pets = Array.isArray(n.pets) ? CULT.activePets(n) : (n.pet && n.pet.active !== false ? [n.pet] : []);
+      if (!pets.length && Array.isArray(n.pets)) pets = n.pets.filter(p => p && p.active !== false && !p.dead && !p.injured);
+      if (mount) pets = pets.filter(pet => pet !== mount);
+      const pet = pets[0];
       if (!pet) return false;
-      const t = this.t + (n.n || 0) * 0.6;
+      const t = this.isReducedMotion() ? 0 : this.t + (n.n || 0) * 0.6;
       const face = n.face >= 0 ? 1 : -1;
       const px = -face * 10.5;
       const py = 1.5 + Math.sin(t * 4.2) * 0.9;
+      const illustrated = pets.filter(CULT.isCuratedCompanion);
+      for (const companion of pets) {
+        if (CULT.regionalCompanionSpec(companion.speciesId)) illustrated.push(companion);
+      }
+      const cap = illustrated.length > 1 && this.resolveQuality() === 'low' ? 1 : 2;
+      let drewCompanion = false;
+      for (const [i, companion] of illustrated.slice(0, cap).entries()) {
+        const stage = companion.growthStage || 1;
+        const regional = CULT.regionalCompanionSpec(companion.speciesId);
+        if (regional) {
+          drewCompanion = R.drawRegionalCompanion(ctx, regional, stage,
+            px - face * (5 + i * 22), py + i * 14, t, face, this.isReducedMotion()) || drewCompanion;
+          continue;
+        }
+        const lineage = CULT.lineageCompanionSpec(companion.speciesId);
+        const size = [0, .12, .20, .31, .49][stage] * (lineage?.scale || 1) * (i ? .72 : 1);
+        drewCompanion = R.drawSovereignCompanion(ctx, companion.speciesId, stage,
+          -face * (12 + stage * 7 + i * 27), py + i * 17, size, t, face) || drewCompanion;
+      }
+      if (drewCompanion) return true;
       const spId = String(pet.speciesId || pet.id || 'SPIRIT_FOX').toUpperCase();
       const sym = pet.awakenedSymbol || pet.fourSymbol || null;
       const col = sym === 'AZURE_DRAGON' ? '#00e5ff'
@@ -6103,12 +7007,12 @@
       const stanceId = (fw && fw.activeStance) || 'FIVE_ELEMENT_NURTURE';
       const spec = g.SECT.FORMATION_WARFARE.STANCES[stanceId] || g.SECT.FORMATION_WARFARE.STANCES.FIVE_ELEMENT_NURTURE;
       const t = this.t;
-      const cx = 118 * TS, cy = 75 * TS;
+      const cx = 180 * TS, cy = 123 * TS;
       const anchors = [
-        [86 * TS, 42 * TS],
-        [150 * TS, 42 * TS],
-        [86 * TS, 106 * TS],
-        [150 * TS, 106 * TS]
+        [136 * TS, 84 * TS],
+        [224 * TS, 84 * TS],
+        [136 * TS, 162 * TS],
+        [224 * TS, 162 * TS]
       ];
       ctx.save();
       // Linked formation energy beams from Central Bagua Plaza to 4 cardinal formation anchors
@@ -6140,7 +7044,7 @@
       if (!W || !W.sect || !W.sect.forbiddenVault) return;
       const fv = W.sect.forbiddenVault;
       const t = this.t;
-      const ax = 118 * TS, ay = 62 * TS;
+      const ax = 180 * TS, ay = 104 * TS;
       const isBlood = fv.policy === 'UNRESTRICTED_BLOOD_CULT' || (fv.bloodlineSurgeUntil && fv.bloodlineSurgeUntil > (W.t || 0));
       ctx.save();
       ctx.strokeStyle = isBlood ? '#ef233c' : '#ffd166';
@@ -6557,6 +7461,7 @@
         const bladeCol = hasWpn ? (ap.weaponColor || '#00f5d4') : '#8ecae6';
         const glowCol = hasWpn ? '#ffd166' : '#48cae4';
         const sy = by + 0.8;
+        const time = this.isReducedMotion() ? 0 : t;
 
         // Trailing sword-qi jet stream behind the flying sword
         for (let i = 1; i <= 4; i++) {
@@ -6564,16 +7469,16 @@
           ctx.lineWidth = Math.max(0.8, 2.6 - i * 0.45);
           ctx.globalAlpha = 0.65 - i * 0.12;
           ctx.beginPath();
-          ctx.moveTo(-7 - i * 3.5, sy + Math.sin(t * 10 + i) * 0.9);
-          ctx.lineTo(-14 - i * 4.8, sy + Math.cos(t * 9 + i) * 1.3);
+          ctx.moveTo(-7 - i * 3.5, sy + Math.sin(time * 10 + i) * 0.9);
+          ctx.lineTo(-14 - i * 4.8, sy + Math.cos(time * 9 + i) * 1.3);
           ctx.stroke();
         }
 
         // Outer Qi Aura around the flying sword
-        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 8);
+        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(time * 8);
         ctx.fillStyle = bladeCol;
         ctx.beginPath();
-        ctx.ellipse(1.0, sy, 13.5, 2.9, 0, 0, Math.PI * 2);
+        ctx.ellipse(1.0, sy, 17.0, 2.9, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // Crisp Sword Blade Body (pointing forward +X in local facing coords)
@@ -6583,9 +7488,9 @@
         ctx.lineWidth = 1.1;
         ctx.beginPath();
         ctx.moveTo(-9.5, sy - 1.25);
-        ctx.lineTo(9.2, sy - 1.05);
-        ctx.lineTo(13.2, sy);
-        ctx.lineTo(9.2, sy + 1.05);
+        ctx.lineTo(13.2, sy - 1.05);
+        ctx.lineTo(19.2, sy);
+        ctx.lineTo(13.2, sy + 1.05);
         ctx.lineTo(-9.5, sy + 1.25);
         ctx.closePath();
         ctx.fill();
@@ -8425,9 +9330,9 @@
     /* ---------- Patch v5.0.0 [Pillar 3]: Equipment Tier Glows, Orbiting Flying Swords & Weapon Souls ---------- */
     drawEquipmentTierAura(ctx, n, ap, by) {
       const maxTier = (ap && ap.highestGearTier) || 0;
-      if (maxTier < 3) return false;
+      if (maxTier < 3 || Object.values(n.equip || {}).some(R.isTranscendent)) return false;
       // A lower ordinary piece must not replace the existing higher Legendary halo.
-      if(maxTier>=6&&Object.values(n.equip||{}).some(it=>it&&it.tier===maxTier&&!it.legendary))return this.drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by);
+      if(maxTier>=6&&Object.values(n.equip||{}).some(it=>it&&it.tier===maxTier&&!it.legendary&&!R.isTranscendent(it)))return this.drawOrdinaryHighTierEquipmentAura(ctx,n,ap,by);
       const spec = R.GEAR_TIER_GLOWS[clamp(maxTier, 1, 7)] || R.GEAR_TIER_GLOWS[3];
       const stars = clamp((ap && ap.totalGearStars) || 0, 0, 9);
       const t = this.t + (n.n || 0) * 0.8;
@@ -8872,7 +9777,7 @@
       if (!tg) return false;
 
       const prev = this.opts && this.opts.ceremonyPreview;
-      const activeTourney = !!(W.sect && W.sect.tournament);
+      const activeTourney = !!(W.sect && W.sect.tournament && W.sect.tournament.state === 'run');
       const activeDuel = Array.isArray(W.duelQueue) && W.duelQueue.length > 0;
       const fightingOnArena = Array.isArray(W.npcs) && W.npcs.some(n => !n.dead && n.act && (n.act.id === 'fight' || (n.act.id === 'pair' && n.act.ctx && n.act.ctx.pair && n.act.ctx.pair.type === 'spar')));
       if (prev !== 'TOURNAMENT_ARENA' && !activeTourney && !activeDuel && !fightingOnArena) return false;
@@ -9080,6 +9985,7 @@
     const rk = SECT.RANKS[n.rank] || { color: '#888' };
     const b = (n.h && n.h.body) || {};
     const ageY = (g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22;
+    const bioAge = (g.HC && g.HC.bioAge) ? g.HC.bioAge(n) : ageY;
     const isF = n.h && n.h.sex === 'F';
     const hs = b.hairStyle || '';
     const wpnObj = n.equip && n.equip.WEAPON;
@@ -9088,7 +9994,7 @@
     const wUsable = !!(wpnObj && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, wpnObj)));
     const ap = {
       skin: b.skinHex || '#e8c49c',
-      hair: ageY >= 62 ? '#b8bec4' : (b.hairHex || '#222024'),
+      hair: (b.hairHex === '#e9edf5') ? '#e9edf5' : (bioAge >= 62 ? '#b8bec4' : (b.hairHex || '#222024')),
       eye: b.eyeHex || '#222024',
       long: /ยาว|ปล่อย|ถัก/.test(hs) || (isF && !/สั้น|โกน/.test(hs)),
       bun: /มวย|รวบ|ปิ่น/.test(hs) || (!/โกน/.test(hs) && (n.rank >= 2 || !isF)),
@@ -9427,7 +10333,7 @@
     ctx.fill();
 
     // 2. Jade Lotus Meditation / Martial Pedestal
-    const cx = w * 0.5, gy = h * 0.82;
+    const cx = w * 0.5, gy = poseMode === 'qinggong' ? h * 0.88 : h * 0.82;
     ctx.fillStyle = 'rgba(12,24,28,0.75)';
     ctx.beginPath();
     ctx.ellipse(cx, gy + 4, 56, 15, 0, 0, Math.PI * 2);
@@ -9450,27 +10356,22 @@
       opts: { names: false, bubbles: false, realmHalos: true, flyingSwords: true, combatSlashes: true }
     }, R.methods);
 
-    const savedAct = n.act;
-    try {
-      const actId = poseMode === 'fight' ? 'fight' : poseMode === 'breakthrough' ? 'breakthrough' : poseMode === 'qinggong' ? 'qinggong' : poseMode === 'mantra' ? 'mantra' : poseMode === 'defensive' ? 'defensive' : poseMode === 'support' ? 'support' : poseMode === 'forbidden' ? 'forbidden' : 'cultivate';
-      const proxyNpc = Object.create(n);
-      proxyNpc.x = 0;
-      proxyNpc.y = 0;
-      proxyNpc.px = 0;
-      proxyNpc.py = 0;
-      proxyNpc.act = { id: actId, ctx: {} };
-
-      ctx.save();
-      ctx.translate(cx, gy);
-      ctx.scale(2.15, 2.15);
-      fakeRenderer.drawNpc(ctx, proxyNpc, { x: 0, y: 0 }, 12);
-      ctx.restore();
-    } finally {
-      if (savedAct !== undefined) n.act = savedAct;
-    }
+    const actId = poseMode === 'fight' ? 'fight' : poseMode === 'breakthrough' ? 'breakthrough' : poseMode === 'qinggong' ? 'qinggong' : poseMode === 'mantra' ? 'mantra' : poseMode === 'defensive' ? 'defensive' : poseMode === 'support' ? 'support' : poseMode === 'forbidden' ? 'forbidden' : 'cultivate';
+    const proxyNpc = Object.create(n);
+    proxyNpc.x = 0;
+    proxyNpc.y = 0;
+    proxyNpc.px = 0;
+    proxyNpc.py = 0;
+    proxyNpc.act = { id: actId, ctx: {} };
+    ctx.save();
+    ctx.translate(cx, gy);
+    ctx.scale(2.15, 2.15);
+    fakeRenderer.drawNpc(ctx, proxyNpc, { x: 0, y: 0 }, 12);
+    ctx.restore();
 
     // 4. Top-Left Realm & Path Badge Overlay + Border Frame
-    const badgeTxt = 'ขั้น ' + stg + ' ' + rSpec.nameTh + ' · ' + pSig.nameTh;
+    const stgTitle = (g.CULT && g.CULT.stageName && n.cult) ? g.CULT.stageName(n) : ('ขั้น ' + stg + ' ' + rSpec.nameTh);
+    const badgeTxt = stgTitle + ' · ' + pSig.nameTh;
     ctx.font = '600 10px ' + FONT;
     const badgeW = clamp(Math.ceil(measureCached(ctx, ctx.font, badgeTxt)) + 14, 118, Math.max(118, w - 12));
     ctx.fillStyle = 'rgba(10,18,24,0.82)';
@@ -9587,8 +10488,8 @@
     const eq = item.eq || item.gear || item;
     const tier = clamp(item.tier || eq.tier || 1, 1, 7);
     const gSpec = R.GEAR_TIER_GLOWS[tier] || R.GEAR_TIER_GLOWS[1];
-    const isLeg = !!(item.legendary || eq.legendary || tier >= 6);
-    const stars = clamp(eq.stars || eq.star || (isLeg ? 3 : tier >= 5 ? 2 : tier >= 3 ? 1 : 0), 0, 3);
+    const isLeg = !!(item.legendary || eq.legendary);
+    const stars = clamp(eq.attunedStars || eq.stars || eq.star || (isLeg ? 3 : tier >= 5 ? 2 : tier >= 3 ? 1 : 0), 0, 3);
     const elKey = eq.element || (Array.isArray(eq.runes) && eq.runes[0]) || 'METAL';
     const elPal = R.ELEMENT_VFX_PALETTE[elKey] || R.ELEMENT_VFX_PALETTE.METAL;
 
@@ -9661,19 +10562,20 @@
       } else if (wType === 'NEEDLE') {
         ctx.strokeStyle = '#06d6a0'; ctx.lineWidth = 1.6;
         ctx.beginPath(); ctx.moveTo(-16, 10); ctx.lineTo(16, -10); ctx.stroke();
+      } else {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        ctx.moveTo(-18, 12);
+        ctx.lineTo(18, -12);
+        ctx.stroke();
+        ctx.strokeStyle = gSpec.color;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(-9, 9);
+        ctx.lineTo(-13, 3);
+        ctx.stroke();
       }
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.8;
-      ctx.beginPath();
-      ctx.moveTo(-18, 12);
-      ctx.lineTo(18, -12);
-      ctx.stroke();
-      ctx.strokeStyle = gSpec.color;
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.moveTo(-9, 9);
-      ctx.lineTo(-13, 3);
-      ctx.stroke();
     }
     ctx.restore();
 
@@ -9699,7 +10601,8 @@
     ctx.fillStyle = '#fff5d6';
     ctx.font = '600 9.5px ' + FONT;
     ctx.textAlign = 'left';
-    ctx.fillText('T' + tier + ' ' + gSpec.nameTh + (elKey ? ' · ธาตุ ' + elKey : ''), 8, 15);
+    const elNameTh = (g.ELEM && g.ELEM.META && g.ELEM.META[elKey] && g.ELEM.META[elKey].shortTh) || elKey;
+    ctx.fillText('T' + tier + ' ' + gSpec.nameTh + (elNameTh ? ' · ธาตุ' + elNameTh : ''), 8, 15);
     ctx.strokeStyle = gSpec.color;
     ctx.lineWidth = 1.3;
     ctx.strokeRect(0.7, 0.7, w - 1.4, h - 1.4);
@@ -9742,4 +10645,987 @@
 
   R.PATH_COL = PATH_COL;
   g.Render = R;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+;(function syncRenderPathSignaturesV260() {
+  const gObj = typeof globalThis !== "undefined" ? globalThis : window;
+  const R = gObj.Render;
+  if (!R || !R.PATH_VISUAL_SIGNATURES) return;
+  const pMap = {"XIAN":"วิถีเซียน","BODY":"วิถีกายา","GOD":"วิถีเทพศรัทธา","DEMON":"วิถีมาร","HEART_SOUL":"วิถีจิตเซน","MECH_PUPPET":"วิถีหุ่นกลไก","KARMA_SAMSARA":"วิถีสังสารวัฏ","BEAST_SOVEREIGN":"วิถีราชันอสูร","SAGE_SUPPORT":"วิถีปราชญ์โอสถ","CRAFT_CREATION":"วิถีหลอมสร้าง","ARRAY_TALISMAN":"วิถีค่ายกลยันต์","STRATEGY_GOVERNANCE":"วิถีพิชัยยุทธ์","ASTRO_DIVINATION":"วิถีโหราดารา","BUDDHA_DHARMA":"วิถีพุทธธรรม","VOID_SPACE":"วิถีมิติเร้น","SONIC_HARMONY":"วิถีคีตยุทธ์","VENOM_GU":"วิถีพิษกู่","PRIMORDIAL_SHIFTER":"วิถีจำแลงอสูร","CELESTIAL_WEATHER":"วิถีบัญชาฟ้าฝน","WANDERING_DAO":"วิถีคนจร","MERCANTILE_DAO":"วิถีวาณิชย์","DRAGON_VEIN_GEOMANCY":"วิถีชีพจรมังกร","GRAVITY_DAO":"วิถีถ่วงดารา","CHRONO_EPOCH":"วิถีกาลเวลา","INK_LITERATI":"วิถีอักษรปราชญ์","SOUL_PUPPETRY":"วิถีเชิดเงา","PRIMORDIAL_CHAOS":"วิถีโกลาหล","SHADOW_SAMURAI":"วิถีดาบไร้ปราณ","NINPO_SHADOW":"วิถีเร้นเงา","NINPO_ELEMENTAL":"วิถีมุทราธาตุ","DIVINE_SUMMONER":"วิถีอัญเชิญเทวะ","DIVINE_POSSESSION":"วิถีร่างทรงเทวะ","DIVINE_CHANNELER":"วิถีสื่อเทวบัญญัติ","VOID_HERETIC_PACT":"วิถีพันธะสุญตา","OCCULT_MAGE":"วิถีไสยเวทย์","DEVOURING_FLESH":"วิถีกลืนสรีระ","NETHER_GRAVE":"วิถีสุสานยมโลก","ANCESTRAL_RITUAL":"วิถีบรรพชน","TIDE_VOYAGER":"วิถีจ้าวสมุทร","LORE_ARCHIVIST":"วิถีอาลักษณ์","FORTUNE_GAMBLER":"วิถีเดิมพันชะตา","SPIRIT_HUSBANDRY":"วิถีพฤกษาปราณ","ARENA_GLORY":"วิถีสังเวียนยุทธ์","LEG_READ_FORM_BLADE":"วิถีกระบี่อ่านช่องฟ้า","LEG_TRIAGE_MERIDIAN":"วิถีชีพจรประคองสหาย","LEG_STORM_CALLER_TEMPEST":"วิถีจอมพายุบัญชาฟ้า","LEG_JADE_CARAVAN_VOYAGER":"วิถีจอมคาราวานหยก","LEG_OATH_JUDGE_WARDEN":"วิถีผู้คุมสัตย์สาบาน","LEG_ASHEN_KILN_ALCHEMY":"วิถีเตาเถ้าคืนชีวิต","TRANS_CONSTELLATION_RELAY":"วิถีประสานปราณหมู่ดาว","TRANS_FIELD_CLAUSE_SOVEREIGN":"วิถีธรรมนูญฟ้าขีดเขต","TRANS_TEMPO_SOVEREIGN":"วิถีปรมาจารย์จังหวะกาล","TRANS_SEALKEEPER_FORBIDDEN_KEY":"วิถีผู้ถือกุญแจผนึก","TRANS_PRIMAL_VORTEX_MIRROR":"วิถีกระจกสะท้อนหมื่นวิชา","TRANS_DYNASTIC_MANDATE_WEAVER":"วิถีทอชะตาแผ่นดิน","CORPSE_SOVEREIGN":"วิถีจอมคุมศพ","WRAITH_GRIEVANCE":"วิถีวิญญาณแค้น","DEATHLESS_CADAVER":"วิถีกายไร้ชีพ"};
+  for (const [pid, sig] of Object.entries(R.PATH_VISUAL_SIGNATURES)) {
+    if (sig && pMap[pid]) sig.nameTh = pMap[pid];
+  }
+})();
+
+/* Transcendent art direction. Shapes use a 100-unit square shared by Canvas and inventory art. */
+;(function (g) {
+  const R = g.Render;
+  const forms = {
+    stone: 'M24 39 46 13 67 20 80 51 70 78 45 87 19 66Z M31 43 48 26 65 34 57 61 37 74 44 49Z',
+    sword: 'M74 8 80 17 51 60 63 65 59 72 45 66 31 86 23 80 36 62 26 54 31 48 42 54Z',
+    omni: 'M49 6 54 23 63 29 56 49 82 32 90 37 67 60 53 64 55 80 49 93 43 80 45 64 31 60 11 37 18 32 42 49 35 29 44 23Z M49 36 59 57 49 69 39 57Z',
+    great: 'M79 8 85 27 68 53 51 63 63 71 57 79 42 69 30 89 21 83 34 63 22 55 28 47 39 53 57 22Z',
+    twin: 'M83 9 86 22 52 65 61 68 56 75 47 70 32 89 27 84 41 66 33 59 38 53 47 58Z M14 16 29 25 54 55 64 49 69 55 59 63 75 83 69 90 53 70 44 75 39 69 47 62 21 37Z',
+    blade: 'M13 16Q48 56 83 12Q84 45 57 64L64 75 54 79 46 68 27 84 21 77 38 61Q22 52 13 16Z',
+    spear: 'M79 7 76 33 63 40 60 35 22 88 15 83 54 32 51 27Z M63 31 68 27 73 17Z',
+    halberd: 'M71 11 86 6 78 24 88 33 83 45 68 32 22 88 16 84 60 27 48 31 48 21 65 19Z',
+    fist: 'M24 51 21 36 30 22 40 26 46 18 55 23 64 20 75 32 81 52 68 69 63 82 36 80 31 66Z M30 38 45 32 53 41 65 31 72 48 52 62Z',
+    bow: 'M16 20Q66 0 84 63L70 81 74 62Q72 18 16 20Z M20 21 71 77 68 80 17 24Z M21 69 67 24 62 22 83 14 76 34 72 29 26 74Z',
+    staff: 'M78 8 84 15 24 91 17 85Z M66 16 64 8 72 4 88 17 87 26 79 27Z M32 80 21 76 12 88 19 95Z',
+    orb: 'M50 12C76 12 85 40 67 60L50 69 33 60C14 40 24 12 50 12Z M50 24 68 41 50 60 32 41Z M16 37 10 54 24 73 47 89 48 76 26 63Z M84 37 90 54 76 73 53 89 52 76 74 63Z',
+    fan: 'M50 85 12 35Q50 -4 88 35Z M50 74 25 32 33 27Z M52 74 44 22 52 20Z M55 74 63 23 72 28Z',
+    zither: 'M15 62 62 19 85 28 87 41 43 80 21 79Z M24 64 67 29 72 30 30 68Z M31 71 77 35 82 36 37 75Z',
+    brush: 'M25 68 73 16 82 24 34 75Z M11 87Q13 64 25 61L38 74Q26 88 11 87Z M67 22 76 10 87 20 80 30Z',
+    whip: 'M15 78 24 61 33 67 24 87Z M26 65C20 38 77 66 78 40 80 20 48 31 51 14 63 22 79 11 88 34 97 59 58 69 35 67Z',
+    rosary: 'M50 12C101 12 101 81 50 81 0 81 0 12 50 12Z M50 25C18 25 18 69 50 69 82 69 82 25 50 25Z M43 78 57 78 58 92 50 98 42 92Z',
+    claw: 'M19 76 28 53 44 49Q36 22 55 13L53 48Q62 19 72 12L66 52Q80 26 88 27L75 60 58 79 39 91Z M27 72 44 59 64 65 52 77 38 80Z',
+    needles: 'M14 75 72 11 83 8 80 22 22 84Z M35 85 84 33 91 32 89 42 43 92Z M7 57 56 10 64 9 62 18 13 64Z',
+    dial: 'M50 12C72 12 88 28 88 50 88 72 72 88 50 88 28 88 12 72 12 50 12 28 28 12 50 12Z M50 22C34 22 22 35 22 50 22 65 35 78 50 78 65 78 78 65 78 50 78 35 65 22 50 22Z M50 22 57 49 73 64 49 56 38 65 44 49Z',
+    abacus: 'M14 27 85 18 89 69 17 81Z M22 34 24 71 81 64 78 27Z M29 39 75 33 76 38 30 45Z M31 53 77 46 78 52 32 59Z M33 64 79 57 79 61 33 68Z',
+    cuirass: 'M13 30 30 19 41 22 50 36 58 22 71 18 87 30 83 56 71 51 69 79 50 89 31 79 29 51 17 56Z M36 46 50 52 64 46 63 64 50 77 37 64Z',
+    robe: 'M37 18 50 31 62 18 76 29 91 63 76 70 65 51 69 82 51 91 30 84 35 51 22 71 9 64 24 30Z M44 34 54 39 44 76 36 82Z',
+    ring: 'M50 11 65 22 62 35C92 47 82 88 50 88 18 88 8 47 38 35L35 22Z M50 45C30 45 29 77 50 77 71 77 70 45 50 45Z',
+    mantle: 'M45 26 49 17 55 26Q72 19 93 32L81 59 72 50 78 81 63 73 51 87 40 75 21 83 29 51 18 61 7 32Q30 19 45 26Z M32 39 50 54 68 39 63 66 50 78 37 66Z',
+    coffin: 'M53 11 74 23 76 48 62 85 45 92 24 75 25 45 38 18Z M52 23 66 31 67 49 55 74 45 80 34 70 35 47 44 27Z M47 35 58 40 55 59 46 68 42 60Z',
+    scroll: 'M20 24Q20 16 31 16H79Q89 16 88 26L84 32H73L66 76H76Q85 77 81 86H29Q19 85 20 76L29 30H20Z',
+    lotus: 'M50 17Q67 32 61 57Q74 37 88 38Q90 65 62 78H38Q10 65 12 38Q30 40 39 57Q33 34 50 17Z',
+    wings: 'M49 78Q14 75 8 27Q26 42 39 37L49 53 60 37Q75 42 92 27Q87 74 51 78Z M18 39 31 59 47 70 31 46Z M82 39 69 59 53 70 69 46Z',
+    gate: 'M14 31 50 12 86 31 88 42 78 45 77 84 63 84 64 40 50 32 36 40 37 84 23 84 22 45 12 42Z',
+    rift: 'M38 5 67 20 60 37 82 43 55 58 66 72 29 93 43 70 30 59 49 44 33 31 50 23Z',
+    eclipse: 'M74 17C31 9 11 52 34 79 51 97 76 81 84 68 57 82 34 57 47 34 54 22 65 19 74 17Z M73 23 80 38 92 43 79 50 74 64 69 50 56 44 69 37Z',
+    thread: 'M10 64Q40 12 76 17Q57 31 52 54Q67 48 91 30Q58 85 26 85Q45 74 47 60Q26 57 10 64Z',
+    storm: 'M45 10 61 23 72 17 82 31 94 40 74 46 83 69 61 65 50 89 38 68 16 76 22 50 6 42 29 35 27 17Z M49 28 56 45 69 49 55 54 50 69 44 54 31 50 44 43Z',
+    scale: 'M47 16 53 16 56 61 67 73 33 73 44 61Z M12 38 50 25 88 38 80 44 50 34 20 44Z M15 41 8 59 30 59 23 41Z M77 41 70 59 92 59 85 41Z',
+    flame: 'M53 9Q50 33 70 42L72 28Q97 68 66 83 46 94 25 77 4 60 28 35L29 53Q31 27 53 9Z M48 48Q51 64 64 64Q59 84 44 79 31 73 48 48Z',
+    wave: 'M7 65Q22 45 42 52Q28 23 64 15 86 10 91 30 72 22 66 41 59 64 91 67L82 80Q54 87 31 69 20 61 7 74Z',
+    crystal: 'M49 10 68 41 57 86 38 75 33 39Z M24 29 12 45 23 73 33 61Z M77 31 89 43 77 76 66 67Z',
+    vial: 'M39 12 61 12 65 30 59 33 61 44Q82 55 78 72L70 88H30L22 72Q18 55 39 44L41 33 35 30Z M36 65Q50 50 64 65L65 75 35 75Z',
+    anvil: 'M11 35 90 35 78 51 62 55 59 69 75 78 75 86H24V78L40 68 38 55 23 51Z M43 10 67 15 65 24 41 20Z',
+    banner: 'M25 12 32 12 32 22 84 22 70 41 85 57 32 57 32 88 25 88Z M42 30 66 30 59 40 66 49 42 49Z',
+    eye: 'M8 50Q50 9 92 50Q50 91 8 50Z M50 30C24 30 24 70 50 70 76 70 76 30 50 30Z M50 37 60 50 50 63 40 50Z'
+  };
+
+  const palette = {
+    NEUTRAL: ['#e2ecfc', '#ab96ce'], FIRE: ['#ffc17b', '#ff554a'], WATER_ICE: ['#affbff', '#4e94fd'],
+    LIGHTNING: ['#e0c0ff', '#9966ff'], WOOD_LIFE: ['#b2ffd4', '#43d1a3'], EARTH_METAL: ['#ffecad', '#d59457'],
+    WIND: ['#c7ffec', '#4fdce5'], YIN_SHADOW: ['#e9aaff', '#9258ee'], LIGHT_YANG: ['#fff4be', '#ffbf61'],
+    BLOOD_DEMON: ['#ffbed2', '#fa507c'], ASTRAL_VOID: ['#eee0ff', '#9263ff']
+  };
+  const gearIds = {
+    REGALIA_ORIGIN_FORMLESS_STONE: 'stone',
+    ARM_TRANSCENDENT_LOOM_OF_SCARS: 'mantle',
+    ACC_TRANSCENDENT_OUROBOROS_SUNDIAL: 'dial',
+    WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN: 'coffin',
+    EQ_TR_PURE_WPN_GENESIS: 'great', EQ_TR_PURE_ARM_GENESIS: 'cuirass', EQ_TR_PURE_ACC_GENESIS: 'orb'
+  };
+  const regaliaForms = {
+    ORIGIN_STONE:'stone', SWORD:'sword', GREAT_SWORD:'great', TWIN_SWORD:'twin', BLADE:'blade', SPEAR:'spear',
+    HALBERD:'halberd', FIST:'fist', BOW:'bow', STAFF:'staff', FOCUS:'orb', FAN:'fan', ZITHER:'zither',
+    BRUSH:'brush', WHIP:'whip', ROSARY:'rosary', CLAW:'claw', NEEDLE:'needles', ASTROLABE:'dial',
+    ABACUS:'abacus', SACRED_ARMOR:'cuirass', CELESTIAL_ROBE:'robe', ORIGIN_RING:'ring', OMNI_REGALIA:'omni'
+  };
+  const codexShapes = {
+    TCMB: ['rift','fist','thread','eclipse','scale','storm'],
+    TMNT: ['orb','ring','gate','eclipse','lotus','dial'],
+    TQGG: ['gate','wings','eclipse','wave','thread','rift'],
+    TDEF: ['cuirass','robe','orb','gate','eclipse','ring'],
+    TSUP: ['needles','zither','banner','lotus','scale','orb'],
+    TAUX: ['brush','eye','anvil','dial','abacus','vial'],
+    TFRB: ['banner','eclipse','claw','flame','rift','eye'],
+    TPAS: ['orb','fist','lotus','eclipse','eye','anvil']
+  };
+
+  R.isTranscendent = item => !!(item && (item.transcendent || item.transcendentArt || item.isPatriarchRegalia ||
+    item.isTranscendentArmor || item.isTranscendentAccessory || item.isTranscendentWeapon ||
+    item.isPureTranscendentGenesis || item.grade === 'Transcendent'));
+
+  R.transcendentArt = (item, id = item && item.id || '') => {
+    const codex = /^(T[A-Z]+)_SOV_(\d+)/.exec(id);
+    const stage = Math.max(0, Math.min(5, Number(item && item.awakeningStage) || 0));
+    const form = item && item.currentForm;
+    const slot = item && item.slot;
+    const variant = codex ? Number(codex[2]) : 0;
+    const theme = codex && codexShapes[codex[1]];
+    const regalia = id === 'REGALIA_ORIGIN_FORMLESS_STONE' || !!(item && item.isPatriarchRegalia);
+    const sub = item && (item.armorWeightClass || item.accessorySubtype || item.gearType || item.subType);
+    let key = gearIds[id];
+    if (regalia) key = regaliaForms[form] || 'stone';
+    else if (key === 'mantle') key = sub === 'HEAVY' ? 'cuirass' : sub === 'LIGHT' ? 'robe' : 'mantle';
+    else if (key === 'dial') key = sub === 'RING' ? 'ring' : sub === 'NECKLACE' ? 'orb' : 'dial';
+    else if (key === 'coffin' && sub && slot === 'WEAPON' && item.escortBladesCount) key = regaliaForms[sub] || key;
+    else if (theme) key = theme[(variant - 1) % theme.length];
+    else if (/^MAT_/.test(id)) key = /ALC/.test(id) ? 'lotus' : 'crystal';
+    else if (/^PILL_|@TR:/.test(id)) key = 'vial';
+    else if (!key) key = slot === 'ARMOR' ? 'cuirass' : slot === 'ACCESSORY' ? 'orb' : regaliaForms[sub] || 'great';
+    if (item && Object.hasOwn(forms, item.vfxShape)) key = item.vfxShape;
+    const signature = {
+      ARM_TRANSCENDENT_LOOM_OF_SCARS: ['#ffd3e3', '#a73870'],
+      ACC_TRANSCENDENT_OUROBOROS_SUNDIAL: ['#c5fff3', '#218e9c'],
+      WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN: ['#ffe5ad', '#b3684c']
+    }[id];
+    const [light, ink] = (signature || palette[item && item.element] || palette.NEUTRAL);
+    const accent = (palette[item && item.secondaryElement] || [ '#ffeabc' ])[0];
+    return { key, stage, regalia, codex: !!theme, variant, light, ink, accent, path: forms[key] };
+  };
+
+  const pulses = {
+    chrysalis: ['mantle', '#ffc0d7', '#c13478', '#ffe4ae', 'ดักแด้ทอชะตา'],
+    rewind: ['dial', '#bafff3', '#32bbcb', '#f9dc94', 'ย้อนกัลป์'],
+    echo: ['dial', '#ddf9ff', '#5e94fe', '#bcfff2', 'เงาสะท้อนกาล'],
+    arsenal: ['coffin', '#ffe5ae', '#d18e54', '#9ff5fc', 'หีบหมื่นศาสตรา'],
+    clash: ['twin', '#fff2c7', '#b572e6', '#ffadc5', 'สวนคมผ่าจังหวะ'],
+    forge: ['anvil', '#fff1b8', '#fb6740', '#cbb6ff', 'ทัณฑ์สวรรค์โรงหลอม'],
+    stillWind: ['fan', '#ddfff0', '#299885', '#ffe8c8', 'พัดบัญชาลมเงียบ'],
+    horizon: ['robe', '#bcfff3', '#33916a', '#edffb0', 'ม่านพรานเลียบขอบฟ้า'],
+    lineage_KUNPENG: ['wings','#caf9ff','#3676c5','#fbdf9c','คุนเผิงโฉบข้ามกระแสลม'],
+    lineage_FOX: ['eclipse','#f4daff','#7045b1','#ffd4b3','เก้าหางลวงจันทร์'],
+    lineage_QILIN: ['gate','#ebffd3','#368b69','#ffe29c','ม่านกิเลน'],
+    lineage_BAIZE: ['eye','#fff3d9','#7670b9','#fff1a1','ไป๋เจ๋ออ่านรอยอาคม'],
+    heron: ['wings', '#d3fbff', '#5d84d5', '#f6fcaf', 'พักปีกเหนือผิวน้ำ'],
+    awaken: ['stone', '#e0fcff', '#8f79ef', '#ffebb8', 'ตราบรรพชนตื่นรู้']
+  };
+  const paths = new Map();
+  const glyph = (ctx, key, x, y, size, angle, light, ink) => {
+    if (typeof Path2D !== 'function') return;
+    if (!paths.has(key)) paths.set(key, new Path2D(forms[key]));
+    const path = paths.get(key);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.scale(size / 100, size / 100);
+    ctx.translate(-50, -50);
+    if (Array.isArray(ink)) {
+      const fill = ctx.createLinearGradient(5, 11, 85, 97);
+      fill.addColorStop(0, ink[0]); fill.addColorStop(.45, ink[1]); fill.addColorStop(1, ink[2]);
+      ctx.fillStyle = fill;
+    } else ctx.fillStyle = ink;
+    ctx.strokeStyle = light;
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 1.6;
+    ctx.fill(path, 'evenodd');
+    ctx.stroke(path);
+    ctx.restore();
+  };
+  const facet = (ctx, x, y, width, height) => {
+    ctx.beginPath();
+    ctx.moveTo(x, y - height);
+    ctx.lineTo(x + width, y);
+    ctx.lineTo(x, y + height);
+    ctx.lineTo(x - width, y);
+    ctx.closePath();
+    ctx.fill();
+  };
+  const orbit = (ctx, radius, aspect, count, drift) => {
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius, radius * aspect, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < count; i++) {
+      const a = i * Math.PI * 2 / count + drift;
+      facet(ctx, Math.cos(a) * radius, Math.sin(a) * radius * aspect, 2.8, 5.5);
+    }
+  };
+  const bloom = (ctx, x, y, r, color, alpha) => {
+    const fog = ctx.createRadialGradient(x, y, 2, x, y, r);
+    fog.addColorStop(0, color + '94');
+    fog.addColorStop(0.38, color + '54');
+    fog.addColorStop(1, color + '00');
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    ctx.fillStyle = fog;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    ctx.restore();
+  };
+
+  R.drawWornTranscendent = (ctx, npc, item, x, y, size, angle = 0) => {
+    if (g.MARTIAL && g.MARTIAL.gearUsable && !g.MARTIAL.gearUsable(npc, item)) return;
+    const art = R.transcendentArt(item);
+    glyph(ctx, art.key, x, y, size, angle, art.light, art.ink);
+  };
+
+  const newMoveShapes = {
+    TCMB_SOV_07:['spear', 'wave'], TMNT_SOV_06:['flame', 'lotus'], TQGG_SOV_05:['wings', 'eclipse'],
+    TDEF_SOV_05:['gate', 'scale'], TSUP_SOV_05:['vial', 'wave'], TAUX_SOV_06:['dial', 'banner'],
+    TFRB_SOV_05:['claw', 'rift']
+  };
+  R.transcendentCastSpec = (tech, techId, moveId) => {
+    if (!R.isTranscendent(tech)) return null;
+    const art = R.transcendentArt(tech, tech.id || techId);
+    const shapes = newMoveShapes[tech.shortId];
+    const index = shapes && (tech.moveDefs || []).findIndex(m => m.id === moveId);
+    if (index >= 0 && shapes?.[index]) {
+      return { ...art, key:shapes[index], path:forms[shapes[index]], name:tech.moveDefs[index].nameTh };
+    }
+    return { ...art, name:tech.nameTh };
+  };
+
+  R.transcendentProcSpec = event => {
+    const proc = pulses[event.kind];
+    if (!proc) return null;
+    const [key, light, ink, accent, name] = proc;
+    const art = event.gear && R.transcendentArt(event.gear);
+    return art && event.kind === 'awaken' ? { ...art, name }
+      : { key, light, ink, accent, name, presentationRank:event.gear?.gradeRank || 3 };
+  };
+
+  R.methods.queueTranscendentCast = function(key, actor, event, art) {
+    const previous = this.castActive.get(key);
+    if (previous && previous.transcendent && previous.transcendent.key === art.key &&
+        this.castClock - previous.start < previous.life * .64) return;
+    this.castActive.delete(key);
+    if (this.castActive.size >= 24) {
+      const ordinary = [...this.castActive].find(([, fx]) => !fx.transcendent);
+      this.castActive.delete(ordinary ? ordinary[0] : this.castActive.keys().next().value);
+    }
+    const scale = R.TILE_SIZE;
+    const x = event.x * scale, y = event.y * scale;
+    const originX = (Number.isFinite(event.originX) ? event.originX : event.x) * scale;
+    const originY = (Number.isFinite(event.originY) ? event.originY : event.y) * scale;
+    const recipients = Array.isArray(event.targetPoints) ? event.targetPoints.filter(p => p && Number.isFinite(p.x) && Number.isFinite(p.y)).slice(0, 8) : [];
+    this.castActive.set(key, {
+      ownerId: actor.id, transcendent: art, transcendentKind: event.kind, verse: event.sovereignVerse,
+      x, y, originX, originY, angle: Math.atan2(y - originY, x - originX), recipients,
+      start: this.castClock, life: [0, 1100, 1820, 3000][art.presentationRank || 3]
+    });
+  };
+
+  R.methods.drawTranscendentDelivery = function(ctx, fx, p) {
+    const { x, y, originX, originY, transcendent: art } = fx;
+    ctx.save();
+    ctx.globalAlpha *= Math.sin(p * Math.PI) * .78;
+    ctx.strokeStyle = art.light;
+    ctx.fillStyle = art.accent;
+    ctx.lineWidth = 1.5;
+    if (Math.hypot(originX - x, originY - y) > 10) {
+      ctx.beginPath();
+      ctx.moveTo(originX, originY - 10);
+      ctx.quadraticCurveTo((originX + x) / 2, (originY + y) / 2 - 36, x, y - 7);
+      ctx.stroke();
+      facet(ctx, originX, originY - 10, 4, 6);
+    }
+    const cap = this.resolveQuality() === 'low' ? 3 : 8;
+    for (const point of fx.recipients.slice(0, cap)) {
+      const tx = point.x * R.TILE_SIZE, ty = point.y * R.TILE_SIZE;
+      if (Math.hypot(tx - x, ty - y) < 6) continue;
+      ctx.strokeStyle = point.team ? '#b0ffed' : art.accent;
+      ctx.beginPath();
+      ctx.moveTo(x, y - 8);
+      ctx.quadraticCurveTo((x + tx) / 2, (y + ty) / 2 - 25, tx, ty - 5);
+      ctx.stroke();
+      ctx.save();
+      ctx.translate(tx, ty);
+      glyph(ctx, point.team ? 'lotus' : 'rift', 0, -10, 25, 0, ctx.strokeStyle, art.ink + '88');
+      ctx.restore();
+    }
+    ctx.restore();
+  };
+
+  R.methods.drawTranscendentSignature = function(ctx, fx, r, center, p, release, full, reduced) {
+    const art = fx.transcendent;
+    const kind = fx.transcendentKind;
+    const n = full && !reduced ? 7 : 4;
+    const drift = reduced ? .4 : p;
+    const distance = r * (.58 + release * .45);
+    ctx.save();
+    ctx.globalAlpha *= Math.min(1, p / .25) * .82;
+    ctx.strokeStyle = art.light;
+    ctx.fillStyle = art.accent;
+    ctx.lineWidth = 1.8;
+    if (kind === 'chrysalis') {
+      // Loom threads close around the wearer, then unfurl from the seam.
+      const dome = Math.sin(p * Math.PI) * r * .48;
+      for (let i = 0; i < n; i++) {
+        const edge = (i - (n - 1) / 2) * r * .13;
+        ctx.beginPath();
+        ctx.moveTo(edge, 0);
+        ctx.bezierCurveTo(edge * 2.6, -dome, edge * 2.3, center - r * .45, edge * .24, center - r * .36);
+        ctx.stroke();
+        facet(ctx, edge * 2, -dome * .84, 3.5, 7);
+      }
+    } else if (kind === 'rewind' || kind === 'echo') {
+      const sweep = (kind === 'rewind' ? -1 : 1) * drift * Math.PI * 3;
+      for (let i = 0; i < n; i++) {
+        const a = sweep - i * .34, x = Math.cos(a) * distance, y = Math.sin(a) * distance * .72;
+        facet(ctx, x, center * .5 + y, 3, 9);
+      }
+      ctx.beginPath();
+      ctx.moveTo(0, center * .5);
+      ctx.lineTo(Math.cos(sweep) * distance, center * .5 + Math.sin(sweep) * distance * .72);
+      ctx.stroke();
+    } else if (kind === 'arsenal') {
+      for (let i = 0; i < n; i++) {
+        const side = i % 2 ? -1 : 1;
+        const bladeTravel = Math.min(1, release * 1.7);
+        const x = side * r * (.3 + i * .09) * (1 - bladeTravel * .76);
+        const y = center + side * r * .3 - r * .9 * (1 - bladeTravel);
+        ctx.beginPath();
+        ctx.moveTo(x * 1.35, y - r * .3);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        glyph(ctx, i % 3 === 1 ? 'spear' : 'sword', x, y, r * .48, 2.55 + side * .18, art.light, art.ink + 'bd');
+      }
+    } else if (kind === 'forge' || art.key === 'storm') {
+      const colors = kind === 'forge' ? ['#ffd797','#ff8e6a','#bb9dff'] : ['#ffa37d','#9eeaff','#c2ffb1','#ffedaa'];
+      for (let i = 0; i < colors.length; i++) {
+        const a = i * Math.PI * 2 / colors.length + drift;
+        const x = Math.cos(a) * distance, y = Math.sin(a) * distance * .36;
+        ctx.strokeStyle = colors[i];
+        ctx.beginPath();
+        ctx.moveTo(x * 1.21, y - r * .88);
+        ctx.lineTo(x * .84, y - r * .37);
+        ctx.lineTo(x * 1.03, y - r * .53);
+        ctx.lineTo(x * .59, y);
+        ctx.stroke();
+        glyph(ctx, ['flame','wave','crystal','rift'][i], x, y - r * .3, r * .38, a / 2, colors[i], art.ink + 'aa');
+      }
+    } else if (art.key === 'thread' || art.key === 'scale') {
+      for (let i = 0; i < n; i++) {
+        const a = i * Math.PI * 2 / n + drift * .6;
+        const x = Math.cos(a) * distance, y = Math.sin(a) * distance * .47;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.quadraticCurveTo(-x * .34, center * .28, x * -.63, center + y);
+        ctx.stroke();
+        facet(ctx, x, y, 3, 6);
+      }
+    } else if (art.key === 'rift' || art.key === 'fist' || kind === 'clash') {
+      ctx.rotate(fx.angle || 0);
+      for (let i = 0; i < n; i++) {
+        const x = (i - (n - 1) / 2) * distance * .36;
+        const y = Math.cos(i * 3.4) * distance * .36;
+        ctx.beginPath();
+        ctx.moveTo(x * .38, y * .24);
+        ctx.lineTo(x * .79, y * .95);
+        ctx.lineTo(x * .93 - y * .23, y * .71);
+        ctx.lineTo(x * 1.23, y * 1.68);
+        ctx.stroke();
+        facet(ctx, x * 1.23, y * 1.68, 3, 5);
+      }
+    }
+    ctx.restore();
+  };
+
+  R.methods.drawTranscendentScene = function(ctx, fx, p, reduced, full) {
+    const art = fx.transcendent;
+    const ignition = Math.min(1, (reduced ? p * 1.5 : p) / 0.18);
+    const summon = Math.max(0, Math.min(1, (p - 0.12) / 0.29));
+    const release = Math.max(0, Math.min(1, (p - 0.43) / 0.28));
+    const after = Math.max(0, (p - 0.69) / 0.31);
+    const dormant = art.regalia && art.stage === 0;
+    const rank = art.presentationRank || 3;
+    const radius = full ? (dormant ? 68 : reduced ? 95 : 114 + Math.min(4, (fx.verse || 1) - 1) * 4) : [0,31,64,43][rank];
+    const energy = ignition * (1 - after);
+    const spin = reduced ? 0 : p * 1.7 * (fx.transcendentKind === 'rewind' ? -1 : 1);
+    const theta = Number.isFinite(fx.angle) ? fx.angle : 0;
+    ctx.save();
+    ctx.globalAlpha *= energy;
+    bloom(ctx, 0, -radius * .32, radius * 1.13, art.ink, full ? 0.8 : 0.43);
+    ctx.strokeStyle = art.ink;
+    ctx.fillStyle = art.accent;
+    ctx.lineWidth = 1.5;
+    // The inscription forms at ground level while the apparition rises clear of NPC sprites.
+    const seal = radius * (0.34 + summon * 0.5 + release * 0.29);
+    orbit(ctx, seal, .29, full ? 12 : 4, spin);
+    ctx.strokeStyle = art.light;
+    orbit(ctx, seal * .73, .23, full ? 6 : 3, -spin);
+    const center = -radius * (.21 + summon * .49 - after * .16);
+    const apparition = radius * (.37 + summon * .96 - release * .24);
+    const satellites = !full || dormant ? 0 : reduced ? 3 : 6;
+    for (let i = 0; i < satellites; i++) {
+      const a = (i - (satellites - 1) / 2) * .48;
+      const spread = radius * (.48 + summon * .41 + release * .27);
+      const sx = Math.sin(a + spin * .15) * spread;
+      const sy = center - Math.cos(a) * spread * .48 + release * radius * .55;
+      const secondary = art.key === 'coffin' ? (i % 2 ? 'spear' : 'sword')
+        : art.key === 'mantle' ? 'wings' : art.key === 'fist' ? 'fist'
+        : art.key === 'storm' ? ['flame', 'wave', 'crystal', 'rift'][i % 4] : art.key;
+      glyph(ctx, secondary, sx, sy, radius * (.18 + summon * .2),
+        a * .8 + (art.key === 'dial' ? spin : 0), art.light, art.ink + '76');
+    }
+    if (full && !dormant) this.drawTranscendentSignature(ctx, fx, radius, center, p, release, full, reduced);
+    const tilt = art.key === 'dial' ? spin : Math.sin(theta) * .13;
+    if (full) {
+      glyph(ctx, art.key, 2, center + 4, apparition, tilt, art.ink, '#1d122ddd');
+      glyph(ctx, art.key, 0, center, apparition, tilt, art.light, [art.light, art.ink + 'de', '#22102bb0']);
+    } else {
+      glyph(ctx, art.key, 0, center, apparition, tilt, art.light, art.ink + 'bd');
+    }
+    if (release > 0 && after < .96) {
+      // In the impact beat each motif has its own motion language.
+      ctx.save();
+      ctx.globalAlpha *= (1 - after) * (0.45 + 0.55 * Math.sin(release * Math.PI / 2));
+      ctx.strokeStyle = art.accent;
+      ctx.fillStyle = art.light;
+      ctx.lineWidth = full ? 2.2 : 1.15;
+      if (['fist','rift','coffin','twin','great','needles','claw'].includes(art.key)) {
+        ctx.rotate(theta);
+        for (let i = -2; i <= 2; i++) {
+          const y = i * radius * .13;
+          ctx.beginPath();
+          ctx.moveTo(-radius * (.46 + release * .36), y * 1.8);
+          ctx.quadraticCurveTo(0, y * .5, radius * (0.43 + release * .49), y * .22);
+          ctx.stroke();
+        }
+      } else if (['dial','eclipse','orb','ring','eye'].includes(art.key)) {
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          const d = radius * (.29 + release * .58 + i * .08);
+          ctx.ellipse(0, center * .5, d, d * .55, spin + i * .7, i + p, i + p + 2.9);
+          ctx.stroke();
+        }
+      } else {
+        const petalCount = full ? 8 : 4;
+        for (let i = 0; i < petalCount; i++) {
+          const a = i * Math.PI * 2 / petalCount;
+          const x = Math.cos(a) * radius * release, y = Math.sin(a) * radius * release * .44;
+          ctx.beginPath();
+          ctx.moveTo(x * .28, y * .28);
+          ctx.quadraticCurveTo(x * .73 - y * .44, y * .6 - radius * .32, x, y);
+          ctx.stroke();
+          facet(ctx, x, y, 3, 8);
+        }
+      }
+      ctx.restore();
+    }
+    if (full && !reduced) {
+      ctx.fillStyle = art.accent;
+      for (let i = 0; i < 18; i++) {
+        const x = Math.sin(i * 2.41) * radius * (.51 + .45 * release);
+        const y = -radius * ((i % 9) / 10 + p * .65);
+        facet(ctx, x, y, 1.2 + i % 3, 2.3 + i % 4);
+      }
+    }
+    ctx.restore();
+  };
+
+  R.methods.drawTranscendentAura = function(ctx, n, by) {
+    const equip = n.equip;
+    const sect = this.W && this.W.sect;
+    const regalia = sect && sect.masterId === n.id && sect.patriarchRegalia;
+    const limit = this.resolveQuality() === 'low' ? 1 : 3;
+    const time = this.isReducedMotion() ? 0 : this.t || 0;
+    let count = 0;
+    const draw = item => {
+      const art = R.transcendentArt(item);
+      const x = count === 0 ? 0 : (count === 1 ? -20 : 20);
+      const size = (count === 0 ? 38 : 26) + art.stage * 3;
+      ctx.save();
+      ctx.translate(x, (by || 0) - 29 - Math.sin(time * 1.6 + count * 2) * 2);
+      ctx.globalAlpha *= .79;
+      bloom(ctx, 0, 0, size * .67, art.ink, .6);
+      glyph(ctx, art.key, 0, 0, size, 0, art.light, art.ink + 'aa');
+      ctx.fillStyle = art.accent;
+      ctx.strokeStyle = art.ink;
+      ctx.lineWidth = 1;
+      ctx.translate(0, 26);
+      orbit(ctx, size * .53, .29, 4 + art.stage, time * .22);
+      ctx.restore();
+      count++;
+    };
+    if (regalia && (!equip || !Object.values(equip).includes(regalia))) draw(regalia);
+    for (const slot of ['WEAPON', 'ARMOR', 'ACCESSORY']) {
+      const item = equip && equip[slot];
+      if (count >= limit) break;
+      if (R.isTranscendent(item) && (!g.MARTIAL || !g.MARTIAL.gearUsable || g.MARTIAL.gearUsable(n, item))) draw(item);
+    }
+    if (count >= limit || !n.cult) return;
+    const manual = n.cult.mantra && g.CULT.tech(n.cult.mantra);
+    if (R.isTranscendent(manual)) draw(manual);
+    if (count < limit) {
+      const active = n.passiveLoadout || [];
+      const passives = (n.cult.techs || []).filter(id => /^TPAS_SOV_/.test(id));
+      const passive = passives.find(id => {
+        const tech = g.CULT.tech(id);
+        return tech && (tech.zeroSlotPassive || active.includes(id)) && (!g.MARTIAL || !g.MARTIAL.isTechCompatible || g.MARTIAL.isTechCompatible(n, tech));
+      });
+      if (passive) draw(typeof passive === 'string' ? g.CULT.tech(passive) || { id: passive } : passive);
+    }
+  };
+
+  R.methods.drawTranscendentScars = function(ctx) {
+    const W = this.W;
+    if (!W || !W.fights) return;
+    const hw = this.vw / (2 * this.cam.z), hh = this.vh / (2 * this.cam.z);
+    let budget = this.resolveQuality() === 'low' ? 3 : 8;
+    for (const f of W.fights) {
+      if (!f || f.over || f.state !== 'fight' || !f.daoScars) continue;
+      for (const mark of f.daoScars) {
+        if (!mark || mark.remainingTicks <= 0 || !Number.isFinite(mark.x) || !Number.isFinite(mark.y)) continue;
+        const x = mark.x * R.TILE_SIZE, y = mark.y * R.TILE_SIZE;
+        if (Math.abs(x - this.cam.x) > hw + 60 || Math.abs(y - this.cam.y) > hh + 60) continue;
+        if (budget-- <= 0) return;
+        const size = 66;
+        const themes = { SCAR_VOID_ZERO_RIFT:'rift', SCAR_TECTONIC_GRAVITY_WELL:'fist', SCAR_KARMIC_SILK_WEB:'thread',
+          SCAR_ECLIPSE_SHADOW_MIRROR:'eclipse', SCAR_GOLDEN_LOTUS_SANCTUARY:'lotus', SCAR_TIDAL_FRACTURE:'wave', SCAR_PRIMORDIAL_CHAOS_CAULDRON:'storm' };
+        ctx.save();
+        ctx.globalAlpha *= Math.min(1, mark.remainingTicks / 5) * .72;
+        ctx.translate(x, y);
+        ctx.scale(1, .43);
+        bloom(ctx, 0, 0, size, '#8d5bef', .68);
+        glyph(ctx, themes[mark.kind] || 'rift', 0, 0, size, -.6, '#ffcbff', '#512a86');
+        ctx.restore();
+      }
+    }
+  };
+
+  R.methods.drawTranscendentCutIn = function(ctx) {
+    const fx = [...this.castActive.values()].reverse().find(f => f.transcendent && (f.transcendent.presentationRank || 3) === 3 &&
+      this.castClock - f.start > f.life * .13 && this.castClock - f.start < f.life * .56);
+    if (!fx || !fx.transcendent.name || this.vw < 240 || this.vh < 320) return;
+    const art = fx.transcendent, width = Math.min(this.vw - 32, 408);
+    const p = (this.castClock - fx.start) / fx.life;
+    // Stay in CSS-pixel view space so camera zoom does not push the title out of view.
+    const x = this.vw / 2, y = Math.min(this.vh * .69, this.vh - 130);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.globalAlpha *= Math.min(1, (p - .13) * 23, (.56 - p) * 19);
+    const shade = ctx.createLinearGradient(-width / 2, 0, width / 2, 0);
+    shade.addColorStop(0, '#120d2400');
+    shade.addColorStop(.21, '#120d24eb');
+    shade.addColorStop(.79, '#120d24eb');
+    shade.addColorStop(1, '#120d2400');
+    ctx.fillStyle = shade;
+    ctx.fillRect(-width / 2, -22, width, 44);
+    ctx.strokeStyle = art.ink;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-width * .42, 19);
+    ctx.lineTo(width * .42, 19);
+    ctx.stroke();
+    ctx.fillStyle = art.accent;
+    facet(ctx, -width * .42, 19, 3, 4);
+    facet(ctx, width * .42, 19, 3, 4);
+    ctx.textAlign = 'center';
+    ctx.font = '600 10px sans-serif';
+    ctx.fillText('✦ เหนือตำนาน' + (fx.verse ? ' · บทที่ ' + fx.verse : ''), 0, -5);
+    ctx.fillStyle = art.light;
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(art.name, 0, 12, width * .88);
+    ctx.restore();
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+/* Four-Symbol companion illustrations. Art is shared by the map, nursery and NPC profile. */
+;(function (g) {
+  const R = g.Render, CULT = g.CULT;
+  // Coordinates use a 160 × 112 field. Each layer carries its own highlight and silhouette.
+  const art = {
+    AZURE_DRAGON: {
+      color:['#103847','#137e85','#55dcc8','#c3ffed','#f6db9b'],
+      young:'M31 79Q26 60 47 55Q67 51 82 62Q103 74 111 60Q115 51 103 49Q91 50 86 39L88 25 96 20 97 13 104 20 113 21 126 24 134 39 124 48 116 49Q126 72 108 81Q91 89 75 77Q57 65 43 71Q36 78 50 85L59 97 46 94Q34 93 31 79Z',
+      body:'M20 82Q8 71 23 62Q34 50 67 62Q87 73 101 57Q108 48 94 46Q78 44 72 33Q67 23 83 20L99 21 110 12 125 14 130 23 143 29 149 37 142 43 119 42Q128 61 109 75Q88 89 67 76Q39 59 24 71Q18 78 34 81Q58 86 64 100Q52 93 38 94Q25 95 20 82Z',
+      shade:'M20 75Q39 54 64 67Q89 80 105 64Q119 50 100 42Q86 39 77 29Q78 39 91 47Q109 53 96 63Q85 74 66 65Q33 49 20 70Z',
+      accents:'M98 26 104 12 102 4 109 13 113 18 120 9 127 5 124 14 129 23 121 25 112 20Z M112 36 118 31 124 34 119 38Z M120 44 114 57 108 59 110 47Z M72 72Q67 82 61 85L55 82 58 78 53 79 57 74Z M95 74 103 84 109 82 108 77 112 79 113 85 107 91 99 89 90 77Z M28 84 18 92 18 100 30 96 38 94Z',
+      detail:'M144 40Q155 46 157 53M139 41Q146 53 150 55M73 67q5 5 11 5m8-3q6 2 10-2m6-6 3-6m-64 6 5 6m-16-8 4 5m87-34 6 3',
+      crown:'M81 24 73 13 76 7 81 15 87 19 84 7 88 2 92 11 98 19 92 25Z M17 69 8 61 11 55 17 60 22 52 25 56 22 66Z',
+      insignia:'M83 11Q32 7 24 28Q47 12 65 27Q38 22 23 45Q41 35 50 40M116 73Q140 64 155 50Q152 71 125 85Q139 81 151 85'
+    },
+    VERMILION_PHOENIX: {
+      color:['#571e29','#b93d39','#ff8652','#ffe0ad','#fff172'],
+      young:'M80 16Q96 15 99 32L107 39 98 44Q97 57 92 61L100 90 89 103 82 80 75 101 64 101 71 78 53 93 45 91 64 65Q34 65 19 48L35 49 20 32Q46 30 63 49L71 52Q67 43 67 32L61 23 72 25Z M95 52Q113 31 145 33L135 43 150 42Q133 65 102 65Z',
+      body:'M80 3 89 14 87 22 94 27 86 31Q95 47 90 62L105 93 96 105 82 80 77 103 67 111 70 81 55 104 46 106 62 76 66 60Q48 53 36 59L8 68 20 54 3 58 17 46 2 43 19 38 5 29Q37 28 57 44L16 13Q59 14 77 43Q74 33 77 23L71 14Z M90 42Q116 17 150 19L130 30 159 25 147 39 159 42 139 49 154 53 135 59 142 68 107 62Q96 60 88 64Z',
+      shade:'M80 44Q72 58 82 73L91 77 88 59 95 45 104 33 97 46Q93 55 88 57L87 34Z M53 47 33 37 29 44 53 51Z M106 44 133 32 126 42 108 51Z',
+      accents:'M82 4 89 10 90 17 83 18 80 13 77 15 78 9Z M84 26 94 27 86 31Z M75 53 82 41 87 54 82 67Z M61 80 51 100 58 93 68 75Z M93 75 107 96 101 103Z',
+      detail:'M12 35 39 43 53 50M20 54l25-6m-11 12 20-6M107 47 148 33M111 52l34-8m-25 12 14-3M88 20l-3 2M71 79l-3 15m16-13 11 19',
+      crown:'M78 13 66 8 71 6 65 2 78 6 84 2 88 7Z M21 25 8 16 14 14 34 22Z M134 22 148 10 154 10 148 19Z',
+      insignia:'M9 54Q24 10 70 19M90 19Q137 6 153 54M33 96Q40 79 56 71M100 71Q114 82 128 100'
+    },
+    WHITE_TIGER: {
+      color:['#25354c','#7389a7','#e8ebed','#fff6e4','#b8efff'],
+      young:'M30 76Q12 74 16 61Q19 52 31 53Q20 62 29 66Q35 48 53 45Q70 40 86 46L95 38Q93 25 104 25L116 31 125 25Q140 24 143 39Q153 47 153 56Q147 72 132 75L127 92 121 99 105 98 100 93 104 76 87 77 78 95 65 96 59 91 63 78 49 78 41 91 28 91 25 85Z',
+      body:'M15 75Q7 82 5 71Q2 57 20 55Q31 45 48 40Q67 29 89 39L105 30 110 20 122 25 135 24 142 34 152 42 156 53 146 64 134 64 124 71 120 89 126 96 125 102 105 102 100 95 103 74 94 70 81 77 71 97 66 102 49 101 49 94 60 84 61 70 47 72 40 87 42 96 39 101 21 101 20 96 27 86 27 75Z',
+      shade:'M14 68Q33 51 48 49L61 48Q65 59 72 65L65 75 62 89 54 95 63 93 76 75Q93 70 101 62L108 69 111 89 107 95 116 94 119 74 130 63 147 62 153 54 145 57 133 52 123 56Q114 41 97 47L91 43Q63 33 45 46Z',
+      accents:'M106 37 112 28 119 35Z M127 40 133 35 137 40 132 43Z M149 46 154 51 150 56 144 52Z M103 37 111 44 101 45 94 40Z M91 41 98 49 86 49 81 39Z M61 38 74 40 67 52 62 50Z M46 43 54 39 48 57 40 62Z M33 54 38 52 34 63 27 69Z M104 72 117 70 112 77 103 78Z M62 76 70 73 68 81 60 85Z M29 78 39 75 34 83 27 86Z',
+      detail:'M140 49 133 47m11 6-10 0m-1 3 10 3m-34 37 5 0m-57 0 5 0m-34 0 4 0 M7 59q6 0 10 5m-10 8 6-3 M115 48 117 56 127 56',
+      crown:'M107 32 99 23 103 15 111 22 118 29Z M124 29 133 13 141 18 138 30Z M89 37 85 23 91 28 104 36Z',
+      insignia:'M15 50 37 17 44 14 32 46M50 37l20-29 6-1-11 27M87 26l16-20 7 0-7 20M119 93l32-18 5-13M11 101l14 7 34-1'
+    },
+    BLACK_TORTOISE: {
+      color:['#191f37','#34506b','#748c91','#82e7cf','#ffdc96'],
+      young:'M28 73Q27 46 45 37 62 27 77 30Q103 34 113 55L122 51Q139 48 148 62Q157 77 143 85L126 84 121 93 105 94 99 88 83 89 73 98 59 97 54 90 39 86 29 93 18 90 20 80Z',
+      body:'M17 68Q12 55 23 46L27 37Q44 13 87 20Q108 22 125 44L130 53 140 52 152 59 155 70 145 78 130 77 124 95 112 99 101 95 104 81 86 84 79 97 65 100 56 96 59 82 40 77 35 92 20 92 15 86 22 75Z',
+      shade:'M27 66Q36 34 66 29Q99 22 119 51L117 62 97 76 61 80 33 72Z M117 71 129 59 143 61 151 69 138 73 126 72Z',
+      accents:'M67 28 90 27 104 40 92 59 66 58 55 42Z M34 45 48 36 56 45 62 58 50 71 31 65Z M76 63 95 62 101 69 94 75 68 80 61 74Z M109 43 120 53 116 62 102 67 98 58Z M142 62 147 64 143 67 138 65Z M18 85 23 82 28 86 24 92Z M66 93 72 90 75 96 68 99Z',
+      detail:'M69 33 88 32l9 9-7 12-20 0-8-12Z M39 48l9-5 8 12-8 9-11-4Z M72 69l18-2m-19 6 18-3m15-18 10 3m28 13 9 2',
+      crown:'M26 52Q10 52 8 34Q6 16 26 15L30 9 40 13 45 21 40 25 28 24Q22 23 19 31Q18 43 30 43Z M67 30 68 13 74 8 79 14 79 28Z M94 34 100 16 105 13 110 23 106 42Z',
+      insignia:'M10 89Q40 113 76 103Q109 103 147 89M14 95Q43 118 81 107Q125 110 152 91M11 36q2-18 18-20'
+    }
+  };
+  const lineageArt = {
+    KUNPENG: {
+      colors:[
+        ['#183b50','#34758a','#73c7cd','#d8faf2','#e0d2ae'],
+        ['#16394e','#39759e','#7bd6ec','#e1ffff','#f8dc9f'],
+        ['#18233d','#4554a8','#6dd9fd','#eefdff','#ffe0a0']
+      ],
+      young:'M80 36Q103 21 131 24L116 34 146 33 130 47 147 52Q123 59 106 63L96 76 107 92 85 88 77 101 66 91 52 96 64 72Q37 61 17 55L29 49 13 37 40 41 23 26Q61 24 80 36Z',
+      body:'M77 37Q57 19 14 14L21 25 40 35 9 29 19 41 33 46 5 46 23 60 7 60 33 69 26 75 59 73 69 67 61 82 45 94 65 89 76 105 89 89 106 97 94 79 92 69 106 60 133 66 150 59 142 55 160 48 149 42 157 36 129 39 151 22 158 9Q112 15 94 34L84 22 75 23 67 30Z',
+      shade:'M24 26Q53 26 74 45L83 37 93 45Q116 28 148 19L128 39 103 56 94 59 91 75 84 83 81 99 75 83 66 88 73 69 58 62 42 64 17 56 39 57 25 49 48 53 23 39 43 43Z',
+      accents:'M71 34 80 22 89 28 95 36 84 33 81 38Z M76 39 83 35 89 41 81 48Z M55 68l19-6-6 10Z M109 62 95 57 99 64Z M112 32l-12 15 18-10Z M47 36l17 14-21-8Z',
+      detail:'M16 48Q43 49 59 60M25 57L56 64M145 42Q126 49 113 55M135 54l-24 6M53 42l14 10m26 2 17-13M73 80l7-6 7 7m-5-39 5 2m-4-10 2 0',
+      crest:'M74 29 71 16 77 20 81 9 87 17 87 24 93 20 90 32Z M20 23l-8-18 18 11 7 9Z M131 29l15-16 13-5-12 20Z',
+      crown:'M17 55Q46 78 71 52Q96 19 130 25Q114 31 112 40L153 32Q151 44 115 65Q99 81 93 89L121 97Q98 108 75 93Q51 97 36 92L53 84Q32 75 17 55Z',
+      insignia:'M11 80Q42 101 75 91Q106 83 151 80M15 97Q50 112 97 106Q133 100 152 88M9 29Q35 10 55 13M109 14Q138 1 153 9'
+    },
+    FOX: {
+      colors:[
+        ['#4b2c43','#93617e','#e8a5aa','#fff1eb','#ffceb7'],
+        ['#3c2f5a','#7f74ac','#c5bdff','#fff1fd','#ffdbad'],
+        ['#281e49','#61459f','#c1a5ff','#fff4fd','#ffda99']
+      ],
+      young:'M35 78Q25 57 36 47Q49 35 72 49L87 47 97 25 103 15 119 36 135 20 137 49 148 58 139 73 121 78 114 96 97 97 102 80 91 78 74 86 70 98 55 97 56 82Z',
+      body:'M33 76Q22 54 41 43Q62 36 81 46L92 44 100 30 102 6 120 32 139 12 143 38 139 48 154 55 146 67 127 75 121 94 116 101 100 99 104 87 109 75 96 75 79 86 75 98 58 100 58 91 61 84 48 78 39 89 24 92 24 84Z',
+      shade:'M34 67Q42 46 62 42Q81 44 91 49L107 48 117 35 133 37 138 47 151 55 132 60 115 62 102 68 85 69 70 80 58 75 48 71Q44 70 34 77Z',
+      accents:'M108 21l8 14-9 4Z M135 26l-2 11 7 4Z M117 48l7-2 7 4-7 3Z M143 54l10 1-5 5Z M115 63l15-2-9 8Z M75 55Q55 49 44 57L55 61 70 59Z',
+      detail:'M117 54l3 2m5 12 10-3m-24 25 8 0m-54 2 8-1M101 55Q93 64 85 66M111 43l5-4',
+      crest:'M113 39 119 29 124 40 126 25 132 33 134 46 123 51Z',
+      crown:'M94 71Q109 30 82 9Q102 5 110 22Q125 49 100 77Z',
+      insignia:'M12 76Q45 105 101 96Q139 91 153 64M9 46Q32 20 72 17M71 17q-7 10-3 14'
+    },
+    QILIN: {
+      colors:[
+        ['#1f473c','#4d8a63','#90d6a5','#e8ffce','#fcc778'],
+        ['#314437','#729159','#e0dc81','#fff5c2','#ffd272'],
+        ['#153733','#2a866c','#8ceac0','#f0ffcc','#ffdb88']
+      ],
+      young:'M25 76 16 67 23 60 33 62Q49 51 72 55L90 50 99 31 108 25 117 30 127 22 133 38 145 47 136 58 120 58 114 70 114 91 118 99 103 99 100 88 90 76 73 78 72 96 57 100 56 88 59 79 43 77 38 91 24 94Z',
+      body:'M15 72Q2 66 9 53L12 43 17 51 24 48 21 61 30 64Q48 44 75 46L91 43 100 25 105 21 111 7 115 21 126 18 134 6 134 23 138 38 154 47 145 57 133 59 121 54 114 63 112 74 112 92 118 99 115 102 98 101 96 94 98 76 88 73 76 79 70 101 56 102 54 95 60 87 60 76 45 75 39 85 40 94 29 97 21 90 25 82Z',
+      shade:'M33 64Q46 46 72 49L91 51 99 43 106 24 116 25 120 35 131 31 139 45 150 48 138 52 127 48 117 50 113 62 100 70 82 67 72 73 48 73 38 69Z',
+      accents:'M117 43l9-6 7 6-8 4Z M101 53l13-9-5 16-5 4Z M92 54l8 6-10 6-6-6Z M77 53l7 6-6 6-9-5Z M62 53l7 6-7 6-9-5Z M49 56l7 7-9 5-6-7Z M104 91l9 0 3 8-12 0Z M58 94l12 0-4 6-12 0Z M24 87l12-3 2 7-11 2Z',
+      detail:'M146 51l-8 2m-26-31-9 8m-25 33-12 4m14 7 10-4m16 1 6-5M18 58q2 7 8 9m91-22 7 0',
+      crest:'M100 28 91 24 88 13 79 5 85 5 95 15 93 7 97 2 100 14 106 18 107 29Z M123 30 129 15 140 7 143 7 141 15 135 23 142 19 148 20 139 27 129 34Z',
+      crown:'M77 62 73 40 66 31 71 26 74 34 82 38 87 29 85 21 93 22 98 37 91 59 84 65Z M120 90 128 75 138 65 132 82 124 94Z M28 95l-7-19 13 8 7 12Z',
+      insignia:'M13 91Q51 99 79 97Q113 93 146 77M13 99Q75 114 144 88M47 9q10 7 16 23m60-26q-5 8-5 16'
+    },
+    BAIZE: {
+      colors:[
+        ['#303748','#7f8a9d','#d8e1da','#fff9e2','#dbf5db'],
+        ['#303054','#717797','#b9d7e0','#f9f5dd','#ffe0a0'],
+        ['#24223e','#596898','#dfd9fc','#fff8df','#ffe3ac']
+      ],
+      young:'M19 69Q8 58 12 49L25 51 27 64Q50 39 85 39L99 42 103 25 110 18 116 30 128 28 135 18 140 31 136 43 152 53 142 69 127 74 118 93 102 96 100 88 103 75 84 79 75 95 57 94 60 81 39 80 30 95 17 93 18 83Z',
+      body:'M12 62Q2 55 5 46Q15 43 18 53L23 64 34 62Q57 40 81 43L97 40 99 23 104 13 113 27 123 24 129 6 137 4 141 14 134 31 143 41 154 44 159 53 150 68 139 65 127 76 124 93 129 99 113 104 101 96 104 79 92 80 85 91 81 103 64 103 61 96 64 85 50 80 45 91 45 99 30 101 25 93 32 79 20 75Z',
+      shade:'M15 67Q29 64 43 53 70 37 96 48L107 45 109 32 123 29 137 41 150 46 153 51 146 58 132 56 118 65 98 64 81 70 66 72 49 73 32 79Z',
+      accents:'M98 44l8-11 11 8-7 14Z M119 46l8-7 11 5-11 6Z M148 51l9 0-4 5Z M99 58l12 3-7 14-10 1Z M124 61l14 4-13 9-7 1Z M48 58q9-8 19 1-9 9-19-1Z M75 54q8-8 17 0-8 8-17 0Z',
+      detail:'M45 62q10 7 24 2m7-8 3-2m12 19q5-4 10-5m24-23 4 0m16 14-7 1m-16 32 7 1m-61-2 8 0m-48-1 7-1',
+      crest:'M100 34 94 25 91 12 96 6 104 17 108 33Z M125 34l1-13 7-14 7-4 0 15-9 18Z',
+      crown:'M32 66 21 48 31 34 45 32 57 23 68 24 76 19 89 28 96 29 99 43 91 57 78 63 67 56 52 60 41 58Z',
+      insignia:'M16 33Q77 -4 145 30M9 69Q22 95 54 103M109 101Q145 89 154 69M44 14l5 8m22-13 3 9m25-8-1 8'
+    }
+  };
+  const illustration = spec => {
+    if (spec.symbol) return art[spec.symbol];
+    const form = lineageArt[spec.familyId];
+    return form && { ...form, color:form.colors[spec.gradeRank - 1] };
+  };
+  const foxTail = (i, grade, stage) => {
+    const h = 21 + i * 6.6, spread = stage === 1 ? 17 : 27, reach = 31 + Math.sin(i * .45) * spread;
+    return `M52 75Q${reach} ${h + 22} ${7 + i * 2} ${h}Q${28 + i * 3} ${h - 13 - 2 * grade} ${reach + 18} ${h + 19}L55 75Z`;
+  };
+  const look = (spec, stage) => {
+    const p = illustration(spec);
+    const [ink, mid, light, shine, gold] = p.color;
+    if (stage === 0) {
+      return [
+        ['M74 13C60 19 42 50 43 71C44 92 61 103 81 102C101 102 118 88 116 69C114 51 95 16 82 13Z', mid, light, 2.6],
+        ['M74 22C65 27 50 55 53 70Q57 83 68 87Q56 66 77 30Z', light, null, 0],
+        ['M101 43 85 50 88 62 70 70 69 77 57 85M86 49l-8-6m10 20 10 7', null, shine, 2.3],
+        ['M83 27 88 34 83 41 78 34Z M95 75 99 81 95 87 91 81Z', gold, null, 0]
+      ];
+    }
+    if (spec.familyId) {
+      const rank = spec.gradeRank;
+      const layers = [];
+      if (stage >= 3 && rank >= 2) layers.push([p.insignia, null, gold, rank === 3 ? 2.6 : 1.3]);
+      if (stage >= 3 && rank === 3) layers.push([p.crown, ink, light, 1.65]);
+      if (spec.familyId === 'FOX') {
+        for (let i = 0; i < (stage === 1 ? 3 : 9); i++) {
+          layers.push([foxTail(i, rank, stage), i % 2 ? mid : light, i % 3 ? ink : gold, stage === 1 ? 1.7 : 1.25]);
+        }
+      }
+      layers.push([stage === 1 ? p.young : p.body, mid, ink, 2.8]);
+      if (stage > 1) layers.push([p.shade, light, null, 0], [p.detail, null, rank === 1 ? ink : gold, 1.15]);
+      layers.push([p.accents, shine, ink, 1.25]);
+      if (stage >= 3 || rank >= 2 && stage >= 2) layers.push([p.crest, mid, rank === 1 ? ink : gold, 1.5]);
+      return layers;
+    }
+    if (stage === 1) {
+      const eyes = { AZURE_DRAGON:'M112 34l6-2 3 4-6 2Z', VERMILION_PHOENIX:'M88 29l5 2-4 3-4-2Z',
+        WHITE_TIGER:'M119 44l5-3 4 5-5 2Z M138 53l7 1-4 5Z',
+        BLACK_TORTOISE:'M130 64l6-3 3 4-5 3Z M57 44l19-8 18 11-9 13-23 1Z' };
+      return [[p.young, mid, ink, 3.2], [eyes[spec.symbol], shine, ink, 1.25]];
+    }
+    const layers = [];
+    if (stage >= 3) layers.push([p.insignia, null, gold, stage === 4 && (spec.gradeRank || 3) >= 2 ? 2.3 : 1.05]);
+    if (stage === 4) layers.push([p.crown, mid, shine, 1.75]);
+    layers.push([p.body, mid, ink, stage === 1 ? 4.2 : 3.3], [p.shade, light, null, 0],
+      [p.accents, stage === 1 ? light : shine, ink, 1.35], [p.detail, null, stage >= 3 ? gold : ink, 1.3]);
+    return layers;
+  };
+  R.sovereignCompanionSvg = (speciesId, stage) => {
+    const spec = CULT.curatedCompanionSpec(speciesId);
+    if (!spec) return '';
+    const [ink, mid, light, shine, gold] = illustration(spec).color;
+    return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' +
+      '<ellipse cx="80" cy="96" rx="57" ry="9" fill="' + ink + '" opacity=".52"/>' +
+      (stage === 4 && (spec.gradeRank || 3) >= 2 ? '<path d="M14 79Q79 59 146 79Q118 101 80 102Q41 102 14 79Z" fill="none" stroke="' + light + '" opacity=".7"/>' : '') +
+      look(spec, stage).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
+        '" stroke="' + (stroke || 'none') + '" stroke-width="' + width +
+        '" stroke-linecap="round" stroke-linejoin="round" />').join('') +
+      (stage === 4 ? '<path d="M80 3 83 8 80 13 77 8Z M17 38 20 43 17 48 14 43Z M143 36 146 41 143 46 140 41Z" fill="' + gold + '"/>' : '') +
+      '</svg>';
+  };
+
+  const paths = new Map();
+  R.drawSovereignCompanion = (ctx, speciesId, stage, x, y, scale, time, face, riding = false) => {
+    const spec = CULT.curatedCompanionSpec(speciesId);
+    if (!spec || typeof Path2D !== 'function') return false;
+    const [ink, mid, light, shine, gold] = illustration(spec).color;
+    const floating = spec.symbol === 'AZURE_DRAGON' || spec.symbol === 'VERMILION_PHOENIX' || spec.familyId === 'KUNPENG';
+    ctx.save();
+    ctx.translate(x, y - (floating && !riding ? Math.sin(time * 2.1) * 3 + scale * 13 : 0));
+    ctx.scale((face || 1) * scale, scale);
+    ctx.translate(-80, -94);
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.fillStyle = '#11182670';
+    ctx.beginPath(); ctx.ellipse(80, 103, stage === 4 ? 60 : 48, 11, 0, 0, Math.PI * 2); ctx.fill();
+    if (stage >= 3 && (spec.gradeRank || 3) >= 2) {
+      const aura = ctx.createRadialGradient(80, 58, 8, 80, 58, 76);
+      aura.addColorStop(0, mid + 'a8');
+      aura.addColorStop(1, mid + '00');
+      ctx.fillStyle = aura; ctx.fillRect(4, -18, 152, 152);
+    }
+    for (const [d, fill, stroke, width] of look(spec, stage)) {
+      if (!paths.has(d)) paths.set(d, new Path2D(d));
+      const path = paths.get(d);
+      if (fill) {
+        if (fill === mid) {
+          const gradient = ctx.createLinearGradient(8, 88, 112, 11);
+          gradient.addColorStop(0, ink);
+          gradient.addColorStop(.47, mid);
+          gradient.addColorStop(1, light);
+          ctx.fillStyle = gradient;
+        } else ctx.fillStyle = fill;
+        ctx.fill(path);
+      }
+      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.stroke(path); }
+    }
+    if (stage === 4 && (spec.gradeRank || 3) === 3) {
+      ctx.strokeStyle = light + 'b0';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.ellipse(80, 102, 64, 12, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = gold;
+      for (let j = 0; j < 6; j++) {
+        const a = j * Math.PI / 3 + time * .31;
+        const sx = 80 + Math.cos(a) * 68, sy = 61 + Math.sin(a * 1.7) * 42;
+        ctx.beginPath(); ctx.moveTo(sx, sy - 5); ctx.lineTo(sx + 3, sy); ctx.lineTo(sx, sy + 5); ctx.lineTo(sx - 3, sy); ctx.closePath(); ctx.fill();
+      }
+    }
+    ctx.restore();
+    return true;
+  };
+  // Shared coordinates for the map and the NPC card. Tier accents sit behind each silhouette.
+  const regionalArt = {
+    TAOTIE: {
+      color:['#22152d','#5a385b','#ce84a1','#f9c17b'],
+      body:'M23 89 27 67 16 55 32 61 46 47 64 45 77 56 91 47 96 32 109 42 116 21 131 32 127 46 145 57 147 68 134 72 126 71 131 85 123 96 111 96 113 78 89 75 79 94 67 94 72 76 57 78 46 94 33 94 39 77Z',
+      detail:'M91 48Q106 47 108 60L123 62 116 70 101 67 91 55Z M35 64Q52 52 68 55L52 71Z M119 45 134 52 125 54Z',
+      accent:'M32 83Q78 28 141 83 M50 77 48 64 56 59 66 64 65 71 60 75 55 72 M123 64 130 64 126 72Z'
+    },
+    BODHI: {
+      color:['#172b29','#495943','#96b276','#ebd58b'],
+      body:'M30 81 44 65 33 59 21 40 38 50 53 50 55 31 69 24 67 10 81 21 92 28 98 15 111 11 110 26 122 29 133 22 128 41 146 48 129 57 108 53 109 67 125 76 142 92 119 88 103 77 111 94 98 94 86 81 66 89 56 94 43 94 50 79Z',
+      detail:'M68 23 64 48 72 62 62 82 75 75 83 60 79 51 88 46 99 55 104 49 94 42 101 29 84 39Z M24 51 39 58 51 60 43 55Z',
+      accent:'M62 89Q82 67 93 85 M42 62Q84 18 125 60 M79 53 84 45 89 53 84 60Z M111 35 119 29 118 37Z'
+    },
+    HAWK: {
+      airborne:true, color:['#17263d','#415880','#a6c9f0','#baf9ff'],
+      body:'M17 36 47 40 59 55 74 59 76 49 64 28 59 13 77 22 90 39 103 39 114 30 123 34 132 44 143 46 135 52 122 53 116 68 102 77 91 79 76 91 60 89 67 81 53 81 32 66 15 59 29 58 12 48 32 50Z',
+      detail:'M36 52 57 60 76 68 65 75 45 67Z M74 29 92 44 103 51 93 56 78 42Z M113 36 121 36 129 46 120 46Z',
+      accent:'M26 74Q60 96 140 60 M38 79Q90 104 139 69 M123 43 130 44 125 47Z M101 62 108 57'
+    },
+    FOX: {
+      color:['#302644','#7a6891','#ddcbed','#f3b9cf'],
+      back:Array.from({length:9}, (_, i) => {
+        const x = 17 + i * 5, y = 17 + Math.abs(i-4)*4;
+        return 'M65 76Q' + (x-19) + ' 77 ' + x + ' ' + y + 'Q' + (x+8) + ' ' + (y+19) +
+          ' 52 55Q64 60 70 72Z';
+      }),
+      body:'M43 78 53 64 69 61 95 65 111 54 110 42 121 49 132 38 135 57 146 66 139 73 123 73 113 83 114 93 104 93 100 81 83 85 75 95 65 95 68 82 57 91 48 91Z',
+      detail:'M96 65 111 54 114 62 132 57 144 65 139 72 124 69 115 76 104 75Z M130 48 132 56 127 56Z',
+      accent:'M44 30Q69 20 76 48 M115 74Q126 72 134 70 M132 62 137 62 134 65Z'
+    },
+    TORTOISE: {
+      color:['#382329','#815044','#c28d60','#ffc46f'],
+      body:'M16 85 26 78 30 65 45 51 63 44 81 34 100 45 115 61 129 61 141 68 145 76 135 81 124 81 122 90 111 92 102 86 66 88 56 93 42 93 49 84 30 83Z',
+      detail:'M31 77 41 59 61 54 61 65 55 76Z M65 51 82 39 99 47 101 59 87 71 68 63Z M90 74 104 62 112 63 120 76 109 82Z',
+      accent:'M61 54 65 66 56 78 M82 39 85 50 79 57 86 68 78 80 M103 63 106 72 116 74 M135 72 138 73'
+    },
+    SCORPION: {
+      color:['#3d2327','#8f4e36','#cc8361','#ffc590'],
+      body:'M38 80 43 67 53 62 68 63 81 72 94 70 102 55 102 41 91 33 80 33 71 40 66 35 71 21 77 27 93 24 109 31 116 44 114 59 102 77 88 83 76 84 71 93 63 92 67 81 58 80 54 92 47 91 49 79 43 79 38 91 30 90 34 77 24 74 17 64 21 56 27 64 32 64 29 54 39 60 37 70Z',
+      detail:'M43 69 51 63 58 67 50 76Z M59 66 67 66 72 73 66 79 57 75Z M103 44 114 45 113 51 103 50Z M88 28 93 26 100 29 98 33Z',
+      accent:'M71 25 74 31 69 34 M44 77 49 78 M103 56 111 58 M79 85 88 85'
+    },
+    PYTHON: {
+      color:['#183929','#447858','#82be83','#e8d787'],
+      body:'M23 87Q15 70 44 65Q65 61 78 68Q102 78 111 63Q112 57 104 52L98 46 101 39 117 33 132 37 139 46 133 52 119 55Q137 78 113 88Q93 97 76 86Q47 71 37 82Q33 88 55 92L57 96Q26 99 23 87Z',
+      detail:'M102 46 112 39 126 38 137 45 124 47 118 51Z M31 75Q51 67 72 75L70 81Q50 75 31 83Z',
+      accent:'M53 70 60 74 M67 72 74 78 M83 80 87 86 M97 81 101 86 M113 73 117 76 M126 42 130 43'
+    },
+    BAT: {
+      airborne:true, color:['#261b39','#664d86','#b6a8d6','#f4b4d8'],
+      body:'M76 51 69 40 67 28 77 35 87 31 94 21 98 36 94 49Q119 22 149 30L137 46 137 63Q120 51 118 69Q105 59 94 78L85 87 75 76Q61 60 48 69Q43 53 24 63L24 47 12 38Q42 26 76 51Z',
+      detail:'M27 43 56 47 70 62Q59 54 49 61Q44 53 29 56Z M102 56 119 43 139 35 134 47 132 55Q123 49 118 58Z M74 41 80 38 91 38 94 42 91 50 77 51Z',
+      accent:'M82 43 85 44 M91 42 92 43 M19 70Q37 67 49 74 M113 75Q125 66 140 68'
+    },
+    BOAR: {
+      color:['#302a2a','#77645b','#bdab90','#f1ddae'],
+      body:'M25 74 28 63 39 61 45 53 56 54 63 47 73 51 86 46 93 53 105 52 119 61 130 61 137 68 136 76 124 82 113 81 107 92 99 92 100 81 66 84 57 94 49 94 51 84 33 82 24 87 18 84Z',
+      detail:'M45 63 54 55 59 62 65 55 71 61 82 53 92 60 83 66 61 67Z M116 64 128 64 135 68 133 73 118 72Z M125 77 139 66 136 81 126 84Z',
+      accent:'M47 74 60 71 82 70 M111 66 115 66'
+    },
+    CRANE: {
+      color:['#224340','#7cb0a2','#deefe0','#e8be7c'],
+      body:'M37 73 24 68 38 65 54 60 74 62 91 67 97 56 92 43 100 32 114 32 122 37 140 40 125 43 115 42 106 44 112 56 111 67 100 77 85 81 78 91 96 96 90 99 71 94 74 82 62 81 58 94 60 100 53 100 52 93 56 79Z',
+      detail:'M43 69 57 64 74 65 90 71 83 77 62 76 52 72Z M98 35 111 33 116 36 106 38Z',
+      accent:'M48 71 67 69 79 72 M116 38 118 39'
+    },
+    GRASS_TURTLE: {
+      color:['#24392a','#63805c','#b5c68a','#e1e4aa'],
+      body:'M19 83 31 77 36 63 52 52 75 46 96 54 110 70 121 67 135 69 143 75 136 81 122 82 119 89 110 91 103 84 65 86 57 94 45 94 48 85 28 86Z',
+      detail:'M39 69 53 56 73 50 68 62 59 70 47 75Z M69 66 77 51 93 57 106 72 90 74Z M44 77 61 75 69 69 85 76 77 82 56 83Z',
+      accent:'M52 59 56 56 M81 55 85 58 M50 80Q76 72 99 80 M130 73 133 74'
+    },
+    GOAT: {
+      color:['#30423e','#748c83','#d6dfbd','#e9c781'],
+      body:'M20 61 34 64 48 56 74 54 89 51 101 42 113 45 125 43 139 53 140 60 128 67 116 64 107 74 108 90 101 94 95 91 96 72 79 76 74 91 64 93 65 79 48 78 43 91 36 93 33 91 38 75Z',
+      detail:'M104 45Q91 34 94 22Q105 27 111 43Z M113 45Q108 30 114 21Q122 24 120 46Z M103 54 114 47 127 48 136 54 129 58 120 56 111 63 107 70Z M41 62 55 58 75 58 67 65 53 66Z',
+      accent:'M98 31 103 33 M114 29 117 30 M123 52 126 53 M131 62 136 59'
+    },
+    MOTH: {
+      airborne:true, color:['#3c2d41','#7d6281','#e3bedc','#fff1ae'],
+      body:'M75 52Q44 22 21 32Q12 63 47 74Q36 86 57 92L79 76 90 92Q114 89 108 75Q143 65 142 34Q121 19 88 52L91 61 83 79 75 66Z',
+      detail:'M27 38Q47 37 71 56L63 68Q34 63 27 38Z M135 37Q114 39 91 57L100 68Q125 64 135 37Z M49 78 64 73 71 77 58 86Z M97 76 107 83 96 84 90 79Z',
+      accent:'M78 52 73 42 68 40 M85 52 91 41 96 39 M38 50Q47 44 53 52Q47 59 38 50Z M107 52Q116 44 123 51Q116 58 107 52Z'
+    },
+    WILDCAT: {
+      color:['#343533','#816f57','#c7ae84','#f4d27e'],
+      body:'M40 72Q33 80 20 72Q10 64 18 54L22 56Q18 65 28 68L45 67 56 59 80 60 99 64 108 48 115 43 120 52 132 45 133 57 144 64 140 72 124 76 114 84 113 92 104 94 104 81 81 83 73 92 64 92 67 82 52 83 47 91 38 91 41 79Z',
+      detail:'M106 58 120 54 133 58 142 65 135 70 125 69 114 76 107 68Z M50 68 59 63 78 63 84 70 65 71Z',
+      accent:'M59 60 63 68 M70 61 74 69 M81 61 86 69 M94 63 98 71 M124 61 128 62 M22 65 25 68'
+    },
+    FAWN: {
+      color:['#3f3a26','#92744b','#d7bb7e','#fff0af'],
+      body:'M30 67 46 60 69 58 87 61 99 48 103 37 113 44 123 43 132 50 140 53 136 61 120 62 111 75 113 92 104 96 101 78 88 78 81 94 72 95 77 77 54 80 49 92 41 95 39 93 45 77 31 76 20 66Z',
+      detail:'M103 43Q90 35 94 28Q106 31 111 44Z M114 44Q118 34 129 34Q127 42 123 46Z M108 50 121 47 132 52 132 56 119 57 115 65 106 62Z',
+      accent:'M47 65 50 65 M57 63 60 63 M67 63 70 63 M53 69 56 69 M64 68 67 68 M123 51 126 52'
+    },
+    MANTIS: {
+      color:['#273b2b','#5e7948','#bdd28a','#ecdc7f'],
+      body:'M22 78 34 67 66 62 83 62 95 52 100 39 112 32 122 40 117 49 109 50 101 67 94 79 97 91 90 93 84 79 72 77 61 93 52 95 48 91 63 77 45 77 35 85Z M101 59 117 64 128 55 132 62 119 73 105 67Z',
+      detail:'M28 75 43 68 74 64 85 67 75 73 52 74Z M101 42 112 35 118 40 114 44 105 47Z',
+      accent:'M107 36 101 28 95 27 M115 34 119 25 127 23 M108 42 112 42 M52 69 63 68 M120 66 125 61'
+    },
+    WOLF: {
+      color:['#283845','#576b78','#a8c1c4','#dff2c6'],
+      body:'M26 75 16 62 37 72 47 61 62 59 78 63 90 60 102 47 107 36 114 46 126 40 128 54 142 61 138 68 124 71 112 76 111 90 102 93 103 79 83 81 76 92 66 92 67 80 54 80 47 91 37 91 41 77Z',
+      detail:'M90 62 102 48 109 55 124 51 131 58 141 62 135 68 121 66 112 73 102 71Z M54 64 72 66 81 73 65 74Z',
+      accent:'M123 57 127 58 M103 48 106 43'
+    },
+    MUSHROOM: {
+      color:['#263c31','#6b8e54','#c6d99a','#fff3b3'],
+      body:'M35 76Q32 68 44 57Q58 45 73 42Q62 40 61 34Q67 21 85 18Q106 18 115 32Q116 40 105 42Q128 49 138 65Q142 76 124 79L106 78 107 87 114 92 109 95 96 94 90 84 84 84 80 94 69 94 65 90 73 84 74 78Q52 81 35 76Z',
+      detail:'M38 69Q58 54 86 51Q117 54 134 69Q121 71 104 67Q87 66 74 70Q51 74 38 69Z M78 35Q82 26 92 27Q102 27 106 35Z',
+      accent:'M81 76 85 76 M94 76 98 76 M58 61 62 60 M106 61 110 62'
+    }
+  };
+
+  const regionalScale = (spec, stage) => [0, .15, .205, .265][Math.min(3, Math.max(1, stage))] * (.68 + spec.tier * .05);
+  const regionalLayers = (spec, art) => {
+    const [ink, pigment, pale, accent] = art.color;
+    return [
+      ...(art.back || []).map(path => [path, pigment, ink, 1.8]),
+      [art.body, pigment, ink, 2.8],
+      [art.detail, pale, ink, .8],
+      [art.accent, null, accent, spec.tier >= 5 ? 2 : 1.4]
+    ];
+  };
+
+  R.regionalCompanionSvg = (speciesId, stage) => {
+    const spec = CULT.regionalCompanionSpec(speciesId);
+    if (!spec) return '';
+    const art = regionalArt[spec.key];
+    const size = regionalScale(spec, stage) / .265;
+    const [ink, , , accent] = art.color;
+    const outline = spec.tier >= 5 && stage >= 2
+      ? '<ellipse cx="80" cy="92" rx="60" ry="11" fill="none" stroke="' + accent + '" opacity=".54"/>' : '';
+    return '<svg viewBox="0 0 160 112" aria-hidden="true" focusable="false">' +
+      '<ellipse cx="80" cy="98" rx="' + (56 * size) + '" ry="8" fill="' + ink + '" opacity=".65"/>' +
+      '<g transform="translate(80 94) scale(' + size + ') translate(-80 -94)" stroke-linecap="round" stroke-linejoin="round">' + outline +
+      regionalLayers(spec, art).map(([path, fill, stroke, width]) => '<path d="' + path + '" fill="' + (fill || 'none') +
+        '" stroke="' + stroke + '" stroke-width="' + width + '"/>').join('') + '</g></svg>';
+  };
+
+  const regionalPathCache = new Map();
+  R.drawRegionalCompanion = (ctx, spec, stage, x, y, time, face, reduced, riding = false) => {
+    if (typeof Path2D !== 'function') return false;
+    const art = regionalArt[spec.key];
+    let layers = regionalPathCache.get(spec.key);
+    if (!layers) {
+      layers = regionalLayers(spec, art).map(([path, ...paint]) => [new Path2D(path), ...paint]);
+      regionalPathCache.set(spec.key, layers);
+    }
+    const size = riding ? .43 : regionalScale(spec, stage);
+    const [ink, pigment, pale, accent] = art.color;
+    ctx.save();
+    ctx.translate(x, y - (art.airborne && !riding ? 3.5 + (reduced ? 0 : Math.sin(time * 3.8) * 1.75) : 0));
+    ctx.scale(face * size, size);
+    ctx.translate(-80, -94);
+    ctx.lineCap = ctx.lineJoin = 'round';
+    ctx.fillStyle = '#11182665';
+    ctx.beginPath(); ctx.ellipse(80, 98, 48, 8, 0, 0, Math.PI * 2); ctx.fill();
+    if (spec.tier >= 5 && stage >= 2) {
+      ctx.strokeStyle = accent + '70';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(80, 94, 58, 10, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    const gradient = ctx.createLinearGradient(49, 97, 90, 18);
+    gradient.addColorStop(0, ink);
+    gradient.addColorStop(.52, pigment);
+    gradient.addColorStop(1, pale);
+    for (const [path, fill, stroke, width] of layers) {
+      if (fill) { ctx.fillStyle = fill === pigment ? gradient : fill; ctx.fill(path); }
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = width;
+      ctx.stroke(path);
+    }
+    ctx.restore();
+    return true;
+  };
+  R.isAirborneMount = pet => pet.family === 'AVIAN' || pet.fourSymbol === 'VERMILION_PHOENIX' ||
+    pet.fourSymbol === 'AZURE_DRAGON' || pet.bloodlineTrait === 'VERMILION_PHOENIX' || pet.bloodlineTrait === 'AZURE_DRAGON';
+
+  const mountArtByFamily = {
+    AVIAN:'HAWK', UNGULATE:'GOAT', CANINE:'WOLF', FELINE:'WILDCAT',
+    URSINE_BOAR:'BOAR', SHELL_GUARDIAN:'GRASS_TURTLE', SERPENT:'PYTHON', CHIMERA:'TAOTIE'
+  };
+  const symbolMountArt = new Map((g.JD.CORE.sovereignCompanions || []).map(spec => [spec.symbol, spec]));
+  R.drawTravelMount = (ctx, pet, by, time, reduced) => {
+    const curated = CULT.curatedCompanionSpec(pet.speciesId);
+    const beast = curated || symbolMountArt.get(pet.fourSymbol || pet.bloodlineTrait);
+    if (beast) {
+      const stage = curated ? pet.growthStage || 1 : 4;
+      const seat = beast.familyId === 'KUNPENG' ? 17 : 20;
+      if (R.drawSovereignCompanion(ctx, beast.id, stage, -2, by + seat, .55, time, 1, true)) return;
+    }
+    const body = CULT.regionalCompanionSpec(pet.speciesId) || { key:mountArtByFamily[pet.family] || 'WOLF', tier:2 };
+    if (R.drawRegionalCompanion(ctx, body, pet.growthStage || 2, -2,
+      by + (body.key === 'HAWK' ? 12 : 16), time, 1, reduced, true)) return;
+    // Keep the contact silhouette available when a browser cannot construct Path2D.
+    ctx.fillStyle = '#667b65';
+    ctx.beginPath(); ctx.ellipse(0, by + 3, 11, 4.5, 0, 0, 7); ctx.fill();
+  };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

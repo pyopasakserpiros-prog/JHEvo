@@ -28,8 +28,8 @@ function check(cond, msg) {
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   check(hcSha === 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js SHA-256 must remain byte-for-byte identical');
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  check((SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || SIM.PATCH_VERSION === '2.6.0')))))), `SIM.PATCH_VERSION must be '2.0.0' (got ${SIM.PATCH_VERSION})`);
-  check((SIM.SAVE_SCHEMA_VERSION === '2.0.0-grand-dao-epoch-mortal-awakening' || (SIM.SAVE_SCHEMA_VERSION === '2.1.0-grand-dao-debates-apex-trials' || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting'))))), `SIM.SAVE_SCHEMA_VERSION must be '2.0.0-grand-dao-epoch-mortal-awakening' (got ${SIM.SAVE_SCHEMA_VERSION})`);
+  check((SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || (SIM.PATCH_VERSION === '2.6.0' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.9.6')))))))), `SIM.PATCH_VERSION must be '2.0.0' (got ${SIM.PATCH_VERSION})`);
+  check((SIM.SAVE_SCHEMA_VERSION === '2.0.0-grand-dao-epoch-mortal-awakening' || (SIM.SAVE_SCHEMA_VERSION === '2.1.0-grand-dao-debates-apex-trials' || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || (SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting' || (SIM.SAVE_SCHEMA_VERSION === '3.0.0-living-continent' || SIM.SAVE_SCHEMA_VERSION === '3.9.6-deep-gameplay-integration'))))))), `SIM.SAVE_SCHEMA_VERSION must be '2.0.0-grand-dao-epoch-mortal-awakening' (got ${SIM.SAVE_SCHEMA_VERSION})`);
   check(Array.isArray(SIM.SUPPORTED_PATCHES) && SIM.SUPPORTED_PATCHES.includes('2.0.0'), 'SIM.SUPPORTED_PATCHES must include 2.0.0');
   console.log('  ✓ [0/6] Core Lock & v2.0.0 Schema Invariants Verified');
 }
@@ -82,7 +82,7 @@ function check(cond, msg) {
 
   // Verify all 27 Path Manuals and 27 Path Crystals exist in ECO.itemById
   const allPathIds = Object.keys(CULT.PATHS);
-  check(allPathIds.length === 43, `Expected 27 Major Paths, got ${allPathIds.length}`);
+  check(allPathIds.length === 58, `Expected 27 Major Paths, got ${allPathIds.length}`);
   for (const pid of allPathIds) {
     const manId = 'MANUAL_PATH_' + pid;
     const cryId = 'CRYSTAL_PATH_' + pid;
@@ -135,10 +135,10 @@ function check(cond, msg) {
   }
 
   // Check all 27 paths and 222 subpaths
-  check(Object.keys(CULT.PATHS).length === 43, 'Total Major Paths must be 27 (3^3)');
-  check(Object.keys(CULT.PATH_GAUGES).length === 43, 'Total Path Gauges must be 27');
+  check(Object.keys(CULT.PATHS).length === 58, 'Total Major Paths must be 27 (3^3)');
+  check(Object.keys(CULT.PATH_GAUGES).length === 58, 'Total Path Gauges must be 27');
   const allSubPaths = Object.values(CULT.PATHS).flatMap(p => p.subPaths || []);
-  check(allSubPaths.length === 286, `Total Subpaths must be 222 (got ${allSubPaths.length})`);
+  check(allSubPaths.length === 358, `Total Subpaths must be 222 (got ${allSubPaths.length})`);
 
   for (const sp of allSubPaths) {
     check(Array.isArray(sp.subpathTraits) && sp.subpathTraits.length === 3, `Subpath ${sp.id} must have 3 milestone subpathTraits (Realms 3, 6, 9)`);
@@ -246,10 +246,10 @@ function check(cond, msg) {
   const synEval = COMBAT.evaluateCrossPathSynergies([{ cult: { path: 'CELESTIAL_WEATHER' } }, { cult: { path: 'XIAN' } }]);
   check(synEval && Array.isArray(synEval.matchedSynergies) && synEval.matchedSynergies.length >= 1, 'evaluateCrossPathSynergies activates synergy for CELESTIAL_WEATHER + SONIC_HARMONY');
 
-  check(EXPLORE.NINE_DAO_PAGODA && Array.isArray(EXPLORE.NINE_DAO_PAGODA.floors) && EXPLORE.NINE_DAO_PAGODA.floors.length === 43,
+  check(EXPLORE.NINE_DAO_PAGODA && Array.isArray(EXPLORE.NINE_DAO_PAGODA.floors) && EXPLORE.NINE_DAO_PAGODA.floors.length === 58,
     `EXPLORE.NINE_DAO_PAGODA.floors must have 27 floors (got ${EXPLORE.NINE_DAO_PAGODA?.floors?.length})`);
-  check(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length === 43, 'Must have 43 RES_NINE_DAO_* Pagoda resonance sets');
-  check(MARTIAL.RESONANCE_SETS.length === 62, 'Must have 46 total equipment resonance sets (19 baseline + 27 Pagoda)');
+  check(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length === 58, 'Must have 43 RES_NINE_DAO_* Pagoda resonance sets');
+  check(MARTIAL.RESONANCE_SETS.filter(x => !x.id.startsWith('RES_V320_')).length === 77, 'Must have 46 total equipment resonance sets (19 baseline + 27 Pagoda)');
   console.log('  ✓ [5/6] Pillar 5: 15 Cross-Path Synergies & 27-Floor Nine-Dao Pagoda Verified');
 }
 

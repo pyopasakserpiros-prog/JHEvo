@@ -7,6 +7,8 @@ category: ai-cognition-behavior
 
 # JianghuSect Evolution — Master NPC AI, Cognition & Human Core Blueprint (`js/ai.js`, `js/cognition.js`, `js/human_core.js`)
 
+The same `wildHunt` activity can offer grain on arrival if the regional form matches an NPC’s skill, temperament, tier, and roster. Preference applies within the same shortlist and never restores an unreachable route. [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
+
 > **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This is the authoritative, source-verified engineering blueprint for **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**'s three-tier autonomous NPC mind:
@@ -308,3 +310,53 @@ const res = EXPED.hydrateFigureToNpc(W, figureOrId, { rank: 2, merit: 25 });
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 หากศิษย์หิวต่ำกว่า 24 และมีอาหารกับสถานีว่าง `AI.decide` เลือกกินก่อนเพื่อไม่ให้ `AI.interrupt` ยกเลิกการรักษาแล้วสุ่มกลับไปรักษาซ้ำ กิจกรรมคุมขังยังมาก่อน การเดินทางและการต่อสู้มีเส้นทางของตน ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Post-13 counsel correction (2026-11-15)
+`AI.pairEnd` for `counsel` calls `SECT.HEART_DEMON.counselHeartDemon(W,a,b,null,{quiet:true})`, in addition to reducing the scalar gauge. The previously referenced `counsel` helper does not exist. This resolves one unresolved persistent knot and uses existing scar/reward semantics. Repeated sessions cannot resolve the same knot twice. Regression: `test/post13_economy_review_suite.js`.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+AI.ACTS.opportunity เข้าตัวเลือก utility ตามปกติ มีสิทธิ์ไม่ทำ/รอและ cooldown; SECT.AUTONOMY สร้างตัวเลือก 31 กลุ่มจากสภาพจริงโดยไม่ใช้ RNG ระหว่างประเมิน ตรวจเงื่อนไขใหม่ตอนลงมือ เก็บประวัติในเซฟไม่เกิน 80 คีย์ ห้ามบังคับการเลือกเพียงเพื่อต้องการให้เห็นเหตุการณ์
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+## Living Hunt phase 1
+
+`COG.huntValue` ใช้ `WILD.estimateTrip` (MAP.findPath และ AI.walkSpeed) คิดเวลาไปกลับ ตัด unreachable และลดการเลือกเหยื่ออ่อนกว่า ไม่สุ่มในคะแนน; ค่าเส้นทางใช้ cache เดิม. `wildHunt.where` บันทึกประมาณเวลาใน `landHuntTrip`; startFight เก็บ baseline CULT.rate ในctx. ศึกอสูรหุบเขา T5–T7 ใช้ `offerLandSupport` ประเมินความพร้อม ระยะ กำลัง บทบาท บุคลิก และความไว้ใจ NPC ที่ไปช่วยใช้เส้นทางกิจกรรม `wildHunt` เดิมและเข้าศึกเมื่อเดินถึง ไม่ดึงผู้ที่กำลังปิดด่านหรือทำกิจกรรมสำคัญ `COG.huntValue` และการคัดเป้าใช้ตบะเทียบเคียง ส่วนตำรับที่ขาดวัตถุดิบและคำสั่งจัดหาของแลกน้ำหนักกลับได้ [รายละเอียด](../../../PATCH_REPORTS/VALLEY_BEAST_COMBAT_JS2_V2_6_0.md).
+
+## Boss assembly
+
+Valley minibosses and raids use a separate assembly plan on the beast. Volunteers are selected from interruptible activities using local readiness, equivalent stage, actual ability, personality and distance. They walk through `AI.begin` to a physical staging spot, then enter one shared fight only after the required count arrives. Preserve the on-site reserve and cancel expired or abandoned plans. Ordinary T5–T7 use the existing nearby reinforcement path. [Patch details](../../../PATCH_REPORTS/VALLEY_BEAST_RAIDS_JS2_V2_6_0.md)
+
+## Bounded wildlife target search (2026-11-16)
+`wildHunt.where` เรียงโอกาสจากระยะและช่องว่างพลัง แล้วประเมินCOG.huntValue/เส้นทางจริงครั้งละ8ตัว; ถ้าทั้งชุดเข้าไม่ถึงจึงตรวจชุดถัดไป. เลิกคำนวณคะแนนซ้ำในcomparator. ยังตัด unreachable และบันทึกเวลาไปกลับในlandHuntTrip. ไม่มีการสั่งล่าจากผู้เล่นหรือการบังคับสัดส่วนNPCที่ต้องล่า.
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+ET.activityBias เป็น pure scoring และเพิ่มน้ำหนักเล็กน้อยใต้ความหิว/แผล/หน้าที่ ET.onActivityComplete เก็บชีวิตที่ทำเสร็จจริง เหมือง ปลา และล่าต้องรอผลจาก producer ไม่ให้รางวัลจากชื่อ act อย่างเดียว SIM.buildNpc เริ่ม ET/AM state ก่อนอ่าน UI รักษาวงจรสำนัก→ออกสู้→กลับพักโดย NPC เลือกเอง
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+### Sovereign archives
+
+The archive follows the autonomous sanctum expedition flow. NPCs discover a manual, decide how to hand it over and study it through the normal library route. Only qualified post-expedition parties can find one. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+Public hometown and birth polity live in `npc.ext.world`. `EXPED.homelandFeeling` influences selection, acceptance and warmth of conversation. Keep the effect directional, bounded by loyalty, family ties, honor, freedom and openness, and weakened by trust or familiarity. The same birthplace does not declare a bond. Town visits enter `SECT.AUTONOMY.opportunities` as a discretionary action with a food/personnel reserve and a real route. Civil officeholders and candidates live outside the resident action loop. `EXPED.tickContinentalCourts` runs monthly, weighs willing applicants and uses role aptitude plus patronage. This civil roster uses stable office/holder IDs and stays separate from sect offices.
+
+## JS2-v3.1.0 Living Lore Sync
+- **Version & Schema**: `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-living-lore'` (`187/187` suites passing in `run_parallel_tests.js`).
+- **Living Lore & Epistemic Engine**: `EXPED.LIVING_LORE` (`js/expedition.js`: 4 epistemic layers, 8 fallen dynasties, 28 multi-account canon facts, 20 multi-stage playable story chains `STORY_01..20`) and `COG.LORE` (`js/cognition.js`: bounded `npc.ext.lore`, strict `originEventId` anti-echo-chamber lineage tracking, social debate in `COG.shareLoreOnInteract`, and breakthrough folklore calibration in `COG.perceivedBreakthroughChance`).
+- **Read-Only UI & Autonomy**: `SECT.AUTONOMY.opportunities` includes optional lore follow-through gated by `stage >= 3 || rank >= 2 || post`; observer UI surfaces (`UI.renderNpcLivingLoreCard`, `UI.renderWorldLivingLoreArchive`, `UI.rPolities`, `UI.renderSettlementLoreHtml`) are 100% zero-RNG, zero-mutation, and secret-gated.

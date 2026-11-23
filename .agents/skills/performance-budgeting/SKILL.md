@@ -13,6 +13,10 @@ This skill enforces the strict simulation CPU budget of **JianghuSect Evolution 
 
 ---
 
+## Sect map wild beasts (JS2-v2.6.0)
+
+`drawWild` compiles each authored vector path once into a shared `Path2D`. Species lookup is by ID. Render-time bobbing and wing poses read time and existing coordinates without adding work to the simulation tick. Offscreen beasts are culled with a wider margin for T7 profiles. Distant zoom skips small face details, low quality skips decorative detail, and reduced motion freezes the pose. No device frame-rate benchmark was run for this model refresh.
+
 ## 1. Frame & Tick Budget Architecture (`js/main.js` & `js/sim.js`)
 
 - **Frame Simulation Budget (`js/main.js` lines 6, 47–57):**
@@ -127,3 +131,38 @@ node test/long_simulation.js
 - T4 24–29 px / 850 ms and T5 32–39 / 1,050 remain planned; selected T6 and T7 are implemented (`planned:false`). Future lower tiers should share broader mechanic/element/action groups more; no forced reduction of existing lower-tier special catalogs.
 - Tests: `t6_group_vfx_suite` (114 real producers / 207 child metadata routes, actual attack-role examples, eligibility/modes/purity/caps/gear); `t6_group_vfx_browser` (50 distinct shapes in all modes, 256 same-group pixel comparisons, 25 gear glyphs, mixed 24-cast Canvas stress). Final combined regression: **161/162 PASS, 0 FAIL, 1 previously recorded `startup_ui` overlay TIMEOUT**; syntax **239 JavaScript files**. New and existing visual suites pass. Mobile 80-NPC stress: **1.417 ms/tick** in the final combined run; unchanged isolated retry **1.818 ms/tick**. Development Canvas timings do not certify physical Android performance.
 - Exact assignments, selected exclusions, old artwork and previews: `docs/audits/T6_GROUP_VFX_REGISTRY.md`. Handoff `docs/handovers/NEXT_T5_VISUAL_PATCH.md` starts only when user requests T5; do not repeat T6/T7/Legendary or the completed chronicle feature. Core/save schema and 40-script order unchanged.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+v320_dormant_awakening_suite มีเพดาน wall time 80 NPC จึงอยู่ soloSuites ของ tools/run_parallel_tests.js เช่นชุดงบ CPU อื่น บันทึกเวลา/สภาพแวดล้อมจริง ห้ามเพิ่มเพดานหรืออ้างว่ารันร่วม browser แล้วช้าเป็น regression ของเกมโดยไม่มี isolated comparison
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+วัด ms/work-step ด้วย W.workSteps ไม่ใช้ delta W.t เพราะวัน1.5เท่า Speed96คือ384 requested work-steps/sที่4Hzฐาน วงจำลองมีงบ12ms/เฟรมและรักษา backlog ไม่รับประกัน96จริงทุกเครื่อง ผล isolated80NPC2.788ms/step≈89.7× theoretical ก่อน render/UI ดูรายงาน ห้ามนำผลนี้ไปอ้างว่า sustained96
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+### Transcendent visuals, post-260e
+
+Transcendent scenes share the Legendary full-scene limit (2 high, 1 low), reuse cached Path2D silhouettes, and fall back to a compact scene. The queue is bounded at 24 and low mode draws at most three extra recipients.
+
+### Four-Symbol companion lifecycle
+
+Four-Symbol body drawings reuse cached Path2D. The map renders at most two special companions per NPC, one in low quality. Daily incubation and growth skip undiscovered and inactive nursery entries. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+Court and city administration advances in a monthly pass. The AI admission check for visiting a city uses inexpensive tests; route planning and examination of viable destinations happen after an NPC picks the option. Route graph geometry is cached per topology. Visual tile generation runs outside simulation time, only for the visible map, and uses a 96-tile cache with a per-frame paint budget. Inspect `browser_mobile_perf` separately from atlas tests when changing these paths.

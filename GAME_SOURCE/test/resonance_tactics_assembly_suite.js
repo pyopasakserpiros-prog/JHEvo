@@ -23,9 +23,9 @@ console.log('  PASS: human_core.js byte-for-byte lock verified (155:2f9c9dd7)');
 
 // 1. Pillar A: Baseline + Nine-Dao equipment resonance sets (31 sets, 96 subpaths, T3-T7)
 assert(Array.isArray(MARTIAL.RESONANCE_SETS), 'MARTIAL.RESONANCE_SETS must be an array');
-assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_')).length, 19, 'Must preserve all 19 baseline resonance sets');
-assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, 43, 'Must register all 43 Pagoda resonance sets');
-assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 62, 'Must have 31 baseline plus Pagoda resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_') && !s.id.startsWith('RES_V320_')).length, 19, 'Must preserve all 19 baseline resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, 58, 'Must register all 43 Pagoda resonance sets');
+assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_V320_')).length, 77, 'Must have 31 baseline plus Pagoda resonance sets');
 
 const coveredSubpaths = new Set();
 for (const set of MARTIAL.RESONANCE_SETS) {
@@ -47,7 +47,7 @@ for (const p of Object.keys(CULT.PATHS)) {
     assert(coveredSubpaths.has(s.id), `Subpath ${s.id} not covered by any resonance set!`);
   }
 }
-assert.strictEqual(totalKnownSubpaths, 286, 'Total subpaths in system must be 132');
+assert.strictEqual(totalKnownSubpaths, 358, 'Total subpaths in system must be 132');
 console.log('  PASS: 31 resonance sets verified covering all 96 subpaths');
 
 // Test evaluateResonanceSet functionality
@@ -109,7 +109,7 @@ console.log('  PASS: evaluateResonanceSet 2-piece and 3-piece evaluation & STATS
 
 // New specializations share real baseline traditions without increasing their bonuses.
 for (const sub of JD.MARTIAL.subPaths.filter(s => s.v214)) {
-  const baseSet = MARTIAL.RESONANCE_SETS.find(s => !s.id.startsWith('RES_NINE_DAO_') && s.subpaths.includes(sub.id));
+  const baseSet = MARTIAL.RESONANCE_SETS.find(s => !s.id.startsWith('RES_NINE_DAO_') && !s.id.startsWith('RES_V320_') && s.subpaths.includes(sub.id));
   assert(baseSet, 'Existing baseline tradition covers ' + sub.id);
   const profile = MARTIAL.PROFILES[sub.id];
   assert(baseSet.slots.WEAPON.some(w => profile[3].includes(w)), 'Baseline weapon fits ' + sub.id);

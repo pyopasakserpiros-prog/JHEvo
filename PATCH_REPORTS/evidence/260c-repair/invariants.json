@@ -1,0 +1,12 @@
+{
+  "AGENTS.md_unchanged_from_main_debug": true,
+  "GAME_SOURCE/js/human_core.js_unchanged_from_main_debug": true,
+  "GAME_SOURCE/index.html_unchanged_from_main_debug": true,
+  "GAME_SOURCE/test/load.js_unchanged_from_main_debug": true,
+  "index_script_count": 40,
+  "sha256": {
+    "AGENTS.md": "41610ec4de7f5d620c5de0a605094e64d95ec9a67acf41365dec30e83e7d29d3",
+    "GAME_SOURCE/js/human_core.js": "a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542",
+    "GAME_SOURCE/JianghuSect_single.html": "7c7fb007193d1e222b266c4c8fcf6784241bc46836a682626203ce7b1adb9085"
+  }
+}

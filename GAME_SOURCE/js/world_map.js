@@ -1,14 +1,14 @@
-/* world_map.js — แผนที่สำนัก 240×192 ช่อง: ภูมิประเทศ อาคาร จุดทำกิจกรรม (stations) ธารน้ำปราณทักษิณ กริดนำทาง และ A*
+/* world_map.js — แผนที่สำนักและป่ารอบสำนัก 360×304 ช่อง: ภูมิประเทศ อาคาร จุดทำกิจกรรม (stations) ธารน้ำปราณทักษิณ กริดนำทาง และ A*
  * หน่วย: 1 ช่อง = 1 tile (วาด 16px). พิกัดเป็นทศนิยมของช่อง (ศูนย์กลางช่อง = i+0.5) */
 (function (g) {
   'use strict';
   const U = g.U || require('./util.js');
   const MAP = {};
-  const W = 240, H = 192, H_BASE = 160, OX = 22, OY = 14;
-  MAP.W = W; MAP.H = H; MAP.H_BASE = H_BASE; MAP.TILE = 16;
-  MAP.EXIT = { x: 118, y: 188 };
-  MAP.LEGACY_EXIT = { x: 118, y: 158 };
-  MAP.GATE_IN = { x: 118, y: 124 };
+  const W = 360, H = 304, H_BASE = 248, OX = 84, OY = 56;
+  MAP.W = W; MAP.H = H; MAP.H_BASE = H_BASE; MAP.OX = OX; MAP.OY = OY; MAP.TILE = 16;
+  MAP.EXIT = { x: 180, y: 298 };
+  MAP.LEGACY_EXIT = { x: 118, y: 188 };
+  MAP.GATE_IN = { x: 180, y: 196 };
 
   // ชนิดภูมิประเทศ
   const T = { GRASS: 0, ROAD: 1, WATER: 2, CLIFF: 3, FOREST: 4, WALL: 5, FLOOR: 6, FARM: 7, DIRT: 8, PLAZA: 9, ARCH: 10, SAND: 11, MOSS: 12 };
@@ -19,13 +19,16 @@
 
   /* -------- ทะเบียนชนิดอาคาร -------- */
   const BTYPES = {
-    gate: { nameTh: 'ประตูสำนัก', icon: '⛩️', roof: '#2f4858', wall: '#8b2e2e', desc: 'ทางเข้าออกเดียวของสำนัก ผู้ออกเดินทางและผู้มาเยือนผ่านที่นี่' },
-    main_hall: { nameTh: 'ตำหนักใหญ่', icon: '🏯', roof: '#7a1f1f', wall: '#c79a3b', desc: 'ที่ทำการเจ้าสำนักและห้องประชุมผู้อาวุโส' },
-    ancestral: { nameTh: 'หออนุสรณ์บรรพชน', icon: '🕯️', roof: '#3d3d4f', wall: '#a8a29e', desc: 'ที่สักการะบรรพชนและผู้วายชนม์ของสำนัก' },
-    meditation_hall: { nameTh: 'หอบำเพ็ญวิญญาณ', icon: '🧘', roof: '#1f5f6b', wall: '#d6c8a4', desc: 'สถานที่บ่มเพาะปราณ ตั้งอยู่เหนือเส้นชีพจรวิญญาณ' },
-    scripture: { nameTh: 'หอคัมภีร์', icon: '📜', roof: '#3a3a6a', wall: '#7b4b2a', desc: 'คลังตำราและวิชา ใช้ศึกษา คัดลอก และวิจัยค่ายกล/ยันต์' },
+    gate: { nameTh: 'ประตูสำนัก', icon: '⛩️', roof: '#2f4858', wall: '#8b2e2e', desc: 'ประตูหลักทิศใต้ เชื่อมสู่แนวสมุนไพรปลอดภัย สะพานธารน้ำปราณทักษิณ และทางออกยุทธภพ' },
+    gate_north: { nameTh: 'ป้อมประตูอุดร', icon: '⛩️', roof: '#2c4a5e', wall: '#7a3b3b', desc: 'ป้อมประตูทิศเหนือ เชื่อมสู่ยอดเขาเหมันต์อุดรและจุดพักฟื้นเวรยาม' },
+    gate_west: { nameTh: 'ป้อมประตูประจิม', icon: '⛩️', roof: '#2d5248', wall: '#7a4b3a', desc: 'ป้อมประตูทิศตะวันตก เชื่อมสู่ป่าไผ่หมอกครามประจิมและจุดพักนักล่า' },
+    gate_east: { nameTh: 'ป้อมประตูบูรพา', icon: '⛩️', roof: '#3d4858', wall: '#7a4b3a', desc: 'ป้อมประตูทิศตะวันออก เชื่อมสู่หน้าผาหินแกร่งบูรพาและจุดเฝ้าระวัง' },
+    main_hall: { nameTh: 'ตำหนักใหญ่', icon: '🏯', roof: '#7a1f1f', wall: '#c79a3b', desc: 'ศูนย์กลางอาญาสิทธิ์แห่งขุนเขา ที่ซึ่งเจ้าสำนักและเหล่าผู้อาวุโสประชุมชี้ขาดชะตากรรมของศิษย์ทั้งสำนัก' },
+    ancestral: { nameTh: 'หออนุสรณ์บรรพชน', icon: '🕯️', roof: '#3d3d4f', wall: '#a8a29e', desc: 'วิหารโคมวิญญาณอันขรึมขลัง เรียงรายด้วยป้ายนามของเหล่าศิษย์และบูรพาจารย์ผู้ล่วงลับ คอยปกปักรักษารุ่นหลังชั่วนิรันดร์' },
+    meditation_hall: { nameTh: 'หอบำเพ็ญวิญญาณ', icon: '🧘', roof: '#1f5f6b', wall: '#d6c8a4', desc: 'โถงศิลาเงียบสงัดที่ตั้งอยู่เหนือตาน้ำชีพจรดิน อบอวลด้วยควันกำยานสงบจิตและกระแสปราณฟ้าดินหนาแน่น' },
+    scripture: { nameTh: 'หอคัมภีร์', icon: '📜', roof: '#3a3a6a', wall: '#7b4b2a', desc: 'หอไม้โบราณเรียงรายด้วยม้วนไม้ไผ่และหยกจารึกเคล็ดวิชาที่บรรพชนสำนักรวบรวมแลกมาด้วยเลือดและหยาดเหงื่อ' },
     treasury: { nameTh: 'หอคลังทรัพย์', icon: '💰', roof: '#6b5a1f', wall: '#4a3a22', desc: 'เก็บศิลาวิญญาณและวัตถุดิบของสำนัก' },
-    discipline: { nameTh: 'หอวินัย', icon: '⚖️', roof: '#222a35', wall: '#5b6470', desc: 'บังคับใช้กฎสำนัก คุมขังผู้กระทำผิด' },
+    discipline: { nameTh: 'หอวินัย', icon: '⚖️', roof: '#222a35', wall: '#5b6470', desc: 'ห้องขังศิลาดำเย็นเยียบใต้ฐานผา สำหรับกักบริเวณผู้ละเมิดกฎสำนักและจองจำเชลยศึกจากต่างแดน' },
     dorm_core: { nameTh: 'เรือนศิษย์แกน', icon: '🛏️', roof: '#5a2d7a', wall: '#d2b48c', desc: 'ที่พักศิษย์แกนกลาง' },
     dorm_inner: { nameTh: 'เรือนศิษย์ใน', icon: '🛏️', roof: '#2d5a7a', wall: '#d2b48c', desc: 'ที่พักศิษย์ใน' },
     dorm_outer: { nameTh: 'เรือนศิษย์นอก', icon: '🛏️', roof: '#5a6a4a', wall: '#c4a77d', desc: 'ที่พักศิษย์นอกและผู้ฝึกหัด' },
@@ -84,19 +87,19 @@
     ['alchemy', 'alchemy', 128, 56, 18, 10, 4],
     ['forge', 'forge', 128, 74, 20, 10, 4],
     ['mission_hall', 'mission_hall', 100, 98, 10, 6, 3],
-    ['tea_garden', 'tea_garden', 114, 58, 12, 6, 4],
-    ['shrine', 'shrine', 62, 58, 10, 6, 3],
+    ['tea_garden', 'tea_garden', 114, 56, 12, 6, 3],
+    ['shrine', 'shrine', 62, 56, 10, 6, 3],
     ['mine', 'mine', 26, 16, 16, 10, 3]
   ];
   const PEAK_LAYOUT_SPECS = [
-    { type: 'peak_sword', id: 'peak_sword', peakId: 'PEAK_AZURE_SWORD', aliasId: 'PEAK_SWORD', dir: 'NW', dirTh: 'ทิศตะวันตกเฉียงเหนือ', lx: 11, ly: 14, w: 13, h: 8, yard: 2, leylineColor: '#48cae4', bannerColor: '#0288d1' },
-    { type: 'peak_array', id: 'peak_array', peakId: 'PEAK_ASTRAL_MECHANISM', aliasId: 'PEAK_ARRAY', dir: 'W', dirTh: 'ทิศตะวันตก', lx: 11, ly: 66, w: 14, h: 8, yard: 2, leylineColor: '#64c3ce', bannerColor: '#0097a7' },
-    { type: 'peak_body', id: 'peak_body', peakId: 'PEAK_VAJRA_BODY', aliasId: 'PEAK_BODY', dir: 'N', dirTh: 'ทิศเหนือ', lx: 64, ly: 7, w: 16, h: 6, yard: 2, leylineColor: '#f4a261', bannerColor: '#e65100' },
-    { type: 'peak_alchemy', id: 'peak_alchemy', peakId: 'PEAK_DIVINE_CAULDRON', aliasId: 'PEAK_ALCHEMY', dir: 'NE', dirTh: 'ทิศตะวันออกเฉียงเหนือ', lx: 166, ly: 14, w: 16, h: 8, yard: 2, leylineColor: '#52b788', bannerColor: '#2e7d32' },
-    { type: 'peak_beast', id: 'peak_beast', peakId: 'PEAK_DIVINE_BEAST', aliasId: 'PEAK_BEAST', dir: 'E', dirTh: 'ทิศตะวันออก', lx: 168, ly: 80, w: 16, h: 8, yard: 2, leylineColor: '#e09f3e', bannerColor: '#d97706' },
-    { type: 'peak_scholar', id: 'peak_scholar', peakId: 'PEAK_SAGE_STRATEGIST', aliasId: 'PEAK_SCHOLAR', dir: 'S', dirTh: 'ทิศใต้ริมธารน้ำ', lx: 168, ly: 96, w: 16, h: 8, yard: 2, leylineColor: '#76c893', bannerColor: '#1b4332' },
-    { type: 'peak_chaos', id: 'peak_chaos', peakId: 'PEAK_CRIMSON_SHADOW', aliasId: 'PEAK_CHAOS', dir: 'SW', dirTh: 'ทิศตะวันตกเฉียงใต้ (เหนือ)', lx: 11, ly: 84, w: 14, h: 8, yard: 2, leylineColor: '#ef476f', bannerColor: '#880e4f' },
-    { type: 'peak_magic', id: 'peak_magic', peakId: 'PEAK_SOUL_SAMSARA', aliasId: 'PEAK_MAGIC', dir: 'SW_LOWER', dirTh: 'ทิศตะวันตกเฉียงใต้ (ใต้)', lx: 11, ly: 100, w: 14, h: 8, yard: 2, leylineColor: '#b5838d', bannerColor: '#6a1b9a' }
+    { type: 'peak_sword', id: 'peak_sword', peakId: 'PEAK_AZURE_SWORD', aliasId: 'PEAK_SWORD', dir: 'NW', dirTh: 'ทิศตะวันตกเฉียงเหนือ', lx: -8, ly: 12, w: 15, h: 8, yard: 2, leylineColor: '#48cae4', bannerColor: '#0288d1' },
+    { type: 'peak_array', id: 'peak_array', peakId: 'PEAK_ASTRAL_MECHANISM', aliasId: 'PEAK_ARRAY', dir: 'W', dirTh: 'ทิศตะวันตก', lx: -8, ly: 42, w: 15, h: 8, yard: 2, leylineColor: '#64c3ce', bannerColor: '#0097a7' },
+    { type: 'peak_body', id: 'peak_body', peakId: 'PEAK_VAJRA_BODY', aliasId: 'PEAK_BODY', dir: 'N', dirTh: 'ทิศเหนือ', lx: 54, ly: 4, w: 16, h: 7, yard: 2, leylineColor: '#f4a261', bannerColor: '#e65100' },
+    { type: 'peak_alchemy', id: 'peak_alchemy', peakId: 'PEAK_DIVINE_CAULDRON', aliasId: 'PEAK_ALCHEMY', dir: 'NE', dirTh: 'ทิศตะวันออกเฉียงเหนือ', lx: 186, ly: 12, w: 16, h: 8, yard: 2, leylineColor: '#52b788', bannerColor: '#2e7d32' },
+    { type: 'peak_beast', id: 'peak_beast', peakId: 'PEAK_DIVINE_BEAST', aliasId: 'PEAK_BEAST', dir: 'E', dirTh: 'ทิศตะวันออก', lx: 186, ly: 42, w: 16, h: 8, yard: 2, leylineColor: '#e09f3e', bannerColor: '#d97706' },
+    { type: 'peak_scholar', id: 'peak_scholar', peakId: 'PEAK_SAGE_STRATEGIST', aliasId: 'PEAK_SCHOLAR', dir: 'S', dirTh: 'ทิศใต้ริมธารน้ำ', lx: 186, ly: 96, w: 16, h: 8, yard: 2, leylineColor: '#76c893', bannerColor: '#1b4332' },
+    { type: 'peak_chaos', id: 'peak_chaos', peakId: 'PEAK_CRIMSON_SHADOW', aliasId: 'PEAK_CHAOS', dir: 'SW', dirTh: 'ทิศตะวันตกเฉียงใต้ (เหนือ)', lx: -8, ly: 84, w: 15, h: 8, yard: 2, leylineColor: '#ef476f', bannerColor: '#880e4f' },
+    { type: 'peak_magic', id: 'peak_magic', peakId: 'PEAK_SOUL_SAMSARA', aliasId: 'PEAK_MAGIC', dir: 'SW_LOWER', dirTh: 'ทิศตะวันตกเฉียงใต้ (ใต้)', lx: -8, ly: 112, w: 15, h: 8, yard: 2, leylineColor: '#b5838d', bannerColor: '#6a1b9a' }
   ];
   MAP.PEAK_LAYOUTS = PEAK_LAYOUT_SPECS.map(p => Object.assign({}, p, { x: p.lx + OX, y: p.ly + OY }));
   MAP.PEAK_BUILDING_IDS = Object.freeze(PEAK_LAYOUT_SPECS.map(p => p.id));
@@ -110,18 +113,25 @@
     ['cave', 'cave', 174, 30, 10, 8], ['stele', 'stele', 174, 44, 8, 6], ['spring', 'spring', 174, 55, 8, 7], ['ruin', 'ruin', 174, 68, 10, 8],
     ['grove', 'grove', 12, 30, 12, 10], ['realm_gate', 'gate_zone', 11, 50, 12, 12]
   ];
-  const TOWERS = [[10, 6], [184, 6], [10, 113], [184, 113]];
-  MAP.PLOTS = [ // ที่ดินว่างสำหรับขยายในอนาคต (ท้องถิ่น)
-    { id: 'plot_w', nameTh: 'ที่ดินว่างฝั่งตะวันตก', x: 10, y: 28, w: 14, h: 84 },
-    { id: 'plot_e', nameTh: 'ที่ดินว่างฝั่งตะวันออก', x: 172, y: 28, w: 14, h: 84 },
-    { id: 'plot_n', nameTh: 'ที่ดินว่างฝั่งเหนือ', x: 44, y: 6, w: 140, h: 8 },
-    { id: 'plot_se', nameTh: 'ที่ดินว่างมุมตะวันออกเฉียงใต้', x: 136, y: 110, w: 46, h: 6 }
+  const TOWERS = [[-10, 2], [198, 2], [-10, 140], [198, 140]];
+  MAP.PLOTS = [ // ที่ดินว่างสำหรับขยายในอนาคต 8 แปลงในกำแพงสำนัก 216×148
+    { id: 'plot_w', nameTh: 'ที่ดินว่างฝั่งตะวันตกตอนบน', x: 10, y: 26, w: 14, h: 30 },
+    { id: 'plot_sw', nameTh: 'ที่ดินว่างฝั่งตะวันตกเฉียงใต้', x: 10, y: 74, w: 16, h: 52 },
+    { id: 'plot_e', nameTh: 'ที่ดินว่างฝั่งตะวันออกตอนบน', x: 170, y: 16, w: 14, h: 12 },
+    { id: 'plot_se', nameTh: 'ที่ดินว่างมุมตะวันออกเฉียงใต้', x: 140, y: 114, w: 44, h: 24 },
+    { id: 'plot_n', nameTh: 'ที่ดินว่างฝั่งเหนือตอนใน', x: 112, y: 4, w: 70, h: 10 },
+    { id: 'plot_nw', nameTh: 'ที่ดินว่างมุมตะวันตกเฉียงเหนือ', x: 10, y: 4, w: 40, h: 10 },
+    { id: 'plot_sc', nameTh: 'ที่ดินว่างทิศใต้หน้าลานฝึก', x: 28, y: 114, w: 60, h: 24 },
+    { id: 'plot_ne', nameTh: 'ที่ดินว่างระเบียงบูรพาตอนล่าง', x: 170, y: 80, w: 14, h: 32 }
   ].map(p => ({ id: p.id, nameTh: p.nameTh, x: p.x + OX, y: p.y + OY, w: p.w, h: p.h }));
 
   /* -------- สถานี (station) ต่อชนิดอาคาร -------- */
   // spec: [kind, count, where('yard'|'in'|'open'), spacing]
   const STN = {
-    gate: [['guard', 2, 'yard']],
+    gate: [['guard', 3, 'yard'], ['relax', 2, 'yard']],
+    gate_north: [['guard', 2, 'yard'], ['relax', 2, 'yard']],
+    gate_west: [['guard', 2, 'yard'], ['relax', 2, 'yard']],
+    gate_east: [['guard', 2, 'yard'], ['relax', 2, 'yard']],
     main_hall: [['work', 4, 'in'], ['council', 12, 'in'], ['audience', 3, 'yard']],
     ancestral: [['pray', 4, 'yard']],
     meditation_hall: [['meditate', 10, 'yard']],
@@ -157,12 +167,12 @@
   };
   MAP.STN = STN;
 
-  // คำนวณแนวร่องน้ำของ「ธารน้ำปราณทักษิณ」(Southern Spirit River)
+  // คำนวณแนวร่องน้ำของ「ธารน้ำปราณทักษิณ」(Southern Spirit River, y ≈ 268 บนแผนที่ 360×304)
   function riverCenterY(x) {
-    return Math.round(170 + 2.0 * Math.sin((x - 30) / 22) + 1.0 * Math.cos((x - 90) / 14));
+    return Math.round(268 + 2.5 * Math.sin((x - 45) / 32) + 1.2 * Math.cos((x - 135) / 20));
   }
   function riverHalfWidth(x) {
-    return (x >= 156 && x <= 192) ? 4 : 3;
+    return (x >= 230 && x <= 290) ? 4 : 3;
   }
   MAP.riverCenterY = riverCenterY;
   MAP.riverHalfWidth = riverHalfWidth;
@@ -170,7 +180,7 @@
   /* -------- สร้างแผนที่ -------- */
   MAP.create = function (seed) {
     const rng = new U.RNG('map' + (seed || 1));
-    const M = { W, H, seed, hasSouthernRiver: true };
+    const M = { W, H, seed, hasSouthernRiver: true, topologyRev: 1 };
     const n = W * H;
     M.terrain = new Uint8Array(n);       // ชนิดพื้น
     M.block = new Uint8Array(n);         // 0 โล่ง, 1 อาคาร/สิ่งก่อสร้าง, 2 ธรรมชาติกั้น, 3 ต้นไม้/หิน
@@ -180,45 +190,40 @@
     const inb = (x, y) => x >= 0 && y >= 0 && x < W && y < H;
     M.idx = idx; M.inb = inb;
 
-    // 1) ภูเขาล้อมรอบ + พื้นหญ้าในกำแพง + ลานนอกประตู (คงลำดับเดิมสำหรับ y < H_BASE = 160 เพื่อความเข้ากันได้ของเซฟ)
+    // 1) ภูเขาล้อมรอบ + พื้นหญ้าในกำแพงสำนักขยายใหม่ (WX0=72..WX1=288, WY0=56..WY1=204 = 216×148)
     M.terrain.fill(T.CLIFF); M.block.fill(2);
-    const WX0 = 8 + OX, WY0 = 4 + OY, WX1 = 188 + OX, WY1 = 118 + OY; // กรอบกำแพง (รวมความหนา)
+    const WX0 = 72, WY0 = 56, WX1 = 288, WY1 = 204; // กรอบกำแพงสำนัก (รวมความหนา 2 ช่อง)
     for (let y = WY0; y <= WY1; y++) for (let x = WX0; x <= WX1; x++) {
       const wall = (x <= WX0 + 1 || x >= WX1 - 1 || y <= WY0 + 1 || y >= WY1 - 1);
       M.terrain[idx(x, y)] = wall ? T.WALL : T.GRASS; M.block[idx(x, y)] = wall ? 2 : 0;
     }
     M.wall = { x0: WX0, y0: WY0, x1: WX1, y1: WY1 };
-    // นอกประตู: ทุ่งหญ้า + ถนนสู่ขอบแผนที่เดิม (y <= 159)
-    for (let y = WY1 + 1; y < H_BASE; y++) for (let x = 96; x <= 142; x++) {
-      const d = Math.abs(x - 118) / 24, edge = y - WY1;
-      if (d < 1 - edge * 0.004) { M.terrain[idx(x, y)] = T.GRASS; M.block[idx(x, y)] = 0; }
-    }
-    // พื้นที่ล่าและป่ารอบสำนัก เชื่อมต่อกันรอบกำแพงทั้ง 4 ด้าน (ใต้ ซ้าย ขวา บน)
-    for (let y = WY1 + 1; y < H_BASE; y++) for (let x = 2; x < W - 2; x++) { M.terrain[idx(x, y)] = T.GRASS; M.block[idx(x, y)] = 0; }
-    for (let y = 2; y <= WY1; y++) for (let x = 2; x < WX0; x++) { M.terrain[idx(x, y)] = T.GRASS; M.block[idx(x, y)] = 0; }
-    for (let y = 2; y <= WY1; y++) for (let x = WX1 + 1; x < W - 2; x++) { M.terrain[idx(x, y)] = T.GRASS; M.block[idx(x, y)] = 0; }
-    for (let y = 2; y < WY0; y++) for (let x = 2; x < W - 2; x++) { M.terrain[idx(x, y)] = T.GRASS; M.block[idx(x, y)] = 0; }
+    // พื้นที่ล่าและป่ารอบสำนัก 4 ทิศ (ใต้ y=205..247, ตะวันตก x=3..71, ตะวันออก x=289..356, เหนือ y=3..55)
+    for (let y = WY1 + 1; y < H_BASE; y++) for (let x = 3; x < W - 3; x++) { M.terrain[idx(x, y)] = T.GRASS; M.block[idx(x, y)] = 0; }
+    for (let y = 3; y <= WY1; y++) for (let x = 3; x < WX0; x++) { M.terrain[idx(x, y)] = T.GRASS; M.block[idx(x, y)] = 0; }
+    for (let y = 3; y <= WY1; y++) for (let x = WX1 + 1; x < W - 3; x++) { M.terrain[idx(x, y)] = T.GRASS; M.block[idx(x, y)] = 0; }
+    for (let y = 3; y < WY0; y++) for (let x = 3; x < W - 3; x++) { M.terrain[idx(x, y)] = T.GRASS; M.block[idx(x, y)] = 0; }
 
-    // ช่องประตูกำแพงด้านต่าง ๆ (เปิดเชื่อมต่อออกสู่พื้นที่ล่ารอบสำนัก)
-    // 1. ประตูทิศใต้ (ทางเข้าหลัก)
+    // ช่องประตูกำแพงทั้ง 4 ทิศ เชื่อมสู่พื้นที่ป่ารอบสำนัก
+    // 1. ประตูทิศใต้ (ทางเข้าหลัก x = 177..182, y = 203..204)
     const GX0 = 93 + OX, GX1 = 98 + OX;
     for (let y = WY1 - 1; y <= WY1; y++) for (let x = GX0; x <= GX1; x++) { M.terrain[idx(x, y)] = T.ARCH; M.block[idx(x, y)] = 0; }
-    for (let y = WY1 + 1; y < H_BASE; y++) for (let x = 116; x <= 120; x++) { M.terrain[idx(x, y)] = T.ROAD; M.block[idx(x, y)] = 0; }
+    for (let y = WY1 + 1; y < H_BASE; y++) for (let x = 178; x <= 182; x++) { M.terrain[idx(x, y)] = T.ROAD; M.block[idx(x, y)] = 0; }
 
-    // 2. ประตูทิศประจิม (ตะวันตก - สู่ป่าไผ่หมอกคราม)
-    for (let y = 78; y <= 82; y++) for (let x = WX0; x <= WX0 + 1; x++) { M.terrain[idx(x, y)] = T.ARCH; M.block[idx(x, y)] = 0; }
-    for (let y = 79; y <= 81; y++) for (let x = 14; x < WX0; x++) { M.terrain[idx(x, y)] = T.ROAD; M.block[idx(x, y)] = 0; }
+    // 2. ประตูทิศประจิม (ตะวันตก x = 72..73, y = 121..125)
+    for (let y = 121; y <= 125; y++) for (let x = WX0; x <= WX0 + 1; x++) { M.terrain[idx(x, y)] = T.ARCH; M.block[idx(x, y)] = 0; }
+    for (let y = 122; y <= 124; y++) for (let x = 12; x < WX0; x++) { M.terrain[idx(x, y)] = T.ROAD; M.block[idx(x, y)] = 0; }
 
-    // 3. ประตูทิศบูรพา (ตะวันออก - สู่ผาหินแกร่ง)
-    for (let y = 78; y <= 82; y++) for (let x = WX1 - 1; x <= WX1; x++) { M.terrain[idx(x, y)] = T.ARCH; M.block[idx(x, y)] = 0; }
-    for (let y = 79; y <= 81; y++) for (let x = WX1 + 1; x <= 226; x++) { M.terrain[idx(x, y)] = T.ROAD; M.block[idx(x, y)] = 0; }
+    // 3. ประตูทิศบูรพา (ตะวันออก x = 287..288, y = 121..125)
+    for (let y = 121; y <= 125; y++) for (let x = WX1 - 1; x <= WX1; x++) { M.terrain[idx(x, y)] = T.ARCH; M.block[idx(x, y)] = 0; }
+    for (let y = 122; y <= 124; y++) for (let x = WX1 + 1; x <= 348; x++) { M.terrain[idx(x, y)] = T.ROAD; M.block[idx(x, y)] = 0; }
 
-    // 4. ประตูทิศอุดร (ทางเหนือ - สู่ยอดเขาเหมันต์)
-    for (let y = WY0; y <= WY0 + 1; y++) for (let x = 116; x <= 120; x++) { M.terrain[idx(x, y)] = T.ARCH; M.block[idx(x, y)] = 0; }
-    for (let y = 4; y < WY0; y++) for (let x = 117; x <= 119; x++) { M.terrain[idx(x, y)] = T.ROAD; M.block[idx(x, y)] = 0; }
-    for (let y = WY0 + 2; y <= 28 + OY; y++) for (let x = 117; x <= 119; x++) { if (M.block[idx(x, y)] === 0) M.terrain[idx(x, y)] = T.ROAD; }
+    // 4. ประตูทิศอุดร (เหนือ x = 177..182, y = 56..57)
+    for (let y = WY0; y <= WY0 + 1; y++) for (let x = 177; x <= 182; x++) { M.terrain[idx(x, y)] = T.ARCH; M.block[idx(x, y)] = 0; }
+    for (let y = 8; y < WY0; y++) for (let x = 178; x <= 181; x++) { M.terrain[idx(x, y)] = T.ROAD; M.block[idx(x, y)] = 0; }
+    for (let y = WY0 + 2; y <= 28 + OY; y++) for (let x = 178; x <= 181; x++) { if (M.block[idx(x, y)] === 0) M.terrain[idx(x, y)] = T.ROAD; }
 
-    // 2) อาคารบนพื้นที่เดิม
+    // 2) อาคารหลักในกำแพงสำนัก
     let bidn = 0;
     function addBuilding(type, id, lx, ly, w, h, yard, open, absCoord) {
       const x = absCoord ? lx : lx + OX, y = absCoord ? ly : ly + OY;
@@ -242,21 +247,30 @@
     LAYOUT.forEach(a => addBuilding(a[0], a[1], a[2], a[3], a[4], a[5], a[6], false));
     OPEN.forEach(a => addBuilding(a[0], a[1], a[2], a[3], a[4], a[5], 0, true));
     TOWERS.forEach((t, i) => addBuilding('tower', 'tower' + i, t[0], t[1], 4, 4, 2, false));
-    // ประตู
+    // ประตูหลักทิศใต้ และป้อมประตูอีก 3 ทิศ (เหนือ/ตะวันตก/ตะวันออก)
     {
-      const b = addBuilding('gate', 'gate', 88, 114, 16, 5, 0, false);
-      b.area = { x: b.x, y: b.y, w: 16, h: 5 };
+      const b = addBuilding('gate', 'gate', 172, 199, 16, 5, 2, false, true);
+      b.area = { x: b.x, y: b.y - 2, w: 16, h: 7 };
       for (let yy = WY1 - 1; yy <= WY1; yy++) for (let xx = GX0; xx <= GX1; xx++) { M.block[idx(xx, yy)] = 0; M.terrain[idx(xx, yy)] = T.ARCH; }
       for (let yy = b.y; yy < b.y + b.h; yy++) for (let xx = GX0; xx <= GX1; xx++) { M.block[idx(xx, yy)] = 0; M.terrain[idx(xx, yy)] = T.ARCH; M.owner[idx(xx, yy)] = -1; }
-      b.door = { x: 96 + OX, y: b.y - 1 };
+      b.door = { x: 180, y: b.y - 1 };
+
+      const gn = addBuilding('gate_north', 'gate_north', 170, 59, 6, 4, 2, false, true);
+      gn.door = { x: 173, y: 63 };
+      const gw = addBuilding('gate_west', 'gate_west', 75, 114, 5, 5, 2, false, true);
+      gw.door = { x: 77, y: 119 };
+      const ge = addBuilding('gate_east', 'gate_east', 280, 114, 5, 5, 2, false, true);
+      ge.door = { x: 282, y: 119 };
     }
     M.byId = {}; M.buildings.forEach(b => M.byId[b.id] = b);
 
-    // 3) ถนนหลัก
+    // 3) ถนนหลักเชื่อมทั้ง 4 ประตูและระเบียงรอบในสำนัก
     const paintRoad = (x, y, w, h) => { for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) { if (!inb(xx, yy)) continue; const k = idx(xx, yy); if (M.block[k] === 0 && M.terrain[k] !== T.PLAZA && M.terrain[k] !== T.FLOOR && M.terrain[k] !== T.ARCH) M.terrain[k] = T.ROAD; } };
-    paintRoad(93 + OX, 48 + OY, 6, 66);        // แกนเหนือ–ใต้
-    paintRoad(12 + OX, 66 + OY, 172, 3);        // ตะวันออก–ตะวันตก
-    paintRoad(93 + OX, 28 + OY, 6, 10);
+    paintRoad(93 + OX, 48 + OY, 6, 95);        // แกนเหนือ–ใต้หลักถึงประตูใต้
+    paintRoad(-10 + OX, 66 + OY, 214, 3);      // แกนตะวันตก–ตะวันออกหลักถึงประตูทั้งสองฝั่ง
+    paintRoad(93 + OX, 2 + OY, 6, 40);         // แกนเหนือสู่ประตูอุดร
+    paintRoad(8 + OX, 12 + OY, 3, 126);        // ถนนวงแหวนฝั่งตะวันตกเชื่อมยอดเขาศักดิ์สิทธิ์
+    paintRoad(183 + OX, 12 + OY, 3, 126);      // ถนนวงแหวนฝั่งตะวันออกเชื่อมยอดเขาศักดิ์สิทธิ์
     // 4) เชื่อมประตูอาคารเข้าถนนด้วย A*
     function isRoadish(x, y) { const t = M.terrain[idx(x, y)]; return t === T.ROAD || t === T.PLAZA || t === T.ARCH; }
     // สร้างกริดชั่วคราวเพื่อนำทางก่อนวางต้นไม้
@@ -305,9 +319,9 @@
     const idx = M.idx;
     const inb = M.inb;
 
-    // 7.1 เปิดพื้นที่หุบเขาริมน้ำทางใต้ (y = 158..189, x = 2..W-3)
+    // 7.1 เปิดพื้นที่หุบเขาริมน้ำทางใต้ (y = H_BASE-2..H-3, x = 3..W-4)
     for (let y = H_BASE - 2; y < H - 2; y++) {
-      for (let x = 2; x < W - 2; x++) {
+      for (let x = 3; x < W - 3; x++) {
         const k = idx(x, y);
         if (y >= H_BASE) {
           M.terrain[k] = T.GRASS;
@@ -317,17 +331,17 @@
     }
 
     // 7.2 ขุดร่องน้ำ「ธารน้ำปราณทักษิณ」(T.WATER, block = 2 เดินลุยน้ำไม่ได้) และตลิ่งทราย/มอส
-    for (let x = 2; x < W - 2; x++) {
+    for (let x = 3; x < W - 3; x++) {
       const cy = riverCenterY(x);
       const hw = riverHalfWidth(x);
       const northShore = cy - hw - 1;
       const southShore = cy + hw + 1;
       if (inb(x, northShore)) {
-        M.terrain[idx(x, northShore)] = (x >= 44 && x <= 82) || (x >= 156 && x <= 192) ? T.MOSS : T.SAND;
+        M.terrain[idx(x, northShore)] = (x >= 60 && x <= 125) || (x >= 230 && x <= 292) ? T.MOSS : T.SAND;
         M.block[idx(x, northShore)] = 0;
       }
       if (inb(x, southShore)) {
-        M.terrain[idx(x, southShore)] = (x >= 44 && x <= 82) || (x >= 156 && x <= 192) ? T.MOSS : T.SAND;
+        M.terrain[idx(x, southShore)] = (x >= 60 && x <= 125) || (x >= 230 && x <= 292) ? T.MOSS : T.SAND;
         M.block[idx(x, southShore)] = 0;
       }
       for (let y = cy - hw; y <= cy + hw; y++) {
@@ -337,30 +351,30 @@
       }
       // ทางเดินเลียบฝั่งเหนือและฝั่งใต้
       const nPathY = cy - hw - 2;
-      if (x >= 42 && x <= 196 && inb(x, nPathY)) {
+      if (x >= 56 && x <= 304 && inb(x, nPathY)) {
         M.terrain[idx(x, nPathY)] = T.ROAD;
         M.block[idx(x, nPathY)] = 0;
       }
       const sPathY = cy + hw + 2;
-      if (x >= 58 && x <= 178 && inb(x, sPathY)) {
+      if (x >= 80 && x <= 280 && inb(x, sPathY)) {
         M.terrain[idx(x, sPathY)] = T.ROAD;
         M.block[idx(x, sPathY)] = 0;
       }
     }
 
     // 7.3 ถนนใหญ่ทิศใต้และสะพานข้ามธารน้ำ 3 แห่ง (เดินข้ามได้จริง block = 0)
-    // สะพานหลักกลาง (x = 116..120) เชื่อมประตูสำนักสู่ทางออกยุทธภพ MAP.EXIT (118, 188)
-    for (let y = H_BASE - 2; y <= H - 3; y++) {
-      for (let x = 116; x <= 120; x++) {
+    // สะพานหลักกลาง (x = 178..182) เชื่อมประตูสำนักสู่ทางออกยุทธภพ MAP.EXIT (180, 298)
+    for (let y = M.wall.y1 + 1; y <= H - 3; y++) {
+      for (let x = 178; x <= 182; x++) {
         const cy = riverCenterY(x), hw = riverHalfWidth(x);
         const onBridge = y >= cy - hw - 1 && y <= cy + hw + 1;
         const k = idx(x, y);
-        M.terrain[k] = onBridge ? ((x === 116 || x === 120) ? T.FLOOR : T.ROAD) : T.ROAD;
+        M.terrain[k] = onBridge ? ((x === 178 || x === 182) ? T.FLOOR : T.ROAD) : T.ROAD;
         M.block[k] = 0;
       }
     }
-    // สะพานไม้ไผ่ฝั่งตะวันตก (x = 62..64)
-    for (let x = 62; x <= 64; x++) {
+    // สะพานไม้ไผ่ฝั่งตะวันตก (x = 92..94)
+    for (let x = 92; x <= 94; x++) {
       const cy = riverCenterY(x), hw = riverHalfWidth(x);
       for (let y = cy - hw - 2; y <= cy + hw + 2; y++) {
         if (!inb(x, y)) continue;
@@ -368,8 +382,8 @@
         M.block[idx(x, y)] = 0;
       }
     }
-    // สะพานศิลาฝั่งตะวันออก (x = 172..174)
-    for (let x = 172; x <= 174; x++) {
+    // สะพานศิลาฝั่งตะวันออก (x = 264..266)
+    for (let x = 264; x <= 266; x++) {
       const cy = riverCenterY(x), hw = riverHalfWidth(x);
       for (let y = cy - hw - 2; y <= cy + hw + 2; y++) {
         if (!inb(x, y)) continue;
@@ -380,12 +394,12 @@
 
     // 7.4 ท่าน้ำไม้ยื่นลงริมน้ำ (Piers — T.FLOOR, block = 0 อยู่ติดผืนน้ำ T.WATER)
     const piers = [
-      { x0: 103, x1: 108, side: 'north' },
-      { x0: 128, x1: 133, side: 'north' },
-      { x0: 52, x1: 56, side: 'north' },
-      { x0: 162, x1: 166, side: 'north' },
-      { x0: 108, x1: 112, side: 'south' },
-      { x0: 124, x1: 128, side: 'south' }
+      { x0: 162, x1: 168, side: 'north' },
+      { x0: 192, x1: 198, side: 'north' },
+      { x0: 76,  x1: 82,  side: 'north' },
+      { x0: 246, x1: 252, side: 'north' },
+      { x0: 168, x1: 173, side: 'south' },
+      { x0: 187, x1: 192, side: 'south' }
     ];
     piers.forEach(p => {
       for (let x = p.x0; x <= p.x1; x++) {
@@ -447,86 +461,96 @@
 
     // เขต 1: ท่าน้ำธารปราณทักษิณ (กลาง — river_central)
     addRiverZone(
-      'river_dock', 'river_dock', 98, 162, 42, 16, 'river_central',
+      'river_dock', 'river_dock', 154, 258, 52, 18, 'river_central',
       [
-        { x: 104, y: riverCenterY(104) - riverHalfWidth(104) },
-        { x: 107, y: riverCenterY(107) - riverHalfWidth(107) },
-        { x: 112, y: riverCenterY(112) - riverHalfWidth(112) - 1 },
-        { x: 124, y: riverCenterY(124) - riverHalfWidth(124) - 1 },
-        { x: 129, y: riverCenterY(129) - riverHalfWidth(129) },
-        { x: 132, y: riverCenterY(132) - riverHalfWidth(132) },
-        { x: 110, y: riverCenterY(110) + riverHalfWidth(110) },
-        { x: 126, y: riverCenterY(126) + riverHalfWidth(126) }
+        { x: 163, y: riverCenterY(163) - riverHalfWidth(163) },
+        { x: 167, y: riverCenterY(167) - riverHalfWidth(167) },
+        { x: 173, y: riverCenterY(173) - riverHalfWidth(173) - 1 },
+        { x: 187, y: riverCenterY(187) - riverHalfWidth(187) - 1 },
+        { x: 193, y: riverCenterY(193) - riverHalfWidth(193) },
+        { x: 197, y: riverCenterY(197) - riverHalfWidth(197) },
+        { x: 170, y: riverCenterY(170) + riverHalfWidth(170) },
+        { x: 190, y: riverCenterY(190) + riverHalfWidth(190) }
       ],
       [
-        { x: 101, y: riverCenterY(101) - riverHalfWidth(101) - 2 },
-        { x: 114, y: riverCenterY(114) - riverHalfWidth(114) - 2 },
-        { x: 122, y: riverCenterY(122) - riverHalfWidth(122) - 2 },
-        { x: 135, y: riverCenterY(135) - riverHalfWidth(135) - 2 }
+        { x: 158, y: riverCenterY(158) - riverHalfWidth(158) - 2 },
+        { x: 174, y: riverCenterY(174) - riverHalfWidth(174) - 2 },
+        { x: 186, y: riverCenterY(186) - riverHalfWidth(186) - 2 },
+        { x: 201, y: riverCenterY(201) - riverHalfWidth(201) - 2 }
       ]
     );
 
     // เขต 2: คุ้งน้ำไผ่หยก (ตะวันตก — river_west)
     addRiverZone(
-      'river_west', 'river_west', 44, 162, 38, 16, 'river_west',
+      'river_west', 'river_west', 64, 258, 50, 18, 'river_west',
       [
-        { x: 48, y: riverCenterY(48) - riverHalfWidth(48) - 1 },
-        { x: 53, y: riverCenterY(53) - riverHalfWidth(53) },
-        { x: 55, y: riverCenterY(55) - riverHalfWidth(55) },
-        { x: 68, y: riverCenterY(68) - riverHalfWidth(68) - 1 },
-        { x: 75, y: riverCenterY(75) - riverHalfWidth(75) - 1 },
-        { x: 60, y: riverCenterY(60) + riverHalfWidth(60) + 1 }
+        { x: 70, y: riverCenterY(70) - riverHalfWidth(70) - 1 },
+        { x: 77, y: riverCenterY(77) - riverHalfWidth(77) },
+        { x: 81, y: riverCenterY(81) - riverHalfWidth(81) },
+        { x: 100, y: riverCenterY(100) - riverHalfWidth(100) - 1 },
+        { x: 108, y: riverCenterY(108) - riverHalfWidth(108) - 1 },
+        { x: 88, y: riverCenterY(88) + riverHalfWidth(88) + 1 }
       ],
       [
-        { x: 50, y: riverCenterY(50) - riverHalfWidth(50) - 2 },
-        { x: 72, y: riverCenterY(72) - riverHalfWidth(72) - 2 }
+        { x: 72, y: riverCenterY(72) - riverHalfWidth(72) - 2 },
+        { x: 104, y: riverCenterY(104) - riverHalfWidth(104) - 2 }
       ]
     );
 
     // เขต 3: วังน้ำศิลาคราม (ตะวันออก — river_east)
     addRiverZone(
-      'river_east', 'river_east', 154, 161, 40, 18, 'river_east',
+      'river_east', 'river_east', 234, 257, 54, 20, 'river_east',
       [
-        { x: 158, y: riverCenterY(158) - riverHalfWidth(158) - 1 },
-        { x: 163, y: riverCenterY(163) - riverHalfWidth(163) },
-        { x: 165, y: riverCenterY(165) - riverHalfWidth(165) },
-        { x: 178, y: riverCenterY(178) - riverHalfWidth(178) - 1 },
-        { x: 186, y: riverCenterY(186) - riverHalfWidth(186) - 1 },
-        { x: 170, y: riverCenterY(170) + riverHalfWidth(170) + 1 }
+        { x: 240, y: riverCenterY(240) - riverHalfWidth(240) - 1 },
+        { x: 247, y: riverCenterY(247) - riverHalfWidth(247) },
+        { x: 251, y: riverCenterY(251) - riverHalfWidth(251) },
+        { x: 272, y: riverCenterY(272) - riverHalfWidth(272) - 1 },
+        { x: 282, y: riverCenterY(282) - riverHalfWidth(282) - 1 },
+        { x: 258, y: riverCenterY(258) + riverHalfWidth(258) + 1 }
       ],
       [
-        { x: 160, y: riverCenterY(160) - riverHalfWidth(160) - 2 },
-        { x: 182, y: riverCenterY(182) - riverHalfWidth(182) - 2 }
+        { x: 242, y: riverCenterY(242) - riverHalfWidth(242) - 2 },
+        { x: 276, y: riverCenterY(276) - riverHalfWidth(276) - 2 }
       ]
     );
 
-    // 7.6 ตกแต่งทิวทัศน์ริมธารน้ำปราณทักษิณ (ไม่ทับเส้นทางเดินหรือจุดตกปลา)
+    // 7.6 ตกแต่งทิวทัศน์ริมธารน้ำปราณทักษิณและป่ารอบสำนัก 4 ทิศ (ไม่ทับเส้นทางเดินหรือจุดตกปลา)
     const keep = new Set();
     M.stations.forEach(st => {
-      if (st.y >= H_BASE - 4) {
-        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) keep.add((st.y + dy) * W + st.x + dx);
-      }
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) keep.add((st.y + dy) * W + st.x + dx);
     });
     // โคมไฟหัวสะพานทั้ง 3 แห่ง
-    [[115, 165], [121, 165], [115, 175], [121, 175], [61, 166], [65, 166], [171, 165], [175, 165]].forEach(([lx, ly]) => {
+    [[177, 262], [183, 262], [177, 274], [183, 274], [91, 263], [95, 263], [263, 262], [267, 262]].forEach(([lx, ly]) => {
       if (inb(lx, ly) && M.block[idx(lx, ly)] === 0) {
         M.decor.push({ x: lx, y: ly, kind: 'lantern', s: 1, r: 0, walk: true });
       }
     });
-    // ป่าไผ่ โขดหินริมน้ำ และดอกไม้ริมตลิ่ง
-    for (let i = 0; i < 220; i++) {
-      const x = rrng.int(6, W - 7), y = rrng.int(H_BASE, H - 4), k = idx(x, y);
+    // ป่าไผ่ โขดหินริมน้ำ และดอกไม้ริมตลิ่งทางใต้
+    for (let i = 0; i < 320; i++) {
+      const x = rrng.int(8, W - 9), y = rrng.int(H_BASE, H - 4), k = idx(x, y);
       if (M.block[k] !== 0 || M.terrain[k] !== T.GRASS || keep.has(k)) continue;
-      if (x >= 113 && x <= 123) continue; // เว้นทางหลวงทิศใต้
-      if (x >= 60 && x <= 66) continue;   // เว้นสะพานตะวันตก
-      if (x >= 170 && x <= 176) continue; // เว้นสะพานตะวันออก
+      if (x >= 174 && x <= 186) continue; // เว้นทางหลวงทิศใต้
+      if (x >= 89 && x <= 97) continue;   // เว้นสะพานตะวันตก
+      if (x >= 261 && x <= 269) continue; // เว้นสะพานตะวันออก
       const cy = riverCenterY(x), hw = riverHalfWidth(x);
-      if (Math.abs(y - cy) <= hw + 2) continue; // เว้นตลิ่งและทางเดินเลียบน้ำ
-      const kind = x < 95 ? (rrng.chance(0.65) ? 'bamboo' : 'pine') : x > 145 ? (rrng.chance(0.55) ? 'rock' : 'pine') : (rrng.chance(0.4) ? 'blossom' : 'bamboo');
+      if (Math.abs(y - cy) <= hw + 3) continue; // เว้นตลิ่งและทางเดินเลียบน้ำ
+      const kind = x < 140 ? (rrng.chance(0.65) ? 'bamboo' : 'pine') : x > 220 ? (rrng.chance(0.55) ? 'rock' : 'pine') : (rrng.chance(0.4) ? 'blossom' : 'bamboo');
       M.block[k] = 3;
       M.decor.push({ x, y, kind, s: 0.82 + rrng.next() * 0.45, r: rrng.next() });
     }
-    for (let i = 0; i < 120; i++) {
+    // ตกแต่งป่ารอบสำนักทิศตะวันตก ตะวันออก และเหนือ (เว้นถนนและแนวเก็บสมุนไพรปลอดภัย)
+    for (let i = 0; i < 540; i++) {
+      const x = rrng.int(6, W - 7), y = rrng.int(6, H_BASE - 2), k = idx(x, y);
+      if (x >= M.wall.x0 - 2 && x <= M.wall.x1 + 2 && y >= M.wall.y0 - 2 && y <= M.wall.y1 + 2) continue;
+      if (M.block[k] !== 0 || M.terrain[k] !== T.GRASS || keep.has(k)) continue;
+      if (x >= 174 && x <= 186) continue; // เว้นถนนเหนือ-ใต้
+      if (y >= 119 && y <= 127) continue; // เว้นถนนตะวันตก-ตะวันออก
+      if (x >= 118 && x <= 242 && y >= 204 && y <= 232) continue; // เว้นแนวปลอดภัยหน้าประตูใต้ให้โล่งเดินสะดวก
+      const kind = x < M.wall.x0 ? (rrng.chance(0.7) ? 'bamboo' : 'pine') : x > M.wall.x1 ? (rrng.chance(0.6) ? 'rock' : 'pine') : ( y < M.wall.y0 ? (rrng.chance(0.5) ? 'pine' : 'rock') : 'pine' );
+      M.block[k] = 3;
+      M.decor.push({ x, y, kind, s: 0.85 + rrng.next() * 0.45, r: rrng.next() });
+    }
+    for (let i = 0; i < 160; i++) {
       const x = rrng.int(10, W - 10), y = rrng.int(H_BASE, H - 4), k = idx(x, y);
       if (M.block[k] !== 0 || (M.terrain[k] !== T.GRASS && M.terrain[k] !== T.MOSS)) continue;
       M.decor.push({ x, y, kind: 'flower', s: 1, r: rrng.next(), walk: true });
@@ -716,15 +740,18 @@
     }
     if (where === 'yard') {
       const cols = Math.max(2, Math.floor((b.w + 2) / 3));
-      const rows = Math.max(1, b.yard - 1);
-      let i = 0;
-      for (let r = 0; r < rows + 1 && out.length < count; r++) for (let c = 0; c < cols && out.length < count; c++) {
-        const x = b.x + 1 + Math.round(c * (b.w - 2) / Math.max(1, cols - 1)), y = b.y + b.h + 1 + r * 2;
-        if (free(x, y) && !out.some(o => o.x === x && o.y === y)) out.push({ x, y });
-        i++;
+      const maxYardY = b.y + b.h + Math.max(1, (b.yard || 2) - 1);
+      for (let y = b.y + b.h; y <= maxYardY && out.length < count; y++) {
+        for (let c = 0; c < cols && out.length < count; c++) {
+          const x = b.x + 1 + Math.round(c * (b.w - 2) / Math.max(1, cols - 1));
+          if (free(x, y) && !out.some(o => o.x === x && o.y === y)) out.push({ x, y });
+        }
       }
-      // เติมถ้าไม่พอ
-      for (let x = b.x; out.length < count && x < b.x + b.w; x++) { const y = b.y + b.h; if (free(x, y) && !out.some(o => o.x === x && o.y === y)) out.push({ x, y }); }
+      for (let y = b.y + b.h; y <= maxYardY && out.length < count; y++) {
+        for (let x = b.x; out.length < count && x < b.x + b.w; x++) {
+          if (free(x, y) && !out.some(o => o.x === x && o.y === y)) out.push({ x, y });
+        }
+      }
       return out;
     }
     if (where === 'shore') { // รอบสระ
@@ -733,13 +760,21 @@
       for (let i = 0; i < count; i++) { const p = r[Math.floor((i + 0.5) * r.length / count)]; out.push({ x: p.x, y: p.y }); }
       return out;
     }
-    // open: กระจายในพื้นที่
+    // open: กระจายในพื้นที่ (เลี่ยงจุดสิ่งกีดขวาง เช่น น้ำพุกลางลาน 95..97+OX, 66..68+OY)
     const cols = Math.max(2, Math.ceil(Math.sqrt(count * b.w / b.h)));
     const rows = Math.ceil(count / cols);
     for (let i = 0; i < count; i++) {
       const c = i % cols, r = Math.floor(i / cols);
-      const x = b.x + 2 + Math.floor(c * (b.w - 4) / Math.max(1, cols - 1)), y = b.y + 2 + Math.floor(r * (b.h - 4) / Math.max(1, rows - 1));
-      out.push({ x: Math.min(b.x + b.w - 2, x), y: Math.min(b.y + b.h - 2, y) });
+      let x = Math.min(b.x + b.w - 2, b.x + 2 + Math.floor(c * (b.w - 4) / Math.max(1, cols - 1)));
+      let y = Math.min(b.y + b.h - 2, b.y + 2 + Math.floor(r * (b.h - 4) / Math.max(1, rows - 1)));
+      if (b.id === 'plaza' && x >= 95 + OX && x <= 97 + OX && y >= 66 + OY && y <= 68 + OY) {
+        x = 94 + OX;
+      }
+      if (!free(x, y) && MAP.nearestFree) {
+        const nf = MAP.nearestFree(M, x, y);
+        if (nf) { x = nf.x; y = nf.y; }
+      }
+      out.push({ x, y });
     }
     return out;
   }
@@ -787,9 +822,9 @@
     }
     // ต้นไม้นอกประตู (คงขอบเขต H_BASE - 2 เพื่อรักษา state ของ rng เดิม)
     for (let i = 0; i < 260; i++) {
-      const x = rng.int(98, 140), y = rng.int(M.wall.y1 + 2, H_BASE - 2), k = idx(x, y);
+      const x = rng.int(158, 202), y = rng.int(M.wall.y1 + 2, H_BASE - 2), k = idx(x, y);
       if (M.block[k] !== 0 || M.terrain[k] !== T.GRASS) continue;
-      if (x >= 114 && x <= 122) continue;
+      if (x >= 174 && x <= 186) continue;
       M.block[k] = 3; M.decor.push({ x, y, kind: rng.chance(0.3) ? 'rock' : 'pine', s: 0.8 + rng.next() * 0.5, r: rng.next() });
     }
     // ตะเกียงข้างถนนหลัก
@@ -818,6 +853,21 @@
   };
   let gScore = null, came = null, stamp = null, closed = null, curStamp = 0, sharedHeap = null;
   const _pcBySeed = new Map();
+  MAP.invalidatePathCache = function (M) {
+    if (M) {
+      M.topologyRev = (M.topologyRev || 1) + 1;
+      if (M._pc) M._pc.clear();
+      M._gateReach = null;
+    }
+    _pcBySeed.clear();
+  };
+  const WALL_GATES = [
+    { id: 'S', inX: 180, inY: 202, midX: 180, midY: 204, outX: 180, outY: 206 },
+    { id: 'N', inX: 180, inY: 58,  midX: 180, midY: 56,  outX: 180, outY: 54 },
+    { id: 'W', inX: 74,  inY: 123, midX: 72,  midY: 123, outX: 70,  outY: 123 },
+    { id: 'E', inX: 286, inY: 123, midX: 288, midY: 123, outX: 290, outY: 123 }
+  ];
+  MAP.WALL_GATES = WALL_GATES;
   MAP.findPath = function (M, sx, sy, gx, gy) {
     sx = Math.floor(sx); sy = Math.floor(sy); gx = Math.floor(gx); gy = Math.floor(gy);
     if (!(sx >= 0 && sy >= 0 && sx < W && sy < H && M.block[sy * W + sx] === 0)) {
@@ -831,7 +881,8 @@
       gx = t.x; gy = t.y;
     }
     if (sx === gx && sy === gy) return [[gx, gy]];
-    const key = ((sx << 24) | (sy << 16) | (gx << 8) | gy) >>> 0;
+    const rev = M.topologyRev || 1;
+    const key = rev + ':' + sx + ',' + sy + ':' + gx + ',' + gy;
     let pc = M._pc;
     if (!pc) {
       const skey = M.seed || 1;
@@ -840,13 +891,28 @@
       M._pc = pc;
     }
     if (pc.has(key)) return pc.get(key);
-    const sInWall = sx > 22 && sx < 218 && sy > 18 && sy < 131;
-    const gInWall = gx > 22 && gx < 218 && gy > 18 && gy < 131;
+    const w0 = (M.wall && M.wall.x0) || 72, w1 = (M.wall && M.wall.x1) || 288, wy0 = (M.wall && M.wall.y0) || 56, wy1 = (M.wall && M.wall.y1) || 204;
+    const sInWall = sx > w0 && sx < w1 && sy > wy0 && sy < wy1;
+    const gInWall = gx > w0 && gx < w1 && gy > wy0 && gy < wy1;
     if (sInWall !== gInWall) {
-      const p1 = sInWall ? MAP.findPath(M, sx, sy, 118, 130) : MAP.findPath(M, sx, sy, 118, 132);
-      const p2 = sInWall ? MAP.findPath(M, 118, 132, gx, gy) : MAP.findPath(M, 118, 130, gx, gy);
-      const joined = (p1 && p2) ? p1.concat([[118, 131]], p2) : null;
-      if (pc.size >= 12000) { let ev = 0; for (const k of pc.keys()) { pc.delete(k); if (++ev >= 2000) break; } }
+      const orderedGates = WALL_GATES.slice().sort((a, b) => {
+        const da = Math.abs(sx - a.midX) + Math.abs(sy - a.midY) + Math.abs(gx - a.midX) + Math.abs(gy - a.midY);
+        const db = Math.abs(sx - b.midX) + Math.abs(sy - b.midY) + Math.abs(gx - b.midX) + Math.abs(gy - b.midY);
+        return da - db;
+      });
+      let joined = null;
+      for (let gi = 0; gi < orderedGates.length; gi++) {
+        const gt = orderedGates[gi];
+        if (M.block[gt.midY * W + gt.midX] !== 0 || M.block[gt.inY * W + gt.inX] !== 0 || M.block[gt.outY * W + gt.outX] !== 0) continue;
+        const p1 = sInWall ? MAP.findPath(M, sx, sy, gt.inX, gt.inY) : MAP.findPath(M, sx, sy, gt.outX, gt.outY);
+        if (!p1) continue;
+        const p2 = sInWall ? MAP.findPath(M, gt.outX, gt.outY, gx, gy) : MAP.findPath(M, gt.inX, gt.inY, gx, gy);
+        if (p2) {
+          joined = p1.concat([[gt.midX, gt.midY]], p2);
+          break;
+        }
+      }
+      if (pc.size >= 16000) { let ev = 0; for (const k of pc.keys()) { pc.delete(k); if (++ev >= 3000) break; } }
       pc.set(key, joined);
       return joined;
     }
@@ -868,23 +934,23 @@
     while (heap.size) {
       const k = heap.pop(); if (k === gk) { found = true; break; }
       if (closed[k] === curStamp) continue; closed[k] = curStamp;
-      if (++it > 65000) break;
+      if (++it > 95000) break;
       const x = k % W, y = (k / W) | 0, gk0 = gScore[k];
       for (let d = 0; d < 8; d++) {
         const dx = DX8[d], dy = DY8[d], nx = x + dx, ny = y + dy;
         if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
         const nk = ny * W + nx; if (closed[nk] === curStamp || cost[nk] === 0) continue;
         if (dx !== 0 && dy !== 0 && (cost[y * W + nx] === 0 || cost[ny * W + x] === 0)) continue; // กันตัดมุม
-        const nInWall = nx > 22 && nx < 218 && ny > 18 && ny < 131;
+        const nInWall = nx > w0 && nx < w1 && ny > wy0 && ny < wy1;
         if (nInWall !== gInWall) continue;
         const ng = gk0 + DC8[d] * cost[nk];
         if (stamp[nk] !== curStamp || ng < gScore[nk]) {
           stamp[nk] = curStamp; gScore[nk] = ng; came[nk] = k;
           let hDist;
           let hx = Math.abs(nx - gx), hy = Math.abs(ny - gy);
-          if (!gInWall && nx > 22 && nx < 218 && ((ny >= 131 && gy <= 18) || (ny <= 18 && gy >= 131))) {
-            const detourWest = (nx - 21) + Math.abs(gx - 21);
-            const detourEast = (219 - nx) + Math.abs(219 - gx);
+          if (!gInWall && nx > w0 - 6 && nx < w1 + 6 && ((ny >= wy1 && gy <= wy0) || (ny <= wy0 && gy >= wy1))) {
+            const detourWest = (nx - (w0 - 6)) + Math.abs(gx - (w0 - 6));
+            const detourEast = ((w1 + 6) - nx) + Math.abs((w1 + 6) - gx);
             hx = detourWest < detourEast ? detourWest : detourEast;
           }
           hDist = (hx + hy) - 0.5858 * (hx < hy ? hx : hy);
@@ -892,12 +958,12 @@
         }
       }
     }
-    MAP._lastIt = it; if (!found) { if (pc.size >= 12000) { let ev = 0; for (const k of pc.keys()) { pc.delete(k); if (++ev >= 2000) break; } } pc.set(key, null); return null; }
+    MAP._lastIt = it; if (!found) { if (pc.size >= 16000) { let ev = 0; for (const k of pc.keys()) { pc.delete(k); if (++ev >= 3000) break; } } pc.set(key, null); return null; }
     const path = []; let c = gk; while (c !== -1) { path.push([c % W, (c / W) | 0]); c = came[c]; }
     path.reverse();
-    if (pc.size >= 12000) {
+    if (pc.size >= 16000) {
       let ev = 0;
-      for (const k of pc.keys()) { pc.delete(k); if (++ev >= 2000) break; }
+      for (const k of pc.keys()) { pc.delete(k); if (++ev >= 3000) break; }
     }
     pc.set(key, path);
     return path;
@@ -910,9 +976,9 @@
     const w = M.wall;
     return x < w.x0 || x > w.x1 || y < w.y0 || y > w.y1;
   };
-  // Include the gate threshold and approach so safe trips have no unprotected gap.
-  MAP.SAFE_BELT = Object.freeze({ x0: 80, x1: 156, y0: 132, y1: 156 });
-  MAP.RIVER_BELT = Object.freeze({ x0: 40, x1: 198, y0: 157, y1: 184 });
+  // Include the South Gate threshold and safe herb meadow outside South Gate (x=120..240, y=204..230).
+  MAP.SAFE_BELT = Object.freeze({ x0: 120, x1: 240, y0: 204, y1: 230 });
+  MAP.RIVER_BELT = Object.freeze({ x0: 56, x1: 300, y0: 254, y1: 284 });
   MAP.isInSafeBelt = (x, y) => {
     const sb = MAP.SAFE_BELT;
     return x >= sb.x0 && x <= sb.x1 && y >= sb.y0 && y <= sb.y1;
@@ -939,7 +1005,7 @@
       reach = M._gateReach = new Uint8Array(total);
       const q = new Int32Array(total);
       let head = 0, tail = 0;
-      const s0 = MAP.nearestFree(M, 118, 132);
+      const s0 = MAP.nearestFree(M, 180, 204);
       if (s0) {
         const sk = s0.y * W + s0.x;
         reach[sk] = 1;
@@ -972,7 +1038,7 @@
       macroRegion: 'NORTHERN_PEAKS',
       terrain: 'mountain',
       x: 62, y: 24,
-      mapX: 148, mapY: 46,
+      mapX: 222, mapY: 32,
       danger: 3,
       descTh: 'เนินดินฝังศาสตรานับพันของยอดกระบี่นิรนาม แฝงปราณกระบี่โบราณที่รอผู้มีวาสนาเข้าถึงเจตจำนง'
     },
@@ -983,7 +1049,7 @@
       macroRegion: 'WESTERN_BADLANDS',
       terrain: 'ruins',
       x: 28, y: 58,
-      mapX: 68, mapY: 112,
+      mapX: 42, mapY: 162,
       danger: 4,
       descTh: 'ซากโรงหลอมหุ่นเชิดยุคโบราณที่ยังมีฟันเฟืองปราณหมุนเวียน ซ่อนแก่นกลไกและพิมพ์เขียวลับ'
     },
@@ -994,7 +1060,7 @@
       macroRegion: 'SOUTHERN_WATERS',
       terrain: 'forest',
       x: 44, y: 82,
-      mapX: 105, mapY: 158,
+      mapX: 148, mapY: 238,
       danger: 3,
       descTh: 'ป่าดงดิบปกคลุมด้วยหมอกพิษเจ็ดสี อุดมด้วยสมุนไพรพิษหายากและแมลงกู่บรรพกาล'
     },
@@ -1005,7 +1071,7 @@
       macroRegion: 'EASTERN_PLAINS',
       terrain: 'water',
       x: 82, y: 46,
-      mapX: 196, mapY: 88,
+      mapX: 318, mapY: 132,
       danger: 3,
       descTh: 'ทะเลสาบใสประดุจกระจกเงาสะท้อนแสงจันทร์พันปี ช่วยชำระมารในใจและควบแน่นน้ำค้างจันทรา'
     }

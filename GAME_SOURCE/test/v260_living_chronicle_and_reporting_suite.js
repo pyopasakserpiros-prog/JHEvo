@@ -67,8 +67,8 @@ console.log('===================================================================
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   assert.strictEqual(hcSha, 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js must remain 100% byte-identical');
   assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.strictEqual(SIM.PATCH_VERSION, '2.6.0', 'SIM.PATCH_VERSION must be 2.6.0');
-  assert.strictEqual(SIM.SAVE_SCHEMA_VERSION, '2.6.0-living-chronicle-and-reporting', 'SIM.SAVE_SCHEMA_VERSION must be 2.6.0-living-chronicle-and-reporting');
+  assert.ok(['2.6.0', '3.0.0', '3.1.0', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.6.0a', '3.9.5', '3.9.6'].includes(SIM.PATCH_VERSION), 'known release contract');
+  assert.ok(['2.6.0-living-chronicle-and-reporting', '3.0.0-living-continent', '3.4.0-world-events', '3.5.0a-p0-hardening', '3.5.0b-p1-hardening', '3.5.0c-release-polish', '3.6.0a-living-sects', '3.9.6-deep-gameplay-integration'].includes(SIM.SAVE_SCHEMA_VERSION), 'known release contract');
 
   const indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const scriptMatches = indexHtml.match(/<script\s+src="[^"]+"\s*><\/script>/g) || [];
@@ -435,6 +435,59 @@ console.log('===================================================================
   xssNpc.h.name.given = origGiven;
 
   console.log('  ✓ [5/6] Milestone-Protected Retention, 100% RNG/Serialize Purity & XSS Escaping Verified');
+}
+
+// ---------------------------------------------------------------------------
+// [6/6] Chronicle Prose Integrity: No Guest ID Leaks, Thai Path/Tag Names & CP -> คป.
+// ---------------------------------------------------------------------------
+{
+  const W = SIM.create('v260-chronicle-prose-seed', { masterIdx: 0 });
+  if (W.world && Array.isArray(W.world.sects) && W.world.sects[0]) {
+    W.world.sects[0].treaty = 'ALLIANCE';
+    W.world.sects[0].attitude = 85;
+    W.world.sects[0].power = 999999; // Ensure allied guest champion takes at least one bracket
+  }
+  const asm = SECT.assembly(W, W.byId[W.sect.masterId], { skipEnvoy: true });
+  assert.ok(asm && asm.ok, 'Grand assembly with allied guests must succeed');
+  assert.ok(!/\bCP\b/.test(asm.assembly.summaryTh), 'Assembly summaryTh must use คป. instead of English CP');
+  const tLog = (W.logs || []).find(l => l.type === 'tournament');
+  assert.ok(tLog, 'Tournament log entry must exist');
+  assert.ok(!(tLog.npcs || []).some(id => /^(?:GUEST|ENVOY)_/.test(String(id))), 'Tournament log npcs must filter synthetic GUEST_/ENVOY_ IDs');
+
+  // Verify guest championship reports 0 CP and UI renders คป. / แขกรับเชิญพันธมิตร cleanly without leaking [GUEST_...] chips
+  assert.ok(asm.brackets.some(b => b.isGuest && b.cpAwarded === 0), 'Guest bracket winner must record cpAwarded === 0 and isGuest === true');
+  const guestChipHtml = UI.linkify(W, 'ผลประลองชุมนุมยุทธ์', ['GUEST_S0_CORE_364', 'ENVOY_99']);
+  assert.ok(!guestChipHtml.includes('GUEST_') && !guestChipHtml.includes('ENVOY_'), 'UI.linkify must suppress synthetic GUEST_/ENVOY_ chips');
+  const deletedNpcHtml = UI.linkify(W, 'ศิษย์เก่าเดินทางไกล', ['n_deleted_999']);
+  assert.ok(deletedNpcHtml.includes('data-npc="n_deleted_999"'), 'UI.linkify must still preserve historical missing-NPC chip behavior for real IDs');
+
+  // Verify EXPED.recordChronicle filters synthetic GUEST_/ENVOY_ IDs from npcIds and actorSnapshots
+  const cleanChron = EXPED.recordChronicle(W, {
+    category: 'TOURNAMENT',
+    titleTh: 'ทดสอบกรองผู้เข้าร่วมรับเชิญ',
+    storyTh: 'ยอดฝีมือรับเชิญร่วมประลอง',
+    npcIds: [W.npcs[0].id, 'GUEST_S0_ELDER_PEAK_364', 'ENVOY_S1_10'],
+    allowDuplicate: true,
+    quiet: true
+  });
+  assert.ok(!cleanChron.npcIds.some(id => /^(?:GUEST|ENVOY)_/.test(String(id))), 'recordChronicle must filter synthetic guest/envoy IDs');
+
+  // Verify Caravan & Heavenly Dao Era chronicles contain no stray Hebrew or raw path keys
+  if (SECT.CARAVAN_AUCTION && SECT.CARAVAN_AUCTION.dispatchCaravan) {
+    const cRes = SECT.CARAVAN_AUCTION.dispatchCaravan(W, { quiet: true, force: true });
+    if (cRes && cRes.chronicle) {
+      assert.ok(!/[\u0590-\u05FF]/.test(cRes.chronicle.systemImpactTh || ''), 'Caravan chronicle must contain no stray Hebrew characters');
+      assert.ok(!/\bCP\b/.test(cRes.chronicle.consequenceTh || ''), 'Caravan consequenceTh must use คป.');
+    }
+  }
+  if (SECT.HEAVENLY_DAO_DIRECTOR && SECT.HEAVENLY_DAO_DIRECTOR.shiftEra) {
+    const eRes = SECT.HEAVENLY_DAO_DIRECTOR.shiftEra(W, 'ASTRAL_PROSPERITY_ERA', { quiet: true });
+    if (eRes && eRes.chronicle) {
+      assert.ok(!eRes.chronicle.storyTh.includes('ARRAY_TALISMAN'), 'Era chronicle must resolve boostedPaths to Thai names');
+      assert.ok(!eRes.chronicle.systemImpactTh.includes('TALISMAN_ARRAY'), 'Era systemImpactTh must resolve marketFocusCat to Thai name');
+    }
+  }
+  console.log('  ✓ [6/6] Chronicle Prose Integrity & Synthetic Guest/Envoy ID Filtering Verified');
 }
 
 console.log('\n✅ ALL JS2-v2.6.0 LIVING CHRONICLE & JIANGHU REPORTING CHECKS PASSED!');

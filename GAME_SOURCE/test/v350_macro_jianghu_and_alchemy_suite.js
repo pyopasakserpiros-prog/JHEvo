@@ -35,7 +35,7 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Version Lock
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.5.0+)...');
 {
-  check(['3.5.0', '3.6.0', '4.0.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be 3.5.0 or 3.6.0 (got ${SIM.PATCH_VERSION})`);
+  check(['3.5.0', '3.6.0', '4.0.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0', '3.0.0', '3.1.0', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.6.0a', '3.9.5', '3.9.6'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be 3.5.0 or 3.6.0 (got ${SIM.PATCH_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
@@ -201,12 +201,12 @@ console.log('▶ [Phase 7] Testing UI Buttons, Save/Load Persistence (celestialA
 
   const sectHtml = UI.rSect(W);
   check(
-    sectHtml.includes('data-do="resolve-faction-schism"') &&
-    sectHtml.includes('data-do="dispatch-exchange-disciple"') &&
-    sectHtml.includes('data-do="claim-bounty-hunt"') &&
-    sectHtml.includes('data-do="bid-black-market"') &&
-    sectHtml.includes('data-do="brew-multiphase-pill"'),
-    'UI.rSect includes all v3.5.0 interactive buttons'
+    !sectHtml.includes('data-do="resolve-faction-schism"') &&
+    !sectHtml.includes('data-do="dispatch-exchange-disciple"') &&
+    !sectHtml.includes('data-do="claim-bounty-hunt"') &&
+    !sectHtml.includes('data-do="bid-black-market"') &&
+    !sectHtml.includes('data-do="brew-multiphase-pill"'),
+    'Observer UI excludes all v3.5.0 interactive buttons'
   );
 
   const rawSave = SIM.serialize(W);

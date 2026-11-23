@@ -35,7 +35,7 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Final Master Version Lock (3.6.0)
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.6.0)...');
 {
-  check((SIM.PATCH_VERSION === '3.6.0' || (SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || SIM.PATCH_VERSION === '2.6.0'))))))))), `SIM.PATCH_VERSION must be '3.6.0' (got ${SIM.PATCH_VERSION})`);
+  check((SIM.PATCH_VERSION === '3.6.0' || (SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || (SIM.PATCH_VERSION === '2.6.0' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.9.6'))))))))))), `SIM.PATCH_VERSION must be '3.6.0' (got ${SIM.PATCH_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
@@ -125,7 +125,7 @@ console.log('▶ [Phase 4 / PROP-36] Testing Resilient Save Whitelist, UI Button
   W.npcs[0]._btBonusPct = 0.14;
 
   const sectHtml = UI.rSect(W);
-  check(sectHtml.includes('data-do="excavate-immortal-tomb"') && sectHtml.includes('data-do="advance-world-crisis"'), 'UI.rSect includes v3.6.0 Immortal Tomb & World Crisis buttons');
+  check(!sectHtml.includes('data-do="excavate-immortal-tomb"') && !sectHtml.includes('data-do="advance-world-crisis"'), 'Observer UI excludes v3.6.0 Immortal Tomb & World Crisis buttons');
 
   const rawSave = SIM.serialize(W);
   const WLoaded = SIM.deserialize(rawSave);

@@ -133,7 +133,10 @@ function makeWorld(seed) {
   W.foeById[beast.id] = beast;
 
   const meritBefore = hunter.merit || 0;
+  const priorChance = WILD.DROP_CHANCE;
+  WILD.DROP_CHANCE = 1; // Exercise successful species-drop branch; probability tested separately.
   WILD.finish(W, mockFight, 'A');
+  WILD.DROP_CHANCE = priorChance;
 
   // Check drop was awarded to personal bag
   const droppedKeys = Object.keys(hunter.inv.mats);

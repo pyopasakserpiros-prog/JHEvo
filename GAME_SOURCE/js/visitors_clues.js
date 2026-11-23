@@ -42,7 +42,7 @@
       nameTh: 'กระบี่อิงฟ้าพิฆาตมาร',
       chineseName: '倚天剑',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Jin Yong — The Heaven Sword and Dragon Saber (《倚天屠龙记》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ศาสตราคู่บัลลังก์ที่ปรมาจารย์ช่างหลอมโอวหยางเหยียน (#14) ตีถวายจักรพรรดิองค์สุดท้ายกู่เสวียนหยวน (#1)',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -78,7 +78,7 @@
       nameTh: 'กระบี่เหล็กนิลไร้คม',
       chineseName: '玄铁重剑',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Jin Yong — The Return of the Condor Heroes (《神雕侠侣》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — กระบี่หนักคู่กายหัวหน้าองครักษ์หลวงหลี่เจี้ยนซิน (#6) ผู้ยืนหยัดรักษาประตูเมืองเทียนกู่ 7 วัน 7 คืน',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -115,7 +115,7 @@
       nameTh: 'ดาบฆ่ามังกรบัญชาหล้า',
       chineseName: '屠龙刀',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Jin Yong — The Heaven Sword and Dragon Saber (《倚天屠龙记》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ศาสตราคู่บัลลังก์ที่ปรมาจารย์ช่างหลอมโอวหยางเหยียน (#14) ตีถวายจักรพรรดิองค์สุดท้ายกู่เสวียนหยวน (#1)',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -151,7 +151,7 @@
       nameTh: 'ดาบโค้งจันทร์เพ็ญสะท้อนเงา',
       chineseName: '圆月弯刀',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Gu Long — Full Moon Scimitar (《圆月弯刀》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ดาบโค้งจันทร์เพ็ญแห่งหอจันทราเร้นเงาในยุคสามมหาอาณาจักร',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -187,7 +187,7 @@
       nameTh: 'มีดสั้นเสี่ยวหลี่สะท้านภพ',
       chineseName: '小李飞刀',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Gu Long — Sentimental Swordsman, Ruthless Sword (《多情剑客无情剑》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — มีดสั้นสั่งตายไร้พลาดของหัวหน้าสำนักตรวจการเอี๊ยนหลัว (#54) แห่งราชสำนักตงหวง',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -220,10 +220,10 @@
     },
     {
       id: 'LEG_WPN_DAGOU_JADE_STAFF',
-      nameTh: 'พลองหยกเขียวตีสุนัข',
-      chineseName: '打狗棒',
+      nameTh: 'พลองหยกเขียวมรกตปราบพยัคฆ์',
+      chineseName: '翠玉伏虎杖',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Jin Yong — The Legend of the Condor Heroes / Demi-Gods and Semi-Devils (《射雕英雄传》/《天龙八部》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — พลองหยกเขียวมรกตคู่บารมีของราชันย์พเนจรผู้ลี้ภัยหงชี (#38) ผู้นำขบวนผู้ลี้ภัยหลังสงครามเทียนกู่',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -259,7 +259,7 @@
       nameTh: 'ทวนราชันย์พิชิตพยัคฆ์',
       chineseName: '霸王枪',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Gu Long — The Overlord Spear, Seven Weapons #5 (《七种武器·霸王枪》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ทวนราชันย์ศึกของแม่ทัพหญิงเพลิงโลหิตทัวป๋าหงเหลียน (#57) แห่งจักรวรรดิซีหรง',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -295,7 +295,7 @@
       nameTh: 'ทวนเกล็ดมังกรครามสัตย์สาบาน',
       chineseName: '苍龙誓约枪',
       provenanceType: 'ORIGINAL',
-      literarySource: 'Original JianghuSect Design (Divine/Body Spear Archetype)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ทวนเกล็ดมังกรครามแห่งศาลเจ้าแม่ทัพพิทักษ์สายน้ำโบราณสมัยเทียนกู่',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -331,7 +331,7 @@
       nameTh: 'สนับหมัดพยัคฆ์พิโรธสะท้านผา',
       chineseName: '愤怒铁拳套',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Gu Long — Fist / The Angry Little Horse (《拳头》/《愤怒的小马》 adaptation)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — สนับหมัดพยัคฆ์พิโรธของขุนพลเกราะเหล็กแห่งกองทัพหน้าเป่ยหมิง',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -367,7 +367,7 @@
       nameTh: 'ธนูเหล็กไหลยิงอินทรีคู่',
       chineseName: '射雕陨铁神弓',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Jin Yong — The Legend of the Condor Heroes (《射雕英雄传》 adaptation)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — คันธนูเหล็กไหลของขุนพลตาเดียวเย่ชิงชาง (#8) ผู้ยิงนาวาฟ้าของทัพรุกรานร่วงหล่น',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -403,7 +403,7 @@
       nameTh: 'ขนนกยูงทองคำกลไกสวรรค์',
       chineseName: '孔雀翎',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Gu Long — The Peacock Plume, Seven Weapons #2 (《七种武器·孔雀翎》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — อาวุธกลไกสูงสุดที่เจ้ากรมกลไกกงซูจี (#15) สร้างไว้ป้องกันคลังหลวงเทียนกู่',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -439,7 +439,7 @@
       nameTh: 'พิณเทวะหงส์สวรรค์เก้าชั้นฟ้า',
       chineseName: '九霄环佩凤鸣琴',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Historical Tang Dynasty Guqin Jiuxiao Huanpei (九霄环佩) & Six-Fingered Lyre Demon / Laughing Proud Wanderer zither lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — พิณเทวะเก้าชั้นฟ้าของปรมาจารย์สังคีตฉินอวิ๋น (#17) แห่งราชสำนักเทียนกู่',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -458,7 +458,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'ANY'],
-      preferredSubs: ['SOUND_ZITHER', 'SOUL_MUSICIAN', 'ZITHER_HEART_BOW', 'CHANT_RESONANCE', 'CELESTIAL_ZITHER_ENVOY'],
+      preferredSubs: ['SOUND_ZITHER', 'SEVEN_EMOTIONS_ZITHER', 'ZITHER_HEART_BOW', 'CELESTIAL_ZITHER_ENVOY'],
       fixedStats: { atk: 360, matk: 880, mdef: 275, acc: 240, crit: 12, critDmg: 26, cast: 18, pen: 16 },
       effects: [
         {
@@ -475,7 +475,7 @@
       nameTh: 'พู่กันเทวะชุนชิวพิพากษาสวรรค์',
       chineseName: '春秋判官神笔',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Classical Spring and Autumn Verdict Brush (《春秋笔法》/判官笔) & Jin Yong — Danqing Sheng / Judge Brush martial lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — พู่กันเทวะจารึกประวัติศาสตร์ของสำนักอาลักษณ์หลวงแห่งตงหวง (#52 ซือหม่าชิง)',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -494,7 +494,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['ARRAY_TALISMAN', 'SAGE_SUPPORT', 'STRATEGY_GOVERNANCE', 'KARMA_SAMSARA', 'ANY'],
-      preferredSubs: ['CALLIGRAPHY_PAINTING_SAGE', 'GRAND_FORMATION_ARCHITECT', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT', 'GRAND_STRATEGIST', 'UNDERWORLD_DECREE'],
+      preferredSubs: ['CALLIGRAPHY_PAINTING_SAGE', 'EARTH_VEIN_WARDEN', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT', 'BATTLEFIELD_STRATEGIST', 'SIX_PATHS_WHEEL'],
       fixedStats: { atk: 380, matk: 860, def: 210, mdef: 265, acc: 255, crit: 11, critDmg: 26, cast: 16, pen: 18 },
       effects: [
         {
@@ -511,7 +511,7 @@
       nameTh: 'แส้ไหมสวรรค์เทียนฉานพันด้ายชะตา',
       chineseName: '天蚕千丝缚命鞭',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Classical Wuxia Heavenly Silkworm (《天蚕变》) & Red Thread / Puppet String weapon lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — แส้ไหมสวรรค์เทียนฉานจากเรือนยอดไม้โบราณและโรงละครหุ่นของกงซูจี (#15)',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -530,7 +530,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['MECH_PUPPET', 'KARMA_SAMSARA', 'DEMON', 'BEAST_SOVEREIGN', 'ANY'],
-      preferredSubs: ['SPIRIT_THREAD_PUPPET', 'THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'VENOM_GU_SOVEREIGN', 'PACK_COMMAND_HUNT', 'THOUSAND_THREAD_PUPPETEER', 'RED_THREAD_ARBITER'],
+      preferredSubs: ['THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'VENOM_GU_SOVEREIGN', 'MYRIAD_BEAST_PACK'],
       fixedStats: { atk: 690, matk: 620, def: 195, mdef: 215, acc: 245, crit: 13, critDmg: 28, pen: 22, move: 8 },
       effects: [
         {
@@ -547,7 +547,7 @@
       nameTh: 'มหาประคำโพธิญาณร้อยแปดพุทธเกษตร',
       chineseName: '菩提涅槃百八佛珠',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Buddhist 108 Bodhi Beads & Shaolin/Zen Arhat Rosary Lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — มหาประคำโพธิญาณร้อยแปดเม็ดแห่งอารามพุทธเกษตรแดนประจิม',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -573,7 +573,7 @@
           effectId: 'EFX_LEG_BODHI_NIRVANA_ROSARY',
           nameTh: 'รัศมีร้อยแปดพระธาตุสยบมาร',
           descTh: 'เมื่อโจมตีจะเปล่งแสงพระธาตุทองคำสร้างความเสียหายเพิ่ม +18% ชำระล้างมารในใจ มอบบัฟรัศมีโพธิญาณ และทำให้ศัตรูอ่อนแรง (คูลดาวน์ 8 นาที)',
-          params: { bonusDmgMult: 0.18, targetStatus: 'weaken', selfStatus: 'bodhiGrace', hpRestorePct: 0.05, dur: 8, icdTicks: 8 }
+          params: { bonusDmgMult: 0.18, targetStatus: 'weaken', selfStatus: 'bodhiGrace', hpRestorePct: 0.05, cleanseHeartDemon: 5, dur: 8, icdTicks: 8 }
         }
       ],
       descTh: 'ลูกประคำร้อยแปดเม็ดที่ร้อยเรียงจากเมล็ดต้นโพธิ์บรรพกาลและพระธาตุทองคำของมหาอรหันต์ ยามโคจรปราณจะปรากฏเงาพุทธเกษตรคุ้มครองและปราบมาร'
@@ -583,7 +583,7 @@
       nameTh: 'กรงเล็บเทพอสูรเทาเที่ยกลืนสวรรค์',
       chineseName: '饕餮噬天魔爪',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Shan Hai Jing (《山海经》) Four Perils Taotie & Primordial Beast Claw Lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — กรงเล็บหลอมจากกระดูกของ 1 ใน 6 ราชันย์สัตว์อสูรบรรพกาลยุคเทียนกู่',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -619,7 +619,7 @@
       nameTh: 'เข็มเทวะร้อยบุปผาสะกดวิญญาณ',
       chineseName: '百花蚀魂神针',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Classical Wuxia Golden/Venom Needle Lore & Soul-Stitching Acupuncture',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — เข็มเทวะร้อยบุปผาตามตำรับของหมอหลวงไป๋เฉ่า (#13) และเรือนเพาะพิษแดนใต้',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -652,10 +652,10 @@
     },
     {
       id: 'LEG_WPN_BAJIAO_TEMPEST_FAN',
-      nameTh: 'พัดเทวะ芭蕉โบกสะบัดสี่ฤดู',
-      chineseName: '太虚芭蕉四时扇',
+      nameTh: 'พัดเทวะใบกล้วยทิพย์โบกสะบัดสี่ฤดู',
+      chineseName: '太虚仙叶四时扇',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Journey to the West Banana Leaf Fan (芭蕉扇) & Zhuge Feather Fan Lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — พัดเทวะใบกล้วยสวรรค์ของทูตตกสวรรค์ขงหมิง (#21) ผู้ติดค้างอยู่ใต้ผืนฟ้าหลังตบะสูญสลาย',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -691,7 +691,7 @@
       nameTh: 'จานสวรรค์เหอถูลั่วซูหมุนดารา',
       chineseName: '河图洛书浑天盘',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Ancient Chinese Hetu Luoshu (河图洛书) & Armillary Sphere / Luopan Lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — จานดาราพยากรณ์ของนักพรตดาราซิงเฉินจื่อ (#16) ที่สืบทอดถึงซิงอวิ๋น (#49)',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -725,9 +725,9 @@
     {
       id: 'LEG_WPN_CAISHEN_GOLDEN_ABACUS',
       nameTh: 'มหาลูกคิดทองคำไฉ่ซิงชั่งตวงชะตา',
-      chineseName: '紫金乾坤算命盘',
+      chineseName: '紫金天命算盘',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Wuxia Iron Abacus (铁算盘) & Mercantile / Karmic Ledger Lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — มหาลูกคิดทองคำของนายหญิงหอการค้าว่านจินเหนียง (#53) แห่งหมู่ตึกวาณิชย์ตงหวง',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'WEAPON',
@@ -795,7 +795,7 @@
       nameTh: 'อาภรณ์ขนนกกระเรียนสวรรค์เก้าเมฆา',
       chineseName: '九霄鹤羽仙衣',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Classical Daoist Feathered Immortal Robe (《神仙传·鹤氅》) & Wuxia Cloud-Silk Vestment lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — อาภรณ์ขนนกกระเรียนสวรรค์ของราชสำนักเป่ยหมิง (#47 องค์หญิงกู่ชิงเสวี่ย)',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'ARMOR',
@@ -815,7 +815,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'ARRAY_TALISMAN', 'ANY'],
-      preferredSubs: ['SOUND_ZITHER', 'CELESTIAL_ZITHER_ENVOY', 'CALLIGRAPHY_PAINTING_SAGE', 'GRAND_FORMATION_ARCHITECT', 'SWORD_IMMORTAL'],
+      preferredSubs: ['SOUND_ZITHER', 'CELESTIAL_ZITHER_ENVOY', 'CALLIGRAPHY_PAINTING_SAGE', 'EARTH_VEIN_WARDEN', 'SWORD_IMMORTAL'],
       fixedStats: { hp: 920, def: 340, mdef: 520, matk: 280, eva: 145, cast: 18, move: 14 },
       effects: [
         {
@@ -835,7 +835,7 @@
       nameTh: 'เกราะอ่อนเกล็ดกิเลนเงาดารา',
       chineseName: '星影麒麟软甲',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Classical Wuxia Kirin Scale Soft Armor & Star-Shadow Mail lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — เกราะอ่อนเกล็ดกิเลนเงาดาราของหน่วยองครักษ์เงาเทียนกู่',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'ARMOR',
@@ -855,7 +855,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['DEMON', 'MECH_PUPPET', 'BEAST_SOVEREIGN', 'KARMA_SAMSARA', 'ANY'],
-      preferredSubs: ['SHADOW_ASSASSIN', 'SPIRIT_THREAD_PUPPET', 'THOUSAND_THREAD_ASSASSIN', 'SYMBIOTIC_FANG_FUSION', 'FATE_SEVERING_THREAD'],
+      preferredSubs: ['SHADOW_ASSASSIN', 'THOUSAND_THREAD_ASSASSIN', 'SYMBIOTIC_BEAST_WARRIOR', 'FATE_SEVERING_THREAD'],
       fixedStats: { hp: 1080, def: 460, mdef: 410, atk: 240, crit: 10, critDmg: 24, eva: 130, move: 12 },
       effects: [
         {
@@ -875,7 +875,7 @@
       nameTh: 'เกราะหนักกระดองเต่าดำเสวียนอู่ค้ำสวรรค์',
       chineseName: '玄武镇天重甲',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Mythological Black Tortoise of the North Xuanwu (《北方玄武》) & Indestructible Mountain Armor lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — เกราะหนักกระดองเต่าดำเสวียนอู่แห่งปราการอุดรจักรวรรดิเป่ยหมิง (#46 กู่เทียนเฉิน)',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'ARMOR',
@@ -895,7 +895,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['BODY', 'GOD', 'STRATEGY_GOVERNANCE', 'CRAFT_CREATION', 'ANY'],
-      preferredSubs: ['TITAN_MOUNTAIN_BODY', 'VAJRA_BODHI', 'IRON_COLOSSUS', 'IRON_LEGION_MARSHAL', 'COLOSSUS_SHIELD_TAMER'],
+      preferredSubs: ['TITAN_MOUNTAIN_BODY', 'VAJRA_BODHI', 'HEAVENLY_GOLEM', 'BATTLEFIELD_STRATEGIST', 'COLOSSUS_SHIELD_TAMER'],
       fixedStats: { hp: 1450, def: 640, mdef: 540, atk: 190, pen: 10 },
       effects: [
         {
@@ -918,7 +918,7 @@
       nameTh: 'แหวนหยกสังสารวัฏพลิกชะตา',
       chineseName: '轮回逆命玉戒',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Six-Paths Karmic Ring & Destiny Reversal Relic lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — แหวนหยกสังสารวัฏจากสุสานมหาปราชญ์สังสารวัฏสมัยเทียนกู่',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'ACCESSORY',
@@ -938,7 +938,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['KARMA_SAMSARA', 'DEMON', 'XIAN', 'MECH_PUPPET', 'ANY'],
-      preferredSubs: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'RED_THREAD_ARBITER', 'PAST_LIFE_MIRROR'],
+      preferredSubs: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'PAST_LIFE_MIRROR'],
       fixedStats: { atk: 260, matk: 310, hp: 520, crit: 12, critDmg: 26, pen: 16, acc: 140 },
       effects: [
         {
@@ -958,7 +958,7 @@
       nameTh: 'ประคำโพธิ์ดาราสว่างกระจ่างจิต',
       chineseName: '星光菩提念珠',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Sacred 108 Bodhi Seed Rosary & Heart-Mirror Enlightenment lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ประคำโพธิ์ดาราสว่างจิตแห่งต้นโพธิ์พันปีทุ่งราบเมฆา',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'ACCESSORY',
@@ -998,7 +998,7 @@
       nameTh: 'ตราพยัคฆ์หยกไท่จี๋บัญชาสวรรค์',
       chineseName: '太极天命虎符',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Ancient Imperial Bronze-Jade Tiger Tally (虎符) & Taiji Heaven Mandate Seal lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ตราพยัคฆ์หยกบัญชาทัพหลวงของจักรพรรดิกู่เสวียนหยวน (#1) แห่งเทียนกู่',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'ACCESSORY',
@@ -1018,7 +1018,7 @@
       craft: 'ARRAY',
       durability: 100,
       compatiblePath: ['STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN', 'CRAFT_CREATION', 'XIAN', 'ANY'],
-      preferredSubs: ['GRAND_STRATEGIST', 'IMPERIAL_PEACE_SOVEREIGN', 'IRON_LEGION_MARSHAL', 'GRAND_FORMATION_ARCHITECT', 'QIMEN_TALISMAN_PATRON'],
+      preferredSubs: ['BATTLEFIELD_STRATEGIST', 'SECT_STEWARD', 'EARTH_VEIN_WARDEN', 'QIMEN_TALISMAN_PATRON'],
       fixedStats: { atk: 290, matk: 290, def: 260, mdef: 260, hp: 560, cast: 15, move: 10, pen: 14 },
       effects: [
         {
@@ -1038,7 +1038,7 @@
       nameTh: 'กำไลหยกมังกรหงส์คู่สวรรค์',
       chineseName: '龙凤呈祥仙玉镯',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Classical Dragon-Phoenix Dual Jade Bangle & Yin-Yang Resonance lore',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — กำไลหยกมังกรหงส์คู่บัลลังก์แห่งตำหนักหยกคู่ราชวงศ์เทียนกู่',
       cat: 'EQUIPMENT',
       out: 'EQUIPMENT',
       slot: 'ACCESSORY',
@@ -1058,7 +1058,7 @@
       craft: 'FORGING',
       durability: 100,
       compatiblePath: ['XIAN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'BEAST_SOVEREIGN', 'ANY'],
-      preferredSubs: ['YIN_YANG_HARMONY', 'CELESTIAL_ZITHER_ENVOY', 'PILL_FLAME_SOVEREIGN', 'SYMBIOTIC_FANG_FUSION', 'GOLDEN_NEEDLE_SAINT'],
+      preferredSubs: ['YIN_YANG_HARMONY', 'CELESTIAL_ZITHER_ENVOY', 'PILL_FURNACE_IMMORTAL', 'SYMBIOTIC_BEAST_WARRIOR', 'GOLDEN_NEEDLE_SAINT'],
       fixedStats: { atk: 270, matk: 320, def: 250, mdef: 290, hp: 610, cast: 18, eva: 120, crit: 10 },
       effects: [
         {
@@ -1137,24 +1137,92 @@
     return it;
   };
 
-  // Override ST.gearStats to use authored fixedStats on legendary weapons (scaled once by q / baseDefQ)
+  // Ensure all 27 legendary items carry noEvolution: true, canonical pairId, and base-12 subpath coverage
+  const LEG_PAIR_MAP = {
+    LEG_WPN_YITIAN_SWORD: 'PAIR_YITIAN_TULONG',
+    LEG_WPN_TULONG_SABER: 'PAIR_YITIAN_TULONG',
+    LEG_WPN_BODHI_NIRVANA_ROSARY: 'PAIR_BODHI_NIRVANA',
+    LEG_ACC_BODHI_STARLIGHT_BEADS: 'PAIR_BODHI_NIRVANA',
+    LEG_ACC_SAMSARA_KARMA_RING: 'PAIR_SAMSARA_KARMA',
+    LEG_WPN_CHUNQIU_JUDGMENT_BRUSH: 'PAIR_SAMSARA_KARMA',
+    LEG_WPN_OATHBREAKER_DRAGON_LANCE: 'PAIR_DRAGON_PHOENIX',
+    LEG_ACC_DRAGON_PHOENIX_BANGLE: 'PAIR_DRAGON_PHOENIX'
+  };
+  const LEG_BASE12_SUBS = {
+    LEG_WPN_BODHI_NIRVANA_ROSARY: ['VAJRA_BODHI', 'MEDICINE_BODHI_GOD', 'BODHI_VOW_GUARDIAN', 'SIX_PATHS_WHEEL', 'LOTUS_MERCY_PURIFIER'],
+    LEG_WPN_TAOTIE_DEVOURING_CLAW: ['DEVOURING_FIEND', 'HEAVEN_DEVOURING_DEMON', 'SYMBIOTIC_BEAST_WARRIOR', 'TIGER_SOVEREIGN'],
+    LEG_WPN_BAIHUA_SOUL_NEEDLE: ['GOLDEN_NEEDLE_SAINT', 'VENOM_GU_SOVEREIGN', 'SWARM_GU_HIVE_MASTER', 'POISON_VENOM_CAULDRON'],
+    LEG_WPN_BAJIAO_TEMPEST_FAN: ['FROST_MOON_IMMORTAL', 'DREAM_ILLUSION_WEAVER', 'CELESTIAL_ZITHER_ENVOY', 'FIVE_ELEMENTS'],
+    LEG_WPN_HETU_LUOSHU_ASTROLABE: ['ASTRAL_ARRAY', 'FATE_ORACLE', 'QIMEN_TALISMAN_PATRON', 'ASTRAL_CLOCKWORK_PRIME'],
+    LEG_WPN_CAISHEN_GOLDEN_ABACUS: ['CALLIGRAPHY_PAINTING_SAGE', 'FATE_SEVERING_THREAD', 'SIX_PATHS_WHEEL']
+  };
+  for (const legDef of LEGENDARY_EQUIPMENT) {
+    legDef.noEvolution = true;
+    if (LEG_PAIR_MAP[legDef.id]) legDef.pairId = LEG_PAIR_MAP[legDef.id];
+    if (LEG_BASE12_SUBS[legDef.id] && Array.isArray(legDef.preferredSubs)) {
+      for (const bs of LEG_BASE12_SUBS[legDef.id]) {
+        if (!legDef.preferredSubs.includes(bs)) legDef.preferredSubs.push(bs);
+      }
+    }
+    if (ECO.itemById && ECO.itemById[legDef.id]) {
+      ECO.itemById[legDef.id].noEvolution = true;
+      if (legDef.pairId) ECO.itemById[legDef.id].pairId = legDef.pairId;
+      ECO.itemById[legDef.id].preferredSubs = legDef.preferredSubs;
+      ECO.itemById[legDef.id].nameTh = legDef.nameTh;
+    }
+  }
+
+  // Override ST.gearStats to use authored fixedStats on legendary weapons (scaled once by q / baseDefQ, up to 3★ 1.40x)
   const origGearStats = ST.gearStats;
   ST.gearStats = it => {
     if (!it) return {};
-    if (it.st && it._vcNorm) return it.st;
+    const sig = ST.gearStateSig ? ST.gearStateSig(it) : '';
+    if (it.st && it._vcNorm && it._stSig === sig) return it.st;
     VC.normalizeGearItem(it);
     const def = VC.LEGENDARY_WEAPON_BY_ID[it.id];
     if (def && def.fixedStats) {
-      const qRatio = clamp(VC.gearQuality(it) / (def.q || 1.35), 0.75, 1.25);
-      if (it.st && it._stQ === qRatio) return it.st;
+      const qRatio = clamp(VC.gearQuality(it) / (def.q || 1.35), 0.75, 1.40);
+      if (it.st && it._stQ === qRatio && it._stSig === sig) return it.st;
       const s = {};
       for (const [k, val] of Object.entries(def.fixedStats)) {
         s[k] = (k === 'crit' || k === 'critDmg' || k === 'pen' || k === 'move' || k === 'cast')
           ? Math.round(val * 10) / 10
           : Math.round(val * qRatio * 10) / 10;
       }
+      if (Array.isArray(it.affixes)) {
+        for (const af of it.affixes) {
+          if (af && af.stat && Number.isFinite(af.val)) s[af.stat] = (s[af.stat] || 0) + af.val;
+        }
+      }
+      const fxList = it.effects || it.fx || [];
+      for (const x of fxList) {
+        if (x && x.effectId === 'EFX_V234_ELEMENTAL_REACTOR' && x.params && x.params.bonusMult) {
+          const baseT7 = 2100 * VC.gearQuality(it);
+          s.atk = (s.atk || 0) + baseT7 * x.params.bonusMult * 0.15;
+          s.matk = (s.matk || 0) + baseT7 * x.params.bonusMult * 0.15;
+        }
+      }
+      if (it.artisan && Number.isFinite(it.artisan.defenseBonus) && it.artisan.defenseBonus > 0) {
+        for (const dk of ['def', 'mdef']) {
+          if (Number.isFinite(s[dk])) s[dk] = s[dk] * (1 + it.artisan.defenseBonus);
+        }
+      }
+      if (it.deeds && it.deeds.stage > 1) {
+        const deedMult = 1 + (it.deeds.stage - 1) * 0.08;
+        for (const dk of ['atk', 'matk', 'def', 'mdef']) { if (Number.isFinite(s[dk])) s[dk] *= deedMult; }
+      }
+      if (Array.isArray(it.lineage) && it.lineage.length > 0) {
+        for (const lin of it.lineage.slice(0, 3)) {
+          if (lin && lin.bonusStat && Number.isFinite(lin.bonusVal)) s[lin.bonusStat] = (s[lin.bonusStat] || 0) + lin.bonusVal;
+        }
+      }
+      if (it.dormant) {
+        for (const dk of Object.keys(s)) { if (Number.isFinite(s[dk])) s[dk] *= 0.75; }
+      }
+      for (const k of Object.keys(s)) s[k] = Math.round(s[k] * 10) / 10;
       it.st = s;
       it._stQ = qRatio;
+      it._stSig = sig;
       return s;
     }
     return origGearStats(it);
@@ -1181,6 +1249,8 @@
       it.unique = true;
       it.minStage = def.minStage || 5;
       it.value = def.value || 4500;
+      it.noEvolution = true;
+      if (def.pairId) it.pairId = def.pairId;
       if (!it.uid) it.uid = 'uid_' + def.id + '_' + (++ VC._uidSeq);
       ST.gearStats(it);
     }
@@ -1191,14 +1261,14 @@
   VC.mintLegendaryEquipment = (W, id, source) => {
     const def = VC.LEGENDARY_WEAPON_BY_ID[id] || ECO.itemById[id];
     if (!def) return null;
-    const it = ECO.mintGear(def, def.q || 1.35);
+    const it = W ? ECO.mintGear(W, def, def.q || 1.35) : ECO.mintGear(def, def.q || 1.35);
     if (source) it.mintSource = source;
     return it;
   };
   VC.mintLegendaryWeapon = (W, id, source) => {
     const def = VC.LEGENDARY_WEAPON_BY_ID[id] || ECO.itemById[id];
     if (!def) return null;
-    const it = ECO.mintGear(def, def.q || 1.35);
+    const it = W ? ECO.mintGear(W, def, def.q || 1.35) : ECO.mintGear(def, def.q || 1.35);
     if (source) it.mintSource = source;
     return it;
   };
@@ -1252,6 +1322,7 @@
 
   /* ---------- Real Combat Effect Execution for Equipped Legendary Weapons ---------- */
   VC.runWeaponProcs = (W, f, attacker, defender, isSkill, strikeResult) => {
+    if (ST && W && Number.isFinite(W.t)) ST.now = W.t;
     if (!attacker || attacker.foe || attacker.dead || !defender || (f && f._inWpnProc)) return null;
     const eqSlots = attacker.equip ? [attacker.equip.WEAPON, attacker.equip.ARMOR, attacker.equip.ACCESSORY].filter(Boolean) : [];
     const usableItems = eqSlots.filter(it => !M.gearUsable || M.gearUsable(attacker, it));
@@ -1288,8 +1359,8 @@
         const icd = Math.max(2, Math.round((p.icdTicks || 8) * cdScale));
         if ((attacker.wpnProcCds[eid] || 0) > W.t) continue;
 
+        const hMult = (COMBAT.healMultiplier ? COMBAT.healMultiplier(attacker, W.t) : 1.0);
         if (eid === 'EFX_LEG_YITIAN_SEVER') {
-          attacker.wpnProcCds[eid] = W.t + icd;
           const breakRatio = p.shieldBreakRatio || 0.35;
           const sh = ST.statusOf(defender, 'shield');
           let severedShield = 0;
@@ -1309,18 +1380,30 @@
             severedShield += cutS;
             defender.shield = Math.max(0, defender.shield - cutS);
           }
-          if (COMBAT.alive(defender)) ST.addStatus(defender, p.status || 'armorbreak', p.dur || 8);
-          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid, severedShield }; triggeredProc = attacker.lastWeaponProc;
-        } else if (eid === 'EFX_LEG_XUANTIE_CRUSH') {
-          attacker.wpnProcCds[eid] = W.t + icd;
-          const str = E(attacker, 'physiology.strength');
-          if (str >= (p.minStrength || 60) && strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender)) {
-            const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.16)));
-            COMBAT.applyDamage(W, f, attacker, defender, extra, 'แรงกระแทกกระบี่หนัก');
-            strikeResult.dmg += extra;
+          if (ST.has && ST.has(defender, 'guardUp', W.t)) {
+            ST.clearStatus(defender, x => x.k === 'guardUp');
+            severedShield += 15;
           }
-          if (COMBAT.alive(defender)) ST.addStatus(defender, p.status || 'slow', p.dur || 6);
-          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+          if (severedShield > 0 || COMBAT.alive(defender)) {
+            attacker.wpnProcCds[eid] = W.t + icd;
+            if (COMBAT.alive(defender)) ST.addStatus(defender, p.status || 'armorbreak', p.dur || 8);
+            attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid, severedShield }; triggeredProc = attacker.lastWeaponProc;
+          }
+        } else if (eid === 'EFX_LEG_XUANTIE_CRUSH') {
+          const str = E(attacker, 'physiology.strength');
+          if (str >= (p.minStrength || 60)) {
+            attacker.wpnProcCds[eid] = W.t + icd;
+            if (strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender)) {
+              const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.16)));
+              COMBAT.applyDamage(W, f, attacker, defender, extra, 'แรงกระแทกกระบี่หนัก');
+              strikeResult.dmg += extra;
+            }
+            if (COMBAT.alive(defender)) {
+              ST.addStatus(defender, p.status || 'slow', p.dur || 6);
+              if (p.armorReductionRatio) ST.addStatus(defender, 'armorbreak', p.dur || 6);
+            }
+            attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+          }
         } else if (eid === 'EFX_LEG_TULONG_DECREE') {
           attacker.wpnProcCds[eid] = W.t + icd;
           if (strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender) && p.bonusDmgMult) {
@@ -1345,11 +1428,21 @@
             attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
           }
         } else if (eid === 'EFX_LEG_XIAOLI_TRUE_STRIKE') {
+          const isZeroQi = !!(CULT && CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(attacker));
           const qm = CULT.qiMax(attacker);
           const needQi = Math.max(1, Math.round(qm * (p.qiCostPct || 0.04)));
-          if ((attacker.h.state.qi || 0) >= needQi) {
+          const needGauge = p.iaiCost || 8;
+          const canPay = isZeroQi
+            ? (attacker.pathGauge && (attacker.pathGauge.value || 0) >= needGauge)
+            : ((attacker.h.state.qi || 0) >= needQi);
+          if (canPay) {
             attacker.wpnProcCds[eid] = W.t + icd;
-            attacker.h.state.qi = Math.max(0, attacker.h.state.qi - needQi);
+            if (isZeroQi) {
+              attacker.pathGauge.value = Math.max(0, (attacker.pathGauge.value || 0) - needGauge);
+              if (attacker.pathGauge.value < (attacker.pathGauge.max || 100)) attacker.pathGauge.ready = false;
+            } else {
+              attacker.h.state.qi = Math.max(0, attacker.h.state.qi - needQi);
+            }
             if (strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender)) {
               const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.20)));
               COMBAT.applyDamage(W, f, attacker, defender, extra, 'มีดบินเสี่ยวหลี่');
@@ -1359,18 +1452,25 @@
             attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
           }
         } else if (eid === 'EFX_LEG_OVERLORD_COURAGE') {
-          attacker.wpnProcCds[eid] = W.t + icd;
           const courage = E(attacker, 'personality.courage');
-          if (courage >= 55 && strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender)) {
-            const extra = Math.max(1, Math.round(strikeResult.dmg * (p.courageBonusMult || 0.15)));
-            COMBAT.applyDamage(W, f, attacker, defender, extra, 'คมทวนราชันย์');
-            strikeResult.dmg += extra;
+          const vsStronger = !!(COMBAT.power && COMBAT.power(defender) > COMBAT.power(attacker));
+          if (courage >= 55 || vsStronger) {
+            attacker.wpnProcCds[eid] = W.t + icd;
+            if (strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender)) {
+              const extra = Math.max(1, Math.round(strikeResult.dmg * (p.courageBonusMult || 0.15)));
+              COMBAT.applyDamage(W, f, attacker, defender, extra, 'คมทวนราชันย์');
+              strikeResult.dmg += extra;
+            }
+            if (COMBAT.alive(defender) && p.armorReductionRatio) ST.addStatus(defender, 'armorbreak', p.dur || 6);
+            if (p.qiRestorePct && attacker.cult && !(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(attacker))) {
+              const qm = CULT.qiMax(attacker);
+              attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
+            }
+            if (attacker.h && attacker.h.state) {
+              attacker.h.state.energy = Math.min(100, (attacker.h.state.energy || 50) + 4);
+            }
+            attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
           }
-          if (p.qiRestorePct && attacker.cult) {
-            const qm = CULT.qiMax(attacker);
-            attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
-          }
-          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_DRAGON_LANCE_WARD') {
           attacker.wpnProcCds[eid] = W.t + icd;
           const hm = COMBAT.hpMax(attacker);
@@ -1382,19 +1482,21 @@
           }
           attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_TIGER_FIST_RESOLVE') {
-          attacker.wpnProcCds[eid] = W.t + icd;
           const hm = COMBAT.hpMax(attacker);
           const hpLow = COMBAT.hp(attacker) <= hm * 0.75;
           const hasAllies = !!(f && Array.isArray(f.A) && Array.isArray(f.B) && COMBAT.alliesOf(W, f, attacker.id).length > 1);
-          if ((hpLow || hasAllies) && strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender)) {
-            const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.16)));
-            COMBAT.applyDamage(W, f, attacker, defender, extra, 'หมัดพยัคฆ์พิโรธ');
-            strikeResult.dmg += extra;
+          if (hpLow || hasAllies || p.hpRestorePct) {
+            attacker.wpnProcCds[eid] = W.t + icd;
+            if ((hpLow || hasAllies) && strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender)) {
+              const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.16)));
+              COMBAT.applyDamage(W, f, attacker, defender, extra, 'หมัดพยัคฆ์พิโรธ');
+              strikeResult.dmg += extra;
+            }
+            if (p.hpRestorePct && !attacker.dead) {
+              COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct * hMult))));
+            }
+            attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
           }
-          if (p.hpRestorePct && !attacker.dead) {
-            COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct))));
-          }
-          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_TWIN_CONDOR_SHOT') {
           attacker.wpnProcCds[eid] = W.t + icd;
           if (strikeResult && strikeResult.dmg > 0 && COMBAT.alive(defender)) {
@@ -1423,7 +1525,7 @@
         } else if (eid === 'EFX_LEG_JIUXIAO_SONIC_TEMPEST') {
           attacker.wpnProcCds[eid] = W.t + icd;
           ST.addStatus(attacker, p.selfStatus || 'morale', p.dur || 6);
-          if (p.qiRestorePct && attacker.cult) {
+          if (p.qiRestorePct && attacker.cult && !(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(attacker))) {
             const qm = CULT.qiMax(attacker);
             attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
           }
@@ -1438,8 +1540,11 @@
           attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_CHUNQIU_VERDICT_SEAL') {
           attacker.wpnProcCds[eid] = W.t + icd;
+          ST.addStatus(attacker, 'focusUp', p.dur || 7);
           if (COMBAT.alive(defender)) {
             ST.addStatus(defender, p.targetStatus || 'armorbreak', p.dur || 7);
+            ST.addStatus(defender, 'mdefbreak', p.dur || 7);
+            ST.addStatus(defender, 'slow', p.dur || 7);
             if (strikeResult && strikeResult.dmg > 0) {
               const extra = Math.max(1, Math.round(strikeResult.dmg * (p.bonusDmgMult || 0.18)));
               COMBAT.applyDamage(W, f, attacker, defender, extra, 'อักขระชุนชิวพิพากษา');
@@ -1456,6 +1561,9 @@
           eid === 'EFX_LEG_CAISHEN_GOLDEN_ABACUS'
         ) {
           attacker.wpnProcCds[eid] = W.t + icd;
+          if (p.cleanseHeartDemon && attacker.h && attacker.h.state) {
+            attacker.h.state.heartDemon = Math.max(0, (attacker.h.state.heartDemon || 0) - p.cleanseHeartDemon);
+          }
           if (COMBAT.alive(defender)) {
             if (p.targetStatus) ST.addStatus(defender, p.targetStatus, p.dur || 7);
             if (strikeResult && strikeResult.dmg > 0) {
@@ -1464,15 +1572,15 @@
               strikeResult.dmg += extra;
               if (p.leechRatio && !attacker.dead) {
                 const hm = COMBAT.hpMax(attacker);
-                COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(strikeResult.dmg * p.leechRatio))));
+                COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(strikeResult.dmg * p.leechRatio * hMult))));
               }
             }
           }
           if (p.hpRestorePct && !attacker.dead) {
             const hm = COMBAT.hpMax(attacker);
-            COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct))));
+            COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct * hMult))));
           }
-          if (p.qiRestorePct && attacker.cult) {
+          if (p.qiRestorePct && attacker.cult && !(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(attacker))) {
             const qm = CULT.qiMax(attacker);
             attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
           }
@@ -1483,7 +1591,7 @@
           triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_TIANCAN_PUPPET_SNARE') {
           attacker.wpnProcCds[eid] = W.t + icd;
-          if (p.qiRestorePct && attacker.cult) {
+          if (p.qiRestorePct && attacker.cult && !(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(attacker))) {
             const qm = CULT.qiMax(attacker);
             attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
           }
@@ -1500,8 +1608,13 @@
         } else if (eid === 'EFX_LEG_SAMSARA_RING_REVERSAL') {
           attacker.wpnProcCds[eid] = W.t + icd;
           const hm = COMBAT.hpMax(attacker), qm = CULT.qiMax(attacker);
-          if (p.hpRestorePct && !attacker.dead) COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct))));
-          if (p.qiRestorePct && attacker.cult) attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
+          if (attacker.sx && attacker.sx.length && ST.clearStatus) {
+            const debK = ['burn', 'bleed', 'poison', 'slow', 'weaken', 'blind', 'armorbreak', 'mdefbreak', 'exposed', 'curse'];
+            const firstDeb = attacker.sx.find(x => debK.includes(x.k));
+            if (firstDeb) ST.clearStatus(attacker, x => x === firstDeb);
+          }
+          if (p.hpRestorePct && !attacker.dead) COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct * hMult))));
+          if (p.qiRestorePct && attacker.cult && !(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(attacker))) attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
           if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
           if (COMBAT.alive(defender)) {
             if (p.targetStatus) ST.addStatus(defender, p.targetStatus, p.dur || 8);
@@ -1518,18 +1631,35 @@
             attacker.h.state.heartDemon = Math.max(0, (attacker.h.state.heartDemon || 0) - p.cleanseHeartDemon);
           }
           const hm = COMBAT.hpMax(attacker);
-          if (p.hpRestorePct && !attacker.dead) COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct))));
+          if (p.hpRestorePct && !attacker.dead) COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct * hMult))));
           if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
           if (p.secondaryBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.secondaryBuff, p.dur || 8, W.t, { casterId: attacker.id });
+          if (f && COMBAT.alliesOf && Number.isFinite(attacker.x)) {
+            for (const ally of COMBAT.alliesOf(W, f, attacker.id)) {
+              if (!ally || ally.id === attacker.id || ally.dead) continue;
+              if (!Number.isFinite(ally.x) || Math.hypot(ally.x - attacker.x, (ally.y || 0) - (attacker.y || 0)) <= 4.0) {
+                const ahm = COMBAT.hpMax(ally);
+                COMBAT.setHp(ally, Math.min(ahm, COMBAT.hp(ally) + Math.max(1, Math.round(ahm * (p.hpRestorePct || 0.05) * 0.75))));
+              }
+            }
+          }
           attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_TAICHI_COMMAND_DECREE') {
           attacker.wpnProcCds[eid] = W.t + icd;
-          if (p.qiRestorePct && attacker.cult) {
+          if (p.qiRestorePct && attacker.cult && !(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(attacker))) {
             const qm = CULT.qiMax(attacker);
             attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
           }
           if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
           if (p.secondaryBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.secondaryBuff, p.dur || 8, W.t, { casterId: attacker.id });
+          if (f && COMBAT.alliesOf && Number.isFinite(attacker.x)) {
+            for (const ally of COMBAT.alliesOf(W, f, attacker.id)) {
+              if (!ally || ally.id === attacker.id || ally.dead || ally.foe) continue;
+              if (!Number.isFinite(ally.x) || Math.hypot(ally.x - attacker.x, (ally.y || 0) - (attacker.y || 0)) <= 4.5) {
+                if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(ally, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
+              }
+            }
+          }
           if (COMBAT.alive(defender)) {
             if (p.targetStatus) ST.addStatus(defender, p.targetStatus, p.dur || 8);
             if (strikeResult && strikeResult.dmg > 0 && p.bonusDmgMult) {
@@ -1542,13 +1672,23 @@
         } else if (eid === 'EFX_LEG_DRAGON_PHOENIX_HARMONY') {
           attacker.wpnProcCds[eid] = W.t + icd;
           const hm = COMBAT.hpMax(attacker), qm = CULT.qiMax(attacker);
-          if (p.hpRestorePct && !attacker.dead) COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct))));
-          if (p.qiRestorePct && attacker.cult) attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
+          if (p.hpRestorePct && !attacker.dead) COMBAT.setHp(attacker, Math.min(hm, COMBAT.hp(attacker) + Math.max(1, Math.round(hm * p.hpRestorePct * hMult))));
+          if (p.qiRestorePct && attacker.cult && !(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(attacker))) attacker.h.state.qi = Math.min(qm, (attacker.h.state.qi || 0) + qm * p.qiRestorePct);
           if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
           if (COMBAT.alive(defender) && strikeResult && strikeResult.dmg > 0 && p.bonusDmgMult) {
             const extra = Math.max(1, Math.round(strikeResult.dmg * p.bonusDmgMult));
             COMBAT.applyDamage(W, f, attacker, defender, extra, 'มังกรหงส์ประสานชีพจรคู่');
             strikeResult.dmg += extra;
+          }
+          attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_KIRIN_PHANTOM_COUNTER' && strikeResult && strikeResult.crit) {
+          attacker.wpnProcCds[eid] = W.t + icd;
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(attacker, p.grantBuff, p.dur || 8, W.t, { casterId: attacker.id });
+          if (COMBAT.alive(defender) && strikeResult.dmg > 0) {
+            const extra = Math.max(1, Math.round(strikeResult.dmg * 0.14));
+            COMBAT.applyDamage(W, f, attacker, defender, extra, 'เงากิเลนจู่โจม');
+            strikeResult.dmg += extra;
+            ST.addStatus(defender, p.targetStatus || 'bleed', p.dur || 7);
           }
           attacker.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid }; triggeredProc = attacker.lastWeaponProc;
         } else if (eid === 'EFX_LEG_DAGOU_REDIRECTION') {
@@ -1608,6 +1748,7 @@
   };
 
   VC.runWeaponOnStruckProcs = (W, f, defender, attacker, strikeResult) => {
+    if (ST && W && Number.isFinite(W.t)) ST.now = W.t;
     if (!defender || defender.foe || defender.dead || !attacker || (f && f._inWpnDefProc)) return null;
     const eqSlots = defender.equip ? [defender.equip.WEAPON, defender.equip.ARMOR, defender.equip.ACCESSORY].filter(Boolean) : [];
     const usableItems = eqSlots.filter(it => !M.gearUsable || M.gearUsable(defender, it));
@@ -1625,27 +1766,81 @@
     if (f) f._inWpnDefProc = true;
     try {
       defender.wpnProcCds = defender.wpnProcCds || {};
+      const legResDef = (M && M.evaluateLegendaryRelicResonance) ? M.evaluateLegendaryRelicResonance(defender) : null;
+      const cdScaleDef = (legResDef && legResDef.procChanceMult > 1) ? (1 / legResDef.procChanceMult) : 1;
       for (const entry of fxEntries) {
         const wpn = entry.eqIt;
         const fx = entry.fx;
-        if (fx.effectId === 'EFX_LEG_DAGOU_REDIRECTION' || fx.effectId === 'EFX_LEG_KIRIN_PHANTOM_COUNTER' || fx.effectId === 'EFX_LEG_XUANWU_UNYIELDING_BASTION' || fx.effectId === 'EFX_LEG_CRANE_CLOUD_AEGIS') {
-          const p = fx.params || {};
-          const icd = Math.max(2, p.icdTicks || 8);
-          if ((defender.wpnProcCds[fx.effectId] || 0) > W.t) continue;
-          defender.wpnProcCds[fx.effectId] = W.t + icd;
-          const incomingDmg = (strikeResult && Number.isFinite(strikeResult.dmg)) ? strikeResult.dmg : 60;
-          const redirDmg = Math.max(1, Math.round(incomingDmg * (p.redirectRatio || p.reflectRatio || 0.15)));
-          if (p.shieldHpPct) {
-            const hm = COMBAT.hpMax(defender);
-            ST.addStatus(defender, 'shield', p.dur || 8, { amt: Math.max(15, Math.round(hm * p.shieldHpPct)) }, W.t);
-          }
-          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(defender, p.grantBuff, p.dur || 8, W.t, { casterId: defender.id });
-          if (COMBAT.alive(attacker)) {
+        const eid = fx.effectId;
+        const p = fx.params || {};
+        const icd = Math.max(2, Math.round((p.icdTicks || 8) * cdScaleDef));
+        if ((defender.wpnProcCds[eid] || 0) > W.t) continue;
+        const incomingDmg = (strikeResult && Number.isFinite(strikeResult.dmg)) ? strikeResult.dmg : 60;
+        const dist = (Number.isFinite(attacker.x) && Number.isFinite(defender.x)) ? Math.hypot(attacker.x - defender.x, (attacker.y || 0) - (defender.y || 0)) : 1.5;
+
+        if (eid === 'EFX_LEG_DAGOU_REDIRECTION') {
+          defender.wpnProcCds[eid] = W.t + icd;
+          const isRangedFar = !!(f && Array.isArray(f.A) && dist > 2.6 && ["BOW", "ZITHER", "NEEDLE", "ASTROLABE"].includes((M && M.equippedType && M.equippedType(attacker)) || attacker.weaponType || ""));
+          const redirDmg = !isRangedFar ? Math.max(1, Math.round(incomingDmg * (p.redirectRatio || 0.15))) : 0;
+          if (redirDmg > 0 && COMBAT.alive(attacker)) {
             COMBAT.applyDamage(W, f, defender, attacker, redirDmg, 'พลองหยกยืมแรงปัดสวน');
             ST.addStatus(attacker, p.targetStatus || 'slow', p.dur || 7);
           }
           ST.addStatus(defender, p.selfStatus || 'evadeUp', p.dur || 7);
-          defender.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: fx.effectId, redirectedDmg: redirDmg };
+          defender.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid, redirectedDmg: redirDmg };
+          triggeredProc = defender.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_CRANE_CLOUD_AEGIS') {
+          defender.wpnProcCds[eid] = W.t + icd;
+          const hm = COMBAT.hpMax(defender);
+          const shAmt = Math.max(15, Math.round(hm * (p.shieldHpPct || 0.16)));
+          ST.addStatus(defender, 'shield', p.dur || 8, { amt: shAmt }, W.t);
+          if (p.qiRestorePct && defender.cult && !(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(defender))) {
+            const qm = CULT.qiMax(defender);
+            defender.h.state.qi = Math.min(qm, (defender.h.state.qi || 0) + qm * p.qiRestorePct);
+          }
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(defender, p.grantBuff, p.dur || 8, W.t, { casterId: defender.id });
+          ST.addStatus(defender, p.selfStatus || 'evadeUp', p.dur || 7);
+          defender.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid, shieldGranted: shAmt, redirectedDmg: 0 };
+          triggeredProc = defender.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_XUANWU_UNYIELDING_BASTION') {
+          defender.wpnProcCds[eid] = W.t + icd;
+          const hm = COMBAT.hpMax(defender);
+          const shAmt = Math.max(20, Math.round(hm * (p.shieldHpPct || 0.20)));
+          ST.addStatus(defender, 'shield', p.dur || 9, { amt: shAmt }, W.t);
+          if (ST.clearStatus) ST.clearStatus(defender, x => x.k === 'armorbreak' || x.k === 'stun');
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(defender, p.grantBuff, p.dur || 9, W.t, { casterId: defender.id });
+          const redirDmg = Math.max(1, Math.round(incomingDmg * (p.reflectRatio || 0.16)));
+          if (COMBAT.alive(attacker)) {
+            COMBAT.applyDamage(W, f, defender, attacker, redirDmg, 'กระดองเต่าดำเสวียนอู่สะท้อน');
+            ST.addStatus(attacker, p.targetStatus || 'weaken', p.dur || 8);
+          }
+          defender.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid, shieldGranted: shAmt, redirectedDmg: redirDmg };
+          triggeredProc = defender.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_KIRIN_PHANTOM_COUNTER') {
+          defender.wpnProcCds[eid] = W.t + icd;
+          const redirDmg = Math.max(1, Math.round(incomingDmg * (p.reflectRatio || 0.18)));
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(defender, p.grantBuff, p.dur || 8, W.t, { casterId: defender.id });
+          ST.addStatus(defender, p.selfStatus || 'evadeUp', p.dur || 7);
+          if (COMBAT.alive(attacker)) {
+            COMBAT.applyDamage(W, f, defender, attacker, redirDmg, 'เกล็ดกิเลนเงาดาราสวนกลับ');
+            ST.addStatus(attacker, p.targetStatus || 'bleed', p.dur || 7);
+          }
+          defender.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid, redirectedDmg: redirDmg };
+          triggeredProc = defender.lastWeaponProc;
+        } else if (eid === 'EFX_LEG_SAMSARA_RING_REVERSAL') {
+          defender.wpnProcCds[eid] = W.t + icd;
+          const hm = COMBAT.hpMax(defender), qm = CULT.qiMax(defender);
+          const hMult = (COMBAT.healMultiplier ? COMBAT.healMultiplier(defender, W.t) : 1.0);
+          if (defender.sx && defender.sx.length && ST.clearStatus) {
+            const debK = ['burn', 'bleed', 'poison', 'slow', 'weaken', 'blind', 'armorbreak', 'mdefbreak', 'exposed', 'curse'];
+            const firstDeb = defender.sx.find(x => debK.includes(x.k));
+            if (firstDeb) ST.clearStatus(defender, x => x === firstDeb);
+          }
+          if (p.hpRestorePct && !defender.dead) COMBAT.setHp(defender, Math.min(hm, COMBAT.hp(defender) + Math.max(1, Math.round(hm * p.hpRestorePct * hMult))));
+          if (p.qiRestorePct && defender.cult && !(CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(defender))) defender.h.state.qi = Math.min(qm, (defender.h.state.qi || 0) + qm * p.qiRestorePct);
+          if (p.grantBuff && ST.applyNamedBuff) ST.applyNamedBuff(defender, p.grantBuff, p.dur || 8, W.t, { casterId: defender.id });
+          if (COMBAT.alive(attacker) && p.targetStatus) ST.addStatus(attacker, p.targetStatus, p.dur || 8);
+          defender.lastWeaponProc = { triggered: true, t: W.t, weaponId: wpn.id, effectId: eid };
           triggeredProc = defender.lastWeaponProc;
         }
       }
@@ -1656,15 +1851,27 @@
   };
   VC.runRelicProcs = VC.runWeaponProcs;
 
-  // Hook COMBAT.strike to invoke legendary weapon offensive and defensive procs
+  VC.runSupportRelicProcs = (W, f, caster, target, moveProf) => {
+    if (!caster || caster.foe || caster.dead || !caster.equip) return null;
+    const arch = moveProf && moveProf.arch;
+    if (!['heal', 'support', 'buff', 'guard', 'shield', 'command', 'harmonize', 'karmaReversal'].includes(arch) && !(moveProf && (moveProf.heal > 0 || moveProf.shield > 0))) return null;
+    return VC.runWeaponProcs(W, f, caster, target || caster, true, { hit: true, dmg: 0, crit: false });
+  };
+
+  // Hook COMBAT.strike & COMBAT.useSkill to invoke legendary weapon offensive, defensive, and support procs
   const origStrike = COMBAT.strike;
   COMBAT.strike = function (W, f, a, d, o) {
     const oMod = o ? Object.assign({}, o) : {};
-    // If wielder has Xiaoli Heart Dagger and proc is ready, guarantee hit (forced: true)
+    // If wielder has Xiaoli Heart Dagger and proc is ready, guarantee hit (forced: true) and add +22 armor penetration
     if (a && !a.foe && a.equip && a.equip.WEAPON && a.equip.WEAPON.id === 'LEG_WPN_XIAOLI_HEART_DAGGER' && (!M.gearUsable || M.gearUsable(a, a.equip.WEAPON))) {
       const cd = (a.wpnProcCds && a.wpnProcCds.EFX_LEG_XIAOLI_TRUE_STRIKE) || 0;
-      if (W.t >= cd && (a.h.state.qi || 0) >= Math.max(1, CULT.qiMax(a) * 0.04)) {
+      const isZeroQi = !!(CULT && CULT.isZeroQiSamurai && CULT.isZeroQiSamurai(a));
+      const canTrigger = isZeroQi
+        ? (a.pathGauge && (a.pathGauge.value || 0) >= 8)
+        : ((a.h.state.qi || 0) >= Math.max(1, CULT.qiMax(a) * 0.04));
+      if (W.t >= cd && canTrigger) {
         oMod.forced = true;
+        oMod.pen = (oMod.pen || 0) + 22;
       }
     }
     const res = origStrike.call(this, W, f, a, d, oMod);
@@ -1674,6 +1881,16 @@
     }
     return res;
   };
+  if (typeof COMBAT.useSkill === 'function') {
+    const origUseSkill = COMBAT.useSkill;
+    COMBAT.useSkill = function (W, f, a, d, p) {
+      const uRes = origUseSkill.apply(this, arguments);
+      if (p && ((p.M || 0) <= 0 || ['heal', 'support', 'buff', 'guard', 'shield', 'command', 'harmonize', 'karmaReversal'].includes(p.arch))) {
+        VC.runSupportRelicProcs(W, f, a, d || a, p);
+      }
+      return uRes;
+    };
+  }
 
   /* ============================================================================
    * 2. CLUE SOURCE CATALOG (8 Ordinary + 22 Legendary Arts + 11 Legendary Weapons = 41 Templates)
@@ -2457,7 +2674,7 @@
       unique: true,
       regionId: 'water',
       visitorRoles: ['merchant', 'wanderer', 'scholar'],
-      rumorTextTh: 'กัปตันเรือเดินสมุทรเล่าถึงถ้ำศิลาบนเกาะกลางลุ่มน้ำใหญ่ที่สลักบทกวีโบราณ ซึ่งผู้ที่ยึดติดกับตำราเดิมเกินไปกลับตีความไม่ออก',
+      rumorTextTh: 'นายท้ายสำเภาเดินสมุทรเล่าถึงถ้ำศิลาบนเกาะกลางลุ่มน้ำใหญ่ที่สลักรอยขีดเขียนคล้ายการบ้านคัดลายมือของเด็กน้อยจากฟากฟ้า ซึ่งผู้ที่ยึดติดกับตำราเดิมเกินไปกลับตีความไม่ออก',
       steps: [
         {
           nodeId: 'sail_to_inscription_island',
@@ -2549,7 +2766,7 @@
       unique: true,
       regionId: 'SRC110_MW_ENV_03_FROZEN_HIGHLANDS',
       visitorRoles: ['merchant', 'wanderer'],
-      rumorTextTh: 'กองคาราวานแดนหิมะได้แผ่นลอกลายศิลาของพระอาจารย์ต้าเอ่อร์ที่บันทึกการฝึกกำลังกายานาคช้างทีละขั้นด้วยความพากเพียร',
+      rumorTextTh: 'กองคาราวานแดนหิมะได้แผ่นลอกลายศิลาของมหาสมณะวัชระแห่งซีหรงที่บันทึกการฝึกกำลังกายานาคช้างทีละขั้นด้วยความพากเพียร',
       steps: [
         {
           nodeId: 'trace_monastery_stele',
@@ -3071,7 +3288,7 @@
       unique: true,
       regionId: 'plains',
       visitorRoles: ['artisan', 'scholar', 'wanderer'],
-      rumorTextTh: 'ทายาทช่างตีเหล็กชราผู้ตีมีดสั้นให้ลี่ซุนฮวนเดินทางผ่านมา พร้อมกล่องไม้สลักรูปดอกเหมยที่บรรจุมีดสั้นเสี่ยวหลี่เล่มสุดท้าย',
+      rumorTextTh: 'ทายาทช่างตีเหล็กชราผู้ตีมีดสั้นให้หัวหน้าสำนักตรวจการเอี๊ยนหลัว (#54) แห่งตงหวงเดินทางผ่านมา พร้อมกล่องไม้สลักรูปดอกเหมยที่บรรจุมีดสั้นเสี่ยวหลี่เล่มสุดท้าย',
       steps: [
         {
           nodeId: 'aid_elder_weaponsmith',
@@ -3102,7 +3319,7 @@
     },
     {
       templateId: 'CLUE_LEG_WPN_DAGOU_JADE_STAFF',
-      titleTh: 'พลองหยกเขียวตีสุนัขในศาลเจ้าล้างมือ',
+      titleTh: 'พลองหยกเขียวมรกตปราบพยัคฆ์ในศาลเจ้าล้างมือ',
       category: 'LEGENDARY_WEAPON',
       targetKind: 'EQUIPMENT',
       targetId: 'LEG_WPN_DAGOU_JADE_STAFF',
@@ -3111,7 +3328,7 @@
       unique: true,
       regionId: 'plains',
       visitorRoles: ['wanderer', 'envoy'],
-      rumorTextTh: 'ผู้อาวุโสพรรคกระยาจกพเนจรเล่าว่าพลองหยกเขียวประจำตำแหน่งรุ่นก่อนถูกเก็บรักษาไว้ในศาลเจ้าร้าง รอผู้มีคุณธรรมและไหวพริบมารับช่วงต่อ',
+      rumorTextTh: 'ผู้อาวุโสกองคาราวานผู้ลี้ภัยของราชันย์พเนจรหงชี (#38) เล่าว่าพลองหยกเขียวมรกตประจำตำแหน่งรุ่นก่อนถูกเก็บรักษาไว้ในศาลเจ้าร้าง รอผู้มีคุณธรรมและไหวพริบมารับช่วงต่อ',
       steps: [
         {
           nodeId: 'share_provisions_with_beggars',
@@ -3312,6 +3529,7 @@
           titleTh: 'ยิงศรฝ่าลมกรดตัดห่วงทองคำสองวงพร้อมกัน',
           locationId: 'SRC110_MW_ENV_05_MINERAL_DESERT',
           scope: 'personal',
+          skill: 'BOW',
           statPath: 'intellect.perceptiveness',
           minVal: 58,
           hintTh: 'ใช้สายตาและความแม่นยำคำนวณทิศทางลมกรด',
@@ -4060,7 +4278,7 @@
       unique: true,
       regionId: 'desert',
       visitorRoles: ['envoy', 'scholar', 'merchant'],
-      rumorTextTh: 'กองคาราวานทะเลทรายพบซากป้อมบัญชาทัพโบราณที่ฝัง「ตราพยัคฆ์หยกไท่จี๋บัญชาสวรรค์」ของจอมทัพเซียนไว้',
+      rumorTextTh: 'กองคาราวานทะเลทรายพบซากป้อมบัญชาทัพโบราณของตระกูลทัวป๋าที่ฝังซีกซ้ายและแม่พิมพ์สำรองของ「ตราพยัคฆ์หยกไท่จี๋บัญชาสวรรค์」ซึ่งเชื่อมโยงถึงซีกขวาในความดูแลของปรมาจารย์ทวนเฒ่า ทัวป๋ากัง (#60) แห่งผาหินแดง',
       steps: [
         {
           nodeId: 'defeat_sand_golem_vanguard',
@@ -4078,12 +4296,12 @@
         {
           nodeId: 'unite_taichi_tally_trial',
           type: 'spirit_judgment',
-          titleTh: 'ประกบตราพยัคฆ์หยกสองซีกเข้าด้วยกันด้วยปราณสมดุลและภาวะผู้นำ',
+          titleTh: 'รับมอบซีกขวาจากทูตผาหินแดงของทัวป๋ากัง (#60) แล้วประกบตราพยัคฆ์หยกสองซีกเข้าด้วยกัน',
           locationId: 'desert',
           scope: 'personal',
           statPath: 'personality.loyalty',
           minVal: 60,
-          hintTh: 'ผู้ถือตราพยัคฆ์ต้องมีความซื่อสัตย์ภักดีและบารมีผู้นำ',
+          hintTh: 'ความซื่อสัตย์ภักดีและบารมีผู้นำจะทำให้ทูตของปรมาจารย์ทวนเฒ่า ทัวป๋ากัง (#60) ยอมรับและส่งมอบซีกขวาเพื่อรวมตราพยัคฆ์สมบูรณ์',
           onPass: 'REWARD',
           onFail: 'RETRY_LATER'
         }
@@ -4131,8 +4349,254 @@
     }
   ];
 
+  const V200_WEAPON_CLUE_TEMPLATES = [
+    {
+      templateId: 'CLUE_LEG_WPN_BODHI_NIRVANA_ROSARY',
+      titleTh: 'เจดีย์พระธาตุทองคำและมหาลูกประคำโพธิญาณร้อยแปดอรหันต์',
+      category: 'LEGENDARY_WEAPON',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_WPN_BODHI_NIRVANA_ROSARY',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'mountain',
+      visitorRoles: ['wanderer', 'scholar', 'envoy'],
+      rumorTextTh: 'พระภิกษุจาริกเล่าถึงเจดีย์พระธาตุโบราณบนยอดเขาเมฆาที่เก็บรักษา「มหาลูกประคำโพธิญาณร้อยแปดอรหันต์」',
+      steps: [
+        {
+          nodeId: 'chant_arhat_pagoda_seal',
+          type: 'inspect_inscription',
+          titleTh: 'สวดโศลกคลายผนึกเจดีย์พระธาตุทองคำ',
+          locationId: 'mountain',
+          scope: 'party_any',
+          skill: 'SCRIPTURE',
+          statPath: 'intellect.focus',
+          minVal: 55,
+          hintTh: 'ใช้สมาธิและความรู้คัมภีร์สวดคลายผนึกเจดีย์',
+          onPass: 'endure_vajra_rosary_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'endure_vajra_rosary_trial',
+          type: 'spirit_judgment',
+          titleTh: 'รับรัศมีพระธาตุร้อยแปดเม็ดชำระจิตมารโดยไม่หวั่นไหว',
+          locationId: 'mountain',
+          scope: 'personal',
+          statPath: 'intellect.willpower',
+          minVal: 60,
+          hintTh: 'ผู้ครอบครองต้องมีจิตตั้งมั่นและปณิธานแน่วแน่',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_WPN_TAOTIE_DEVOURING_CLAW',
+      titleTh: 'หุบเหวอสูรบรรพกาลและกรงเล็บเทพอสูรเทาเที่ยกลืนสวรรค์',
+      category: 'LEGENDARY_WEAPON',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_WPN_TAOTIE_DEVOURING_CLAW',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'forest',
+      visitorRoles: ['wanderer', 'artisan'],
+      rumorTextTh: 'พรานล่าอสูรพบรอยกรงเล็บยักษ์ฉีกหน้าผาในหุบเหวป่าลึก ซึ่งเป็นที่ผนึก「กรงเล็บเทพอสูรเทาเที่ยกลืนสวรรค์」',
+      steps: [
+        {
+          nodeId: 'subdue_taotie_blood_fiend',
+          type: 'guardian_combat',
+          titleTh: 'ปราบเงาอสูรเทาเที่ยผู้เฝ้ากระดูกกรามบรรพกาล',
+          locationId: 'forest',
+          scope: 'party_all',
+          guardianNameTh: 'เงาอสูรเทาเที่ยกระหายโลหิต',
+          guardianPower: 2600,
+          guardianTier: 6,
+          hintTh: 'เอาชนะเงาอสูรเทาเที่ยในหุบเหวป่าลึก',
+          onPass: 'master_taotie_hunger_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'master_taotie_hunger_trial',
+          type: 'body_trial',
+          titleTh: 'สะกดแรงอาฆาตและหลอมรวมกรงเล็บอสูรเข้ากับพละกำลัง',
+          locationId: 'forest',
+          scope: 'personal',
+          statPath: 'physiology.strength',
+          minVal: 60,
+          hintTh: 'ต้องมีพละกำลังและกายาแกร่งเพื่อสะกดกรงเล็บเทาเที่ย',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_WPN_BAIHUA_SOUL_NEEDLE',
+      titleTh: 'หุบเขาร้อยบุปผาเร้นลับและเข็มเทวะร้อยบุปผาสะกดวิญญาณ',
+      category: 'LEGENDARY_WEAPON',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_WPN_BAIHUA_SOUL_NEEDLE',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'SRC110_MW_ENV_02_MIASMA_MANGROVE',
+      visitorRoles: ['herbalist', 'scholar', 'wanderer'],
+      rumorTextTh: 'หมอยาพเนจรเผยเบาะแสศาลาหมอเทวดาในบึงหมอกร้อยบุปผา ซึ่งซ่อน「เข็มเทวะร้อยบุปผาสะกดวิญญาณ」',
+      steps: [
+        {
+          nodeId: 'navigate_hundred_flower_miasma',
+          type: 'skill_trial',
+          titleTh: 'จำแนกไอพิษร้อยบุปผาและเปิดทางสู่ศาลาเร้นลับ',
+          locationId: 'SRC110_MW_ENV_02_MIASMA_MANGROVE',
+          scope: 'party_any',
+          skill: 'MEDICINE',
+          statPath: 'intellect.perceptiveness',
+          minVal: 55,
+          hintTh: 'ใช้ความรู้การแพทย์และการสังเกตผ่านม่านหมอกเกสรพิษ',
+          onPass: 'thread_soul_needle_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'thread_soul_needle_trial',
+          type: 'skill_trial',
+          titleTh: 'เดินปราณร้อยด้ายวิญญาณผ่านรูเข็มทองคำไร้เงา',
+          locationId: 'SRC110_MW_ENV_02_MIASMA_MANGROVE',
+          scope: 'personal',
+          skill: 'NEEDLE',
+          statPath: 'physiology.dexterity',
+          minVal: 60,
+          hintTh: 'ต้องมีความประณีตแม่นยำสูงสุดเพื่อควบคุมเข็มเทวะ',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_WPN_BAJIAO_TEMPEST_FAN',
+      titleTh: 'แท่นวายุสี่ฤดูและพัดเทวะใบกล้วยทิพย์โบกสะบัดสี่ฤดู',
+      category: 'LEGENDARY_WEAPON',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_WPN_BAJIAO_TEMPEST_FAN',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+      visitorRoles: ['scholar', 'envoy', 'wanderer'],
+      rumorTextTh: 'นักพรตพเนจรพบแท่นวายุสี่ฤดูในซากอุทยานสวรรค์ ซึ่งผนึก「พัดเทวะใบกล้วยทิพย์โบกสะบัดสี่ฤดู」ไว้กลางพายุหมุน',
+      steps: [
+        {
+          nodeId: 'harmonize_four_season_winds',
+          type: 'inspect_inscription',
+          titleTh: 'อ่านผังลมฟ้าอากาศสี่ฤดูเพื่อสงบพายุรอบแท่นศิลา',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'party_any',
+          skill: 'ARRAY',
+          statPath: 'intellect.comprehension',
+          minVal: 55,
+          hintTh: 'ใช้ความเข้าใจค่ายกลปรับสมดุลกระแสลมสี่ทิศ',
+          onPass: 'wield_bajiao_fan_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'wield_bajiao_fan_trial',
+          type: 'spirit_judgment',
+          titleTh: 'โบกพัดรับปราณสี่ฤดูเข้าสู่เส้นลมปราณโดยไม่ติดขัด',
+          locationId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
+          scope: 'personal',
+          statPath: 'physiology.spiritualFoundation',
+          minVal: 60,
+          hintTh: 'ต้องมีรากฐานปราณลึกซึ้งเพื่อควบคุมพัดเทวะ',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_WPN_HETU_LUOSHU_ASTROLABE',
+      titleTh: 'หอดูดาวโบราณและจานสวรรค์เหอถูลั่วซูหมุนดารา',
+      category: 'LEGENDARY_WEAPON',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_WPN_HETU_LUOSHU_ASTROLABE',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'ruins',
+      visitorRoles: ['scholar', 'artisan', 'envoy'],
+      rumorTextTh: 'โหราจารย์พเนจรพบบันทึกหอดูดาวโบราณที่เก็บรักษา「จานสวรรค์เหอถูลั่วซูหมุนดารา」',
+      steps: [
+        {
+          nodeId: 'align_hetu_luoshu_rings',
+          type: 'inspect_inscription',
+          titleTh: 'คำนวณตำแหน่งดาวเก้าวัฏจักรและหมุนวงแหวนเหอถูลั่วซู',
+          locationId: 'ruins',
+          scope: 'party_any',
+          skill: 'ARRAY',
+          statPath: 'intellect.numeracy',
+          minVal: 56,
+          hintTh: 'ใช้ทักษะค่ายกลและการคำนวณจัดเรียงวงแหวนดารา',
+          onPass: 'anchor_astrolabe_gravity_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'anchor_astrolabe_gravity_trial',
+          type: 'spirit_judgment',
+          titleTh: 'ประสานจิตวิญญาณเข้ากับแรงโน้มถ่วงดาราและชีพจรปฐพี',
+          locationId: 'ruins',
+          scope: 'personal',
+          statPath: 'intellect.comprehension',
+          minVal: 60,
+          hintTh: 'ต้องมีความเข้าใจสัจธรรมฟ้าดินอย่างลึกซึ้ง',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    },
+    {
+      templateId: 'CLUE_LEG_WPN_CAISHEN_GOLDEN_ABACUS',
+      titleTh: 'คลังสมบัติลับใต้ดินและมหาลูกคิดทองคำไฉ่ซิงชั่งตวงชะตา',
+      category: 'LEGENDARY_WEAPON',
+      targetKind: 'EQUIPMENT',
+      targetId: 'LEG_WPN_CAISHEN_GOLDEN_ABACUS',
+      tier: 7,
+      rarity: 'Legendary',
+      unique: true,
+      regionId: 'desert',
+      visitorRoles: ['merchant', 'envoy', 'scholar'],
+      rumorTextTh: 'หัวหน้ากองคาราวานเล่าถึงคลังสมบัติลับกลางทะเลทรายที่ประดิษฐาน「มหาลูกคิดทองคำไฉ่ซิงชั่งตวงชะตา」',
+      steps: [
+        {
+          nodeId: 'audit_ancient_vault_ledger',
+          type: 'inspect_inscription',
+          titleTh: 'ถอดรหัสบัญชีพันธสัญญาโบราณหน้าประตูคลังทองคำ',
+          locationId: 'desert',
+          scope: 'party_any',
+          statPath: 'intellect.numeracy',
+          minVal: 56,
+          hintTh: 'ใช้ความสามารถด้านการคำนวณถอดรหัสกลไกลูกคิดหน้าประตูคลัง',
+          onPass: 'weigh_karmic_abacus_trial',
+          onFail: 'RETRY_LATER'
+        },
+        {
+          nodeId: 'weigh_karmic_abacus_trial',
+          type: 'spirit_judgment',
+          titleTh: 'ดีดลูกคิดทองคำชั่งตวงพันธสัญญาด้วยวิจารณญาณเที่ยงธรรม',
+          locationId: 'desert',
+          scope: 'personal',
+          statPath: 'intellect.judgement',
+          minVal: 60,
+          hintTh: 'ผู้ถือครองต้องมีวิจารณญาณเฉียบคมและเที่ยงธรรม',
+          onPass: 'REWARD',
+          onFail: 'RETRY_LATER'
+        }
+      ]
+    }
+  ];
+
   VC.CLUE_TEMPLATES = CLUE_TEMPLATES;
-  VC.TEMPLATE_BY_ID = Object.fromEntries(CLUE_TEMPLATES.map(t => [t.templateId, t]));
+  VC.V200_WEAPON_CLUE_TEMPLATES = V200_WEAPON_CLUE_TEMPLATES;
+  const ALL_CLUE_TEMPLATES = CLUE_TEMPLATES.concat(V200_WEAPON_CLUE_TEMPLATES);
+  VC.ALL_CLUE_TEMPLATES = ALL_CLUE_TEMPLATES;
+  VC.TEMPLATE_BY_ID = Object.fromEntries(ALL_CLUE_TEMPLATES.map(t => [t.templateId, t]));
 
   /* ============================================================================
    * 3. WORLD STATE INITIALIZATION, SAVE MIGRATION & UNIQUENESS ACCOUNTING
@@ -4143,9 +4607,43 @@
     scholar: { id: 'scholar', nameTh: 'บัณฑิตท่องยุทธภพ', icon: '📜', bkey: 'tea_garden', stationKind: 'chat' },
     herbalist: { id: 'herbalist', nameTh: 'หมอยาแดนไกล', icon: '🌿', bkey: 'infirmary', stationKind: 'treat' },
     artisan: { id: 'artisan', nameTh: 'ช่างฝีมือเร่ร่อน', icon: '🔨', bkey: 'forge', stationKind: 'work' },
-    envoy: { id: 'envoy', nameTh: 'ทูตสำนักพันธมิตร', icon: '🤝', bkey: 'main_hall', stationKind: 'throne' }
+    envoy: { id: 'envoy', nameTh: 'ทูตสำนักพันธมิตร', icon: '🤝', bkey: 'main_hall', stationKind: 'audience' }
   };
   VC.VISITOR_ROLES = VISITOR_ROLES;
+
+  const ensureVisitorRecord = (W, v, idx = 0) => {
+    if (!v || typeof v !== 'object') return;
+    if (!v.id) v.id = 'visitor_' + (idx + 1);
+    if (!v.role) v.role = v.kind === 'trader' ? 'merchant' : 'wanderer';
+    if (!v.state) v.state = (v.untilDay != null && v.untilDay < W.day) ? 'offsite' : 'admitted';
+    if (!v.accessLevel) v.accessLevel = v.kind === 'trader' ? 'market_and_plaza' : 'public_courtyard';
+    if (!Number.isFinite(v.x) || !Number.isFinite(v.y)) {
+      const b = (W.map && W.map.byId && W.map.byId[v.kind === 'trader' ? 'market' : 'tea_garden']) || (W.map && W.map.byId && W.map.byId.plaza);
+      v.x = b ? b.x + b.w / 2 : 118;
+      v.y = b ? b.y + b.h / 2 : 70;
+      v.px = v.x;
+      v.py = v.y;
+    }
+    if (!v.h) {
+      // New arrivals and hydrated visitors use the same deterministic profile.
+      const seedStr = String(W.seed || 'legacy') + ':visitor:' + v.id;
+      const localRng = new U.RNG(seedStr);
+      const oldDay = HC.nowDay;
+      HC.nowDay = W.day || 360;
+      try {
+        v.h = HC.generate(localRng, { id: v.id, day: W.day || 360, ageYears: 32, quality: 0.4 }).h;
+      } finally {
+        HC.nowDay = oldDay;
+      }
+      if (v.nameTh) {
+        v.h.name.given = v.nameTh;
+        v.h.name.family = '';
+      }
+    }
+    if (!Array.isArray(v.interactedNpcIds)) v.interactedNpcIds = [];
+    if (!Number.isFinite(v.visitCount)) v.visitCount = 1;
+    if (!Number.isFinite(v.hospitalityScore)) v.hospitalityScore = 50;
+  };
 
   VC.ensure = (W, fullSync) => {
     if (!W || !W.world) return null;
@@ -4209,37 +4707,7 @@
       if (!Array.isArray(W.sect.clueArchive)) W.sect.clueArchive = [];
     }
 
-    // Normalize existing visitors (idempotent migration for old trader records)
-    w.visitors.forEach((v, idx) => {
-      if (!v || typeof v !== 'object') return;
-      if (!v.id) v.id = 'visitor_' + (idx + 1);
-      if (!v.role) v.role = v.kind === 'trader' ? 'merchant' : 'wanderer';
-      if (!v.state) v.state = (v.untilDay != null && v.untilDay < W.day) ? 'offsite' : 'admitted';
-      if (!v.accessLevel) v.accessLevel = v.kind === 'trader' ? 'market_and_plaza' : 'public_courtyard';
-      if (!Number.isFinite(v.x) || !Number.isFinite(v.y)) {
-        const b = (W.map && W.map.byId && W.map.byId[v.kind === 'trader' ? 'market' : 'tea_garden']) || (W.map && W.map.byId && W.map.byId.plaza);
-        v.x = b ? b.x + b.w / 2 : 118;
-        v.y = b ? b.y + b.h / 2 : 70;
-        v.px = v.x;
-        v.py = v.y;
-      }
-      if (!v.h) {
-        // Deterministic fallback human profile for legacy save trader records without consuming W.rng!
-        const seedStr = String(W.seed || 'legacy') + ':visitor:' + v.id;
-        const localRng = new U.RNG(seedStr);
-        const oldDay = HC.nowDay;
-        HC.nowDay = W.day || 360;
-        v.h = HC.generate(localRng, { id: v.id, day: W.day || 360, ageYears: 32, quality: 0.4 }).h;
-        HC.nowDay = oldDay;
-        if (v.nameTh) {
-          v.h.name.given = v.nameTh;
-          v.h.name.family = '';
-        }
-      }
-      if (!Array.isArray(v.interactedNpcIds)) v.interactedNpcIds = [];
-      if (!Number.isFinite(v.visitCount)) v.visitCount = 1;
-      if (!Number.isFinite(v.hospitalityScore)) v.hospitalityScore = 50;
-    });
+    w.visitors.forEach((v, idx) => ensureVisitorRecord(W, v, idx));
 
     if (!Array.isArray(w.visitorNews)) w.visitorNews = [];
     VC.syncUniqueArtifacts(W);
@@ -4372,6 +4840,9 @@
       }
     }
 
+    for (const k of Object.keys(w.uniqueArtifacts)) {
+      if (!seen.has(k)) delete w.uniqueArtifacts[k];
+    }
     return w.uniqueArtifacts;
   };
 
@@ -4537,7 +5008,7 @@
       if (c.rarity === 'Legendary') activeLegendCount++;
     }
 
-    const candidates = CLUE_TEMPLATES.filter(t => {
+    const candidates = ALL_CLUE_TEMPLATES.filter(t => {
       const maxConcurrent = t.unique ? 1 : (t.rarity === 'Common' ? 4 : t.rarity === 'Rare' ? 2 : 1);
       if ((activeCountByTpl[t.templateId] || 0) >= maxConcurrent) return false;
       const cdUntil = cs.cooldowns[t.templateId] || 0;
@@ -4644,7 +5115,7 @@
       if (returned && prev) {
         returned.visitCount = (prev.visitCount || prev.visits || 1) + 1;
         returned.visits = returned.visitCount;
-        W.world.guestRegistry[returned.id] = Object.assign({}, returned);
+        W.world.guestRegistry[returned.id] = JSON.parse(JSON.stringify(returned));
       }
       return returned;
     };
@@ -4700,7 +5171,11 @@
         rank: 0,
         stage
       });
-      const sectAffil = ( role === 'envoy' && W.world.sects && W.world.sects.length ) ? W.rng.pick(W.world.sects) : null;
+      const sectPoolRaw = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      const friendlySects = sectPoolRaw.filter(s => s && !s.collapsed && s.treaty !== 'EMBARGO' && s.treaty !== 'RIVAL_FEUD' && (s.attitude || 0) >= -20);
+      const nonCollapsedSects = friendlySects.length ? friendlySects : sectPoolRaw.filter(s => s && !s.collapsed);
+      const sectAffil = (role === 'envoy' && nonCollapsedSects.length) ? W.rng.pick(nonCollapsedSects) : null;
+      const guestStones = opts.stones != null ? opts.stones : W.rng.int(120, isNotable ? 950 : 420);
       guest = {
         id,
         kind: role === 'merchant' ? 'trader' : 'guest',
@@ -4711,10 +5186,10 @@
         h: npcLike.h,
         cult: npcLike.cult,
         equip: npcLike.equip || {},
-        inv: { stones: opts.stones != null ? opts.stones : W.rng.int(120, isNotable ? 950 : 420), mats: {}, pills: {} },
+        inv: { stones: guestStones, mats: {}, pills: {} },
         arriveDay: W.day,
         untilDay: opts.untilDay != null ? opts.untilDay : W.day + clamp(Math.round(opts.stayDays || W.rng.int(2, 3)), 1, 5),
-        stones: opts.stones != null ? opts.stones : W.rng.int(120, isNotable ? 950 : 420),
+        stones: guestStones,
         state: 'admission_pending',
         accessLevel: 'public_courtyard',
         hostileRisk: opts.hostileRisk != null ? opts.hostileRisk : Math.max(0, Math.round(100 - E(npcLike, 'personality.integrity') * 0.65 - E(npcLike, 'personality.empathy') * 0.25 + (W.rng.next() * 20 - 10))),
@@ -4770,7 +5245,7 @@
       guest.accessLevel = 'none';
       guest.untilDay = W.day;
       cs.funnel.rejected++;
-      W.world.guestRegistry[guest.id] = Object.assign({}, guest, { lastDepartDay: W.day });
+      W.world.guestRegistry[guest.id] = Object.assign(JSON.parse(JSON.stringify(guest)), { lastDepartDay: W.day });
       W.log('event', '🚪 ' + adm.reasonTh + ' (' + guest.nameTh + ' · ' + guest.roleTitleTh + ')', adm.officerId ? [adm.officerId] : [], { visitorId: guest.id });
       return guest;
     }
@@ -4788,7 +5263,7 @@
     }
 
     W.world.visitors.push(guest);
-    W.world.guestRegistry[guest.id] = Object.assign({}, guest);
+    W.world.guestRegistry[guest.id] = JSON.parse(JSON.stringify(guest));
     W.log('event', '🎐 ' + guest.nameTh + ' (' + guest.roleTitleTh + ') มาเยือนสำนัก — ' + adm.reasonTh, adm.officerId ? [adm.officerId] : [], { visitorId: guest.id });
     return guest;
   };
@@ -4798,7 +5273,8 @@
   EXT.openVisit = (W, options) => {
     const v = origOpenVisit(W, options);
     if (!v) return v;
-    const cs = VC.ensure(W);
+    ensureVisitorRecord(W, v);
+    VC.ensure(W);
     v.role = 'merchant';
     const _subTh = ({ general: 'ทั่วไป', medicine: 'สมุนไพร·โอสถ', caravan: 'กองคาราวาน', rare: 'ของหายาก' })[v.subtype || 'general'] || (v.subtype || 'ทั่วไป');
     v.roleTitleTh = 'วาณิชพเนจร (' + _subTh + ')';
@@ -4821,7 +5297,7 @@
         v.clueTruthful = true;
       }
     }
-    W.world.guestRegistry[v.id] = Object.assign({}, v);
+    W.world.guestRegistry[v.id] = JSON.parse(JSON.stringify(v));
     return v;
   };
 
@@ -4853,6 +5329,11 @@
         kind: v.kind,
         role: v.role,
         roleTitleTh: v.roleTitleTh,
+        sectId: v.sectId || null,
+        hostileRisk: v.hostileRisk,
+        targetBkey: v.targetBkey,
+        isDeceptive: !!v.isDeceptive,
+        notable: !!v.notable,
         nameTh: v.nameTh,
         h: v.h,
         cult: v.cult,
@@ -4862,7 +5343,7 @@
         purposeTh: v.purposeTh,
         admissionBy: v.admissionBy,
         admissionReasonTh: v.admissionReasonTh,
-        interactions: v.interactions || [],
+        interactions: (v.interactions || []).slice(-24),
         hospitalityScore: v.hospitalityScore || 50,
         lastDepartDay: W.day,
         state: 'offsite'
@@ -5074,6 +5555,7 @@
     const cs = VC.ensure(W);
     const inst = typeof instOrId === 'string' ? cs.active[instOrId] : instOrId;
     if (!inst || !npc) return false;
+    const alreadyReported = inst.reportedToSect && W.sect.clueArchive.includes(inst.instanceId) && (inst.sectKnownNodeIdx ?? -1) >= (inst.currentNodeIdx || 0);
     if (!W.sect.clueArchive.includes(inst.instanceId)) {
       W.sect.clueArchive.push(inst.instanceId);
     }
@@ -5083,7 +5565,9 @@
     officers.forEach(off => {
       if (!off.dead) VC.learnClueFragment(W, off, inst, { fromId: npc.id, rootRumorId: inst.rootRumorId, baseConfidence: (inst.knownBy[npc.id]?.confidence || 65), knownNodeIdx: inst.sectKnownNodeIdx });
     });
-    VC.pushClueHistory(inst, { day: W.day, t: W.t, text: npc.h.name.given + ' รายงานเบาะแสเข้าสู่บันทึกสำนัก' });
+    if (!alreadyReported) {
+      VC.pushClueHistory(inst, { day: W.day, t: W.t, text: npc.h.name.given + ' รายงานเบาะแสเข้าสู่บันทึกสำนัก' });
+    }
     return true;
   };
 
@@ -5766,7 +6250,8 @@
       party.forEach(m => {
         HC.experience(m, 'duel_win', 0.35);
         if (m.cult && m.cult.techs && m.cult.techs.length) {
-          (M && M.skillPractice ? M.skillPractice : HC.practice)(m, 'SWORD', 1.2, 1.1);
+          const wSkKey = (M && M.equippedSkillKey) ? M.equippedSkillKey(m) : 'SWORD';
+          (M && M.skillPractice ? M.skillPractice : HC.practice)(m, wSkKey, 1.2, 1.1);
         }
       });
     }
@@ -6086,6 +6571,8 @@
       (M && M.skillPractice ? M.skillPractice : HC.practice)(n, topic.skill, 0.35, 1.0);
     }
     W.world.visitorNews = Array.isArray(W.world.visitorNews) ? W.world.visitorNews : [];
+    const existingNews = W.world.visitorNews.find(nw => nw && nw.day === W.day && nw.visitorId === v.id && nw.kind === topic.kind);
+    if (existingNews) return existingNews;
     const newsEntry = {
       day: W.day,
       t: W.t,
@@ -6116,6 +6603,15 @@
     v.hospitalityScore = clamp((v.hospitalityScore || 50) + 3, 0, 100);
     HC.feel(n, { social: 10, mood: 3, novelty: 5 });
     (M && M.skillPractice ? M.skillPractice : HC.practice)(n, 'diplomacy', 0.4, 1);
+    if (v.role === 'envoy' && v.sectId) {
+      const sectList = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      const affSect = sectList.find(sx => sx && sx.id === v.sectId);
+      if (affSect && !affSect.collapsed) {
+        const attBoost = rel.n === 1 ? 2 : 1;
+        affSect.attitude = clamp((affSect.attitude || 0) + attBoost, -100, 100);
+        affSect.contact = W.day;
+      }
+    }
 
     // If visitor carries a clue lead and trusts/likes the member enough, share the clue!
     let clueShared = null;
@@ -6146,6 +6642,7 @@
     }
     v.interactions = Array.isArray(v.interactions) ? v.interactions : [];
     v.interactions.push({ day: W.day, t: W.t, npcId: n.id, textTh: n.h.name.given + ' สนทนาแลกเปลี่ยนข่าวสารกับ ' + v.nameTh + (clueShared ? ' (ได้รับเบาะแส「' + clueShared.titleTh + '」)' : (newsShared ? ' (' + newsShared.textTh + ')' : '')) });
+    if (v.interactions.length > 24) v.interactions.shift();
     W.world.visitorHistory = Array.isArray(W.world.visitorHistory) ? W.world.visitorHistory : [];
     W.world.visitorHistory.push({ day: W.day, visitorId: v.id, nameTh: v.nameTh, summaryTh: 'สนทนากับ ' + n.h.name.given + (clueShared ? ' · มอบเบาะแส「' + clueShared.titleTh + '」' : ' · แบ่งปันข่าวสารทั่วไป') });
     if (W.world.visitorHistory.length > 80) W.world.visitorHistory.shift();
@@ -6470,8 +6967,10 @@
       for (let i = W.sect.gear.length - 1; i >= 0; i--) {
         const g2 = W.sect.gear[i];
         if (g2 && g2.intendedRecipientId && VC.LEGENDARY_WEAPON_BY_ID[g2.id]) {
-          const recNpc = alive.find(m => m.id === g2.intendedRecipientId) || alive[0];
+          const recNpc = alive.find(m => m.id === g2.intendedRecipientId)
+            || (ex && ex.clueInstanceId && g2.clueInstanceId === ex.clueInstanceId ? alive[0] : null);
           if (recNpc && !recNpc.dead) {
+            delete g2.intendedRecipientId;
             W.sect.gear.splice(i, 1);
             recNpc.inv.gear = Array.isArray(recNpc.inv.gear) ? recNpc.inv.gear : [];
             recNpc.inv.gear.push(g2);
@@ -6557,10 +7056,10 @@
       SWORD: 'MP_SWORD_5',
       BLADE: 'MP_BLADE_5',
       SPEAR: 'MP_SPEAR_5',
-      STAFF: 'MP_SPEAR_5',
-      FIST: 'MP_GAUNTLET_5',
-      BOW: 'MP_SWORD_5',
-      FOCUS: 'MP_RING_5',
+      STAFF: 'MP_STAFF_5',
+      FIST: 'MP_FIST_5',
+      BOW: 'MP_BOW_5',
+      FOCUS: 'MP_FOCUS_5',
       ZITHER: 'EQ_V215_ZITHER_17_T5',
       BRUSH: 'EQ_V215_BRUSH_17_T5',
       WHIP: 'EQ_V215_WHIP_17_T5',
@@ -6577,7 +7076,7 @@
       const legItem = VC.mintLegendaryWeapon(W, wDef.id, 'bench');
       const baseId = craftBaselineByType[wDef.gearType] || 'MP_SWORD_5';
       const baseDef = ECO.itemById[baseId] || ECO.itemById.MP_SWORD_5;
-      const craftItem = ECO.mintGear(baseDef, 1.15);
+      const craftItem = ECO.mintGear(W, baseDef, 1.15);
       craftItem.slot = 'WEAPON';
       craftItem.gearType = wDef.gearType;
 
@@ -6647,7 +7146,7 @@
             v.destX = v.x; v.destY = v.y;
           }
           v.face = dx >= 0 ? 1 : -1;
-        } else if (W.t % 120 === 0 && W.rng.chance(0.35)) {
+        } else if ((W._isNewCalendarMinute !== false && W.t % 120 === 0) && W.rng.chance(0.35)) {
           const bkey = VC.canVisitorAccessBuilding(v, v.targetBkey) ? v.targetBkey : 'plaza';
           const b = (W.map.byId && W.map.byId[bkey]) || W.map.byId.plaza;
           if (b) {
@@ -6755,6 +7254,20 @@
       VC.ensure(W, true);
       if (W && W.sect && W.sect.mentorship && SECT && SECT.MENTORSHIP) SECT.MENTORSHIP.ensure(W);
       if (W && W.world && W.world.jianghu && SECT && SECT.JIANGHU) SECT.JIANGHU.ensure(W);
+      if (W && W.world) {
+        if (Array.isArray(W.world.allSects)) W.world.jianghuSects = W.world.allSects;
+        if (Array.isArray(W.world.sects) && Array.isArray(W.world.allSects)) {
+          for (let i = 0; i < W.world.sects.length; i++) {
+            const ws = W.world.sects[i];
+            const ai = ws ? W.world.allSects.findIndex(x => x && (x.id === ws.id || (ws.canonicalId && x.canonicalId === ws.canonicalId))) : -1;
+            if (ai >= 0) W.world.sects[i] = W.world.allSects[ai];
+          }
+        }
+        if (W.world.livingSects && g.EXPED && g.EXPED.LIVING_SECTS) {
+          const orgs = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+          for (const s of orgs) { if (s && s.livingRoster && s.livingRoster.leader) s.leaderNameTh = s.livingRoster.leader.nameTh; }
+        }
+      }
       return W;
     };
   }
@@ -6773,7 +7286,7 @@
 
     const seenTpl = new Set();
     const validNodeTypes = new Set(['search_site', 'speak_contact', 'inspect_inscription', 'skill_trial', 'body_trial', 'spirit_judgment', 'guardian_combat']);
-    for (const t of CLUE_TEMPLATES) {
+    for (const t of ALL_CLUE_TEMPLATES) {
       if (!t.templateId || seenTpl.has(t.templateId)) errors.push('duplicate templateId: ' + t.templateId);
       seenTpl.add(t.templateId);
       if (t.targetKind === 'MATERIAL' && !ECO.matById[t.targetId]) errors.push('missing material target: ' + t.targetId);
@@ -6797,4 +7310,98 @@
 
   g.VC = VC;
   if (typeof module === 'object' && module.exports) module.exports = VC;
+
+  if (EXPED && EXPED.WORLD_LORE) VC.WORLD_LORE = EXPED.WORLD_LORE;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+;(function syncVisitorsCluesLoreCanonV260() {
+  const gObj = typeof globalThis !== "undefined" ? globalThis : window;
+  const VC = gObj.VC;
+  if (!VC) return;
+
+  const eqLoreUpdates = {
+    LEG_WPN_BAJIAO_TEMPEST_FAN: {
+      nameTh: "พัดเทวะใบตองสวรรค์โบกสะบัดสี่ฤดู",
+      descTh: "พัดโบราณสีเขียวมรกตที่มีรอยร้าวเล็กน้อยตรงซี่ที่สี่ คนในยุทธภพยกย่องว่าเป็นพัดเทวะสี่ฤดูผู้เรียกไต้ฝุ่นและอสนีบาต โดยหารู้ไม่ว่าแท้จริงมันเป็นเพียงพัดใบตองราคาโหลสำหรับพัดเตาถ่านต้มน้ำชาในโรงครัวคนรับใช้เขตชั้นนอกของโลกเบื้องบน ซึ่งไร้ปราณต้นกำเนิดจึงร่วงหล่นผ่านม่านกั้นภพลงมาได้"
+    },
+    LEG_ARM_CELESTIAL_CRANE_ROBE: {
+      descTh: "อาภรณ์คลุมนอกขนนกกระเรียนที่หัวหน้าช่างทอหลวง ยายเมิ่ง (#24) ถักทอค้างไว้บนกี่ทอเก้าชั้นในซากพระราชอุทยานสวรรค์หลวงเทียนกู่ โดยนำเศษด้ายขอบนอกของผ้าแพรรองถาดน้ำชาแช่เย็นที่ร่วงจากฟากฟ้ามาทอผสมขนนกกระเรียนหิมะพันปี (ขณะที่แกนกลางผ้าเก็บความเย็นถูกตัดเย็บเป็นภูษาชั้นในที่องค์หญิงกู่หลิงเฟย #2 สวมจำศีลอยู่ในเป่ยหมิง)"
+    },
+    LEG_WPN_TAOTIE_DEVOURING_CLAW: {
+      descTh: "กรงเล็บศึกที่พญาอสูรคลั่ง โซ่วหวง (#31) หลอมขึ้นจากกรามและเขี้ยวอสูรทะเลทรายกลายพันธุ์ซึ่งกลืนกินเศษคราบปลอกเล็บผุของสุนัขคุ้ยซากสายเลือดเทาเที่ยเจือจางที่ร่วงจากรอยแยกอเวจี คนโลกล่างขนานนามด้วยความหวาดหวั่นว่าเป็นกรงเล็บเทาเที่ยกลืนสวรรค์ แม้จะเป็นเพียงปลายหางสายเลือดเจือจาง แต่ความตะกละสูบโลหิตของมันก็ไร้เทียมทานในแผ่นดินมนุษย์"
+    },
+    LEG_WPN_HETU_LUOSHU_ASTROLABE: {
+      descTh: "จานดาราของมหาโหราจารย์ ซิงเฉินจื่อ (#16) ที่นำแผ่นจานทองเหลืองของเล่นสอนเด็กนับกลุ่มดาวซึ่งเฟืองบิ่นสองซี่ที่ร่วงจากโลกเบื้องบน มาประดิษฐานกลางวงแหวนหยกเก้าชั้นของโลกเบื้องล่าง ใช้คำนวณการหักเหของแสงดาวเทียมบนม่านกั้นภพและชักนำสนามแม่เหล็กชีพจรมังกรธรณี"
+    },
+    LEG_ACC_TAICHI_HEAVEN_SEAL: {
+      descTh: "ตราพยัคฆ์หยกขาวสลักลายไท่จี๋ทองคำที่จักรพรรดิกู่เซวียนหยวน (#1) หล่อขึ้นในโลกเบื้องล่างเป็นสองซีกคู่กันสำหรับแม่ทัพใหญ่ ทัวป๋าเลี่ย (#5) — ซีกพยัคฆ์ขวาอยู่ภายใต้การเฝ้าพิทักษ์ของทัวป๋ากัง (#60) บนผาหินแดงซีหรง ส่วนซีกไท่จี๋ซ้ายและตราสำรองกองทัพหน้าจมอยู่ในซากป้อมบัญชาทัพทะเลทราย"
+    },
+    LEG_ACC_DRAGON_PHOENIX_BANGLE: {
+      descTh: "หนึ่งในกำไลหยกคู่สองวงที่แกะสลักจากหยกจักรพรรดิเทียนกู่ในโลกเบื้องล่าง วงมังกรเหมันต์ถูกนำขึ้นเหนือเป็นตราตั้งรัชทายาทเป่ยหมิง (ปัจจุบันอยู่กับองค์หญิงกู่ชิงเสวี่ย #47) ส่วนวงหงส์มังกรคู่บำเพ็ญวงนี้เก็บรักษาอยู่ในตำหนักหยกคู่กลางซากพระราชอุทยานสวรรค์หลวง"
+    },
+    LEG_WPN_JIUXIAO_PHOENIX_ZITHER: {
+      descTh: "สุดยอดพิณเจ็ดสายแห่งโลกเบื้องล่างของปรมาจารย์พิณ ฉินอู๋เซียง (#12) เหลาจากแก่นไม้อู๋ถงข้างรังพญาหงส์เพลิงในพระราชอุทยานสวรรค์หลวงเทียนกู่ คำว่าเสียงสวรรค์เก้าชั้นฟ้าเป็นคำยกย่องของคนในยุทธภพต่อท่วงทำนองอันล้ำเลิศในแดนมนุษย์"
+    },
+    LEG_WPN_CHUNQIU_JUDGMENT_BRUSH: {
+      descTh: "สุดยอดพู่กันแห่งโลกเบื้องล่างของมหาเสนาบดี ซือหม่าชุน (#4) ด้ามสลักจากหยกหนวดราชันมังกรอัสนี (#1 Beast King) และขนกิเลนเมฆา (#6 Beast King) ในแดนมนุษย์ ใช้จารึกประวัติศาสตร์และพิพากษาคุณธรรมของขุนนางผู้ครองแคว้น"
+    },
+    LEG_WPN_TIANCAN_FATE_WHIP: {
+      descTh: "แส้ไหมของยายเมิ่ง (#24) ที่ถักทอใยหนอนไหมทองคำกลายพันธุ์ในเรือนยอดไม้โบราณหุ้มทับแกนกลางซึ่งเป็นเส้นป่านมัดถุงข้าวสารขาดๆ เพียงเส้นเดียวที่ปลิวตกจากโลกเบื้องบน เพราะไร้ปราณต้นกำเนิดจึงผ่านม่านกั้นภพลงมาได้ แต่เหนียวแน่นจนศาสตราเหล็กกล้าของมนุษย์ฟันไม่ขาด"
+    },
+    LEG_WPN_CAISHEN_GOLDEN_ABACUS: {
+      descTh: "ลูกคิดของเถ้าแก่เฉียน (#22) อดีตเจ้ากรมคลังเทียนกู่ ที่นำโครงรางลูกคิดเหล็กเบี้ยวๆ ของเสมียนนับหินหน้าเหมืองบนโลกเบื้องบนที่ถูกโยนทิ้ง มาบรรจุลูกปัดทองคำแกนปฐพี 99 เม็ดเพื่อเข้ารหัสคลังลับทั้งเก้า (โดยเถ้าแก่เฉียนถอดลูกปัดแม่กุญแจเม็ดที่ 100 เก็บไว้ที่โต๊ะคิดเงินโรงเตี๊ยมไร้ชื่อ)"
+    },
+    LEG_ACC_SAMSARA_KARMA_RING: {
+      descTh: "แหวนหินสองสีที่มีรอยร้าวเล็กน้อย คนโลกล่างยกย่องเป็นแหวนหยกสังสารวัฏพลิกชะตา แท้จริงคือแหวนหินกันฝุ่นพิษรุ่นแจกฟรีของทาสขุดเหมืองแร่ชั้นนอกบนโลกเบื้องบนที่ร่วงผ่านม่านกั้นภพลงมาเพราะไร้ปราณต้นกำเนิด แต่กลไกกรองไอพิษและสะท้อนแรงกระแทกของมันกลับกลายเป็นของวิเศษไร้เทียมทานในโลกมนุษย์"
+    },
+    LEG_ACC_BODHI_STARLIGHT_BEADS: {
+      descTh: "ประคำร้อยแปดเม็ดที่ร้อยจากเมล็ดโพธิ์ฝ่อไม่ยอมงอกซึ่งสามเณรวัดชั้นนอกบนโลกเบื้องบนกวาดทิ้งลงเหวเมฆ แม้ไร้ปราณต้นกำเนิดจนม่านกั้นภพปล่อยผ่าน แต่เนื้อไม้ที่เคยอาบไอแดนบนก็ช่วยให้ผู้ฝึกตนโลกล่างสงบจิตมารได้อย่างอัศจรรย์"
+    },
+    LEG_ARM_IMMORTAL_TORTOISE_PLATE: {
+      descTh: "สุดยอดเกราะหนักแห่งโลกเบื้องล่าง หลอมจากแผ่นกระดองชั้นนอกที่ผลัดลอกของพญาเต่ามังกรแบกศิลา (#6 Beast King) ผสานเหล็กไหลแกนพิภพ ทนทานดั่งขุนเขาในสมรภูมิแดนมนุษย์"
+    },
+    LEG_WPN_BODHI_NIRVANA_ROSARY: {
+      descTh: "สุดยอดลูกประคำแห่งโลกเบื้องล่าง ร้อยเรียงจากเมล็ดโพธิ์โบราณและอัฐิธาตุของอดีตพระเถระผู้สละชีพเพื่อปกป้องผู้บริสุทธิ์ในยุคสงครามเทียนกู่ เปล่งรัศมีเมตตาธรรมและสมาธิอันบริสุทธิ์ของสหายร่วมทางธรรมแห่งไต้ซืออู๋เฉิน (#23)"
+    }
+  };
+
+  if (Array.isArray(VC.LEGENDARY_EQUIPMENT)) {
+    for (const eq of VC.LEGENDARY_EQUIPMENT) {
+      if (eq && eqLoreUpdates[eq.id]) {
+        Object.assign(eq, eqLoreUpdates[eq.id]);
+      }
+      if (eq && gObj.ECO && gObj.ECO.itemById && gObj.ECO.itemById[eq.id]) {
+        Object.assign(gObj.ECO.itemById[eq.id], eqLoreUpdates[eq.id] || {});
+      }
+      if (eq && gObj.JD && gObj.JD.ITEMS && Array.isArray(gObj.JD.ITEMS.items)) {
+        const found = gObj.JD.ITEMS.items.find(x => x && x.id === eq.id);
+        if (found && eqLoreUpdates[eq.id]) Object.assign(found, eqLoreUpdates[eq.id]);
+      }
+    }
+  }
+
+  const clueRumorUpdates = {
+    CLUE_ORD_WORLD_FORGE_SHARD_7: "ปรมาจารย์ช่างหลอมพเนจรพบร่องรอยแท่นหลอมฐานรากประตูมิติหลวงของโอวหยางเหยียน (#14) ในซากนครเทียนกู่ ซึ่งยังหลงเหลือเศษศิลาฐานรากประตูมิติที่คนยุคหลังเรียกว่าเศษศิลาสร้างพิภพบรรพกาล",
+    CLUE_LEG_ART_FEIXIAN_ONE_SWORD: "ผู้มาเยือนจากแดนไกลเล่าว่าในคืนจันทร์เพ็ญจะมีรอยกระบี่ชมจันทร์ของจิ้วเจี้ยนเซียน (#39) ปรากฏขึ้นบนยอดซากพระราชอุทยานสวรรค์หลวงเทียนกู่ ซึ่งครั้งหนึ่งคมกระบี่เคยพุ่งสะกิดผิวม่านกั้นภพ",
+    CLUE_LEG_ART_NINE_YANG_MERIDIAN: "บันทึกเก่าเล่าถึงโพรงหินตาน้ำอุ่นท่ามกลางทิวเขาศิลาคราม ซึ่งเก็บรักษาเศษผ้าอ้อมโบราณที่ปักบทเพลงกล่อมเด็กฝึกหายใจกันแดดเก้าตะวัน อันเป็นต้นกำเนิดของคัมภีร์เก้าสุริยันคุ้มชีพจร",
+    CLUE_LEG_ART_EIGHT_DESOLATIONS_GOD: "ผู้แสวงบุญชราพบเศษปฏิทินศิลาที่ชี้ไปยังวิหารแปดทิศยุคเทียนกู่ ซึ่งสลักท่ายืดเส้นและเดินลมหายใจจากแผ่นพับของคนงานแบกหินชายขอบฟากฟ้า อันกลายเป็นมหาคัมภีร์ศรัทธาเทวะแปดทิศคืนเยาว์",
+    CLUE_LEG_ART_CELESTIAL_MANDATE_CANON: "ทูตผู้ถือตรากรมพิธีการสวรรค์แห่งราชสำนักเก่า (ผู้สืบทอดสายตระกูลซือหม่า #4/#52) นำตราหยกที่แตกร้าวมาขอให้สำนักช่วยสืบหาแท่นสัตย์สาบานหลวงในซากนครเทียนกู่ ซึ่งผนึกครึ่งศรัทธาสะกดทัพของมหาคัมภีร์โองการสวรรค์ไว้",
+    CLUE_LEG_ARM_CELESTIAL_CRANE_ROBE: "ช่างทอผ้าไหมโบราณเล่าถึง「อาภรณ์ขนนกกระเรียนสวรรค์เก้าเมฆา」เสื้อคลุมชั้นนอกที่ยายเมิ่ง (#24) ทอค้างไว้บนกี่ทอเก้าชั้นในตำหนักเมฆากลางซากพระราชอุทยานสวรรค์หลวงเทียนกู่ (คู่กับภูษาชั้นในที่องค์หญิงกู่หลิงเฟย #2 สวมจำศีล)",
+    CLUE_LEG_ACC_TAICHI_HEAVEN_SEAL: "กองคาราวานทะเลทรายพบซากป้อมบัญชาทัพหน้ายุคเทียนกู่ที่ฝัง「ตราพยัคฆ์หยกไท่จี๋บัญชาสวรรค์」ซีกซ้ายและแม่พิมพ์สำรองสนามรบไว้ (คู่กับซีกขวาที่ทัวป๋ากัง #60 เฝ้าอยู่บนผาหินแดงซีหรง)",
+    CLUE_LEG_ACC_DRAGON_PHOENIX_BANGLE: "ช่างแกะหยกชราเล่าถึงตำหนักหยกคู่ในซากพระราชอุทยานสวรรค์หลวงเทียนกู่ที่เก็บรักษา「กำไลหยกมังกรหงส์คู่สวรรค์」วงหงส์มังกรคู่บำเพ็ญ (คู่กับวงมังกรเหมันต์ขององค์หญิงกู่ชิงเสวี่ย #47)",
+    CLUE_LEG_WPN_BAJIAO_TEMPEST_FAN: "นักพรตพเนจรพบแท่นวายุสี่ฤดูในซากพระราชอุทยานสวรรค์หลวงเทียนกู่ ซึ่งผนึก「พัดเทวะใบตองสวรรค์โบกสะบัดสี่ฤดู」ที่มีรอยร้าวตรงซี่ที่สี่ไว้กลางพายุหมุน",
+    CLUE_LEG_WPN_TAOTIE_DEVOURING_CLAW: "พรานล่าอสูรพบรอยกรงเล็บในหุบเหวที่พญาอสูรคลั่ง โซ่วหวง (#31) เคยใช้หลอม「กรงเล็บเทพอสูรเทาเที่ยกลืนสวรรค์」จากกรามอสูรกลายพันธุ์ผู้กลืนคราบเล็บผุจากรอยแยกอเวจี",
+    CLUE_LEG_WPN_HETU_LUOSHU_ASTROLABE: "โหราจารย์พเนจรพบบันทึกของซิงเฉินจื่อ (#16) และซิงอวิ๋น (#49) รอบหอดูดาวโบราณที่ซ่อน「จานสวรรค์เหอถูลั่วซูหมุนดารา」ไว้ก่อนค่ายกลเวลาจะแช่แข็งหอคอย",
+    CLUE_LEG_WPN_CAISHEN_GOLDEN_ABACUS: "หัวหน้ากองคาราวานเล่าถึงคลังสมบัติลับที่เถ้าแก่เฉียน (#22) นำตัวราง「มหาลูกคิดทองคำไฉ่ซิงชั่งตวงชะตา」99 เม็ดไปซ่อนไว้ (โดยเก็บลูกปัดแม่กุญแจเม็ดที่ 100 ไว้กับตัวที่โรงเตี๊ยมไร้ชื่อ)"
+  };
+
+  const allClues = (VC.ALL_CLUE_TEMPLATES || []).concat(VC.CLUE_TEMPLATES || []);
+  for (const c of allClues) {
+    if (!c) continue;
+    if (clueRumorUpdates[c.templateId]) c.rumorTextTh = clueRumorUpdates[c.templateId];
+    if (c.templateId === "CLUE_LEG_WPN_BAJIAO_TEMPEST_FAN") {
+      c.titleTh = "แท่นวายุสี่ฤดูและพัดเทวะใบตองสวรรค์โบกสะบัดสี่ฤดู";
+    }
+  }
+})();

@@ -36,7 +36,7 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Version Lock
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.2.0)...');
 {
-  check(['3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be 3.2.0 (got ${SIM.PATCH_VERSION})`);
+  check(['3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0a', '3.9.5', '3.9.6', '3.6.0', '4.0.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0', '3.0.0', '3.1.0'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be 3.2.0 (got ${SIM.PATCH_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
@@ -288,11 +288,12 @@ console.log('▶ [Phase 7 / PROP-18 & PROP-20] Testing Fiscal Stipend Cooldowns 
   const p3 = SECT.payOfficeStipends(W, { forceFull: true });
   check(p3.ok === true && p3.totalPaid > 0, 'forceFull: true bypassed monthly cooldown');
 
-  // Verify World Map Command Drawer buttons exist in UI.rWorldMap(W)
+  // Verify Observer Mode excludes World Map Command Drawer buttons from UI.rWorldMap(W)
   const mapHtml = UI.rWorldMap(W);
   for (const cmd of ['collect-vassal-tribute', 'harvest-resource-nodes', 'trigger-alliance-council', 'trigger-secret-realm', 'evaluate-elder-ascensions']) {
-    check(mapHtml.includes(`data-do="${cmd}"`), `UI.rWorldMap includes command button ${cmd}`);
+    check(!mapHtml.includes(`data-do="${cmd}"`), `Observer UI.rWorldMap excludes command button ${cmd}`);
   }
+  check(mapHtml.includes('atlas-filter'), 'UI.rWorldMap keeps read-only atlas filters');
   console.log('  ✓ Phase 7 (PROP-18 & PROP-20) passed');
 }
 

@@ -19,11 +19,11 @@
   ];
 
   const ZONES = {
-    safe_belt: { id: 'safe_belt', nameTh: 'แนวเก็บสมุนไพรปลอดภัยหน้าประตูสำนัก', x0: 80, x1: 156, y0: 135, y1: 155, safe: true },
-    exterior_south: { id: 'exterior_south', nameTh: 'ทุ่งธรรมชาติทิศใต้', x0: 25, x1: 215, y0: 136, y1: 156, safe: false },
-    exterior_west: { id: 'exterior_west', nameTh: 'ชายป่าไผ่ทิศตะวันตก', x0: 6, x1: 24, y0: 25, y1: 125, safe: false },
-    exterior_east: { id: 'exterior_east', nameTh: 'แนวผาศิลาทิศตะวันออก', x0: 216, x1: 234, y0: 25, y1: 125, safe: false },
-    exterior_north: { id: 'exterior_north', nameTh: 'ชายเขาเหมันต์ทิศเหนือ', x0: 35, x1: 205, y0: 4, y1: 14, safe: false }
+    safe_belt: { id: 'safe_belt', nameTh: 'แนวเก็บสมุนไพรปลอดภัยหน้าประตูสำนัก', x0: 124, x1: 236, y0: 206, y1: 228, safe: true },
+    exterior_south: { id: 'exterior_south', nameTh: 'ทุ่งธรรมชาติทิศใต้', x0: 36, x1: 324, y0: 208, y1: 244, safe: false },
+    exterior_west: { id: 'exterior_west', nameTh: 'ชายป่าไผ่ทิศตะวันตก', x0: 8, x1: 64, y0: 36, y1: 200, safe: false },
+    exterior_east: { id: 'exterior_east', nameTh: 'แนวผาศิลาทิศตะวันออก', x0: 296, x1: 352, y0: 36, y1: 200, safe: false },
+    exterior_north: { id: 'exterior_north', nameTh: 'ชายเขาเหมันต์ทิศเหนือ', x0: 50, x1: 310, y0: 6, y1: 48, safe: false }
   };
   WILD_RES.ZONES = ZONES;
 
@@ -64,7 +64,7 @@
       return 'MAT_ORE_COPPER_1';
     }
     // OTHER natural gatherable materials (excluding manufactured goods such as formation flags)
-    const allOthers = (JD.ITEMS.materials || []).filter(m => (!m.sourcePack || m.sourcePack === 'V230_EXPANSION') && (m.category === 'WOOD' || m.category === 'STONE' || m.category === 'FORMATION_PART' || m.category === 'SPIRIT_ESSENCE') && !m.id.includes('FLAG') && m.tier <= 2);
+    const allOthers = (JD.ITEMS.materials || []).filter(m => (!m.sourcePack || m.sourcePack === 'V230_EXPANSION') && (m.category === 'WOOD' || m.category === 'STONE' || m.category === 'FORMATION_PART' || m.category === 'SPIRIT_ESSENCE' || m.category === 'CATALYST' || m.category === 'ARTIFACT_MAT') && !m.id.includes('FLAG') && m.tier <= 2);
     if (allOthers.length) return rng.pick(allOthers).id;
     return 'MAT_HERB_DEW_GRASS_1';
   }
@@ -216,7 +216,7 @@
     // Units awarded: smooth gradual extraction scaling with skill and life-path
     const isOre = node.category === 'ORE';
     const lifePath = isOre ? 'mining' : 'herbalism';
-    const skillVal = isOre ? (npc.h.skills.mining || 0) : (npc.h.skills.herbalism || 0);
+    const skillVal = isOre ? (npc.h?.skills?.mining || 0) : (npc.h?.skills?.herbalism || 0);
     const lifeMult = (g.MARTIAL && g.MARTIAL.lifeMult) ? g.MARTIAL.lifeMult(npc, lifePath) : 1.0;
     let requestedUnits = 1;
     if (node.remaining >= 2) {
@@ -372,7 +372,7 @@
 
       if (isLowRank) S.add('งานปลอดภัยสำหรับศิษย์ใหม่', 1.0);
       const p = n.post;
-      if (p === 'medicine' || p === 'apothecary' || p === 'herbs') S.add('หน้าที่เก็บสมุนไพร', 1.5);
+      if (['herbal', 'alchemy', 'healer', 'wildwarden', 'medicine', 'apothecary', 'herbs'].includes(p) || n.assist === 'herbal' || n.assist === 'alchemy') S.add('หน้าที่เก็บสมุนไพร', 1.5);
     },
     where(W, n) {
       const node = pickBestResourceNode(W, n);

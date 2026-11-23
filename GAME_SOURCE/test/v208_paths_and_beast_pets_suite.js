@@ -116,9 +116,9 @@ console.log('=== Running Patch v2.0.8 + Support/Heal/Buff Path Expansion Suite =
     }
   }
 
-  assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_')).length, 19, 'The baseline 19 equipment resonance sets must remain available');
+  assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_NINE_DAO_') && !s.id.startsWith('RES_V320_')).length, 19, 'The baseline 19 equipment resonance sets must remain available');
   assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => s.id.startsWith('RES_NINE_DAO_')).length, Object.keys(CULT.PATHS).length, 'Every Dao path must receive a Pagoda resonance set');
-  assert.strictEqual(MARTIAL.RESONANCE_SETS.length, 19 + Object.keys(CULT.PATHS).length, 'The baseline and every Pagoda set must be registered');
+  assert.strictEqual(MARTIAL.RESONANCE_SETS.filter(s => !s.id.startsWith('RES_V320_')).length, 19 + Object.keys(CULT.PATHS).length, 'The baseline and every Pagoda set must be registered');
   for (const rId of ["RES_MECH_AUTOMATON_CITADEL","RES_KARMA_SAMSARA_WHEEL","RES_BEAST_SOVEREIGN_PACT","RES_SAGE_HARMONY_SANCTUARY"]) {
     const rSet = MARTIAL.RESONANCE_SETS.find(s => s.id === rId);
     assert(rSet, `Resonance set ${rId} must exist`);

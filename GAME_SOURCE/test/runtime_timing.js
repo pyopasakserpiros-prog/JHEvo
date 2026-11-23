@@ -36,7 +36,7 @@ function harness(tickCost = 0) {
   };
 }
 // A missing dt clamp would produce these counts even when a foreground callback stalls.
-for (const speed of [1, 2, 4, 8, 16, 32, 48]) {
+for (const speed of [1, 2, 4, 8, 16, 32, 48, 96]) {
   const h = harness(); h.G.newGame('test', 0); h.G.speed = speed; h.at(0);
   for (let i = 1; i <= 60; i++) h.at(i * 1000 / 60);
   close(h.G.W.t + h.G.acc, speed * 4, `${speed}x keeps a full second of elapsed time`);
@@ -95,10 +95,15 @@ for (const recovery of ['load', 'newGame']) {
   assert.equal(h.G.speed, 0, recovery + ' allows a later failure to pause the recovered game');
 }
 console.log('PASS runtime error recovery: load/new game clear stale errors and subsequent failures pause again');
-for (const speed of [0, 1, 16, 32, 48]) {
+for (const speed of [0, 1, 16, 32, 48, 96]) {
   const h = harness(), W = h.makeWorld(); W.speed = speed;
   h.G.load(JSON.stringify(W));
   assert.equal(h.G.speed, speed, 'legacy save restores world speed without runtimeTiming');
   assert.equal(h.G.W.speed, speed, 'binding must not overwrite legacy world speed');
 }
 console.log('PASS legacy browser load restores paused and accelerated saves without runtimeTiming');
+
+{
+  const h=harness(), W=h.makeWorld();W.runtimeTiming={pendingTicks:250000.5,speed:96};h.G.load(JSON.stringify(W));
+  assert.equal(h.G.acc,250000.5,'large backlog must survive import without silently dropping time');
+}

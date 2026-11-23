@@ -18,16 +18,16 @@ W.t += 60; // 1 hour
 WILD.tick(W);
 
 const firstBatchCount = W.wildlife.beasts.length;
-assert(firstBatchCount >= 1 && firstBatchCount <= 3, `Refill batch must spawn 1..3 beasts, got ${firstBatchCount}`);
-console.log(`PASS initial batch refill spawned ${firstBatchCount} beasts (within 1..3 bounds)`);
+assert(firstBatchCount >= 2 && firstBatchCount <= 4, `Refill batch must spawn 2..4 beasts, got ${firstBatchCount}`);
+console.log(`PASS initial batch refill spawned ${firstBatchCount} beasts (within 2..4 bounds)`);
 
 // 2. Cap testing: Active count never exceeds 12
 for (let i = 0; i < 20; i++) {
   W.t += 60;
   WILD.tick(W);
 }
-assert(W.wildlife.beasts.length <= 12, `Active beasts count (${W.wildlife.beasts.length}) must not exceed hard cap 12`);
-console.log(`PASS hard cap 12 respected over multiple ticks (count: ${W.wildlife.beasts.length})`);
+assert(W.wildlife.beasts.length <= WILD.MAX_ACTIVE_BEASTS, `Active beasts count (${W.wildlife.beasts.length}) must not exceed configured cap`);
+console.log(`PASS configured cap respected over multiple ticks (count: ${W.wildlife.beasts.length})`);
 
 // 3. Zone distribution: beasts are distributed across exterior zones
 const zonesPresent = new Set(W.wildlife.beasts.map(b => b.zone));

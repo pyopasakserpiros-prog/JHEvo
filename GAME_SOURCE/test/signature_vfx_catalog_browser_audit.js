@@ -71,7 +71,7 @@ const { chromium } = (() => { try { return require('playwright'); } catch (_) { 
     assert.equal(new Set(result.hashes).size, result.ids.length, 'all current signature forms must remain visibly distinct in Canvas');
     assert.equal(new Set(result.reducedHashes).size, result.ids.length, 'all signature forms must stay distinct under Reduced Motion');
     assert.notEqual(result.networkTeam.hash, result.networkSingle.hash, 'Faith Network draws links to actual additional recipients');
-    assert.equal(result.pathIds.length, 43, 'all Grand Dao paths must have a distinct ascendant crown');
+    assert.equal(result.pathIds.length, 58, 'all Grand Dao paths must have a distinct ascendant crown');
     assert.equal(new Set(result.pathHashes).size, result.pathIds.length, 'all 43 path crowns must remain visibly distinct in Canvas');
     assert.deepStrictEqual(errors, []);
     const outputPath = process.env.SIGNATURE_VFX_GALLERY || '/tmp/signature-vfx-catalog-gallery.png';

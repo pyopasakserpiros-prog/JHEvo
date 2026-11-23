@@ -142,3 +142,23 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 
 ## 6. Complete Tier-Scaled VFX & Equipment/Action Queue Caps (`JS2-v2.6.0`)
 - All Tier-Scaled VFX (`drawT5SkillVfx`, `drawT4SkillVfx`, `drawT3ExtSkillVfx`, `drawT2SkillVfx`, `drawT1ExtSkillVfx`, `drawT6ExtSkillVfx`), Sub-Path Motif overlays (`drawSubpathMotifOverlay`), Ranged/Spatial trajectories (`drawRangedAndSpatialDeliveryVfx`), and Equipment/Combat Action bursts (`drawEquipEffectVfx`, `drawCombatActionVfx`) are 100% pure read-only Canvas vector operations (never calling `W.rng` or mutating `SIM.serialize(W)`), bounded by the 24-entry `castActive` queue and per-tier full-scene caps (`t7Full`, `t6Full`, `t5Full`, `t4Full`).
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+main.js frame มี budget12ms; draw96ที่20fps, >=32ที่30fps, >=16ที่40fps ไม่ใช่ MAX_CATCHUP_TICKS แบบในเอกสาร260cเก่า เก็บ accumulatorครบแม้โหลดเซฟ pendingTicks>100800 ป้องกัน calendar modulo hook ซ้ำใน work-step ที่นาทีค้าง แต่ไม่หยุดการเดิน/ต่อสู้ทุก tick
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+The atlas starts from a single square painting and progressively renders visible detail tiles in the browser canvas from 2.8×. Keep the tile cache bounded to 96, use the frame budget to catch up after pan/zoom, reuse the cached output across sheet redraws, and keep these resources out of the saved world. Each texture sample aligns to the same geographic grid. Source asset URLs and single-file embedded data URLs must both work.

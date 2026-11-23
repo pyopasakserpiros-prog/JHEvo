@@ -273,3 +273,39 @@ node GAME_SOURCE/test/test_procedural_equipment_system.js
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 คัมภีร์ขายตามกำลังจ่ายของกองทุน พนันโอนเงินจากกองทุน คาราวานเป็นค่าจ้างคุ้มกันสินค้าภายนอกหักกองทุน สัญญารอ dueDay, ตลาดภายนอกใช้ `ECO.base` สำหรับรหัสโอสถทั้งสองรูปแบบ และ Craft Precision เพิ่มคุณภาพผลิตตามคีย์เวิร์ดที่คำนวณจริง; ยังไม่ได้ปิดข้อเศรษฐกิจทุกข้อในรายงาน ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Post-13 review (2026-11-15)
+`ECO.donatePersonalProduct` and `AI.ACTS.donate.done` preserve exact spawned provenance when transferring mixed legitimate/spawned stock. Add legitimate and spawned portions separately; pills keep their quality. Test: `node GAME_SOURCE/test/post13_economy_review_suite.js` (four donation routes and save/load).
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+ECO.mintGear ให้ outItemId มาก่อน slot เมื่อรับสูตร เพื่อใช้ authored item ID/value/stats จริง 8 สูตร V222 ที่เคย require forge4–5 ใช้ cap3 ตามสถานที่จริง การจ่าย craft elder/appease โอน toPool; ally aid/nemesis reward โอน fromPool ตรวจ conservation ของทางเลือกใหม่ การแก้นี้ไม่ได้ปิด audit แหล่งเงินทั้งเกม
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+ศึกปิดล้อมจบเองหลัง 20 วันโดยใช้กำลังป้องกันจริงหากยังไม่มีการตอบสนอง ไม่ต้องรอพันธมิตร ข่าวแพ้/ชนะต้องตรงผล รางวัลศึกไม่เกิน world pool และต้องโอน fromPool.
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+ET.onCraftOutcome อยู่หลัง ECO.finishCraft/personalCraft และ mineYield ที่มีผลจ่าย/ผลผลิตจริง finishCraft กัน receipt reservation ซ้ำ ไม่เรียก failed recipe ทุกครั้งว่าเตาระเบิด การค้าใช้ EXPED.tradeResult/resolve; สำรับปราณใช้ attendeeIds ของงานที่จ่ายจริง บ่มเพาะ passive/body/mine/forge/craft_tick ชดเชย 1/DAY_FACTOR ไม่ให้ยืดวันเพิ่มตบะรายวันเงียบๆ
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+### Sovereign archives
+
+Sovereign archive materials enter normal expedition handover. Pure recipes require discovery and enter `ECO.recipesFor`. Wildcard helpers debit the recipe bill and cannot mint refunds. Permanent marks apply once per mark. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+`SECT.OUTPOSTS_LOGISTICS.dispatchSupplyConvoy` debits the source immediately, requires an active destination, snapshots the route and blocks a second live cargo for the same camp. `settleSupplyConvoys` credits the camp at arrival or returns stranded cargo to the source after a return journey. Use the recorded pill quantities, quality and provenance for refunds. The quartermaster budgets upkeep during the trip while preserving sect reserves. A convoy indicator reads the live shipment, with no progress assigned to stationary camps.

@@ -333,7 +333,11 @@ class Page {
   }
 
   locator(selector) {
-    return {
+    const locObj = {
+      first: () => locObj,
+      waitFor: async (opts) => {
+        await this.waitForSelector(selector, opts);
+      },
       boundingBox: async () => {
         return this.evaluate(sel => {
           const el = document.querySelector(sel);
@@ -362,6 +366,7 @@ class Page {
         }, selector);
       }
     };
+    return locObj;
   }
 
   async waitForFunction(fn, arg, options = {}) {

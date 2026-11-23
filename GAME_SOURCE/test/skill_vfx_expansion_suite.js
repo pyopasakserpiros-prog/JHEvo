@@ -80,5 +80,5 @@ for (const [techId, fxId, shape] of additions) {
 }
 
 assert.equal(Object.keys(SK.SIGNATURE_VFX_CATALOG).length, 45, '30 existing plus 15 new signature effects');
-assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length, 256, '15 new mappings extend the audited 241-entry baseline');
+assert.equal(Object.keys(SK.TECH_TO_SIGNATURE_VFX).length, 268, '15 new mappings extend the audited 241-entry baseline');
 console.log('PASS skill VFX expansion: 15 unique technique assignments, baseline no-effect audit, and move-stage inheritance');

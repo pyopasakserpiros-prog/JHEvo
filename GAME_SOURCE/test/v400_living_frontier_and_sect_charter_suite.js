@@ -40,8 +40,8 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Patch Version Lock (4.0.0)
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (4.0.0)...');
 {
-  check((SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || SIM.PATCH_VERSION === '2.6.0')))))))), `SIM.PATCH_VERSION must be '4.0.0' (got ${SIM.PATCH_VERSION})`);
-  check((SIM.SAVE_SCHEMA_VERSION === '4.0.0-living-frontier-charter' || (SIM.SAVE_SCHEMA_VERSION === '5.8.0-forbidden-arts-passive-awakening-and-blood-altar' || (SIM.SAVE_SCHEMA_VERSION === '2.0.0-grand-dao-epoch-mortal-awakening' || (SIM.SAVE_SCHEMA_VERSION === '2.1.0-grand-dao-debates-apex-trials' || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting'))))))), `SIM.SAVE_SCHEMA_VERSION must be '4.0.0-living-frontier-charter' (got ${SIM.SAVE_SCHEMA_VERSION})`);
+  check((SIM.PATCH_VERSION === '4.0.0' || (SIM.PATCH_VERSION === '5.8.0' || (SIM.PATCH_VERSION === '2.0.0' || (SIM.PATCH_VERSION === '2.1.0' || (SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || (SIM.PATCH_VERSION === '2.6.0' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.9.6')))))))))), `SIM.PATCH_VERSION must be '4.0.0' (got ${SIM.PATCH_VERSION})`);
+  check((SIM.SAVE_SCHEMA_VERSION === '4.0.0-living-frontier-charter' || (SIM.SAVE_SCHEMA_VERSION === '5.8.0-forbidden-arts-passive-awakening-and-blood-altar' || (SIM.SAVE_SCHEMA_VERSION === '2.0.0-grand-dao-epoch-mortal-awakening' || (SIM.SAVE_SCHEMA_VERSION === '2.1.0-grand-dao-debates-apex-trials' || (SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || (SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting' || (SIM.SAVE_SCHEMA_VERSION === '3.0.0-living-continent' || SIM.SAVE_SCHEMA_VERSION === '3.9.6-deep-gameplay-integration'))))))))), `SIM.SAVE_SCHEMA_VERSION must be '4.0.0-living-frontier-charter' (got ${SIM.SAVE_SCHEMA_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain locked at 155:2f9c9dd7');
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
@@ -84,11 +84,16 @@ console.log('▶ [Phase 1 / Pillar 1] Testing Outpost Logistics, 4 Camp Types & 
   const opGrainBefore = r4.outpost.grainStock;
   const opPillsBefore = r4.outpost.pillStock;
 
-  const convoyRes = SECT.OUTPOSTS_LOGISTICS.dispatchSupplyConvoy(W, 'MINE_CELESTIAL_STONE', 25, 8, { pillKey: 'P:BASIC_HEAL_1' });
-  check(convoyRes.ok === true && convoyRes.grainDelivered === 25 && convoyRes.pillDelivered === 8, 'Dispatched supply convoy to outpost');
+  const convoyRes = SECT.OUTPOSTS_LOGISTICS.dispatchSupplyConvoy(W, 'MINE_CELESTIAL_STONE', 25, 8, {pillKey:'P:BASIC_HEAL_1',forceAmbush:false});
+  check(convoyRes.ok && convoyRes.queued && convoyRes.convoy.route.legs.length, 'Dispatched supply convoy along a world route');
   check(W.sect.stock.grain === grainBefore - 25, 'Closed-Loop: grain strictly deducted from W.sect.stock.grain');
   check(W.sect.stock['P:BASIC_HEAL_1'] === pillsBefore - 8, 'Closed-Loop: pills strictly deducted from W.sect.stock');
-  check(r4.outpost.grainStock === opGrainBefore + 25 && r4.outpost.pillStock === opPillsBefore + 8, 'Outpost stock increased by delivered grain and pills');
+  check(r4.outpost.grainStock === opGrainBefore && r4.outpost.pillStock === opPillsBefore, 'Cargo remains in transit until arrival');
+  W.t = convoyRes.convoy.arriveAt;
+  SECT.OUTPOSTS_LOGISTICS.settleSupplyConvoys(W);
+  check(convoyRes.convoy.status === 'DELIVERED', 'Convoy settles on reaching its outpost');
+  SECT.OUTPOSTS_LOGISTICS.settleSupplyConvoys(W);
+  check(r4.outpost.grainStock === opGrainBefore + 25 && r4.outpost.pillStock === opPillsBefore + 8, 'Delivery credits cargo exactly once');
 
   // Test tickOutpostLogistics when out of supplies -> morale drops
   r4.outpost.grainStock = 0;
@@ -217,11 +222,11 @@ console.log('▶ [Phase 5 / Pillar 5] Testing 4 Micro-Locations, UI Integration,
   UI.tab = 'over';
   const sectHtml = UI.rSect(W);
   UI.tab = 'ov';
-  check(sectHtml.includes('data-do="establish-outpost"') && sectHtml.includes('data-do="enact-sect-charter"') && sectHtml.includes('data-do="convene-strategic-council"'), 'UI.rSect renders v4.0.0 Outpost, Charter, and Council buttons');
+  check(!sectHtml.includes('data-do="establish-outpost"') && !sectHtml.includes('data-do="enact-sect-charter"') && !sectHtml.includes('data-do="convene-strategic-council"'), 'Observer UI excludes Outpost, Charter, and Council commands');
   const npcHtml = UI.rNpc();
   check(npcHtml.includes('รอยชำนาญจากพฤติกรรมจริงในสนามรบ') && npcHtml.includes('กระบี่ตอบโต้'), 'UI.rNpc renders Behavioral Mastery Traits');
   const mapHtml = UI.rWorldMap(W);
-  check(mapHtml.includes('LOC_NAMELESS_SWORD_TOMB') && mapHtml.includes('LOC_MOON_MIRROR_VALLEY'), 'UI.rWorldMap renders 4 Micro-Location controls');
+  check(!mapHtml.includes('data-do="explore-micro-location"') && mapHtml.includes('atlas-filter'), 'Observer UI.rWorldMap excludes Micro-Location command button and keeps read-only atlas');
 
   // Verify Save/Load Round-Trip
   const rawSave = SIM.serialize(W);

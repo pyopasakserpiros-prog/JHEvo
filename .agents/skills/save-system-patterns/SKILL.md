@@ -7,6 +7,8 @@ category: save-load-persistence
 
 # JianghuSect Evolution — Save/Load Serialization & Migration Blueprint (`js/sim.js`)
 
+Regional companions persist their encounter zone on the pet record and their assigned mount in `npc.travel.mountUid`. The live mount is revalidated before drawing or moving. Visitor hydration also runs at trader arrival so the same-day cache and reload agree. See [regional companion and travel report](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md).
+
 > **Current baseline 4.1.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill governs `SIM.serialize(W)` and `SIM.deserialize(str)` in `GAME_SOURCE/js/sim.js` (lines 559–653), covering transient cache stripping, current-schema save/load and mid-action recovery. Legacy compatibility is not required unless the user requests it; test the actual affected paths.
@@ -117,3 +119,32 @@ receipt ประตูธาตุ, ของขวัญคนพเนจร 
 - Existing latest-cast snapshot `npc.castFx` may serialize with its actor record; visual fields include `weaponType`, `tier`, `arch`, `originX`, `originY`, and bounded `targetPoints`. This does not add a save subsystem or schema.
 - Renderer queue/clock/dedup (`Render.castActive`, `castClock`, `castSeen`) stays local and resets/baselines in `Render.setWorld`, preventing loaded cast replay. Persistent buff auras read existing status entries and don't add or modify save data.
 - `test/weapon_motion_vfx_suite.js` verifies rendering leaves `SIM.serialize(W)` and RNG unchanged; browser tests verify marker/aura Canvas output.
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+บันทึก workSteps กับ integer timePhase0..2; serialize/deserialize ต้องรักษาผล continuation และ canonical NPC state ไม่เพิ่ม ET/AM state เมื่อเพิ่งเปิด UI หลักฐานศึกอยู่ f.lifeEvidence/lifeDamage/lifeSupport/f.lifeSettled เพื่อไม่หายกับ _tac pendingTicks เป็น finite>=0 ไม่มี clamp100800ที่ตัดเวลาทิ้ง ไม่เพิ่มภาระรองรับเซฟเก่า
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+### Four-Symbol companion lifecycle
+
+`W.sect.sovereignNursery` holds permanent discovery records and egg progress. `npc.pets` holds uid, care days, last tick and bonded growth stage. Keep these records separate from rendering and do not infer a new pet from an old discovery receipt. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+New saves identify `3.0.0-living-continent`. Save world stat changes under `W.world.continent`, public/historical origins under `npc.ext.world` and snapshots, expedition route legs with the departure/arrival/return schedule, and outpost cargo while en route. Preserve destination IDs, disjoint office holders and arrival markers on restore. Destination effects settle once even if saving at the boundary. `test/world_atlas.js` covers a running city visit crossing a save/load boundary, along with court and origin round trips.
+
+## JS2-v3.1.0 Living Lore Sync
+- **Version & Schema**: `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-living-lore'` (`187/187` suites passing in `run_parallel_tests.js`).
+- **Living Lore & Epistemic Engine**: `EXPED.LIVING_LORE` (`js/expedition.js`: 4 epistemic layers, 8 fallen dynasties, 28 multi-account canon facts, 20 multi-stage playable story chains `STORY_01..20`) and `COG.LORE` (`js/cognition.js`: bounded `npc.ext.lore`, strict `originEventId` anti-echo-chamber lineage tracking, social debate in `COG.shareLoreOnInteract`, and breakthrough folklore calibration in `COG.perceivedBreakthroughChance`).
+- **Read-Only UI & Autonomy**: `SECT.AUTONOMY.opportunities` includes optional lore follow-through gated by `stage >= 3 || rank >= 2 || post`; observer UI surfaces (`UI.renderNpcLivingLoreCard`, `UI.renderWorldLivingLoreArchive`, `UI.rPolities`, `UI.renderSettlementLoreHtml`) are 100% zero-RNG, zero-mutation, and secret-gated.

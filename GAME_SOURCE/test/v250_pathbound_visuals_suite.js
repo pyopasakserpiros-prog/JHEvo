@@ -114,10 +114,10 @@ globalThis.window = globalThis.window || {
     'human_core.js must remain 100% byte-identical'
   );
   assert.strictEqual(HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.ok(['2.5.0', '2.6.0'].includes(SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 2.5.0');
+  assert.ok(['2.5.0', '2.6.0', '3.0.0', '3.1.0', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.6.0a', '3.9.5', '3.9.6'].includes(SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 2.5.0');
   assert.ok(SIM.SUPPORTED_PATCHES.includes('2.5.0'), 'SIM.SUPPORTED_PATCHES must include 2.5.0');
   assert.ok(
-    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting'].includes(SIM.SAVE_SCHEMA_VERSION),
+    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting', '3.0.0-living-continent', '3.4.0-world-events', '3.5.0a-p0-hardening', '3.5.0b-p1-hardening', '3.5.0c-release-polish', '3.6.0a-living-sects', '3.9.6-deep-gameplay-integration'].includes(SIM.SAVE_SCHEMA_VERSION),
     'SIM.SAVE_SCHEMA_VERSION must remain stable when no new persistent save schema is required'
   );
 
@@ -130,9 +130,9 @@ globalThis.window = globalThis.window || {
   // 1. P0 & P2 — 43/43 Cultivation Path Visual Signatures & True maxStage Halos
   // -------------------------------------------------------------------------
   const allPathIds = Object.keys(CULT.PATHS);
-  assert.strictEqual(allPathIds.length, 43, 'CULT.PATHS must contain all 43 Grand Dao paths');
+  assert.strictEqual(allPathIds.length, 58, 'CULT.PATHS must contain all 43 Grand Dao paths');
   const sigKeys = Object.keys(Render.PATH_VISUAL_SIGNATURES);
-  assert.strictEqual(sigKeys.length, 43, 'Render.PATH_VISUAL_SIGNATURES must define all 43 cultivation paths');
+  assert.strictEqual(sigKeys.length, 58, 'Render.PATH_VISUAL_SIGNATURES must define all 43 cultivation paths');
 
   for (const pid of allPathIds) {
     const pDef = CULT.PATHS[pid];

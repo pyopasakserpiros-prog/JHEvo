@@ -7,6 +7,10 @@ category: combat-martial-arts
 
 # JianghuSect Combat Engine: Exact Formulas, 12 Combat Stats, 10 Weapon Types, 12 Timed Buffs, 21 Legendary Relics, 31 Resonance Sets, Formations & 12-Path Combat
 
+Regional forms use existing `CULT.petStatBonuses` role and command weights plus authored species strengths and penalties. They do not enter the sanctuary lineup or trigger Transcendent combat VFX. [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
+
+Mythic lineage assistance is conditional through `COMBAT.applyLineageCompanion` and `COMBAT.lineageAssistPower`. Preserve Kunpeng distance, fox enemy debuff, Qilin injured ally, and Bai Ze cleansing gates. Higher grades gain impact while using more fatigue and cooldown. See [lineage report](../../../PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
+
 > **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
@@ -399,3 +403,37 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 - **Path/Sub-Path & Specialty Motifs (`SK.SUBPATH_VFX_MOTIFS`)**: 64 motifs + 122 Mantra mappings (`SK.MANTRA_TO_VFX_MOTIF`), strictly bounded by `SK.TIER_MOTIF_SCALE_CEILING` (`T1: 0.42 .. T7: 1.08`).
 - **Equipment & Combat Action VFX**: `SK.EQUIP_EFFECT_VFX_CATALOG` (`64` forms + 31 Resonance Sets) and `SK.COMBAT_ACTION_VFX_CATALOG` (`36` forms).
 - **Targeting & Spatial Delivery Invariants**: Offensive `blink`/`stanceShift`/`tetherLink` moves with `M > 0`, explicit `selectTargets` selectors (`LOWEST_HP_ENEMY`, etc.), and in-range offensive relic procs anchor impact at the target (`x, y`) while preserving caster origin (`originX, originY`) for ranged projectile/beam/dash delivery (`drawRangedAndSpatialDeliveryVfx`).
+
+## Valley hunt and boss encounters
+
+`WILD.landCombatProfile` selects an ordinary, miniboss or raid profile only for live valley wildlife. The strike reference stays at 4× the species health basis while `WILD.landHitLimit` applies the per-packet cap in both normal damage and direct HP deductions. T7 raid caps each packet at 0.99% HP. Boss phases and pulse geometry live in `WILD.tick`. Pulse victims must be living members of the active party, outside the wall and within the warned radius. T7 and rarer variants use the same fight engine and per-NPC pills, healing and cooldowns. [Patch details](../../../PATCH_REPORTS/VALLEY_BEAST_RAIDS_JS2_V2_6_0.md)
+
+## Living Hunt phase 1 (historical pacing)
+
+เฉพาะอสูร `wild && landInfluence` ในศึก `wild` ใช้ตาราง `WILD.landCombatProfile`: HP สูงสุดตาม T1–T7, ฐานตีคงที่จาก `WILD.landDamageReference` และเพดานความเสียหายต่อครั้งหลังผลบรรเทา ท่ารักษาอสูรและสถานะฟื้นเลือดตามสัดส่วนใช้ฐานคงที่เช่นกัน `ctx.landContributions` นับความเสียหายและการรักษาจริง `CPE.fightUse` รับ threshold เฉพาะศึกหุบเขาเพื่อให้ NPC ใช้โอสถที่มีจากนอกระยะตีได้ [รายละเอียด](../../../PATCH_REPORTS/VALLEY_BEAST_COMBAT_JS2_V2_6_0.md).
+
+## Living Hunt named beast skills (2026-11-16)
+`SK.beastFamily` และbranch wildใน`SK.foeSkills` สร้าง38ชุดท่าตามตระกูล/ระดับ; ตัวเกิดจริงมีsklก่อนเข้าศึก. specialAbility5ชนิดบกมีprofileชื่อเดิมและผลผ่านCOMBATจริง (guard/counter,charge+armorbreak,heal+overhealBarrier,support+tether). อสูรมีkind:'beast' และcombatKeywordsจากต้นแบบ. สกิลcounterสร้างโล่เฉพาะbeastNativeAbility; การแปลงoverhealเป็นโล่จำกัด12%HP. ไม่เปลี่ยนbranchมนุษย์/อสูรนอกแผนที่. ดู PATCH_REPORTS/LIVING_HUNT_VARIETY.md.
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+COMBAT.observeLifeHit / recordLifeConclude รับผลโจมตีและข้อสรุปจากเส้นทางจริง ไม่ wrap conclude ด้วย !fight.over เพราะ tick ทำ terminal flag ก่อนแล้ว ใช้ ACTION_MASTERY_TRAITS.isActiveTrait สำหรับผลเชิงกลไก; hasTrait คือประวัติ getStatBonuses เข้า STATS ครั้งเดียว การออมมืออยู่ใน applyDamage ก่อน slay เฉพาะเป้าหมายมนุษย์ หลักฐานใหม่ใช้ lifeEvidence/lifeDamage/lifeSupport บน fight โดยตรง ไม่เก็บใน _tac ที่ save filter ลบ
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+### Transcendent visuals, post-260e
+
+`COMBAT.attack` runs through `COMBAT.useSkill` for actual NPC casts. Render uses real `castFx` anchors and recipient snapshots. `COMBAT.noteTranscendentVisual` sends completed artifact procs to a renderer-only WeakMap.
+
+### Sovereign archives
+
+The fan proc requires a real hit on a channeling unit. The light mail proc requires a dodge and no shield. The original armor resolves before death and the damage window of Dao Scars uses a spatial radius. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.

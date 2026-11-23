@@ -7,6 +7,8 @@ category: world-procgen-exploration
 
 # JianghuSect Procedural Generation: Random Gear Engine, World, Exploration & Ecology
 
+Wild sources for `JD.CORE.regionalCompanions` keep their original spawning and drops. The ten T1–T2 sources all belong to ordinary meadow pools. An accepted offer marks that live wild instance captured and gone, without running the kill rewards. [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
+
 > **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 ## Purpose
@@ -186,3 +188,47 @@ Browser-based suites need local Chromium (fail in headless Termux — environmen
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 ขัดเกลา materialize สเตตัสก่อนเปลี่ยน quality เพื่อไม่คูณซ้ำ; ปลดระวางต้องเป็นอุปกรณ์ที่ยังมีที่อยู่จริง; ไม่อ้างว่าแก้การเติบโตและ affix ของอาวุธแล้ว ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Post-13 resource-node correction (2026-11-15)
+`EXPED.harvestResourceNodes` caps stone payouts to the nonnegative integer portion of the finite world pool. A zero, invalid or fractional reserve below one yields no stones. It never rounds a fractional reserve up. Regression: `test/post13_economy_review_suite.js`. Other external reward sources still require separate conservation review.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+เส้นทางเสริม: สำรวจ micro ตามความสนใจ/อันตราย ยึด node ด้วย timed expedition และเสบียงจริง; tomb-discovery ตาม tier/ความสนใจและไม่ค้น template ซ้ำ, tomb ขุดทีละชั้นกับผู้มีทักษะ; coalition เดินทางจริงไม่ immediate win เหตุการณ์โลกมีทางเลือกรอ ตรวจข้อจำกัดในรายงาน04
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+ศึกปิดล้อมจบเองหลัง 20 วันโดยใช้กำลังป้องกันจริงหากยังไม่มีการตอบสนอง ไม่ต้องรอพันธมิตร ข่าวแพ้/ชนะต้องตรงผล รางวัลศึกไม่เกิน world pool และต้องโอน fromPool.
+
+## Valley hunt habitats and grades
+
+Land definitions remain reusable. Base T6/T7, T1–T6 minibosses and the three raid grades are local runtime profiles. The rare slot is rolled hourly and prioritizes a T7 boss after the legendary and transcendent rolls. River pools use the water-only catalog and require an actual river pixel next to a walkable bank. Aquatic foes hold that water position and use a shore-range attack. [Patch details](../../../PATCH_REPORTS/VALLEY_BEAST_RAIDS_JS2_V2_6_0.md)
+
+## Living Hunt variety (2026-11-16)
+`WILD.expandPools` รวมทุกอสูรบก125ชนิด/241ช่องตามถิ่นอาศัยและระดับ; อัปเดตครั้งแรกและเมื่อcatalogมีจำนวนเปลี่ยน. `WILD.speciesDefinition` รวมราชันกับชนิดฐานและเติมelementProfileที่ขาดจากธาตุเดิม. Spawn deep-copy ข้อมูลต้นแบบก่อนลง runtime ลดน้ำหนักชนิดและพูลที่มีซ้ำ HP เฉพาะตัวที่เกิดใช้ `landCombatForTier`; อสูรนอกแผนที่อ่านค่าของแหล่งเดิม. กฎจับใช้ `WILD.captureEligibility`; สมุนไพรต้องอยู่ในกระเป๋าจริง. รายละเอียดและผลตรวจ: PATCH_REPORTS/LIVING_HUNT_VARIETY.md.
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+ผัง360×304; compound x72..288 y56..204; four gates, eight dens, river y254..284 คง pool/สกิล/ข้อมูลอสูรเดิม EXPLORE.visit และ FISHING.resolveSuccessfulCatch/eatFishDish เป็น producer ของประสบการณ์; ไม่ให้จากแค่เดินไปสถานที่ ชัยชนะล่าบันทึก pendingHunt และรอเข้ากำแพงจริงเพื่อให้ safe-return
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+`JD.CONTINENT` in `data/data_core.js` defines 54 settlements, 66 authored links and nine capitals. Shape and distance share a square: x increases east, y south, and one map unit equals 10 li on each axis. The 1,000 × 1,000 li frame is fixed for future development. A road can have bends, and its length, biome and safety determine the baseline duration. Use `EXPED.planContinentalRoute` and `EXPED.estimateTravelTime` when adding a physical destination. `EXPED.routePosition` interpolates each bend as well as each leg. `EXPED.fortuneMapPoint` denotes an exploration trailhead. Add boat landings within the frame. See `test/world_atlas.js`.
+
+## JS2-v3.1.0 Living Lore Sync
+- **Version & Schema**: `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-living-lore'` (`187/187` suites passing in `run_parallel_tests.js`).
+- **Living Lore & Epistemic Engine**: `EXPED.LIVING_LORE` (`js/expedition.js`: 4 epistemic layers, 8 fallen dynasties, 28 multi-account canon facts, 20 multi-stage playable story chains `STORY_01..20`) and `COG.LORE` (`js/cognition.js`: bounded `npc.ext.lore`, strict `originEventId` anti-echo-chamber lineage tracking, social debate in `COG.shareLoreOnInteract`, and breakthrough folklore calibration in `COG.perceivedBreakthroughChance`).
+- **Read-Only UI & Autonomy**: `SECT.AUTONOMY.opportunities` includes optional lore follow-through gated by `stage >= 3 || rank >= 2 || post`; observer UI surfaces (`UI.renderNpcLivingLoreCard`, `UI.renderWorldLivingLoreArchive`, `UI.rPolities`, `UI.renderSettlementLoreHtml`) are 100% zero-RNG, zero-mutation, and secret-gated.

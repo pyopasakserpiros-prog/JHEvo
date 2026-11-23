@@ -43,26 +43,26 @@
   const ASPIRATIONS = {
     martial_master: {
       id: 'martial_master',
-      title: 'บรรลุยอดยุทธ์และศาสตราคู่กาย',
-      descTh: 'ฝึกฝนทักษะการรบ หาศาสตราที่เข้ามือ และขัดเกลากระบวนท่าให้เชี่ยวชาญ',
+      title: 'ปณิธานจอมยุทธ์เอก: บรรลุยอดยุทธ์และศาสตราคู่กาย',
+      descTh: 'ปณิธานชั่วชีวิต: ขัดเกลาศาสตราและเพลงยุทธ์ให้บรรลุถึงขีดสุดแห่งแผ่นดิน',
       prefGoals: ['scripture', 'gear_upgrade', 'rival', 'breakthrough', 'investigate_clue']
     },
     realm_ascendant: {
       id: 'realm_ascendant',
-      title: 'ก้าวข้ามขอบเขตบำเพ็ญสู่ขั้นสูง',
-      descTh: 'มุ่งมั่นสั่งสมตบะ ทะลวงคอขวด และเปิดสายวิชาเฉพาะทางให้ถึงขีดสุด',
+      title: 'ปณิธานท้าทายสวรรค์: ก้าวข้ามขอบเขตบำเพ็ญสู่ขั้นสูง',
+      descTh: 'ปณิธานชั่วชีวิต: ไต่เต้าสู่จุดสูงสุดแห่งมรรคา ไม่ยอมก้มหัวให้ชะตาอายุขัยปุถุชน',
       prefGoals: ['breakthrough', 'scripture', 'craft', 'investigate_clue']
     },
     master_alchemist: {
       id: 'master_alchemist',
-      title: 'เป็นปรมาจารย์ปรุงโอสถและสมุนไพร',
-      descTh: 'เสาะหาสมุนไพรวิญญาณ ศึกษาตำรับยา และหลอมโอสถคุณภาพสูง',
+      title: 'ปณิธานปรมาจารย์เตาหลอม: บรรลุศาสตร์ปรุงโอสถทิพย์',
+      descTh: 'ปณิธานชั่วชีวิต: หลอมสร้างยอดโอสถทิพย์และศึกษาสมุนไพรวิญญาณให้เลื่องลือไปทั่วเก้าแคว้น',
       prefGoals: ['craft', 'crisis', 'service', 'scripture', 'investigate_clue']
     },
     master_artificer: {
       id: 'master_artificer',
-      title: 'เป็นช่างหลอมศาสตราและค่ายกลชั้นครู',
-      descTh: 'ขุดแร่หายาก หลอมยุทโธปกรณ์ และวางค่ายกลเสริมความแข็งแกร่ง',
+      title: 'ปณิธานช่างเทวะ: หลอมศาสตราและค่ายกลไร้เทียมทาน',
+      descTh: 'ปณิธานชั่วชีวิต: หลอมสร้างยอดศาสตราและค่ายกลไร้เทียมทานให้เลื่องลือไปทั่วเก้าแคว้น',
       prefGoals: ['craft', 'gear_upgrade', 'service', 'crisis', 'investigate_clue']
     },
     benevolent_healer: {
@@ -79,14 +79,14 @@
     },
     wealthy_trader: {
       id: 'wealthy_trader',
-      title: 'สร้างฐานะมั่งคั่งและสะสมทรัพยากรล้ำค่า',
-      descTh: 'ขยันหาแต้มคุณูปการ ค้าขายแลกเปลี่ยน และสะสมของล้ำค่าไว้พึ่งพาตนเอง',
+      title: 'ปณิธานคหบดีใหญ่: สร้างฐานะมั่งคั่งและสะสมทรัพยากรล้ำค่า',
+      descTh: 'ปณิธานชั่วชีวิต: สั่งสมศิลาวิญญาณและเครือข่ายการค้าให้มั่งคั่งดั่งตระกูลมหาเสนาบดีตงหวง',
       prefGoals: ['gear_upgrade', 'craft', 'scripture']
     },
     sect_pillar: {
       id: 'sect_pillar',
-      title: 'เป็นเสาหลักบริหารและค้ำจุนสำนัก',
-      descTh: 'ปฏิบัติหน้าที่ประจำตำแหน่ง แก้ไขวิกฤตขาดแคลน และรักษาความมั่นคงของสำนัก',
+      title: 'ปณิธานเสาหลักขุนเขา: บริหารและค้ำจุนสำนัก',
+      descTh: 'ปณิธานชั่วชีวิต: อุทิศตนเป็นเสาหลักค้ำจุนสำนักให้ยืนหยัดทัดเทียมมหาอำนาจทั้งสาม',
       prefGoals: ['service', 'crisis', 'mentor_disciple', 'breakthrough']
     },
     peaceful_companion: {
@@ -103,56 +103,75 @@
     if (!n || !n.h) return [{ id: 'peaceful_companion', score: 1, reasonTh: 'ใช้ชีวิตเรียบง่าย' }];
     const r = COG.role(W, n);
     const sk = n.h.skills || {};
-    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.ZITHER || 0, sk.BRUSH || 0, sk.WHIP || 0);
+    const ful = n.h.fulfil || {};
+    const hasGrudge = !!(n.h.mind && Array.isArray(n.h.mind.grudges) && n.h.mind.grudges.length > 0);
+    const hasVengeance = !!((n.h.traits && n.h.traits.some(t => t && t.id === 'TR_AC_MASTER_VENGEANCE')) || (Array.isArray(n.acquiredTraits) && n.acquiredTraits.includes('TR_AC_MASTER_VENGEANCE')));
+    const hd = (n.h.state && n.h.state.heartDemon) || 0;
+    const grief = n.grief || 0;
+    const lifeRatio = (HC.ageYears && n.lifespanMax) ? (HC.ageYears(n) / Math.max(1, n.lifespanMax)) : 0;
+    const traumaShift = (hasGrudge ? 10 : 0) + (hasVengeance ? 18 : 0) + (grief > 0 ? Math.min(12, grief * 2) : 0);
+    const ageUrgency = lifeRatio >= 0.72 ? (lifeRatio - 0.70) * 45 : 0;
+    const wpnSk = Math.max(sk.SWORD || 0, sk.BLADE || 0, sk.SPEAR || 0, sk.FIST_PALM || 0, sk.BOW || 0, sk.STAFF || 0, sk.FOCUS || 0, sk.ZITHER || 0, sk.BRUSH || 0, sk.WHIP || 0, sk.ROSARY || 0, sk.CLAW || 0, sk.NEEDLE || 0, sk.FAN || 0, sk.ASTROLABE || 0, sk.ABACUS || 0);
     const scores = [
       {
         id: 'martial_master',
-        score: E(n, 'values.martialPeak') * 0.40 + E(n, 'interests.combat') * 0.35 + E(n, 'aptitudes.combat') * 0.25 + wpnSk * 0.35 + (E(n, 'personality.courage') - 45) * 0.2,
-        reasonTh: 'รักการต่อสู้และปรารถนาความเชี่ยวชาญเชิงอาวุธ'
+        score: E(n, 'values.martialPeak') * 0.40 + E(n, 'interests.combat') * 0.35 + E(n, 'aptitudes.combat') * 0.25 + wpnSk * 0.35 + (E(n, 'personality.courage') - 45) * 0.2 + traumaShift + (100 - (ful.martialPeak ?? 50)) * 0.08,
+        reasonTh: hasVengeance || hasGrudge ? 'ความแค้นและแรงขับผลักให้ขัดเกลาวิชายุทธ์' : 'รักการต่อสู้และปรารถนาความเชี่ยวชาญเชิงอาวุธ'
       },
       {
         id: 'realm_ascendant',
-        score: (n.cult ? 18 : -20) + E(n, 'values.martialPeak') * 0.45 + E(n, 'personality.ambition') * 0.35 + E(n, 'aptitudes.cultivation') * 0.25 + E(n, 'interests.meditation') * 0.2,
-        reasonTh: 'มุ่งหวังทะลวงขอบเขตตบะและอายุขัยที่สูงขึ้น'
+        score: (n.cult ? 18 : -20) + E(n, 'values.martialPeak') * 0.45 + E(n, 'personality.ambition') * 0.35 + E(n, 'aptitudes.cultivation') * 0.25 + E(n, 'interests.meditation') * 0.2 + ageUrgency + (hd >= 55 ? 10 : 0) + (100 - (ful.martialPeak ?? 50)) * 0.07,
+        reasonTh: lifeRatio >= 0.78 ? 'อายุขัยร่อยหรอจึงเร่งทะลวงขอบเขตต่อชะตา' : 'มุ่งหวังทะลวงขอบเขตตบะและอายุขัยที่สูงขึ้น'
       },
       {
         id: 'master_alchemist',
-        score: E(n, 'interests.alchemy') * 0.50 + E(n, 'interests.herbs') * 0.25 + E(n, 'values.knowledgeCraft') * 0.30 + (sk.ALCHEMY || 0) * 0.45 + (r.id === 'alchemy' || r.id === 'herbal' ? 22 : 0),
+        score: E(n, 'interests.alchemy') * 0.50 + E(n, 'interests.herbs') * 0.25 + E(n, 'values.knowledgeCraft') * 0.30 + (sk.ALCHEMY || 0) * 0.45 + (r.id === 'alchemy' || r.id === 'herbal' ? 22 : 0) + (100 - (ful.knowledgeCraft ?? 50)) * 0.06,
         reasonTh: 'หลงใหลศาสตร์การปรุงโอสถและสมุนไพรวิญญาณ'
       },
       {
         id: 'master_artificer',
-        score: E(n, 'interests.forging') * 0.50 + E(n, 'values.knowledgeCraft') * 0.30 + Math.max(sk.FORGING || 0, sk.ARRAY || 0, sk.TALISMAN || 0) * 0.45 + E(n, 'aptitudes.crafting') * 0.2 + (r.id === 'forge' ? 22 : 0),
+        score: E(n, 'interests.forging') * 0.50 + E(n, 'values.knowledgeCraft') * 0.30 + Math.max(sk.FORGING || 0, sk.ARRAY || 0, sk.TALISMAN || 0) * 0.45 + E(n, 'aptitudes.crafting') * 0.2 + (r.id === 'forge' ? 22 : 0) + (100 - (ful.knowledgeCraft ?? 50)) * 0.06,
         reasonTh: 'ถนัดงานหลอมศาสตราและค่ายกล'
       },
       {
         id: 'benevolent_healer',
-        score: E(n, 'personality.empathy') * 0.50 + (sk.MEDICINE || 0) * 0.50 + E(n, 'values.familyClan') * 0.25 + E(n, 'personality.integrity') * 0.15 + (r.id === 'healer' ? 25 : 0),
+        score: E(n, 'personality.empathy') * 0.50 + (sk.MEDICINE || 0) * 0.50 + E(n, 'values.familyClan') * 0.25 + E(n, 'personality.integrity') * 0.15 + (r.id === 'healer' ? 25 : 0) + (100 - (ful.familyClan ?? 50)) * 0.05,
         reasonTh: 'มีจิตเมตตาและต้องการช่วยเหลือผู้บาดเจ็บ'
       },
       {
         id: 'respected_mentor',
-        score: (n.rank >= 3 ? 16 : -10) + E(n, 'social.teaching') * 0.40 + E(n, 'interests.teaching') * 0.35 + E(n, 'interests.scholarship') * 0.25 + E(n, 'values.honorLegacy') * 0.25 + ((n.h.life.family.disciples || []).length * 8) + (r.id === 'scripture' || r.id === 'martial' ? 15 : 0),
+        score: (n.rank >= 3 ? 16 : -10) + E(n, 'social.teaching') * 0.40 + E(n, 'interests.teaching') * 0.35 + E(n, 'interests.scholarship') * 0.25 + E(n, 'values.honorLegacy') * 0.25 + ((n.h.life.family.disciples || []).length * 8) + (r.id === 'scripture' || r.id === 'martial' ? 15 : 0) + (100 - (ful.honorLegacy ?? 50)) * 0.06,
         reasonTh: 'ต้องการถ่ายทอดวิชาและสร้างศิษย์สืบทอด'
       },
       {
         id: 'wealthy_trader',
-        score: E(n, 'values.wealthResource') * 0.55 + E(n, 'interests.trade') * 0.35 + E(n, 'aptitudes.socialCommerce') * 0.25 + (sk.trading || 0) * 0.35 - E(n, 'personality.empathy') * 0.1,
+        score: E(n, 'values.wealthResource') * 0.55 + E(n, 'interests.trade') * 0.35 + E(n, 'aptitudes.socialCommerce') * 0.25 + (sk.trading || 0) * 0.35 - E(n, 'personality.empathy') * 0.1 + (100 - (ful.wealthResource ?? 50)) * 0.07,
         reasonTh: 'ให้ความสำคัญกับทรัพย์สินและการค้าแลกเปลี่ยน'
       },
       {
         id: 'sect_pillar',
-        score: (r.id !== 'member' ? 24 : 0) + E(n, 'values.sectDuty') * 0.45 + E(n, 'personality.loyalty') * 0.30 + E(n, 'personality.discipline') * 0.25 + E(n, 'values.powerStatus') * 0.25,
+        score: (r.id !== 'member' ? 24 : 0) + E(n, 'values.sectDuty') * 0.45 + E(n, 'personality.loyalty') * 0.30 + E(n, 'personality.discipline') * 0.25 + E(n, 'values.powerStatus') * 0.25 + (100 - (ful.sectDuty ?? 50)) * 0.06,
         reasonTh: 'ยึดมั่นในหน้าที่และการบริหารสำนัก'
       },
       {
         id: 'peaceful_companion',
-        score: E(n, 'values.freedom') * 0.42 + E(n, 'values.familyClan') * 0.35 + Math.max(E(n, 'interests.arts'), E(n, 'interests.solitude'), E(n, 'interests.cuisine')) * 0.30 + (100 - E(n, 'personality.ambition')) * 0.35 + (100 - E(n, 'personality.aggression')) * 0.15,
+        score: E(n, 'values.freedom') * 0.42 + E(n, 'values.familyClan') * 0.35 + Math.max(E(n, 'interests.arts'), E(n, 'interests.solitude'), E(n, 'interests.cuisine')) * 0.30 + (100 - E(n, 'personality.ambition')) * 0.35 + (100 - E(n, 'personality.aggression')) * 0.15 - (hasVengeance || hasGrudge || hd >= 55 || grief > 2 ? 28 : 0),
         reasonTh: 'รักอิสระ มิตรภาพ และความสงบสุขมากกว่าการแก่งแย่ง'
       }
     ];
     scores.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
     return scores;
+  };
+
+  COG.triggerAspirationReview = (W, n, reason) => {
+    if (!n || !n.h) return null;
+    const c = COG.ensure(n);
+    if (c.aspiration) {
+      const day = W ? (W.day || 0) : 0;
+      c.aspiration.lastReviewDay = day - 60;
+      c.aspiration.sinceDay = Math.min(c.aspiration.sinceDay || 0, day - 60);
+    }
+    return COG.ensureAspiration(W, n);
   };
 
   COG.ensureAspiration = (W, n) => {
@@ -403,10 +422,32 @@
       return false;
     }
     if (kind === 'tablet') {
-      return Array.isArray(W.sect.legacyTablets) && W.sect.legacyTablets.length > 0;
+      if (!Array.isArray(W.sect.legacyTablets) || !W.sect.legacyTablets.length) return false;
+      if (!itemId) return true;
+      const rec = W.sect._recentHallAdditions && W.sect._recentHallAdditions['tablet:' + itemId];
+      if (!rec || (W.t || 0) <= 0 || (W.t - rec.at) >= 180 || rec.actorId === n.id) return true;
+      const roleId = COG.role(W, n).id;
+      if (['scripture', 'master', 'deputy'].includes(roleId)) return true;
+      const k = n.cognition && n.cognition.knowledge;
+      return !!(k && Array.isArray(k.knownTabletIds) && k.knownTabletIds.includes(itemId));
     }
     if (kind === 'catalyst') {
-      return !!(W.sect.catalysts && Object.values(W.sect.catalysts).some(v => v > 0));
+      if (!W.sect.catalysts || !Object.values(W.sect.catalysts).some(v => v > 0)) return false;
+      if (!itemId) return true;
+      const rec = W.sect._recentHallAdditions && W.sect._recentHallAdditions['catalyst:' + itemId];
+      if (!rec || (W.t || 0) <= 0 || (W.t - rec.at) >= 180 || rec.actorId === n.id) return true;
+      const roleId = COG.role(W, n).id;
+      if (['forge', 'master', 'deputy', 'treasury'].includes(roleId)) return true;
+      const k = n.cognition && n.cognition.knowledge;
+      return !!(k && Array.isArray(k.knownCatalysts) && k.knownCatalysts.includes(itemId));
+    }
+    if (kind === 'shortage') {
+      if (!itemId) return true;
+      const roleId = COG.role(W, n).id;
+      if (['treasury', 'master', 'deputy', 'quartermaster', 'provision', 'alchemy', 'herbal', 'forge'].includes(roleId)) return true;
+      const k = n.cognition && n.cognition.knowledge;
+      if (k && k.updatedAt > -9999 && Array.isArray(k.knownShortageIds)) return k.knownShortageIds.includes(itemId);
+      return (W.t || 0) <= 0;
     }
     return true;
   };
@@ -427,15 +468,137 @@
     const cap = Math.min(CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : (n.cult?.stage || 1), SECT.canLearnTier(W, n));
     k.updatedAt = W.t;
     const rawLib = force || nearInfoHub ? (W.sect.library || []) : COG.visibleLibraryFor(W, n);
-    k.visibleTechIds = n.cult ? rawLib.filter(id => {
-      const t = CULT.tech(id);
-      return t && (t.reqTier || t.tier || 1) <= cap && (t.path === 'ANY' || t.path === n.cult.path || t.legendary);
-    }).slice(0, 24) : [];
-    k.visibleGearIds = (W.sect.gear || []).filter(eq => eq && SECT.canAccessItem(W, n, eq)).map(eq => eq.uid || eq.id).slice(0, 16);
-    k.knownShortageIds = (W.sect.shortageDirectives || []).filter(d => d.deficit > 0).map(d => d.id).slice(0, 8);
-    k.knownTabletIds = (W.sect.legacyTablets || []).map(t => t.id).slice(0, 12);
+    if (n.cult) {
+      const matched = rawLib.filter(id => {
+        const t = CULT.tech(id);
+        return t && (t.reqTier || t.tier || 1) <= cap && (t.path === 'ANY' || t.path === n.cult.path || t.legendary);
+      });
+      if (matched.length > 64) {
+        matched.sort((a, b) => {
+          const ta = CULT.tech(a), tb = CULT.tech(b);
+          const legDiff = (tb && tb.legendary ? 1 : 0) - (ta && ta.legendary ? 1 : 0);
+          if (legDiff !== 0) return legDiff;
+          return ((tb && (tb.reqTier || tb.tier || 1)) || 1) - ((ta && (ta.reqTier || ta.tier || 1)) || 1);
+        });
+        k.visibleTechIds = matched.slice(0, 64);
+      } else {
+        k.visibleTechIds = matched;
+      }
+    } else {
+      k.visibleTechIds = [];
+    }
+    k.visibleGearIds = (W.sect.gear || []).filter(eq => eq && SECT.canAccessItem(W, n, eq)).map(eq => eq.uid || eq.id).slice(0, 24);
+    k.knownShortageIds = (W.sect.shortageDirectives || []).filter(d => d.deficit > 0).map(d => d.id).slice(0, 12);
+    k.knownTabletIds = (W.sect.legacyTablets || []).map(t => t.id).slice(0, 16);
     k.knownCatalysts = Object.keys(W.sect.catalysts || {}).filter(id => (W.sect.catalysts[id] || 0) > 0);
     return k;
+  };
+
+  function _detHash01(str) {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return (h % 10000) / 10000;
+  }
+
+  // Deterministic bounded perception of target combat power (zero RNG consumption)
+  COG.estimateTargetPower = (W, observer, target) => {
+    const trueP = Math.max(1, (target && typeof target === 'object' && target.cult && CULT.power)
+      ? CULT.power(target)
+      : Number(target?.power ?? target?.cp ?? 60));
+    if (!observer || !observer.h) return trueP;
+    const sk = observer.h.skills || {};
+    const acuity = E(observer, 'intellect.perceptiveness') * 0.45 + E(observer, 'intellect.judgement') * 0.35 + (sk.SOUL_DIVINE || 0) * 0.40;
+    const tPath = target && target.cult ? target.cult.path : '';
+    const tStealth = (target && target.h && target.h.skills && target.h.skills.stealth) || 0;
+    const concealsAura = (tPath === 'SHADOW_SAMURAI' || tPath === 'NINPO_SHADOW' || tStealth >= 35);
+    const concealShift = concealsAura ? -clamp(0.18 - acuity / 500, 0.03, 0.18) : 0;
+    const maxErr = clamp(0.28 - acuity / 380, 0.03, 0.26);
+    const tKey = String((target && (target.id || target.zone || target.nameTh)) || 'tgt');
+    const u01 = _detHash01(String(observer.id || 'o') + ':' + tKey + ':' + String(W ? (W.day || 0) : 0));
+    const judgeAcc = clamp(1 - E(observer, 'intellect.judgement') / 140, 0.35, 1.0);
+    const egoShift = ((E(observer, 'personality.pride') - E(observer, 'personality.caution')) / 240) * judgeAcc;
+    const mult = clamp(1 + (u01 * 2 - 1) * maxErr + concealShift - egoShift * 0.6, 0.55, 1.55);
+    return Math.max(1, Math.round(trueP * mult));
+  };
+
+  // Subjective breakthrough confidence modulated by comprehension, ego, mentor diagnosis & backlash trauma (zero RNG)
+  COG.perceivedBreakthroughChance = (W, n, rawP) => {
+    const base = clamp(Number(rawP) || 0, 0.01, 0.99);
+    if (!n || !n.h || !n.cult) return base;
+    const k = n.cognition && n.cognition.knowledge;
+    if (k && k.mentorVerifiedStage === n.cult.stage) {
+      return clamp(base, 0.02, 0.98);
+    }
+    const sk = n.h.skills || {};
+    const acuity = E(n, 'intellect.comprehension') * 0.45 + (sk.SCRIPTURE || 0) * 0.30 + (sk.MEDICINE || 0) * 0.25;
+    const uncertainty = clamp(1 - acuity / 115, 0.15, 1.0);
+    const hd = (n.h.state && n.h.state.heartDemon) || 0;
+    let bias = ((E(n, 'personality.pride') - 50) * 0.0014 + (E(n, 'personality.ambition') - 50) * 0.0010 - (E(n, 'personality.caution') - 50) * 0.0012 + (hd > 40 ? 0.04 : 0)) * uncertainty;
+    const mems = (n.cognition && Array.isArray(n.cognition.memory)) ? n.cognition.memory : [];
+    const nowT = (W && W.t) || 0;
+    for (let i = 0; i < mems.length; i++) {
+      const m = mems[i];
+      if (m && (m.kind === 'bt_backlash' || m.kind === 'qi_deviation')) {
+        const fade = Math.max(0, 1 - Math.max(0, nowT - (m.at || 0)) / (14 * 1440));
+        bias -= (m.severity || 0.6) * 0.08 * fade;
+      }
+    }
+    return clamp(base + bias, 0.03, 0.98);
+  };
+
+  // Social word-of-mouth knowledge propagation during pair/festival interactions
+  COG.shareKnowledgeOnInteract = (W, a, b, mode) => {
+    if (!W || !W.sect || !a || !b || a.dead || b.dead) return;
+    if (mode === 'argue') return;
+    const ra = a.h && a.h.mind && a.h.mind.relations && a.h.mind.relations[b.id];
+    const rb = b.h && b.h.mind && b.h.mind.relations && b.h.mind.relations[a.id];
+    const aGrudge = a.h && a.h.mind && Array.isArray(a.h.mind.grudges) && a.h.mind.grudges.some(gr => gr && gr.targetId === b.id);
+    const bGrudge = b.h && b.h.mind && Array.isArray(b.h.mind.grudges) && b.h.mind.grudges.some(gr => gr && gr.targetId === a.id);
+    if (aGrudge || bGrudge || (ra && (ra.bond === 'ศัตรู' || (ra.a || 0) < -20 || (ra.v || 0) > 60)) || (rb && (rb.bond === 'ศัตรู' || (rb.a || 0) < -20 || (rb.v || 0) > 60))) return;
+    const ca = COG.ensure(a), cb = COG.ensure(b);
+    const ka = ca.knowledge || COG.perceive(W, a, false);
+    const kb = cb.knowledge || COG.perceive(W, b, false);
+    if (!ka || !kb) return;
+    if ((ka.updatedAt || -9999) > (kb.updatedAt || -9999)) {
+      for (const tid of (ka.visibleTechIds || [])) {
+        if (!kb.visibleTechIds.includes(tid) && kb.visibleTechIds.length < 64) kb.visibleTechIds.push(tid);
+      }
+      for (const sid of (ka.knownShortageIds || [])) {
+        if (!kb.knownShortageIds.includes(sid) && kb.knownShortageIds.length < 12) kb.knownShortageIds.push(sid);
+      }
+      for (const cid of (ka.knownCatalysts || [])) {
+        if (!kb.knownCatalysts.includes(cid)) kb.knownCatalysts.push(cid);
+      }
+    } else if ((kb.updatedAt || -9999) > (ka.updatedAt || -9999)) {
+      for (const tid of (kb.visibleTechIds || [])) {
+        if (!ka.visibleTechIds.includes(tid) && ka.visibleTechIds.length < 64) ka.visibleTechIds.push(tid);
+      }
+      for (const sid of (kb.knownShortageIds || [])) {
+        if (!ka.knownShortageIds.includes(sid) && ka.knownShortageIds.length < 12) ka.knownShortageIds.push(sid);
+      }
+      for (const cid of (kb.knownCatalysts || [])) {
+        if (!ka.knownCatalysts.includes(cid)) ka.knownCatalysts.push(cid);
+      }
+    }
+    // Share recent hazard memories
+    for (const [src, dst] of [[ca, b], [cb, a]]) {
+      for (const m of (src.memory || [])) {
+        if (m && m.kind === 'hunt_loss' && m.zoneId && (W.t - (m.at || 0)) < 7 * 1440) {
+          const already = (dst.cognition?.memory || []).some(x => x.kind === 'hunt_loss' && x.zoneId === m.zoneId);
+          if (!already) COG.remember(W, dst, 'hunt_loss', m.zoneId, (m.severity || 0.5) * 0.7, 'รับฟังคำเตือนภัยอสูรจากสหาย');
+        }
+      }
+    }
+    if (mode === 'teach') {
+      if (a.cult && b.cult && ((a.cult.stage || 1) > (b.cult.stage || 1) || (a.rank || 0) > (b.rank || 0))) {
+        kb.mentorVerifiedStage = b.cult.stage;
+      } else if (a.cult && b.cult && ((b.cult.stage || 1) > (a.cult.stage || 1) || (b.rank || 0) > (a.rank || 0))) {
+        ka.mentorVerifiedStage = a.cult.stage;
+      }
+    }
   };
 
   // Inexpensive deterministic heuristic forecasting (never clones world or rolls RNG)
@@ -449,7 +612,7 @@
       }
       const daysInSect = Math.max(1, (W.day || 1) - (n.joinDay || 0));
       const observedRate = (n.cpEarned || 0) > 10 ? (n.cpEarned / daysInSect) : (6 + n.rank * 3.5 + E(n, 'personality.discipline') * 0.06);
-      const dailyNet = Math.max(1.5, observedRate * (0.85 + E(n, 'personality.optimism' in (n.h.temperament || {}) ? 'temperament.optimism' : 'personality.ambition') / 400));
+      const dailyNet = Math.max(1.5, observedRate * (0.85 + E(n, 'optimism' in (n.h.temperament || {}) ? 'temperament.optimism' : 'personality.ambition') / 400));
       const deficit = price - cp;
       const daysNeeded = Math.round((deficit / dailyNet) * 10) / 10;
       const confidence = clamp(0.45 + Math.min(0.35, daysInSect / 90) + E(n, 'intellect.numeracy') / 400, 0.35, 0.9);
@@ -465,7 +628,7 @@
       };
     }
     if (kind === 'huntRisk') {
-      const bPower = Math.max(1, Number(target?.power ?? target?.cp ?? 60));
+      const bPower = COG.estimateTargetPower ? COG.estimateTargetPower(W, n, target) : Math.max(1, Number(target?.power ?? target?.cp ?? 60));
       const zoneId = target?.zone || target?.id || null;
       const ownPower = Math.max(1, CULT.power(n));
       const caution = E(n, 'personality.caution') / 100, courage = E(n, 'personality.courage') / 100;
@@ -533,10 +696,10 @@
       const eqW = n.equip ? n.equip.WEAPON : null, eqA = n.equip ? n.equip.ARMOR : null, pLen = n.pets ? n.pets.length : 0;
       const emVer = (n.ext && n.ext.elementalSystem && n.ext.elementalSystem._mVer) || 0;
       tpc = TP_CACHE.get(n);
-      const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0;
-      if (!tpc || tpc.rat !== rat0 || tpc.mLen !== mLen0 || tpc.emVer !== emVer || tpc.st !== n.cult.stage || tpc.sub !== n.cult.sub || tpc.path !== n.cult.path || tpc.tl !== n.cult.techs.length || tpc.post !== n.post || tpc.eqW !== eqW || tpc.eqA !== eqA || tpc.pVer !== (n._passVer || 0) || tpc.pLen !== pLen) {
+      const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0, hdBand0 = ((n.h.state?.heartDemon || 0) / 15) | 0;
+      if (!tpc || tpc.ver !== n._ver || tpc.hdBand !== hdBand0 || tpc.rat !== rat0 || tpc.mLen !== mLen0 || tpc.emVer !== emVer || tpc.st !== n.cult.stage || tpc.sub !== n.cult.sub || tpc.path !== n.cult.path || tpc.tl !== n.cult.techs.length || tpc.post !== n.post || tpc.eqW !== eqW || tpc.eqA !== eqA || tpc.pVer !== (n._passVer || 0) || tpc.pLen !== pLen) {
         const elemMap = (tpc && tpc.emVer === emVer && tpc.root === n.h.root && tpc.st === n.cult.stage) ? tpc.elemMap : Object.create(null);
-        tpc = { rat: rat0, mLen: mLen0, emVer, root: n.h.root, st: n.cult.stage, sub: n.cult.sub, path: n.cult.path, tl: n.cult.techs.length, post: n.post, eqW, eqA, pVer: n._passVer || 0, pLen, map: Object.create(null), elemMap };
+        tpc = { ver: n._ver, hdBand: hdBand0, rat: rat0, mLen: mLen0, emVer, root: n.h.root, st: n.cult.stage, sub: n.cult.sub, path: n.cult.path, tl: n.cult.techs.length, post: n.post, eqW, eqA, pVer: n._passVer || 0, pLen, map: Object.create(null), elemMap };
         TP_CACHE.set(n, tpc);
       } else {
         const hit = tpc.map[t.id];
@@ -572,6 +735,26 @@
       if (Array.isArray(t.moveDefs) && t.moveDefs.length > 1) {
         roleFit += Math.min(0.45, (t.moveDefs.length - 1) * 0.10) * rational;
       }
+    }
+    if (t.cat === 'LIGHTNESS_ART' || t.cat === 'MOVEMENT_TECHNIQUE' || t.role === 'MOVEMENT_STEALTH_RECON' || t.qinggongMode) {
+      const hasAnyMoveArt = Array.isArray(n.cult?.techs) && n.cult.techs.some(id => {
+        const x = CULT.tech(id);
+        return x && (x.cat === 'LIGHTNESS_ART' || x.cat === 'MOVEMENT_TECHNIQUE' || x.role === 'MOVEMENT_STEALTH_RECON' || x.qinggongMode);
+      });
+      roleFit += (E(n, 'values.freedom') + E(n, 'interests.exploring') + E(n, 'physiology.agility')) / 320 + (hasAnyMoveArt ? 0.12 : 0.55);
+      if (['spymaster', 'wildwarden', 'mission'].includes(n.post)) roleFit += 0.45;
+    }
+    if (t.role === 'PROFESSION_LIFESTYLE' || t.cat === 'AUXILIARY_ART') {
+      const craftMatch = (n.post === 'alchemy' || n.post === 'herbal' || E(n, 'interests.alchemy') >= 58) ||
+        (n.post === 'forge' || n.post === 'arraymaster' || E(n, 'interests.forging') >= 58) ||
+        (n.post === 'beastmaster' || E(n, 'interests.beasts') >= 58);
+      if (craftMatch) roleFit += 0.48;
+    }
+    if (t.cat === 'FORBIDDEN_ART' || t.role === 'FORBIDDEN_BLOOD_SOUL' || t.forbiddenArchetype) {
+      const amb = E(n, 'personality.ambition') / 100, hd = ((n.h && n.h.state && n.h.state.heartDemon) || 0) / 100;
+      const integ = E(n, 'personality.integrity') / 100, emp = E(n, 'personality.empathy') / 100, will = E(n, 'intellect.willpower') / 100;
+      const isDarkPath = ['DEMON', 'DEVOURING_FLESH', 'ABYSSAL_CORRUPTION', 'VENOM_GU', 'CORPSE_SOVEREIGN', 'WRAITH_GRIEVANCE', 'DEATHLESS_CADAVER'].includes(n.cult?.path);
+      roleFit += (amb * 0.55 + hd * 0.75 + (isDarkPath ? 0.65 : 0)) - (integ * 0.85 + emp * 0.65 + will * 0.25);
     }
     let elemFit = 0;
     if (g.ELEM && n.h) {
@@ -617,7 +800,10 @@
         }
       }
     }
-    const res = condMatch + openPass + roleFit + elemFit + buildFit + rational * Math.log2(Math.max(1, t.power || 1)) + (1 - rational) * (subMatch + (t.path === n.cult?.path ? 1 : 0)) + E(n, 'personality.curiosity') / 100 * (t.tier || 1) * 0.2;
+    const discMod = (E(n, 'personality.discipline') - 50) / 100 * (isPass ? 0.25 : 0.15) * (t.tier || 1) * 0.2;
+    const solMod = (E(n, 'interests.solitude') - 50) / 100 * ((t.cat === 'LIGHTNESS_ART' || t.cat === 'AUXILIARY_ART' || isPass) ? 0.28 : -0.08);
+    const prideMod = (E(n, 'personality.pride') - 50) / 100 * ((t.legendary || isPrimarySub) ? 0.42 : (!isCompatSub && t.path !== n.cult?.path ? -0.25 : 0));
+    const res = condMatch + openPass + roleFit + elemFit + buildFit + discMod + solMod + prideMod + rational * Math.log2(Math.max(1, t.power || 1)) + (1 - rational) * (subMatch + (t.path === n.cult?.path ? 1 : 0)) + E(n, 'personality.curiosity') / 100 * (t.tier || 1) * 0.2;
     if (tpc && t.id) tpc.map[t.id] = res;
     return res;
   };
@@ -664,7 +850,8 @@
   COG.reconcileLoadout = (W, n) => {
     const M = g.MARTIAL;
     if (!M || !n || !n.cult || !Array.isArray(n.cult.techs)) return [];
-    const lSig = (n._ver || 0) + ':' + n.cult.stage + ':' + (n.cult.sub || '') + ':' + n.cult.techs.length + ':' + (n.passivePinned ? n.passivePinned.length : 0) + ':' + (n.passiveUnequipped ? n.passiveUnequipped.length : 0) + ':' + (n.equip && n.equip.WEAPON ? n.equip.WEAPON.id : '') + ':' + (n.equip && n.equip.ARMOR ? n.equip.ARMOR.id : '');
+    const eqW = n.equip && n.equip.WEAPON, eqA = n.equip && n.equip.ARMOR;
+    const lSig = (n._ver || 0) + ':' + n.cult.stage + ':' + (n.cult.sub || '') + ':' + n.cult.techs.length + ':' + (n.passivePinned ? n.passivePinned.length : 0) + ':' + (n.passiveUnequipped ? n.passiveUnequipped.length : 0) + ':' + (eqW ? (eqW.uid || eqW.id) + ':' + (M.gearUsable ? M.gearUsable(n, eqW) : 1) : '') + ':' + (eqA ? (eqA.uid || eqA.id) + ':' + (M.gearUsable ? M.gearUsable(n, eqA) : 1) : '');
     if (n._reconcileLoadoutSig === lSig && Array.isArray(n.passiveLoadout)) return n.passiveLoadout;
     n._reconcileLoadoutSig = lSig;
     const maxSlots = M.maxPassiveSlots(n);
@@ -715,7 +902,10 @@
     const hasPreferredWeapon = !!(eqType && profWpn.includes(eqType));
     const hasPrimaryWeapon = !!(eqType && profWpn[0] === eqType);
     const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : c.stage;
-    const allGearPool = ((n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : []).concat(W.sect.gear || []).filter(g2 => g2 && g2.slot === 'WEAPON' && (g2.minStage || 1) <= effSt);
+    const kn = n.cognition && n.cognition.knowledge;
+    const visGearSet = (kn && kn.updatedAt > -9999 && Array.isArray(kn.visibleGearIds)) ? new Set(kn.visibleGearIds) : null;
+    const sectGearPool = visGearSet ? (W.sect.gear || []).filter(g2 => g2 && visGearSet.has(g2.uid || g2.id)) : (W.sect.gear || []);
+    const allGearPool = ((n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : []).concat(sectGearPool).filter(g2 => g2 && g2.slot === 'WEAPON' && (g2.minStage || 1) <= effSt);
     const availPrefGear = allGearPool.filter(g2 => profWpn.includes(M.gearType(g2)));
     const availFallbackGear = allGearPool.filter(g2 => !profWpn.includes(M.gearType(g2)));
     const knownForgeRecs = (ECO && ECO.recipesFor) ? ECO.recipesFor(W, ['FORGING', 'ARRAY', 'TALISMAN']).filter(r => {
@@ -724,7 +914,8 @@
       return gt && profWpn.includes(gt) && (r.tier || 1) <= effSt + 1;
     }) : [];
     const craftablePrefRec = knownForgeRecs.find(r => ECO.inputsOk(W, r)) || knownForgeRecs[0] || null;
-    const learnableIds = CULT.learnable(n, W.sect.library || []);
+    const visLib = (kn && kn.updatedAt > -9999 && Array.isArray(kn.visibleTechIds) && kn.visibleTechIds.length > 0) ? kn.visibleTechIds : COG.visibleLibraryFor(W, n);
+    const learnableIds = CULT.learnable(n, visLib);
     const learnableTechs = learnableIds.map(id => CULT.tech(id)).filter(Boolean);
     const prefTechs = learnableTechs.filter(t => Array.isArray(t.weaponTypes) && t.weaponTypes.some(w => profWpn.includes(w)) && subElems.includes(t.elementProfile?.primary || t.element));
     const fallbackTechs = learnableTechs.filter(t => !prefTechs.includes(t));
@@ -809,31 +1000,37 @@
     const minCooldown = curWpnIsFallback ? 180 : 720;
     if (n._lastGearSwapAt && W.t - n._lastGearSwapAt < minCooldown) return null;
     let best = null, bestDelta = 0;
+    const sentimentalWpn = !!(curWpn && curWpn.slot === 'WEAPON' && (curWpn.weaponSpirit || (n._lastGearSwapAt != null && W.t - n._lastGearSwapAt > 30 * 1440)));
     // 1. Check personal bag first (free immediate equip if useful-now or completes resonance set)
     const bagGear = (n.inv && Array.isArray(n.inv.gear)) ? n.inv.gear : [];
     for (const eq of bagGear) {
       if (!eq || !eq.slot) continue;
-      const cl = M.classifyGearForNpc(null, n, eq, 0);
+      const cl = M.classifyGearForNpc(W, n, eq, 0);
       const resPrev = M.resonanceUpgradePreview ? M.resonanceUpgradePreview(n, eq) : null;
       const resBonus = (resPrev && resPrev.completes) ? (resPrev.nextPieces >= 3 ? 45 : 22) : 0;
       const effDelta = cl.deltaScore + resBonus;
-      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > 4)) && effDelta > bestDelta) {
+      const minDelta = (sentimentalWpn && eq.slot === 'WEAPON') ? 18 : 4;
+      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > minDelta)) && effDelta > bestDelta && !(sentimentalWpn && eq.slot === 'WEAPON' && effDelta < 18)) {
         bestDelta = effDelta;
         best = { source: 'bag', gear: eq, price: 0, deltaScore: effDelta, reasons: cl.suit.reasons, reasonTh: cl.reasonTh, resonancePreview: resPrev };
       }
     }
     if (best) return best;
-    // 2. Check sect shop / armory gear
+    // 2. Check sect shop / armory gear (bounded by visibleGearIds when perceived)
+    const kn = n.cognition && n.cognition.knowledge;
+    const visGearSet = (kn && kn.updatedAt > -9999 && Array.isArray(kn.visibleGearIds)) ? new Set(kn.visibleGearIds) : null;
     const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
     for (const eq of (W.sect.gear || [])) {
       if (!eq || !eq.slot || (eq.minStage || 1) > effSt) continue;
+      if (visGearSet && !visGearSet.has(eq.uid || eq.id)) continue;
       if (!SECT.canAccessItem(W, n, eq)) continue;
       const price = (g.CPE && g.CPE.gearPrice) ? g.CPE.gearPrice(W, eq) : 20;
-      const cl = M.classifyGearForNpc(null, n, eq, price);
+      const cl = M.classifyGearForNpc(W, n, eq, price);
       const resPrev = M.resonanceUpgradePreview ? M.resonanceUpgradePreview(n, eq) : null;
       const resBonus = (resPrev && resPrev.completes) ? (resPrev.nextPieces >= 3 ? 45 : 22) : 0;
       const effDelta = cl.deltaScore + resBonus;
-      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > 4)) && effDelta > bestDelta) {
+      const minDelta = (sentimentalWpn && eq.slot === 'WEAPON') ? 18 : 4;
+      if ((cl.category === 'useful-now' || (resPrev && resPrev.completes && effDelta > minDelta)) && effDelta > bestDelta && !(sentimentalWpn && eq.slot === 'WEAPON' && effDelta < 18)) {
         bestDelta = effDelta;
         best = { source: 'shop', gear: eq, price, deltaScore: effDelta, reasons: cl.suit.reasons, reasonTh: cl.reasonTh, resonancePreview: resPrev };
       }
@@ -943,7 +1140,7 @@
       if (ECO.inputsOk(W, r)) {
         return { step: 'hall_craft', stepTitle: 'ผลิต「' + r.outNameTh + '」ตามวัตถุดิบคลัง', missingPrereq: null, actions: [r.craft === 'ALCHEMY' ? 'brew' : 'forge', 'brewBasic', 'personalBrew'] };
       }
-      return { step: 'gather_input', stepTitle: 'รวบรวมวัตถุดิบสำหรับ「' + r.outNameTh + '」', missingPrereq: 'ขาดวัตถุดิบหรือแต้มแลกส่วนผสม', actions: ['forage', 'farm', 'mine', 'personalBrew', 'donate'] };
+      return { step: 'gather_input', stepTitle: 'รวบรวมวัตถุดิบสำหรับ「' + r.outNameTh + '」', missingPrereq: 'ขาดวัตถุดิบหรือแต้มแลกส่วนผสม', actions: ['forage', 'farm', 'mine', 'wildHunt', 'personalBrew', 'donate'] };
     }
     if (goal.id === 'track_bottleneck') {
       if (n.inj && n.inj.some(i => (i.sev || 1) >= 2)) {
@@ -983,8 +1180,20 @@
       return { step: 'perform_duty', stepTitle: 'ปฏิบัติงานในหน้าที่และกำกับดูแลหอ', missingPrereq: null, actions: Array.from(new Set(['duty'].concat(planActs || []))) };
     }
     if (goal.id === 'crisis') {
-      const acts = goal.targetId === 'meal' ? ['cook', 'farm'] : goal.targetId === 'grain' ? ['farm'] : goal.source === 'alchemy' ? ['brew', 'brewBasic', 'forage'] : ['forage', 'donate', 'mine', 'farm'];
+      const acts = goal.targetId === 'meal' ? ['cook', 'farm'] : goal.targetId === 'grain' ? ['farm'] : goal.source === 'alchemy' ? ['brew', 'brewBasic', 'forage'] : ['forage', 'donate', 'mine', 'farm', 'wildHunt'];
       return { step: 'resolve_shortage', stepTitle: 'เร่งผลิต/จัดหาของที่สำนักขาดแคลน', missingPrereq: null, actions: acts };
+    }
+    if (goal.id === 'accumulate_wealth') {
+      return { step: 'earn_wealth', stepTitle: 'สะสมศิลาวิญญาณและแต้มคุณูปการ', missingPrereq: null, actions: ['forage', 'mine', 'outsideTrade', 'donate', 'personalBrew'] };
+    }
+    if (goal.id === 'martial_tempering') {
+      return { step: 'temper_martial', stepTitle: 'เคี่ยวกรำฝีมือยุทธ์และล่าอสูร', missingPrereq: null, actions: ['practice', 'skillDrill', 'wildHunt', 'pair'] };
+    }
+    if (goal.id === 'ascetic_retreat') {
+      return { step: 'retreat_meditate', stepTitle: 'ปลีกวิเวกบำเพ็ญตบะอย่างเคร่งครัด', missingPrereq: null, actions: ['cultivate', 'consolidate', 'pray'] };
+    }
+    if (goal.id === 'hedonic_craft') {
+      return { step: 'enjoy_craft', stepTitle: 'สำราญใจและสร้างสรรค์ตามอิสระ', missingPrereq: null, actions: ['leisure', 'cook', 'personalBrew', 'forage'] };
     }
     if (goal.id === 'help_friend') {
       const p = helpCandidate(W, n, goal.targetId);
@@ -1043,6 +1252,10 @@
       const inst = W.world && W.world.clues && W.world.clues.active && W.world.clues.active[goal.targetId];
       return !inst || ['claimed', 'disproven', 'abandoned', 'expired'].includes(inst.status) || (inst.currentNodeIdx || 0) > (goal.startNodeIdx || 0);
     }
+    if (goal.id === 'accumulate_wealth') return (n.cp || 0) >= (goal.startCp || 0) + 60 || ((n.inv && n.inv.stones) || 0) >= (goal.startStones || 0) + 40;
+    if (goal.id === 'martial_tempering') return (n.merit || 0) >= (goal.startMerit || 0) + 6;
+    if (goal.id === 'ascetic_retreat') return !n.cult || n.cult.prog >= (goal.startProg || 0) + Math.max(8, CULT.threshold(n) * 0.08);
+    if (goal.id === 'hedonic_craft') return (n.h.state.mood || 0) >= 45 && (n.h.state.stress || 0) <= 15;
     return false;
   }
 
@@ -1070,6 +1283,10 @@
       const inst = W.world && W.world.clues && W.world.clues.active && W.world.clues.active[goal.targetId];
       return !!(inst && (inst.status === 'claimed' || (inst.currentNodeIdx || 0) > (goal.startNodeIdx || 0)));
     }
+    if (goal.id === 'accumulate_wealth') return (n.cp || 0) >= (goal.startCp || 0) + 60 || ((n.inv && n.inv.stones) || 0) >= (goal.startStones || 0) + 40;
+    if (goal.id === 'martial_tempering') return (n.merit || 0) >= (goal.startMerit || 0) + 6;
+    if (goal.id === 'ascetic_retreat') return !!(n.cult && n.cult.prog >= (goal.startProg || 0) + Math.max(8, CULT.threshold(n) * 0.08));
+    if (goal.id === 'hedonic_craft') return (n.h.state.mood || 0) >= 45 && (n.h.state.stress || 0) <= 15;
     return false;
   }
 
@@ -1107,12 +1324,24 @@
               }
             }
           }
-          if (tKeys && tKeys.length && SECT.EDITOR && SECT.EDITOR.usePersonalItem) {
+          if (tKeys && tKeys.length && !n.cult.learning) {
             const effSt = CULT.effectiveTechStage ? CULT.effectiveTechStage(n) : n.cult.stage;
             for (const tid of tKeys.slice()) {
               const tObj = CULT.tech(tid);
-              if (tObj && (tObj.reqTier || tObj.tier || 1) <= effSt && CULT.learnable(n, [tid]).length > 0 && (W.sect.library.includes(tid) || E(n, 'personality.loyalty') < 52)) {
-                SECT.EDITOR.usePersonalItem(W, n.id, 'TECH_MANUAL', tid);
+              if (!tObj || (tObj.reqTier || tObj.tier || 1) > effSt || CULT.learnable(n, [tid]).length === 0) continue;
+              const isForb = tObj.cat === 'FORBIDDEN_ART' || tObj.role === 'FORBIDDEN_BLOOD_SOUL' || !!tObj.forbiddenArchetype;
+              const vPol = W.sect && W.sect.forbiddenVault && W.sect.forbiddenVault.policy;
+              if (isForb && vPol === 'STRICT_ORTHODOX_BAN' && E(n, 'personality.integrity') >= 52 && ((n.h.state && n.h.state.heartDemon) || 0) < 48) continue;
+              const idx = n.inv.techs.indexOf(tid);
+              if (idx >= 0) {
+                n.inv.techs.splice(idx, 1);
+                n.cult.learning = {
+                  id: tid,
+                  need: Math.max(15, Math.round((CULT.studyCost ? CULT.studyCost(tObj, n) : 60) * 0.85)),
+                  got: 0,
+                  fromPersonalScroll: true,
+                  transcribeToLibrary: !W.sect.library.includes(tid) && E(n, 'personality.loyalty') >= 52
+                };
                 n._bagKnowSig = '';
                 break;
               }
@@ -1128,7 +1357,7 @@
       if (n._bagChkLen !== gLen || n._bagChkLast !== gLast || n._bagChkSt !== cSt) {
         n._bagChkLen = gLen; n._bagChkLast = gLast; n._bagChkSt = cSt;
         for (const eq of n.inv.gear.slice()) {
-          const cl = g.MARTIAL && g.MARTIAL.classifyGearForNpc ? g.MARTIAL.classifyGearForNpc(null, n, eq, 0) : null;
+          const cl = g.MARTIAL && g.MARTIAL.classifyGearForNpc ? g.MARTIAL.classifyGearForNpc(W, n, eq, 0) : null;
           if (cl && cl.category === 'useful-now') {
             SECT.EDITOR.equipPersonalGear(W, n.id, eq.uid || eq.id);
             n._lastGearSwapAt = W.t;
@@ -1193,13 +1422,13 @@
 
     // Update active goal's current step & prerequisite status
     if (c.goal) {
-      if (!c.goal.step || W.t - (c.goal._stepAt || -999) >= 60) {
+      if (!c.goal.step || W.t - (n._goalStepAt || -999) >= 60) {
         const stInfo = computeGoalStep(W, n, c.goal);
         c.goal.step = stInfo.step;
         c.goal.stepTitle = stInfo.stepTitle;
         c.goal.missingPrereq = stInfo.missingPrereq;
         c.goal.status = stInfo.missingPrereq ? 'blocked_prereq' : 'active';
-        c.goal._stepAt = W.t;
+        n._goalStepAt = W.t;
       }
       if (!c.goal.progressSnap) c.goal.progressSnap = snapshotForGoal(W, n, c.goal);
       return c;
@@ -1222,13 +1451,23 @@
       if (r.id !== 'member') {
         add('service', 'รับผิดชอบงาน' + r.title, 0.2 + (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 200 + roleNeed(W, n), r.id);
       }
-      const crisis = (W.sect.shortageDirectives || []).find(d => d.priority === 'critical' && d.deficit > 0);
+      const crisis = (W.sect.shortageDirectives || []).find(d => d.priority === 'critical' && d.deficit > 0 && COG.isAwareOf(W, n, 'shortage', d.id));
       if (crisis) {
         add('crisis', 'ช่วยสำนักแก้การขาด ' + (crisis.nameTh || ECO.name(crisis.id)), Math.max(0, (E(n, 'values.sectDuty') + E(n, 'personality.empathy') + E(n, 'personality.loyalty') - 130) / 100), crisis.id, { source: crisis.source });
       }
-      // Help injured friend goal (check empathy first, and relationScore before hpMax!)
+      // Help injured friend goal (check empathy, bounded awareness/proximity <= 35, and relationScore before hpMax!)
       if (E(n, 'personality.empathy') >= 48) {
-        const relMap = n.h.mind.relations || {}; const injuredFriend = W.npcs.find(x => x && x.id !== n.id && !x.dead && !x.away && relMap[x.id] && SECT.relationScore(n, x) >= 25 && x.h.state.hp < CULT.hpMax(x) * 0.55);
+        const relMap = n.h.mind.relations || {};
+        const myBid = (n.act && n.act.st != null && W.map && W.map.stations && W.map.stations[n.act.st]) ? W.map.stations[n.act.st].bid : null;
+        const memList = (n.cognition && Array.isArray(n.cognition.memory)) ? n.cognition.memory : [];
+        const injuredFriend = W.npcs.find(x => {
+          if (!x || x.id === n.id || x.dead || x.away || !relMap[x.id]) return false;
+          if (SECT.relationScore(n, x) < 25 || x.h.state.hp >= CULT.hpMax(x) * 0.72) return false;
+          const near = Math.hypot((x.x || 0) - (n.x || 0), (x.y || 0) - (n.y || 0)) <= 35;
+          const sameHall = myBid != null && x.act && x.act.st != null && W.map.stations[x.act.st] && W.map.stations[x.act.st].bid === myBid;
+          const heardRumor = memList.some(m => m && m.subjectId === x.id && (W.t - (m.at || 0)) < 720);
+          return near || sameHall || heardRumor;
+        });
         if (injuredFriend) {
           add('help_friend', 'หาโอสถช่วยรักษา ' + injuredFriend.h.name.given, 0.25 + (E(n, 'personality.empathy') + Math.max(0, SECT.relationScore(n, injuredFriend))) / 180, injuredFriend.id);
         }
@@ -1274,8 +1513,8 @@
         const eqW0 = n.equip ? n.equip.WEAPON : null;
         let blc = BLT_CACHE.get(n);
         let bestTech = null;
-        const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0;
-        if (blc && blc.libLen === visibleLib.length && blc.cap === cap && blc.sub === n.cult.sub && blc.tl === n.cult.techs.length && blc.rat === rat0 && blc.mLen === mLen0 && blc.eqW === eqW0 && (!blc.bestTech || !n.cult.techs.includes(blc.bestTech.id))) {
+        const rat0 = n.h.personality.rationality, mLen0 = n.mods ? n.mods.length : 0, hdBand0 = ((n.h.state?.heartDemon || 0) / 15) | 0;
+        if (blc && blc.ver === n._ver && blc.hdBand === hdBand0 && blc.libLen === visibleLib.length && blc.cap === cap && blc.sub === n.cult.sub && blc.tl === n.cult.techs.length && blc.rat === rat0 && blc.mLen === mLen0 && blc.eqW === eqW0 && (!blc.bestTech || !n.cult.techs.includes(blc.bestTech.id))) {
           bestTech = blc.bestTech;
         } else {
           const eligible = CULT.learnable(n, visibleLib).map(CULT.tech).filter(t => t && (t.reqTier || t.tier) <= cap && g.CPE.techPrice(W, t) > 0);
@@ -1284,7 +1523,7 @@
             const p = COG.techPreference(n, eligible[i]);
             if (p > bestPref) { bestPref = p; bestTech = eligible[i]; }
           }
-          BLT_CACHE.set(n, { libLen: visibleLib.length, cap, sub: n.cult.sub, tl: n.cult.techs.length, rat: rat0, mLen: mLen0, eqW: eqW0, bestTech });
+          BLT_CACHE.set(n, { ver: n._ver, hdBand: hdBand0, libLen: visibleLib.length, cap, sub: n.cult.sub, tl: n.cult.techs.length, rat: rat0, mLen: mLen0, eqW: eqW0, bestTech });
         }
         const eligible = [bestTech];
         if (eligible[0]) {
@@ -1301,17 +1540,42 @@
             add('gear_upgrade', 'จัดหา' + gearUp.gear.nameTh + 'คู่กาย', 0.22 + (E(n, 'values.martialPeak') + E(n, 'interests.combat')) / 190, gearUp.gear.uid || gearUp.gear.id, { slot: gearUp.gear.slot, price: gearUp.price });
           }
         }
-        const recipes = [...(n.inv.recipes || []), ...(n.recipes || [])].map(id => ECO.recipeById[id]).filter(r2 => r2 && r2.craft === 'ALCHEMY' && r2.inputs.some(i => (n.inv.mats[i.matId] || 0) > 0));
+        const invRec = (n.inv && n.inv.recipes) || [], invMats = (n.inv && n.inv.mats) || {};
+        const recipes = [...invRec, ...(n.recipes || [])].map(id => ECO.recipeById[id]).filter(r2 => r2 && r2.craft === 'ALCHEMY' && r2.inputs.some(i => (invMats[i.matId] || 0) > 0));
         if (recipes[0]) {
           add('craft', 'เก็บส่วนผสมเพื่อปรุง ' + recipes[0].nameTh, 0.2 + (E(n, 'interests.alchemy') + E(n, 'values.knowledgeCraft')) / 120, recipes[0].id, { startCrafted: n.stats?.crafted || 0 });
         }
         const rival = Object.entries(n.h.mind.relations || {}).find(([id, v]) => ['คู่แข่ง', 'ศัตรู'].includes(v.bond) && W.byId[id] && !W.byId[id].dead);
-        if (rival && CULT.power(W.byId[rival[0]]) >= CULT.power(n)) {
+        if (rival && (COG.estimateTargetPower ? COG.estimateTargetPower(W, n, W.byId[rival[0]]) : CULT.power(W.byId[rival[0]])) >= CULT.power(n) * 0.92) {
           add('rival', 'ฝึกฝนเพื่อก้าวข้าม ' + W.byId[rival[0]].h.name.given, Math.max(0, (E(n, 'personality.pride') + E(n, 'personality.ambition') - 100) / 65), rival[0]);
         }
       }
+      if (E(n, 'values.wealthResource') >= 58) {
+        add('accumulate_wealth', 'สั่งสมศิลาวิญญาณและทรัพย์สิน', (E(n, 'values.wealthResource') - 45) / 130 + E(n, 'interests.trade') / 320, null, { startCp: n.cp || 0, startStones: (n.inv && n.inv.stones) || 0 });
+      }
+      if (E(n, 'values.martialPeak') >= 58) {
+        add('martial_tempering', 'เคี่ยวกรำวิชายุทธ์ให้แกร่งกล้า', (E(n, 'values.martialPeak') + E(n, 'personality.courage') - 95) / 145, null, { startMerit: n.merit || 0 });
+      }
+      if (E(n, 'personality.discipline') >= 60 && E(n, 'interests.solitude') >= 50 && n.cult) {
+        add('ascetic_retreat', 'ปลีกวิเวกบำเพ็ญตบะ', (E(n, 'personality.discipline') + E(n, 'interests.meditation') - 95) / 145, null, { startProg: n.cult.prog || 0 });
+      }
+      if (E(n, 'values.freedom') >= 55 || E(n, 'interests.arts') >= 60) {
+        add('hedonic_craft', 'ใช้ชีวิตอิสระและเสพย์สุขงานศิลป์', (E(n, 'values.freedom') + Math.max(E(n, 'interests.arts'), E(n, 'interests.cuisine')) - 95) / 145, null);
+      }
     }
-    options.push({ id: 'none', weight: 1.2 + E(n, 'values.freedom') / 100 });
+    // Periodic autonomous petitions for severe injury or missing weapon
+    if (W && n._lastPetDay !== W.day && COG.submitPetition) {
+      const s = n.h.state, hm = CULT.hpMax(n);
+      const hasHealPill = !!(n.inv && n.inv.pills && Object.keys(n.inv.pills).some(k => ECO.pillInfo(k)?.effect?.healHealth));
+      if (((n.inj && n.inj.some(i => (i.sev || 1) >= 2)) || s.hp < hm * 0.45) && !hasHealPill) {
+        COG.submitPetition(W, n, 'medicine', 'บาดเจ็บหนักและขาดโอสถรักษา');
+        n._lastPetDay = W.day;
+      } else if (n.rank >= 1 && n.cult && !(n.equip && n.equip.WEAPON)) {
+        COG.submitPetition(W, n, 'equipment', 'ขาดศาสตราคู่กายในการฝึกยุทธ์');
+        n._lastPetDay = W.day;
+      }
+    }
+    options.push({ id: 'none', weight: options.length > 0 ? (0.08 + E(n, 'values.freedom') / 600) : 1.0 });
     const chosen = options.length === 1 ? options[0] : W.rng.weighted(options, x => x.weight);
     if (chosen.id !== 'none') {
       const gObj = {
@@ -1331,6 +1595,10 @@
         startRelN: chosen.startRelN ?? null,
         startRelA: chosen.startRelA ?? null,
         startNodeIdx: chosen.startNodeIdx ?? 0,
+        startCp: chosen.startCp ?? null,
+        startStones: chosen.startStones ?? null,
+        startMerit: chosen.startMerit ?? null,
+        startProg: chosen.startProg ?? null,
         blocked: 0
       };
       const stInfo = computeGoalStep(W, n, gObj);
@@ -1355,16 +1623,64 @@
     registry: ['duty'], discipline: ['duty'], disciples: ['duty', 'pair'], master: ['duty'], deputy: ['duty'],
     envoy: ['duty'], spymaster: ['duty', 'investigateClueLocal'], beastmaster: ['duty', 'guard'], arraymaster: ['duty', 'forge'], censor: ['duty'], quartermaster: ['duty']
   };
+  const TRAIT_ACT_CATS = {
+    solo: ['cultivate', 'consolidate', 'pray', 'study'],
+    conflict: ['practice', 'skillDrill', 'wildHunt', 'guard'],
+    arts: ['brew', 'brewBasic', 'personalBrew', 'forge', 'leisure'],
+    explore: ['forage', 'errand', 'wildHunt', 'gatherWildResource', 'investigateClueLocal'],
+    sect: ['duty', 'guard', 'donate'],
+    social: ['pair', 'festival', 'flatter'],
+    trade: ['outsideTrade', 'shop', 'errand'],
+    virtue: ['shareMedicine', 'giftItem', 'heal', 'supportBless', 'pray'],
+    covert: ['investigateClueLocal', 'hide', 'flatter'],
+    mission: ['errand', 'wildHunt', 'guard'],
+    family: ['pair', 'shareMedicine', 'giftItem']
+  };
+  COG.traitActionWeight = (n, actionId) => {
+    if (!n || !n.h || !Array.isArray(n.h.traits) || !n.h.traits.length || !HC.traitDef) return 0;
+    let sum = 0;
+    for (let i = 0; i < n.h.traits.length; i++) {
+      const def = HC.traitDef(n.h.traits[i].id);
+      const aw = def && def.behaviorMods && def.behaviorMods.actionWeights;
+      if (!aw) continue;
+      for (const cat in aw) {
+        const list = TRAIT_ACT_CATS[cat];
+        if (list && list.includes(actionId)) sum += aw[cat];
+      }
+    }
+    return clamp(sum, -0.6, 0.6);
+  };
+  COG.decisionBias = (n, key) => {
+    if (!n || !n.h || !Array.isArray(n.h.traits) || !n.h.traits.length || !HC.traitDef) return 0;
+    let sum = 0;
+    for (let i = 0; i < n.h.traits.length; i++) {
+      const def = HC.traitDef(n.h.traits[i].id);
+      const db = def && def.behaviorMods && def.behaviorMods.decisionBias;
+      if (db && Number.isFinite(db[key])) sum += db[key];
+    }
+    return sum;
+  };
+  COG.hasUnlockTag = (n, tag) => {
+    if (!n || !n.h || !Array.isArray(n.h.traits) || !n.h.traits.length || !HC.traitDef) return false;
+    for (let i = 0; i < n.h.traits.length; i++) {
+      const def = HC.traitDef(n.h.traits[i].id);
+      const tags = def && def.behaviorMods && def.behaviorMods.unlockTags;
+      if (Array.isArray(tags) && tags.includes(tag)) return true;
+    }
+    return false;
+  };
+
   COG.modifiers = (W, n, id, SAcc) => {
     const isFast = !!(SAcc && SAcc._fast), out = SAcc ? null : [], s = n.h.state, c = n.cognition; const push = isFast ? ((_, x) => { if (x > 0.025 || x < -0.025) SAcc.u += (x < -2 ? -2 : x > 2 ? 2 : x); }) : ((why, x) => { if (x > 0.025 || x < -0.025) { const v = x < -2 ? -2 : x > 2 ? 2 : x; if (SAcc) SAcc.add(why, v); else out.push([why, v]); } });
     let mc = n._cogModCtx;
     if (!(SAcc && mc && mc._decTick === W.t && mc.ver === n._ver)) {
-      const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= 80) ? null : rawGoal, cpNow = n.cp || 0;
+      const vSd = n.h.values.sectDuty, pDi = n.h.personality.discipline, pLo = n.h.personality.loyalty, iPl = n.h.intellect.planning, tSo = n.h.temperament.sociability, vFr = n.h.values.freedom, pCa = n.h.personality.caution, rawGoal = c?.goal && c.goal.expiresAt > W.t ? c.goal : null, curGoal = (rawGoal && rawGoal.id === 'recovery' && s.satiety >= 25 && s.rest >= 20 && !(n.inj && n.inj.length) && s.hp >= Math.min(80, Math.round((CULT.hpMax ? CULT.hpMax(n) : 100) * 0.65))) ? null : rawGoal, cpNow = n.cp || 0;
       const postsRef = W.sect && W.sect.posts;
       const safeNow = safe(n), hourBand = ((W.t % 1440) / 60) | 0, planAnchor = W.sect && W.sect.officePlans && W.sect.officePlans.alchemy ? W.sect.officePlans.alchemy.by : null;
       const officeRev = (W.sect && W.sect._officeOrderSeq) || 0;
+      const raidNow = !!(W.threat && W.threat.raid), alertNow = W.threat ? ((W.threat.alert || 0) > 0 ? 1 : 0) : 0, wKindNow = W.weather ? (W.weather.kind || '') : '';
       const pCmd = postsRef ? postsRef.commander : null, pAlc = postsRef ? postsRef.alchemy : null, pFrg = postsRef ? postsRef.forge : null, pMas = W.sect ? W.sect.masterId : null;
-      if (!mc || (W.t - mc.t >= 60 || mc.t > W.t || mc.injLen !== (n.inj ? n.inj.length : 0)) || mc.hourBand !== hourBand || mc.ver !== n._ver || mc.safe !== safeNow || mc.planAnchor !== planAnchor || mc.officeRev !== officeRev || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || (curGoal && (curGoal.id === 'scripture' || curGoal.id === 'gear_upgrade') && mc.cp !== cpNow) || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
+      if (!mc || (W.t - mc.t >= 60 || mc.t > W.t || mc.injLen !== (n.inj ? n.inj.length : 0)) || mc.raid !== raidNow || mc.alert !== alertNow || mc.wKind !== wKindNow || mc.hourBand !== hourBand || mc.safe !== safeNow || mc.planAnchor !== planAnchor || mc.officeRev !== officeRev || mc.vSd !== vSd || mc.pDi !== pDi || mc.pLo !== pLo || mc.iPl !== iPl || mc.tSo !== tSo || mc.vFr !== vFr || mc.pCa !== pCa || mc.post !== n.post || mc.assist !== n.assist || mc.goalRef !== curGoal || (curGoal && (curGoal.id === 'scripture' || curGoal.id === 'gear_upgrade') && mc.cp !== cpNow) || mc.pCmd !== pCmd || mc.pAlc !== pAlc || mc.pFrg !== pFrg || mc.pMas !== pMas || (postsRef && (mc.pTre !== postsRef.treasury || mc.pHea !== postsRef.healer || mc.pMar !== postsRef.martial || mc.pScr !== postsRef.scripture || mc.pMis !== postsRef.mission || mc.pGrd !== postsRef.guard || mc.pReg !== postsRef.registry || mc.pDis !== postsRef.discipline))) {
       const r0 = COG.role(W, n);
       const duty0 = (E(n, 'values.sectDuty') + E(n, 'personality.discipline') + E(n, 'personality.loyalty')) / 300;
       const disc0 = E(n, 'personality.discipline') / 100;
@@ -1376,7 +1692,7 @@
         goalActs = curGoal.id === 'scripture' ? (cpNow >= price ? ['study', 'guidedStudy'] : INCOME)
           : curGoal.id === 'gear_upgrade' ? (cpNow >= price ? ['shop'] : INCOME)
           : curGoal.id === 'service' ? ['duty']
-          : curGoal.id === 'craft' ? ['personalBrew', 'forage', 'donate', 'brew', 'brewBasic', 'forge']
+          : curGoal.id === 'craft' ? ['personalBrew', 'forage', 'donate', 'brew', 'brewBasic', 'forge', 'wildHunt']
           : curGoal.id === 'rival' ? TRAIN
           : curGoal.id === 'track_bottleneck' ? ((CULT.inspectProgressionBottleneck && CULT.inspectProgressionBottleneck(W, n).feasibleActions) || ['skillDrill', 'practice', 'pair', 'shop', 'mine', 'forage'])
           : curGoal.id === 'breakthrough' ? ((CULT.inspectProgressionBottleneck && CULT.inspectProgressionBottleneck(W, n).feasibleActions.concat(['cultivate', 'breakthrough', 'consolidate', 'shop', 'pray'])) || ['cultivate', 'breakthrough', 'consolidate', 'shop', 'pray', 'paidTraining'])
@@ -1384,7 +1700,11 @@
           : curGoal.id === 'mentor_disciple' ? ['pair', 'duty']
           : curGoal.id === 'social_bond' ? ['pair', 'leisure', 'giftItem']
           : curGoal.id === 'investigate_clue' ? ['investigateClueLocal', 'meetVisitor', 'practice', 'study', 'cultivate']
-          : curGoal.id === 'crisis' ? (curGoal.targetId === 'meal' ? ['cook', 'farm'] : curGoal.targetId === 'grain' ? ['farm'] : curGoal.source === 'alchemy' ? ['brew', 'brewBasic'] : ['forage', 'donate', 'mine'])
+          : curGoal.id === 'crisis' ? (curGoal.targetId === 'meal' ? ['cook', 'farm'] : curGoal.targetId === 'grain' ? ['farm'] : curGoal.source === 'alchemy' ? ['brew', 'brewBasic'] : ['forage', 'donate', 'mine', 'wildHunt'])
+          : curGoal.id === 'accumulate_wealth' ? ['forage', 'mine', 'outsideTrade', 'donate', 'personalBrew']
+          : curGoal.id === 'martial_tempering' ? ['practice', 'skillDrill', 'wildHunt', 'pair']
+          : curGoal.id === 'ascetic_retreat' ? ['cultivate', 'consolidate', 'pray']
+          : curGoal.id === 'hedonic_craft' ? ['leisure', 'cook', 'personalBrew', 'forage']
           : REST;
         goalVal = 0.35 + E(n, 'intellect.planning') / 180 + disc0 / 2.5;
         if (curGoal.id === 'scripture' && cpNow < price) goalShopPen = -disc0 * (100 / 140);
@@ -1431,7 +1751,7 @@
       }
       const hour0 = (W.t % 1440) / 60;
       mc = n._cogModCtx = {
-        t: W.t, hourBand, planAnchor, officeRev, ver: n._ver, hp: s.hp, vSd, pDi, pLo, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
+        t: W.t, raid: raidNow, alert: alertNow, wKind: wKindNow, hourBand, planAnchor, officeRev, ver: n._ver, hp: s.hp, vSd, pDi, pLo, iPl, tSo, vFr, pCa, post: n.post, assist: n.assist, goalRef: curGoal, cp: cpNow, pCmd, pAlc, pFrg, pMas, pTre: postsRef && postsRef.treasury, pHea: postsRef && postsRef.healer, pMar: postsRef && postsRef.martial, pScr: postsRef && postsRef.scripture, pMis: postsRef && postsRef.mission, pGrd: postsRef && postsRef.guard, pReg: postsRef && postsRef.registry, pDis: postsRef && postsRef.discipline, poMods,
         safe: safe0, r: r0, duty: duty0, disc: disc0,
         dutyActVal: safe0 && r0.id !== 'member' ? (0.1 + duty0 * 0.55 + roleNeed(W, n) * duty0) * ((W.sect.lastDuty[n.id] || -9999) > W.t - 180 ? 0.15 : 1) : 0,
         relActs: ROLE_RELEVANT_ACTS[r0.id] || null,
@@ -1455,7 +1775,7 @@
       if ((lowRest && id === 'sleep') || (lowFood && id === 'eat') || (lowHp && ['heal', 'personalPillUse', 'shop', 'sleep'].includes(id))) {
         push('ร่างกายเร่งด่วนสำคัญกว่างานหรือความชอบ', 2.4);
       }
-      if (['wildHunt', 'paidTraining', 'practice', 'skillDrill', 'personalBrew', 'duty', 'flatter', 'giftItem'].includes(id)) push('ต้องรักษาตัวก่อน', -1.6);
+      if (['wildHunt', 'paidTraining', 'practice', 'skillDrill', 'personalBrew', 'duty', 'flatter', 'giftItem', 'opportunity'].includes(id)) push('ต้องรักษาตัวก่อน', -1.6);
       return out;
     }
     const duty = mc.duty;
@@ -1467,6 +1787,12 @@
     if (aspId === 'peaceful_companion' && (id === 'pair' || id === 'leisure')) push('วิถีชีวิต: รักความสงบและมิตรภาพ', 0.18);
     else if (aspId === 'martial_master' && (id === 'practice' || id === 'skillDrill')) push('ปณิธาน: ขัดเกลาวิชายุทธ์', 0.18);
     else if (aspId === 'benevolent_healer' && (id === 'shareMedicine' || id === 'heal')) push('ปณิธาน: ช่วยเหลือผู้บาดเจ็บ', 0.22);
+    else if (aspId === 'realm_ascendant' && (id === 'cultivate' || id === 'breakthrough' || id === 'consolidate')) push('ปณิธาน: มุ่งทะลวงขอบเขตตบะ', 0.20);
+    else if (aspId === 'master_alchemist' && (id === 'brew' || id === 'brewBasic' || id === 'personalBrew' || id === 'forage')) push('ปณิธาน: ปรมาจารย์ปรุงโอสถ', 0.20);
+    else if (aspId === 'master_artificer' && (id === 'forge' || id === 'mine')) push('ปณิธาน: ปรมาจารย์ช่างหลอมศาสตรา', 0.20);
+    else if (aspId === 'respected_mentor' && (id === 'pair' || id === 'guidedStudy' || id === 'study')) push('ปณิธาน: คุรุผู้สืบทอดวิชา', 0.18);
+    else if (aspId === 'wealthy_trader' && (id === 'outsideTrade' || id === 'shop' || id === 'errand')) push('ปณิธาน: มั่งคั่งและเชี่ยวชาญการค้า', 0.20);
+    else if (aspId === 'sect_pillar' && (id === 'duty' || id === 'guard' || id === 'donate')) push('ปณิธาน: เสาหลักค้ำจุนสำนัก', 0.20);
 
     if (goal) {
       if (mc.goalActs && mc.goalActs.includes(id)) push('เป้าหมาย: ' + goal.title, mc.goalVal);
@@ -1480,7 +1806,8 @@
       push('ขับพิษโอสถสะสมในเส้นลมปราณ', 0.62);
     }
     if ((s.heartDemon || 0) >= 45 && (id === 'pray' || id === 'consolidate' || id === 'personalPillUse') && (!n.cult || n.cult.path !== 'DEMON' || s.heartDemon >= 68)) {
-      push('สงบจิตมารที่รบกวนตบะ', 0.62);
+      const hdShield = COG.hasUnlockTag(n, 'HEART_DEMON_SHIELD') ? 0.5 : 1.0;
+      push('สงบจิตมารที่รบกวนตบะ', 0.62 * hdShield);
     }
     if (id === 'forge' && (mc.hasRefineCand !== undefined ? mc.hasRefineCand : (mc.hasRefineCand = !!(mc.safe && n.rank >= 2 && W.sect && W.sect.catalysts && ECO.findCatalystRefinementCandidate && ECO.findCatalystRefinementCandidate(W, n))))) {
       push('ขัดเกลาศาสตรา T4–T6 ด้วยผลึกโบราณ', 0.52);
@@ -1511,8 +1838,36 @@
       if (REST.includes(id)) push('ผ่อนคลายความเครียด', (s.stress - 60) / 70 * (0.5 + mc.freeVal));
       if (id === 'duty') push('เหนื่อยล้าแต่ยังชั่งใจเรื่องหน้าที่', -(s.stress - 60) / 120 * (1 - duty));
     }
-    if ((n.grief || 0) > 0 && (id === 'pray' || id === 'leisure')) push('กำลังโศกเศร้าและต้องการสงบใจ', Math.min(0.6, n.grief / 10));
-    if (s.anger > 45 && id === 'pair') push('อารมณ์ร้อนอยากพูดคุยหรือระบาย', Math.min(0.3, (s.anger - 45) / 180));
+    if ((n.grief || 0) > 0) {
+      if (id === 'pray') push('กำลังโศกเศร้าและต้องการสงบใจ', Math.min(0.75, n.grief / 8));
+      else if (id === 'leisure') push('โศกเศร้าเกินกว่าจะสำราญ', -Math.min(0.8, n.grief / 7));
+    }
+    if ((s.fear || 0) > 30) {
+      if (['errand', 'wildHunt', 'breakthrough', 'outsideTrade'].includes(id)) push('หวาดกลัวภัยอันตราย', -clamp((s.fear - 30) / 80, 0.15, 0.9));
+      else if (['hide', 'pray', 'heal', 'sleep'].includes(id)) push('หวาดกลัวต้องการที่พึ่งหรือหลบภัย', clamp((s.fear - 30) / 90, 0.15, 0.75));
+    }
+    if ((s.pain || 0) > 40) {
+      if (['cultivate', 'practice', 'paidTraining', 'skillDrill', 'mine', 'forage', 'wildHunt'].includes(id)) push('บาดเจ็บปวดร้าวรบกวนสมาธิ', -clamp((s.pain - 40) / 70, 0.15, 0.85));
+      else if (['heal', 'sleep', 'personalPillUse'].includes(id)) push('ปวดแผลต้องการพักรักษา', clamp((s.pain - 40) / 75, 0.2, 0.85));
+    }
+    if ((s.anger || 0) > 45) {
+      if (id === 'pair') push('อารมณ์ร้อนอยากเผชิญหน้าหรือระบาย', Math.min(0.65, (s.anger - 45) / 85));
+      else if (['cultivate', 'study', 'guidedStudy'].includes(id)) push('โทสะพลุ่งพล่านไม่อาจสงบจิต', -clamp((s.anger - 45) / 80, 0.15, 0.85));
+    }
+    const trW = COG.traitActionWeight(n, id);
+    if (trW !== 0) push('นิสัยจากพรสวรรค์/สายเลือด', trW);
+    if ((id === 'heal' || id === 'personalPillUse') && (mc.injLen > 0 || s.hp < CULT.hpMax(n) * 0.75)) {
+      const sh = COG.decisionBias(n, 'seekHealing');
+      if (sh > 0) push('สัญชาตญาณรักษาตัว', Math.min(0.45, sh / 80));
+    }
+    if ((id === 'investigateClueLocal' || id === 'meetVisitor')) {
+      const ic = COG.decisionBias(n, 'investigateClues');
+      if (ic > 0) push('สัญชาตญาณสืบค้นเบาะแส', Math.min(0.45, ic / 80));
+    }
+    if (id === 'breakthrough' && s.hp < CULT.hpMax(n) * 0.65) {
+      const cb = COG.decisionBias(n, 'crisisBreakthrough');
+      if (cb > 0) push('วิกฤตกระตุ้นการทะลวงขั้น', Math.min(0.5, cb / 75));
+    }
     if (mc.weatherPen && (id === 'farm' || id === 'mine' || id === 'wildHunt' || id === 'forage')) push('อากาศทำให้งานกลางแจ้งไม่น่าสบาย', mc.weatherPen);
     return out;
   };
@@ -1549,7 +1904,11 @@
       (gId === "gear_upgrade" && id === "shop") ||
       (gId === "track_bottleneck" && ["skillDrill", "practice", "pair", "shop", "mine", "forage"].includes(id)) ||
       (gId === "breakthrough" && (id === "cultivate" || id === "breakthrough" || id === "paidTraining")) ||
-      (gId === "craft" && (id === "personalBrew" || id === "brew" || id === "brewBasic" || id === "forge")) ||
+      (gId === "craft" && (id === "personalBrew" || id === "brew" || id === "brewBasic" || id === "forge" || id === "wildHunt")) ||
+      (gId === "accumulate_wealth" && ["forage", "mine", "outsideTrade", "donate"].includes(id)) ||
+      (gId === "martial_tempering" && ["practice", "skillDrill", "wildHunt"].includes(id)) ||
+      (gId === "ascetic_retreat" && ["cultivate", "consolidate", "pray"].includes(id)) ||
+      (gId === "hedonic_craft" && ["leisure", "cook", "personalBrew"].includes(id)) ||
       (gId === "service" && id === "duty") ||
       (gId === "rival" && TRAIN.includes(id));
     if (!isGoalAct) return;
@@ -1617,12 +1976,16 @@
       return ['cultivate', 'breakthrough', 'paidTraining', 'shop', 'pray'].includes(actionId) && (n.cult && (n.cult.stage > (snap.stage || 0) || n.cult.prog > (snap.prog || 0) || actionId === 'pray' || actionId === 'shop'));
     }
     if (goal.id === 'craft') {
-      return ['personalBrew', 'brew', 'brewBasic', 'forge', 'forage', 'farm', 'mine'].includes(actionId);
+      return ['personalBrew', 'brew', 'brewBasic', 'forge', 'forage', 'farm', 'mine', 'wildHunt'].includes(actionId);
     }
     if (goal.id === 'crisis') {
-      const valid = goal.targetId === 'meal' ? ['cook', 'farm'] : goal.targetId === 'grain' ? ['farm'] : goal.source === 'alchemy' ? ['brew', 'brewBasic', 'forage'] : ['forage', 'donate', 'mine', 'farm'];
+      const valid = goal.targetId === 'meal' ? ['cook', 'farm'] : goal.targetId === 'grain' ? ['farm'] : goal.source === 'alchemy' ? ['brew', 'brewBasic', 'forage'] : ['forage', 'donate', 'mine', 'farm', 'wildHunt'];
       return valid.includes(actionId);
     }
+    if (goal.id === 'accumulate_wealth') return ['forage', 'mine', 'outsideTrade', 'donate', 'personalBrew'].includes(actionId);
+    if (goal.id === 'martial_tempering') return ['practice', 'skillDrill', 'wildHunt', 'pair'].includes(actionId);
+    if (goal.id === 'ascetic_retreat') return ['cultivate', 'consolidate', 'pray'].includes(actionId);
+    if (goal.id === 'hedonic_craft') return ['leisure', 'cook', 'personalBrew', 'forage'].includes(actionId);
     if (goal.id === 'help_friend') {
       return ['shareMedicine', 'giftItem', 'personalBrew', 'brewBasic', 'shop'].includes(actionId);
     }
@@ -1654,23 +2017,46 @@
     }
   };
 
-  COG.remember = (W, n, event) => {
+  COG.remember = (W, n, event, zoneIdArg, sevArg, noteArg) => {
+    const evObj = (event && typeof event === 'object') ? event : { kind: String(event || ''), zoneId: zoneIdArg || null, severity: sevArg || 0.5, noteTh: noteArg || '' };
+    const permKinds = ['blood_feud', 'life_debt', 'bereavement', 'betrayal'];
+    const isPerm = !!(evObj.permanent || permKinds.includes(evObj.kind));
+    const sev = clamp(evObj.severity || (isPerm ? 0.95 : 0.5), 0.05, 1);
+    const sal = evObj.salience != null ? evObj.salience : (isPerm ? 10 : (evObj.kind === 'bt_backlash' || evObj.kind === 'unfair_allocation' || evObj.kind === 'qi_deviation' ? 5 : sev * 2));
     const c = COG.ensure(n), e = {
-      kind: event.kind,
-      zoneId: event.zoneId || null,
-      subjectId: event.subjectId || null,
-      at: W.t,
-      severity: clamp(event.severity || 0.5, 0.05, 1)
+      kind: evObj.kind,
+      zoneId: evObj.zoneId || null,
+      subjectId: evObj.subjectId || null,
+      at: W ? W.t : 0,
+      severity: sev,
+      permanent: isPerm,
+      salience: sal
     };
     const old = c.memory.find(x => x.kind === e.kind && x.zoneId === e.zoneId && x.subjectId === e.subjectId);
     if (old) Object.assign(old, e);
     else c.memory.push(e);
-    if (c.memory.length > 24) c.memory.shift();
+    if (c.memory.length > 24) {
+      // Salience-pinned eviction: protect top 8 high-salience/permanent core slots
+      const ranked = c.memory.map((m, idx) => ({ m, idx, sal: (m.permanent ? 100 : (m.salience || (m.severity || 0.5) * 2)) })).sort((a, b) => b.sal - a.sal || b.m.at - a.m.at);
+      const protectedSet = new Set(ranked.slice(0, 8).map(x => x.m));
+      const dropIdx = c.memory.findIndex(m => !protectedSet.has(m));
+      c.memory.splice(dropIdx >= 0 ? dropIdx : 0, 1);
+    }
   };
 
   COG.huntValue = (W, n, b) => {
-    const ratio = CULT.power(n) / Math.max(1, b.power), caution = E(n, 'personality.caution') / 100, courage = E(n, 'personality.courage') / 100;
-    let v = Math.log2(Math.max(0.05, ratio)) * (0.6 + caution) + (courage - 0.5) * 0.25;
+    const estBPower = COG.estimateTargetPower ? COG.estimateTargetPower(W, n, b) : Math.max(1, b.power);
+    const ownPower = Math.max(1, CULT.power(n));
+    const ratio = ownPower / Math.max(1, estBPower), caution = E(n, 'personality.caution') / 100, courage = E(n, 'personality.courage') / 100;
+    const nStage = Math.max(1, (CULT.equivalentStage ? CULT.equivalentStage(n) : (n.cult && n.cult.stage)) || 1);
+    const bTier = Math.max(1, b.tier || 1);
+    const tierGap = nStage - bTier;
+    const realmMatchBonus = Math.abs(tierGap) <= 1 ? 0.55 : -Math.abs(tierGap) * 0.45;
+    const overmatch = g.WILD?.overmatchGap(n, b) ?? Math.max(0, tierGap - .25);
+    const leaveForJuniors = (E(n, 'personality.empathy') + E(n, 'values.sectDuty')) / 200;
+    const needsMaterial = g.WILD?.needsHuntMaterial(W, n, b);
+    const realmDiscouragement = Math.min(3.4, overmatch * (.56 + .48 * leaveForJuniors));
+    let v = clamp(Math.log2(Math.max(0.05, ratio)), -2.5, 1.6) * (0.45 + caution * 0.5) + (courage - 0.5) * 0.35 + realmMatchBonus;
     for (const m of n.cognition?.memory || []) {
       if (m.zoneId !== b.zone) continue;
       const fade = Math.max(0, 1 - (W.t - m.at) / (14 * 1440));
@@ -1678,7 +2064,11 @@
       if (m.kind === 'hunt_win') v += 0.12 * fade;
     }
     const preferred = (b.x - n.x) ** 2 + (b.y - n.y) ** 2;
-    return v - Math.min(0.4, Math.sqrt(preferred) / 400);
+    const trip = g.WILD && g.WILD.estimateTrip ? g.WILD.estimateTrip(W,n,b) : Math.sqrt(preferred)*2;
+    if (!Number.isFinite(trip)) return -Infinity;
+    const fit = Math.exp(-Math.abs(Math.log(Math.max(0.05,ratio / 1.15))) * 1.65);
+    return fit * 1.45 + v * 0.35 - Math.min(2.4, trip / 135) -
+      realmDiscouragement * (needsMaterial ? .15 : 1) + (needsMaterial ? 1.75 : 0);
   };
 
   /* ============================================================================
@@ -1694,11 +2084,17 @@
     for (const m of a.cognition?.memory || []) {
       if (m.subjectId !== bId) continue;
       const nowT = (W && Number.isFinite(W.t)) ? W.t : ((g.STATS && Number.isFinite(g.STATS.now)) ? g.STATS.now : m.at);
-      const fade = clamp(1 - Math.max(0, nowT - m.at) / (30 * 1440), 0, 1);
+      const ageT = Math.max(0, nowT - m.at);
+      const isPerm = !!(m.permanent || ['blood_feud', 'life_debt', 'bereavement', 'betrayal'].includes(m.kind));
+      const decayWin = isPerm ? Infinity : (['unfair_allocation', 'bt_backlash', 'qi_deviation'].includes(m.kind) ? 360 * 1440 : 30 * 1440);
+      const fade = isPerm ? 1 : clamp(1 - ageT / decayWin, 0, 1);
       if (m.kind === 'received_help') { memGratitude += 18 * m.severity * fade; memTrust += 8 * m.severity * fade; }
+      else if (m.kind === 'life_debt') { memGratitude += 45 * m.severity; memTrust += 25 * m.severity; }
       else if (m.kind === 'kept_commitment' || m.kind === 'shared_danger') { memTrust += 10 * m.severity * fade; }
       else if (m.kind === 'broken_commitment') { memTrust -= 14 * m.severity * fade; }
-      else if (m.kind === 'unfair_allocation') { memTrust -= 16 * m.severity * fade; memResent += 18 * m.severity * fade; }
+      else if (m.kind === 'suspected_flattery') { memTrust -= 8 * m.severity * fade; memResent += 6 * m.severity * fade; }
+      else if (m.kind === 'unfair_allocation' || m.kind === 'betrayal') { memTrust -= 16 * m.severity * fade; memResent += 18 * m.severity * fade; }
+      else if (m.kind === 'blood_feud' || m.kind === 'bereavement') { memTrust -= 35 * m.severity; memResent += 45 * m.severity; }
     }
     const affection = clamp(r.a || 0, -100, 100);
     const trust = clamp((r.t ?? 40) + memTrust, 0, 100);
@@ -1706,8 +2102,35 @@
     const gratitude = clamp((r.g || 0) + memGratitude, 0, 100);
     const fear = clamp(r.f || 0, 0, 100);
     const rivalry = clamp(r.v || 0, 0, 100);
-    const isKin = !!(b && (a.mentor === b.id || b.mentor === a.id || a.h.life.family.spouse === b.id));
+    const fam = (a.h && a.h.life && a.h.life.family) || {};
+    const isKin = !!(b && (
+      a.mentor === b.id || b.mentor === a.id || a.mentorId === b.id || b.mentorId === a.id ||
+      a.companionId === b.id || b.companionId === a.id ||
+      (Array.isArray(a.apprenticeIds) && a.apprenticeIds.includes(b.id)) ||
+      (Array.isArray(b.apprenticeIds) && b.apprenticeIds.includes(a.id)) ||
+      fam.spouse === b.id ||
+      (Array.isArray(fam.parents) && fam.parents.includes(b.id)) ||
+      (Array.isArray(fam.children) && fam.children.includes(b.id)) ||
+      r.bond === 'LIFE_SAVIOR' || (r.lifeAndDeathCount || 0) > 0
+    ));
     return { affection, trust, respect, gratitude, fear, rivalry, bond: r.bond || '', isKin, memResent };
+  };
+
+  COG.agePsychProfile = n => {
+    if (!n || !n.h) return { ageYears: 20, bioAge: 20, impulsiveness: 0, gravitas: 0, cautionMod: 0, composureMod: 0, ambitionMod: 0 };
+    const ageYears = HC.ageYears ? HC.ageYears(n) : 20;
+    const bioAge = HC.bioAge ? HC.bioAge(n) : ageYears;
+    const impulsiveness = bioAge < 24 ? clamp((24 - bioAge) / 14, 0, 1) : 0;
+    const gravitas = bioAge > 38 ? clamp((bioAge - 38) / 32, 0, 1) : 0;
+    return {
+      ageYears: Math.round(ageYears * 10) / 10,
+      bioAge: Math.round(bioAge * 10) / 10,
+      impulsiveness,
+      gravitas,
+      cautionMod: Math.round((gravitas * 10 - impulsiveness * 8) * 10) / 10,
+      composureMod: Math.round((gravitas * 12 - impulsiveness * 6) * 10) / 10,
+      ambitionMod: Math.round((impulsiveness * 6 - gravitas * 8) * 10) / 10
+    };
   };
 
   // Contextual deference, respect, fear and resentment toward elders/leaders
@@ -1793,8 +2216,18 @@
         COG.remember(W, b, { kind: "broken_commitment", subjectId: a.id, severity: 0.55 });
       }
     }
-    if (ca.commitment && ca.commitment.partnerId === b.id) { ca.commitment.status = resStatus; ca.commitment = null; }
-    if (cb.commitment && cb.commitment.partnerId === a.id) { cb.commitment.status = resStatus; cb.commitment = null; }
+    if (ca.commitment && ca.commitment.partnerId === b.id) {
+      const cid = ca.commitment.id;
+      ca.commitment.status = resStatus;
+      if (Array.isArray(ca.commitments)) { const m = ca.commitments.find(x => x && x.id === cid); if (m) m.status = resStatus; }
+      ca.commitment = null;
+    }
+    if (cb.commitment && cb.commitment.partnerId === a.id) {
+      const cidB = cb.commitment.id;
+      cb.commitment.status = resStatus;
+      if (Array.isArray(cb.commitments)) { const m = cb.commitments.find(x => x && x.id === cidB); if (m) m.status = resStatus; }
+      cb.commitment = null;
+    }
     return resStatus;
   };
 
@@ -1848,11 +2281,13 @@
     let best = null, score = 0;
     for (let i = 0; i < candidates.length; i++) {
       const x = candidates[i];
-      if (!x || x.id === n.id || x.dead || x.away || x.exiled || x.hidden || x.act?.id === 'fight' || Math.abs(x.x - n.x) > 12 || Math.abs(x.y - n.y) > 12 || !COG.available(x, W) || Math.hypot(x.x - n.x, x.y - n.y) > 12 || x.h.state.hp >= (x._nd ? x._nd.hpMax : CULT.hpMax(x)) * 0.55 || (x.inv.pills[key] || 0) >= 1) continue;
+      if (!x || x.id === n.id || x.dead || x.away || x.exiled || x.hidden || x.act?.id === 'fight' || Math.abs(x.x - n.x) > 36 || Math.abs(x.y - n.y) > 36 || !COG.available(x, W) || Math.hypot(x.x - n.x, x.y - n.y) > 36 || x.h.state.hp >= (x._nd ? x._nd.hpMax : CULT.hpMax(x)) * 0.72 || (x.inv.pills[key] || 0) >= 1) continue;
       const ri = COG.relInfo(W, n, x);
+      const hasGrudge = !!(n.h.mind && Array.isArray(n.h.mind.grudges) && n.h.mind.grudges.some(gr => gr && gr.targetId === x.id));
+      if (ri.bond === 'ศัตรู' || ri.affection < -20 || ri.rivalry > 60 || hasGrudge) continue;
       const empathy = E(n, 'personality.empathy');
-      const v = empathy / 100 + Math.max(0, ri.affection) / 100 + ri.gratitude / 140 + (ri.isKin ? 0.4 : 0) - (E(n, 'values.wealthResource') / 200);
-      if (v > 0.55 && v > score) {
+      const v = empathy / 100 + ri.affection / 100 + ri.gratitude / 140 + (ri.isKin ? 0.4 : 0) - (E(n, 'values.wealthResource') / 200);
+      if (v >= 0.55 && v > score) {
         score = v;
         best = { id: x.id, key, score: v };
       }
@@ -1909,7 +2344,7 @@
     if (!M || !M.classifyGearForNpc) return null;
     for (const eq of n.inv.gear) {
       if (!eq) continue;
-      const cl = M.classifyGearForNpc(null, n, eq, 0);
+      const cl = M.classifyGearForNpc(W, n, eq, 0);
       if (cl.category === 'gift-worthy' && cl.targetNpcId) {
         const rec = W.byId[cl.targetNpcId];
         if (rec && COG.available(rec, W) && !rec.hidden) {
@@ -1973,9 +2408,9 @@
   COG.flatteryCandidate = (W, n) => {
     if (!W || !W.sect || !n || n.rank >= 6 || (n.cool?.flatter || 0) > W.t || !COG.available(n, W) || !safe(n)) return null;
     if (W.t > 0 && n._flatCache && n._flatCache.until >= W.t) return n._flatCache.val;
-    // Only ambitious, status/wealth-seeking, or manipulative NPCs choose to flatter
-    const motive = (E(n, 'personality.ambition') * 0.35 + E(n, 'values.powerStatus') * 0.35 + E(n, 'values.wealthResource') * 0.2 + E(n, 'social.deception') * 0.25 - E(n, 'personality.integrity') * 0.45 - E(n, 'personality.pride') * 0.25);
-    if (motive < 14) {
+    // Only ambitious, status/wealth-seeking, or manipulative NPCs choose to flatter (centered around 50)
+    const motive = ((E(n, 'personality.ambition') - 50) * 0.40 + (E(n, 'values.powerStatus') - 50) * 0.40 + (E(n, 'values.wealthResource') - 50) * 0.25 + (E(n, 'social.deception') - 50) * 0.25 + (E(n, 'temperament.sociability') - 50) * 0.20 - (E(n, 'personality.integrity') - 50) * 0.50 - (E(n, 'personality.pride') - 50) * 0.35);
+    if (motive < 10) {
       if (W.t > 0) n._flatCache = { until: W.t + 180, val: null };
       return null;
     }
@@ -2015,6 +2450,8 @@
       rT.r = clamp((rT.r ?? 30) - 3, 0, 100);
       rT.a = clamp((rT.a || 0) - 2, -100, 100);
       hist.favor = clamp((hist.favor || 0) - 6, -20, 20);
+      HC.feel(target, { anger: 5, mood: -3 });
+      if (E(actor, 'personality.pride') > 60) HC.feel(actor, { anger: 8, mood: -4 });
       COG.remember(W, target, { kind: 'suspected_flattery', subjectId: actor.id, severity: 0.45 });
       if (W.log) W.log('politics', actor.h.name.given + ' เข้าพบกล่าวคำยกยอ ' + target.h.name.given + ' แต่กลับถูกมองว่าไม่จริงใจ', [actor.id, target.id]);
     } else if (skill + (E(target, 'personality.pride') - 45) * 0.4 >= discern - 4) {
@@ -2075,6 +2512,67 @@
     list.push(pet);
     if (list.length > 16) list.shift();
     return pet;
+  };
+
+  COG.processOpenPetitions = (W, officer, roleId) => {
+    if (!W || !W.sect || !Array.isArray(W.sect.petitions) || !W.sect.petitions.length || !officer) return 0;
+    let resolved = 0;
+    const nowT = W.t || 0;
+    for (let i = 0; i < W.sect.petitions.length; i++) {
+      const pet = W.sect.petitions[i];
+      if (!pet || pet.status !== 'open') continue;
+      if (pet.expiresAt && pet.expiresAt <= nowT) {
+        pet.status = 'expired';
+        continue;
+      }
+      const req = W.byId && W.byId[pet.npcId];
+      if (!req || req.dead || req.exiled) {
+        pet.status = 'closed';
+        continue;
+      }
+      if ((pet.accusedId && pet.accusedId === officer.id) || (pet.kind === 'complaint' && pet.npcId === officer.id)) {
+        continue;
+      }
+      if (pet.kind === 'medicine' && ['healer', 'alchemy', 'master', 'deputy'].includes(roleId)) {
+        const hm = CULT.hpMax(req);
+        req.h.state.hp = Math.min(hm, (req.h.state.hp || hm) + Math.round(hm * 0.25));
+        if (Array.isArray(req.inj) && req.inj.length) {
+          req.inj[0].until = Math.max(0, (req.inj[0].until || 60) - 180);
+          req.inj = req.inj.filter(x => x.until > 0);
+        }
+        pet.status = 'resolved';
+        pet.resolvedBy = officer.id;
+        pet.resolvedAt = nowT;
+        resolved++;
+        break;
+      }
+      if (pet.kind === 'equipment' && ['forge', 'treasury', 'quartermaster', 'master', 'deputy'].includes(roleId)) {
+        if (roleId === 'forge' && ECO.findCatalystRefinementCandidate && ECO.refineGearWithCatalyst) {
+          const rc = ECO.findCatalystRefinementCandidate(W, req, { allowByProxySmith: true });
+          if (rc && rc.gear && rc.cat) {
+            ECO.refineGearWithCatalyst(W, officer, rc.gear, rc.cat.id);
+          }
+        }
+        pet.status = 'resolved';
+        pet.resolvedBy = officer.id;
+        pet.resolvedAt = nowT;
+        resolved++;
+        break;
+      }
+      if (pet.kind === 'complaint' && ['discipline', 'censor', 'master', 'deputy'].includes(roleId)) {
+        req.h.state.stress = Math.max(0, (req.h.state.stress || 0) - 8);
+        req.sat = clamp((req.sat || 65) + 4, 0, 100);
+        if (W.sect.internalPolitics) {
+          W.sect.internalPolitics.undercurrent = clamp((W.sect.internalPolitics.undercurrent || 0) - 2, 0, 100);
+        }
+        pet.status = 'resolved';
+        pet.resolvedBy = officer.id;
+        pet.resolvedAt = nowT;
+        resolved++;
+        break;
+      }
+    }
+    return resolved;
   };
 
   /* ---------- Office Reviews, Orders, Favoritism & Self-Dealing ---------- */
@@ -2154,7 +2652,7 @@
       title = targetId ? 'เสนอให้เจ้าสำนักพิจารณาขยาย ' + W.map.byId[targetId].nameTh : 'ยังไม่พบความแออัดที่ต้องเสนอขยาย';
     }
     if (r.id === 'wildwarden') {
-      const danger = (W.wildlife?.beasts || []).filter(b => !b.dead && !b.gone && b.legendary).length;
+      const danger = (W.wildlife?.beasts || []).filter(b => !b.dead && !b.gone && b.aggressive && !g.WILD?.raidProfile(b) && b.legendary).length;
       title = danger ? 'เฝ้าระวังอสูรตำนาน ไม่แนะนำผู้ล่าที่ไม่พร้อม' : 'ประเมินพื้นที่และความพร้อมในการล่า';
       actions = danger ? ['guard'] : ['guard', 'wildHunt'];
     }
@@ -2262,6 +2760,7 @@
       return false;
     }
     if (SECT.governancePractice) SECT.governancePractice(W, n, r.id);
+    if (COG.processOpenPetitions) COG.processOpenPetitions(W, n, r.id);
     if (['alchemy', 'forge'].includes(r.id)) {
       const o = ECO.pickOrder(W, r.id, n);
       W.sect.orders[r.id] = o.recipe ? { rid: o.recipe.id, why: o.why, by: n.id } : null;
@@ -2344,7 +2843,20 @@
     return 0;
   };
 
-  COG.choiceTemperature = n => clamp(0.2 + (E(n, 'temperament.sensationSeeking') + E(n, 'personality.creativity')) / 1100 - (E(n, 'personality.rationality') + E(n, 'intellect.judgement') + E(n, 'personality.discipline')) / 1800 + E(n, 'temperament.emotionalReactivity') / 1400, 0.06, 0.4);
+  COG.choiceTemperature = n => {
+    const s = (n && n.h && n.h.state) || {};
+    const ap = COG.agePsychProfile ? COG.agePsychProfile(n) : { impulsiveness: 0, gravitas: 0 };
+    const base = 0.30
+      + (E(n, 'temperament.sensationSeeking') - 50) / 360
+      + (E(n, 'personality.creativity') - 50) / 550
+      + (E(n, 'temperament.emotionalReactivity') - 50) / 600
+      - (E(n, 'personality.discipline') - 50) / 380
+      - (E(n, 'personality.rationality') - 50) / 480
+      - (E(n, 'intellect.judgement') - 50) / 650
+      + ap.impulsiveness * 0.05 - ap.gravitas * 0.04;
+    const emoHeat = ((s.stress || 0) + (s.anger || 0) * 1.2 + (s.fear || 0) * 1.1 + (s.heartDemon || 0) * 0.9) / 1400;
+    return clamp(base + emoHeat, 0.14, 0.56);
+  };
 
   COG.rallyLeader = (W, f) => {
     if (f.over) return null;
@@ -2561,8 +3073,8 @@
       commitment: c?.commitment ? { ...c.commitment } : null,
       deferenceToMaster: defMaster,
       estimates,
-      actionId: last?.actionId || n.act?.id || null,
-      reasons: (last?.reasons || n.why || []).map(x => x.slice()),
+      actionId: (n.act && n.act.id && n.act.id !== 'idle') ? n.act.id : (last?.actionId || n.act?.id || null),
+      reasons: (n.act && n.act.id && n.act.id !== 'idle' && Array.isArray(n.why) && n.why.length) ? n.why.map(x => x.slice()) : (last?.reasons || n.why || []).map(x => x.slice()),
       bottleneck: (n && n.cult && CULT.inspectProgressionBottleneck) ? CULT.inspectProgressionBottleneck(W, n) : null,
       situational: COG.evaluateSituationalAwareness(W, n),
       buildImprovisation: COG.evaluateBuildImprovisation ? COG.evaluateBuildImprovisation(W, n) : null,
@@ -2572,4 +3084,594 @@
 
   g.COG = COG;
   if (typeof module === 'object' && module.exports) module.exports = COG;
+/* === LIVING_JIANGHU_EPITHETS_COG_HOOK_V260 === */
+
+  const _origShareKnowEp = COG.shareKnowledgeOnInteract;
+  COG.shareKnowledgeOnInteract = (W, a, b, mode) => {
+    const res = _origShareKnowEp(W, a, b, mode);
+    if (W && a && b && g.CULT && g.CULT.EPITHETS && g.CULT.EPITHETS.propagateRumor) {
+      g.CULT.EPITHETS.propagateRumor(W, a, b);
+      g.CULT.EPITHETS.propagateRumor(W, b, a);
+    }
+    return res;
+  };
+
+  const _origCogExplainEp = COG.explain;
+  COG.explain = (W, n) => {
+    const base = _origCogExplainEp ? _origCogExplainEp(W, n) : {};
+    if (n && n.epithets && g.CULT && g.CULT.EPITHETS) {
+      base.epithetDisplayTh = g.CULT.EPITHETS.formatDisplayTitle(n, { includeDaoName: true, includePosthumous: true });
+      if (n.epithets.redemptionDrive && n.epithets.redemptionDrive.active) {
+        base.redemptionDriveTh = n.epithets.redemptionDrive.whyTh;
+      }
+    }
+    return base;
+  };
+
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === LIVING_LORE_COG_ENGINE_V310 === */
+(function initLivingLoreCognitionEngine(g) {
+  'use strict';
+  const COG = g.COG, HC = g.HC, CULT = g.CULT, SECT = g.SECT, U = g.U;
+  if (!COG || !HC || !U) return;
+  const E = (n, p) => HC.eff(n, p), clamp = U.clamp;
+
+  const MAX_KNOWN_FACTS = 32;
+  const MAX_EVIDENCE_LINEAGES = 16;
+  const MAX_ACTIVE_LEADS = 8;
+
+  const ACCOUNT_WEIGHT_BASE = Object.freeze({
+    FOLK_ORAL: 48,
+    COURT_CANON: 62,
+    SECT_ORTHODOX: 66,
+    VERIFIED_CHRONICLE: 90
+  });
+
+  const SOURCE_CREDIBILITY_MOD = Object.freeze({
+    hometown: 4,
+    visitor_rumor: -4,
+    conversation: 0,
+    mentorship: 10,
+    city_visit: 12,
+    city_ledger: 18,
+    library_stele: 16,
+    ancestral_plaque: 16,
+    item_inscription: 17,
+    workshop_practice: 15,
+    expedition_witness: 20
+  });
+
+  // Read-only peek (never mutates NPC or world state; safe for UI & serialization checks)
+  COG.peekLoreState = n => {
+    if (!n || !n.ext || !n.ext.lore || typeof n.ext.lore !== 'object') return null;
+    return n.ext.lore;
+  };
+
+  // Mutating ensure (called only during simulation ticks / learning actions)
+  COG.ensureLoreState = n => {
+    if (!n || typeof n !== 'object') return null;
+    n.ext = n.ext || {};
+    if (!n.ext.lore || typeof n.ext.lore !== 'object') {
+      n.ext.lore = {
+        knownFacts: {},
+        factOrder: [],
+        activeLeads: [],
+        debatesCount: 0,
+        verifiedCount: 0,
+        lastLearnDay: -99,
+        adoptedCustoms: []
+      };
+    }
+    const L = n.ext.lore;
+    if (!L.knownFacts || typeof L.knownFacts !== 'object') L.knownFacts = {};
+    if (!Array.isArray(L.factOrder)) L.factOrder = Object.keys(L.knownFacts);
+    if (!Array.isArray(L.activeLeads)) L.activeLeads = [];
+    if (!Array.isArray(L.adoptedCustoms)) L.adoptedCustoms = [];
+    return L;
+  };
+
+  function getFactDef(factId) {
+    return (g.EXPED && g.EXPED.LIVING_LORE && g.EXPED.LIVING_LORE.FACT_BY_ID && g.EXPED.LIVING_LORE.FACT_BY_ID[factId]) || null;
+  }
+
+  function evaluateAccountAppeal(W, n, factDef, accountId, opts) {
+    opts = opts || {};
+    const acc = (factDef && factDef.accounts && factDef.accounts[accountId]) || null;
+    let score = (acc && Number.isFinite(acc.credibilityBase)) ? acc.credibilityBase : (ACCOUNT_WEIGHT_BASE[accountId] || 55);
+    score += SOURCE_CREDIBILITY_MOD[opts.sourceKind || 'conversation'] || 0;
+    if (opts.physicalProof) score += 18;
+
+    const rational = E(n, 'personality.rationality');
+    const comp = E(n, 'aptitudes.comprehension');
+    const trust = E(n, 'personality.trustfulness');
+    const curiosity = E(n, 'personality.curiosity');
+    const loyalty = E(n, 'personality.loyalty');
+    const birthPolity = n.ext && n.ext.world && n.ext.world.birthPolityId;
+
+    if (accountId === 'FOLK_ORAL') {
+      score += (trust - 50) * 0.22 + (curiosity - 50) * 0.12 - (rational - 50) * 0.16;
+      if (opts.sourceKind === 'hometown') score += 8;
+    } else if (accountId === 'COURT_CANON') {
+      score += (E(n, 'personality.discipline') - 50) * 0.18 + (E(n, 'values.powerStatus') - 50) * 0.15;
+      if (factDef && factDef.polityId && birthPolity === factDef.polityId) {
+        score += (loyalty - 45) * 0.22;
+      } else if (factDef && factDef.polityId && birthPolity && g.EXPED && g.EXPED.polityOpinion) {
+        const op = g.EXPED.polityOpinion(W, birthPolity, factDef.polityId);
+        if (op < -24) score -= 12;
+      }
+    } else if (accountId === 'SECT_ORTHODOX') {
+      score += (E(n, 'values.sectDuty') - 50) * 0.20 + (E(n, 'values.honorLegacy') - 50) * 0.16;
+      if (factDef && Array.isArray(factDef.relatedPaths) && n.cult && factDef.relatedPaths.includes(n.cult.path)) {
+        score += 10;
+      }
+    } else if (accountId === 'VERIFIED_CHRONICLE') {
+      score += (rational - 45) * 0.28 + (comp - 45) * 0.26;
+    }
+
+    if (opts.fromId && n.h && n.h.mind && n.h.mind.relations && n.h.mind.relations[opts.fromId]) {
+      const rel = n.h.mind.relations[opts.fromId];
+      score += ((rel.t ?? 40) - 45) * 0.24 + ((rel.r ?? 30) - 30) * 0.12;
+    }
+    return clamp(Math.round(score), 15, 98);
+  }
+
+  function syncWorldFactIndex(W, factId, rec, isNewDiscovery) {
+    if (!W || !W.world) return;
+    if (g.EXPED && g.EXPED.initLivingLore && !W.world.livingLore) {
+      g.EXPED.initLivingLore(W);
+    }
+    const ll = W.world.livingLore;
+    if (!ll || !ll.facts) return;
+    const wf = ll.facts[factId] || (ll.facts[factId] = {
+      factId,
+      discovered: false,
+      firstDiscoveredDay: null,
+      firstDiscovererId: null,
+      knownAccounts: [],
+      evidenceLineages: [],
+      status: 'undiscovered',
+      archivedInSect: false,
+      lastUpdatedDay: W.day || 0
+    });
+    if (!wf.discovered) {
+      wf.discovered = true;
+      wf.firstDiscoveredDay = W.day || 0;
+      wf.firstDiscovererId = rec.npcId || null;
+    }
+    if (rec.accountId && !wf.knownAccounts.includes(rec.accountId)) {
+      wf.knownAccounts.push(rec.accountId);
+    }
+    for (const lin of (rec.evidenceLineages || [])) {
+      if (lin && !wf.evidenceLineages.includes(lin) && wf.evidenceLineages.length < 12) {
+        wf.evidenceLineages.push(lin);
+      }
+    }
+    if (rec.status === 'verified' || rec.accountId === 'VERIFIED_CHRONICLE') {
+      wf.status = 'verified';
+    } else if (wf.status !== 'verified') {
+      if (rec.status === 'contested' || wf.knownAccounts.length > 1) wf.status = 'contested';
+      else if (wf.status === 'undiscovered') wf.status = rec.status || 'rumor';
+    }
+    wf.lastUpdatedDay = W.day || 0;
+  }
+
+  COG.addLoreLead = (n, storyId) => {
+    if (!n || !storyId) return false;
+    const L = COG.ensureLoreState(n);
+    if (!L) return false;
+    if (!L.activeLeads.includes(storyId)) {
+      L.activeLeads.push(storyId);
+      if (L.activeLeads.length > MAX_ACTIVE_LEADS) L.activeLeads.shift();
+      return true;
+    }
+    return false;
+  };
+
+  // Core epistemic learning engine with strict originEventId lineage tracking
+  COG.learnLoreFact = (W, n, factId, opts) => {
+    opts = opts || {};
+    if (!n || n.dead || !factId) return { ok: false, reason: 'invalid-target' };
+    const factDef = getFactDef(factId);
+    const L = COG.ensureLoreState(n);
+    const day = (W && Number.isFinite(W.day)) ? W.day : 0;
+    const defaultAccount = (factDef && factDef.defaultAccount) || 'FOLK_ORAL';
+    const incomingAccount = (opts.accountId && (!factDef || !factDef.accounts || factDef.accounts[opts.accountId]))
+      ? opts.accountId
+      : defaultAccount;
+    const originEventId = String(opts.originEventId || ('origin:' + factId + ':' + incomingAccount + ':' + (opts.sourceKind || 'seed')));
+    const sourceKind = opts.sourceKind || 'conversation';
+    const storyId = opts.storyId || (factDef && factDef.storyId) || null;
+
+    const evalConf = opts.confidence != null
+      ? clamp(Math.round(opts.confidence), 15, 98)
+      : evaluateAccountAppeal(W, n, factDef, incomingAccount, opts);
+
+    const prev = L.knownFacts[factId];
+    if (!prev) {
+      // Evict oldest unverified, non-lead fact if at capacity
+      if (L.factOrder.length >= MAX_KNOWN_FACTS) {
+        const evictIdx = L.factOrder.findIndex(fid => {
+          const entry = L.knownFacts[fid];
+          return entry && entry.status !== 'verified' && (!entry.storyId || !L.activeLeads.includes(entry.storyId));
+        });
+        const dropId = evictIdx >= 0 ? L.factOrder.splice(evictIdx, 1)[0] : L.factOrder.shift();
+        if (dropId) {
+          delete L.knownFacts[dropId];
+          L.verifiedCount = Object.values(L.knownFacts).filter(x => x && x.status === 'verified').length;
+        }
+      }
+
+      const initStatus = (incomingAccount === 'VERIFIED_CHRONICLE' || (opts.physicalProof && incomingAccount !== 'FOLK_ORAL'))
+        ? 'verified'
+        : (evalConf >= 62 ? 'believed' : 'rumor');
+
+      const entry = {
+        factId,
+        npcId: n.id,
+        accountId: incomingAccount,
+        contestedAccountId: null,
+        accountsHeard: [incomingAccount],
+        evidenceLineages: [originEventId],
+        independentLineages: 1,
+        confidence: evalConf,
+        status: initStatus,
+        sourceKind,
+        learnedFromId: opts.fromId || null,
+        learnedFromNameTh: opts.fromNameTh || null,
+        learnedDay: day,
+        updatedDay: day,
+        storyId,
+        noteTh: opts.noteTh || (factDef && factDef.accounts && factDef.accounts[incomingAccount] && factDef.accounts[incomingAccount].summaryTh) || ''
+      };
+      L.knownFacts[factId] = entry;
+      if (!L.factOrder.includes(factId)) L.factOrder.push(factId);
+      L.lastLearnDay = day;
+      if (initStatus === 'verified') {
+        L.verifiedCount = Object.values(L.knownFacts).filter(x => x && x.status === 'verified').length;
+      }
+      if (storyId && (initStatus !== 'verified' || opts.keepLead)) {
+        COG.addLoreLead(n, storyId);
+      }
+      syncWorldFactIndex(W, factId, entry, true);
+      return {
+        ok: true,
+        isNew: true,
+        corroborated: false,
+        contested: false,
+        sameLineage: false,
+        accountId: entry.accountId,
+        status: entry.status,
+        confidence: entry.confidence,
+        independentLineages: entry.independentLineages
+      };
+    }
+
+    // Already knows this factId: check if originEventId is already in evidenceLineages
+    if (!Array.isArray(prev.evidenceLineages)) prev.evidenceLineages = [originEventId];
+    if (!Array.isArray(prev.accountsHeard)) prev.accountsHeard = [prev.accountId];
+    const hasLineage = prev.evidenceLineages.includes(originEventId);
+
+    if (hasLineage && incomingAccount === prev.accountId && !opts.physicalProof) {
+      // Anti-Echo-Chamber Invariant: hearing the same originEventId again does NOT count as independent corroboration
+      return {
+        ok: true,
+        isNew: false,
+        corroborated: false,
+        contested: prev.status === 'contested',
+        sameLineage: true,
+        accountId: prev.accountId,
+        status: prev.status,
+        confidence: prev.confidence,
+        independentLineages: prev.independentLineages
+      };
+    }
+
+    let corroborated = false;
+    let contested = false;
+
+    if (!hasLineage) {
+      prev.evidenceLineages.push(originEventId);
+      if (prev.evidenceLineages.length > MAX_EVIDENCE_LINEAGES) prev.evidenceLineages.shift();
+      prev.independentLineages = (prev.independentLineages || 1) + 1;
+      corroborated = true;
+    }
+    if (!prev.accountsHeard.includes(incomingAccount)) {
+      prev.accountsHeard.push(incomingAccount);
+    }
+
+    const canSynthesizeVerified = !!(factDef && factDef.accounts && factDef.accounts.VERIFIED_CHRONICLE);
+    const highComp = (E(n, 'aptitudes.comprehension') + E(n, 'personality.rationality')) >= 108;
+
+    if (incomingAccount === prev.accountId) {
+      // Independent lineage supporting the same account
+      const boost = opts.physicalProof ? 18 : 12;
+      prev.confidence = clamp(prev.confidence + boost, 15, 98);
+      if (prev.independentLineages >= 2 && (opts.physicalProof || incomingAccount === 'VERIFIED_CHRONICLE' || (canSynthesizeVerified && highComp && sourceKind !== 'conversation'))) {
+        if (canSynthesizeVerified) prev.accountId = 'VERIFIED_CHRONICLE';
+        prev.status = 'verified';
+        prev.contestedAccountId = null;
+        prev.confidence = Math.max(prev.confidence, 86);
+      } else if (prev.status === 'rumor' && prev.confidence >= 62) {
+        prev.status = 'believed';
+      }
+    } else {
+      // Competing account encountered!
+      contested = true;
+      const curAppeal = evaluateAccountAppeal(W, n, factDef, prev.accountId, { sourceKind: prev.sourceKind });
+      const newAppeal = evalConf;
+
+      if (incomingAccount === 'VERIFIED_CHRONICLE' || (opts.physicalProof && prev.independentLineages >= 2)) {
+        prev.contestedAccountId = prev.accountId;
+        prev.accountId = canSynthesizeVerified ? 'VERIFIED_CHRONICLE' : incomingAccount;
+        prev.status = 'verified';
+        prev.confidence = clamp(Math.max(prev.confidence, newAppeal) + 10, 75, 98);
+      } else if (canSynthesizeVerified && prev.independentLineages >= 2 && highComp && ['city_ledger', 'library_stele', 'item_inscription', 'expedition_witness', 'ancestral_plaque'].includes(sourceKind)) {
+        // High-comprehension investigator reconciles two conflicting partial accounts with primary evidence
+        prev.contestedAccountId = prev.accountId;
+        prev.accountId = 'VERIFIED_CHRONICLE';
+        prev.status = 'verified';
+        prev.confidence = clamp(Math.max(curAppeal, newAppeal) + 14, 80, 98);
+      } else {
+        // Remains contested between the two accounts
+        if (newAppeal > curAppeal + 8 && prev.status !== 'verified') {
+          prev.contestedAccountId = prev.accountId;
+          prev.accountId = incomingAccount;
+          prev.confidence = clamp(newAppeal, 35, 88);
+        } else {
+          prev.contestedAccountId = incomingAccount;
+          prev.confidence = clamp(Math.round((prev.confidence + newAppeal) / 2), 30, 85);
+        }
+        if (prev.status !== 'verified') {
+          prev.status = 'contested';
+        }
+      }
+    }
+
+    prev.updatedDay = day;
+    if (opts.sourceKind) prev.lastSourceKind = opts.sourceKind;
+    if (opts.fromId) prev.lastFromId = opts.fromId;
+    if (opts.noteTh) prev.noteTh = opts.noteTh;
+    else if (factDef && factDef.accounts && factDef.accounts[prev.accountId]) {
+      prev.noteTh = factDef.accounts[prev.accountId].summaryTh;
+    }
+
+    L.lastLearnDay = day;
+    L.verifiedCount = Object.values(L.knownFacts).filter(x => x && x.status === 'verified').length;
+    if (storyId && prev.status !== 'verified') {
+      COG.addLoreLead(n, storyId);
+    }
+    syncWorldFactIndex(W, factId, prev, false);
+
+    return {
+      ok: true,
+      isNew: false,
+      corroborated,
+      contested,
+      sameLineage: false,
+      accountId: prev.accountId,
+      contestedAccountId: prev.contestedAccountId,
+      status: prev.status,
+      confidence: prev.confidence,
+      independentLineages: prev.independentLineages
+    };
+  };
+
+  // Resolve a conversation / debate when two NPCs hold different accounts of the same lore fact
+  COG.resolveLoreDebate = (W, a, b, factId) => {
+    if (!W || !a || !b || a.dead || b.dead || !factId) return null;
+    const La = COG.ensureLoreState(a), Lb = COG.ensureLoreState(b);
+    const ea = La && La.knownFacts[factId], eb = Lb && Lb.knownFacts[factId];
+    if (!ea || !eb) return null;
+    const factDef = getFactDef(factId);
+    La.debatesCount = (La.debatesCount || 0) + 1;
+    Lb.debatesCount = (Lb.debatesCount || 0) + 1;
+
+    const origAccA = ea.accountId;
+    const origAccB = eb.accountId;
+    const origStoryA = ea.storyId;
+    const origStoryB = eb.storyId;
+    const linA = ea.evidenceLineages[ea.evidenceLineages.length - 1] || ('debate:' + a.id);
+    const linB = eb.evidenceLineages[eb.evidenceLineages.length - 1] || ('debate:' + b.id);
+
+    // Each side hears the other's account with its existing originEventId (snapshotted before mutation)
+    const resB = COG.learnLoreFact(W, b, factId, {
+      accountId: origAccA,
+      originEventId: linA,
+      sourceKind: 'conversation',
+      fromId: a.id,
+      fromNameTh: HC.fullName(a),
+      storyId: origStoryA
+    });
+    const resA = COG.learnLoreFact(W, a, factId, {
+      accountId: origAccB,
+      originEventId: linB,
+      sourceKind: 'conversation',
+      fromId: b.id,
+      fromNameTh: HC.fullName(b),
+      storyId: origStoryB
+    });
+
+    if (g.AI && g.AI.mem && factDef) {
+      g.AI.mem(W, a, 'ถกเถียงมุมมองเรื่อง「' + factDef.titleTh + '」กับ ' + b.h.name.given, 0.55);
+      g.AI.mem(W, b, 'ถกเถียงมุมมองเรื่อง「' + factDef.titleTh + '」กับ ' + a.h.name.given, 0.55);
+    }
+    return { factId, resA, resB };
+  };
+
+  // Word-of-mouth lore transmission during social interactions & mentorship
+  COG.shareLoreOnInteract = (W, a, b, mode) => {
+    if (!W || !a || !b || a.dead || b.dead) return null;
+    const La = COG.peekLoreState(a), Lb = COG.peekLoreState(b);
+    const aFacts = La ? Object.values(La.knownFacts || {}) : [];
+    const bFacts = Lb ? Object.values(Lb.knownFacts || {}) : [];
+    if (!aFacts.length && !bFacts.length) return null;
+
+    // 1. Check if they share a factId with DIFFERENT accountIds -> Epistemic Debate!
+    if (La && Lb) {
+      for (const fa of aFacts) {
+        const fb = Lb.knownFacts[fa.factId];
+        if (fb && fb.accountId !== fa.accountId) {
+          return COG.resolveLoreDebate(W, a, b, fa.factId);
+        }
+      }
+    }
+
+    // 2. Otherwise, pick a salient fact from speaker to listener
+    const transmitOne = (speaker, listener, sFacts) => {
+      if (!sFacts.length) return null;
+      const lState = COG.peekLoreState(listener);
+      const ranked = sFacts.slice().sort((x, y) => {
+        const xNew = !(lState && lState.knownFacts && lState.knownFacts[x.factId]) ? 30 : 0;
+        const yNew = !(lState && lState.knownFacts && lState.knownFacts[y.factId]) ? 30 : 0;
+        const xVer = x.status === 'verified' ? 18 : x.status === 'contested' ? 14 : 0;
+        const yVer = y.status === 'verified' ? 18 : y.status === 'contested' ? 14 : 0;
+        return (yNew + yVer + (y.confidence || 50)) - (xNew + xVer + (x.confidence || 50));
+      });
+      const chosen = ranked[0];
+      if (!chosen) return null;
+      // Preserve existing originEventId so repeating one story does not create a fake new lineage!
+      const originEventId = (Array.isArray(chosen.evidenceLineages) && chosen.evidenceLineages[0])
+        || ('origin:' + chosen.factId + ':' + chosen.accountId);
+      const srcKind = mode === 'teach' ? 'mentorship' : 'conversation';
+      return COG.learnLoreFact(W, listener, chosen.factId, {
+        accountId: chosen.accountId,
+        originEventId,
+        sourceKind: srcKind,
+        fromId: speaker.id,
+        fromNameTh: HC.fullName(speaker),
+        storyId: chosen.storyId
+      });
+    };
+
+    const outAtoB = transmitOne(a, b, aFacts);
+    const outBtoA = transmitOne(b, a, bFacts);
+    return { outAtoB, outBtoA };
+  };
+
+  // Pure read-only summary for UI & observer inspection (0 RNG, 0 state mutation)
+  COG.getNpcLoreSummary = (W, n) => {
+    const L = COG.peekLoreState(n);
+    const origin = (g.EXPED && g.EXPED.originView) ? g.EXPED.originView(n) : null;
+    if (!L) {
+      return {
+        hometownTh: origin && origin.city ? origin.city.nameTh : null,
+        polityTh: origin && origin.polity ? origin.polity.nameTh : null,
+        totalKnown: 0,
+        verifiedCount: 0,
+        contestedCount: 0,
+        debatesCount: 0,
+        activeLeads: [],
+        facts: [],
+        adoptedCustoms: []
+      };
+    }
+    const ACCOUNT_LABEL_TH = {
+      FOLK_ORAL: 'ตำนานปากเปล่าชาวบ้าน',
+      COURT_CANON: 'บันทึกทางการราชสำนัก',
+      SECT_ORTHODOX: 'อรรถาธิบายสายสำนักยุทธ์',
+      VERIFIED_CHRONICLE: 'ความจริงที่พิสูจน์จากหลักฐาน'
+    };
+    const STATUS_LABEL_TH = {
+      rumor: 'ข่าวลือที่เพิ่งได้ยิน',
+      believed: 'ความเชื่อที่ยึดถือ',
+      contested: 'ข้อมูลสองกระแสขัดแย้งกัน',
+      verified: 'พิสูจน์แล้วจากหลักฐานหลายสาย'
+    };
+    const SOURCE_LABEL_TH = {
+      hometown: 'เรื่องเล่าจากบ้านเกิด',
+      visitor_rumor: 'คำบอกเล่าของผู้มาเยือน',
+      conversation: 'สนทนาแลกเปลี่ยนกับสหาย',
+      mentorship: 'ได้รับการชี้แนะจากอาจารย์/ผู้อาวุโส',
+      city_visit: 'เดินทางเยือนเมืองและพบเห็นด้วยตนเอง',
+      city_ledger: 'ตรวจสอบสมุดทะเบียนและหลักศิลาในเมือง',
+      library_stele: 'ค้นคว้าบันทึกหอคัมภีร์และศิลาจารึก',
+      ancestral_plaque: 'สักการะและอ่านจารึกป้ายบรรพชนรุ่นที่ 1–6',
+      item_inscription: 'ตรวจพบรอยสลักและตราช่างบนศาสตรา/วัตถุ',
+      workshop_practice: 'พิสูจน์จากการลงมือปฏิบัติในโรงงานสำนัก',
+      expedition_witness: 'ประสบเหตุและเป็นพยานในการเดินทางสำรวจ'
+    };
+
+    const entries = Object.values(L.knownFacts || {}).filter(Boolean).sort((a, b) => (b.updatedDay || 0) - (a.updatedDay || 0));
+    const facts = entries.map(e => {
+      const def = getFactDef(e.factId);
+      const acc = def && def.accounts && def.accounts[e.accountId];
+      const contestAcc = (e.contestedAccountId && def && def.accounts && def.accounts[e.contestedAccountId]) || null;
+      return {
+        factId: e.factId,
+        titleTh: (def && def.titleTh) || e.factId,
+        layer: (def && def.layer) || 'PROVINCIAL_VEIL',
+        category: (def && def.category) || 'FOLK_CUSTOM',
+        accountId: e.accountId,
+        accountLabelTh: (acc && acc.labelTh) || ACCOUNT_LABEL_TH[e.accountId] || e.accountId,
+        summaryTh: (acc && acc.summaryTh) || e.noteTh || '',
+        contestedAccountId: e.contestedAccountId || null,
+        contestedLabelTh: contestAcc ? (contestAcc.labelTh || ACCOUNT_LABEL_TH[e.contestedAccountId]) : null,
+        contestedSummaryTh: contestAcc ? contestAcc.summaryTh : null,
+        status: e.status || 'rumor',
+        statusLabelTh: STATUS_LABEL_TH[e.status] || 'ข่าวลือ',
+        confidence: e.confidence || 50,
+        independentLineages: e.independentLineages || (Array.isArray(e.evidenceLineages) ? e.evidenceLineages.length : 1),
+        sourceKind: e.sourceKind || 'conversation',
+        sourceLabelTh: SOURCE_LABEL_TH[e.sourceKind] || 'การบอกเล่า',
+        learnedFromNameTh: e.learnedFromNameTh || null,
+        learnedDay: e.learnedDay || 0,
+        updatedDay: e.updatedDay || 0,
+        storyId: e.storyId || null
+      };
+    });
+
+    return {
+      hometownTh: origin && origin.city ? origin.city.nameTh : null,
+      polityTh: origin && origin.polity ? origin.polity.nameTh : null,
+      totalKnown: facts.length,
+      verifiedCount: facts.filter(f => f.status === 'verified').length,
+      contestedCount: facts.filter(f => f.status === 'contested').length,
+      debatesCount: L.debatesCount || 0,
+      activeLeads: (L.activeLeads || []).slice(),
+      adoptedCustoms: (L.adoptedCustoms || []).slice(),
+      facts
+    };
+  };
+
+  // Hook into COG.shareKnowledgeOnInteract
+  const _origShareKnowLore = COG.shareKnowledgeOnInteract;
+  COG.shareKnowledgeOnInteract = (W, a, b, mode) => {
+    const res = _origShareKnowLore ? _origShareKnowLore(W, a, b, mode) : undefined;
+    if (W && a && b && !a.dead && !b.dead) {
+      COG.shareLoreOnInteract(W, a, b, mode);
+    }
+    return res;
+  };
+
+  // Hook into COG.perceivedBreakthroughChance so verified bottleneck folklore (FACT_13_MERIDIAN_BELL_OMEN) calibrates judgment
+  const _origPerceivedBtLore = COG.perceivedBreakthroughChance;
+  COG.perceivedBreakthroughChance = (W, n, rawP) => {
+    const base = _origPerceivedBtLore ? _origPerceivedBtLore(W, n, rawP) : clamp(Number(rawP) || 0, 0.01, 0.99);
+    const L = COG.peekLoreState(n);
+    if (!L || !L.knownFacts) return base;
+    const bellEntry = L.knownFacts.FACT_13_MERIDIAN_BELL_OMEN;
+    if (!bellEntry) return base;
+    const hd = (n.h && n.h.state && n.h.state.heartDemon) || 0;
+    if (bellEntry.status === 'verified' || bellEntry.accountId === 'VERIFIED_CHRONICLE') {
+      // Verified meridian insight prevents reckless heart-demon overconfidence and steadies calm breakthroughs
+      if (hd >= 38) return clamp(base - 0.06, 0.02, 0.95);
+      return clamp(base + 0.025, 0.03, 0.98);
+    } else if (bellEntry.accountId === 'FOLK_ORAL' && hd >= 38) {
+      // Unverified folk superstition mistakes meridian tinnitus for a lucky heavenly bell omen!
+      return clamp(base + 0.045, 0.03, 0.98);
+    }
+    return base;
+  };
+
+  // Hook into COG.explain (pure read-only)
+  const _origExplainLore = COG.explain;
+  COG.explain = (W, n) => {
+    const base = _origExplainLore ? _origExplainLore(W, n) : {};
+    if (n) {
+      base.livingLore = COG.getNpcLoreSummary(W, n);
+    }
+    return base;
+  };
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

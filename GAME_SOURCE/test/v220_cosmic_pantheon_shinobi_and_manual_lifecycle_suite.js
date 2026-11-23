@@ -28,8 +28,8 @@ function check(cond, msg) {
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
   check(hcSha === 'a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542', 'human_core.js SHA-256 must remain byte-for-byte identical');
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  check((SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || SIM.PATCH_VERSION === '2.6.0')))), `SIM.PATCH_VERSION must be '2.2.0' (got ${SIM.PATCH_VERSION})`);
-  check((SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting'))), `SIM.SAVE_SCHEMA_VERSION must be '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' (got ${SIM.SAVE_SCHEMA_VERSION})`);
+  check((SIM.PATCH_VERSION === '2.2.0' || (SIM.PATCH_VERSION === '2.3.0' || (SIM.PATCH_VERSION === '2.4.0' || (SIM.PATCH_VERSION === '2.5.0' || (SIM.PATCH_VERSION === '2.6.0' || (SIM.PATCH_VERSION === '3.0.0' || SIM.PATCH_VERSION === '3.9.6')))))), `SIM.PATCH_VERSION must be '2.2.0' (got ${SIM.PATCH_VERSION})`);
+  check((SIM.SAVE_SCHEMA_VERSION === '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' || (SIM.SAVE_SCHEMA_VERSION === '2.3.0-grand-dao-deep-parity-release' || (SIM.SAVE_SCHEMA_VERSION === '2.4.0-tactical-composable-grand-dao' || (SIM.SAVE_SCHEMA_VERSION === '2.6.0-living-chronicle-and-reporting' || (SIM.SAVE_SCHEMA_VERSION === '3.0.0-living-continent' || SIM.SAVE_SCHEMA_VERSION === '3.9.6-deep-gameplay-integration'))))), `SIM.SAVE_SCHEMA_VERSION must be '2.2.0-cosmic-pantheon-shinobi-manual-lifecycle' (got ${SIM.SAVE_SCHEMA_VERSION})`);
   console.log('  ✓ [0/6] Core Lock & v2.2.0 Schema Invariants Verified');
 }
 
@@ -122,12 +122,12 @@ function check(cond, msg) {
 // 3. Pillar 3: All 43 Grand Dao Paths, 286 Subpaths, Zero-Qi Bushido Samurai & 48 Sect Archetypes
 {
   const allPaths = Object.keys(CULT.PATHS);
-  check(allPaths.length === 43, `Total Major Paths must be 43 (27 + 16), got ${allPaths.length}`);
-  check(Object.keys(CULT.PATH_GAUGES).length === 43, 'Total Path Gauges must be 43');
+  check(allPaths.length === 58, `Total Major Paths must be 43 (27 + 16), got ${allPaths.length}`);
+  check(Object.keys(CULT.PATH_GAUGES).length === 58, 'Total Path Gauges must be 43');
   const allSubs = Object.values(CULT.PATHS).flatMap(p => p.subPaths || []);
-  check(allSubs.length === 286, `Total Subpaths must be 286 (222 + 64), got ${allSubs.length}`);
-  check(EXPLORE.NINE_DAO_PAGODA.floors.length === 43, 'Nine-Dao Pagoda must have 43 floors');
-  check(MARTIAL.RESONANCE_SETS.length === 62, `Total Resonance Sets must be 62 (19 baseline + 43 Pagoda), got ${MARTIAL.RESONANCE_SETS.length}`);
+  check(allSubs.length === 358, `Total Subpaths must be 286 (222 + 64), got ${allSubs.length}`);
+  check(EXPLORE.NINE_DAO_PAGODA.floors.length === 58, 'Nine-Dao Pagoda must have 58 floors');
+  check(MARTIAL.RESONANCE_SETS.filter(x => !x.id.startsWith('RES_V320_')).length === 77, `Total Resonance Sets must be 77 (19 baseline + 58 Pagoda), got ${MARTIAL.RESONANCE_SETS.length}`);
 
   for (const pid of allPaths) {
     check(SECT.PEAKS.peakIdForPath(pid) !== null, `Path ${pid} must map to a valid Sect Peak`);
@@ -176,6 +176,8 @@ function check(cond, msg) {
     'SUBSTITUTION negates fatal blow and heals 25% Max HP');
 
   // 4.3 Test PARRY_COUNTER melee counter-slash
+  d.x = a.x + 1.0;
+  d.y = a.y;
   COMBAT.COMPOSABLE_ENGINE.executeAction(W, f, d, a, 'IAI_ZERO_QI_SLASH', {}, { triggerKind: 'onHit', dmgDealt: 20 });
   const aHpBeforeParry = COMBAT.hp(a);
   COMBAT.applyDamage(W, f, a, d, 60, 'โจมตีทดสอบอิไอปัดป้อง');
@@ -200,10 +202,12 @@ function check(cond, msg) {
 {
   const W = SIM.create('v220-devour-grave', { masterIdx: 0, archetype: 'devourer' });
   const master = W.byId[W.sect.masterId];
-  ECO.add(W, 'MAT190_ORE_001', 2);
-  const devRes = CULT.GRAND_DAO_MECHANICS.devourResourceForBody(W, master, 'MAT190_ORE_001');
-  check(devRes && devRes.ok === true && ECO.count(W, 'MAT190_ORE_001') === 1,
-    'DEVOURING_FLESH devourResourceForBody consumes real inventory item (Debit = Credit)');
+  const oreReject = CULT.GRAND_DAO_MECHANICS.devourResourceForBody(W, master, 'MAT190_ORE_001');
+  check(oreReject && oreReject.ok === false, 'DEVOURING_FLESH refuses non-organic ore resources');
+  ECO.add(W, 'MAT_BP_BEAST_HEART', 2);
+  const devRes = CULT.GRAND_DAO_MECHANICS.devourResourceForBody(W, master, 'MAT_BP_BEAST_HEART');
+  check(devRes && devRes.ok === true && ECO.count(W, 'MAT_BP_BEAST_HEART') === 1,
+    'DEVOURING_FLESH devourResourceForBody consumes real organic inventory item (Debit = Credit)');
 
   W.graveyard.push({ id: 'fallen_1', nameTh: 'ศิษย์บรรพชน 1' }, { id: 'fallen_2', nameTh: 'ศิษย์บรรพชน 2' });
   const grvRes = CULT.GRAND_DAO_MECHANICS.channelGraveyardEcho(W, master);

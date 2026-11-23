@@ -201,3 +201,38 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 - T4 24–29 px / 850 ms and T5 32–39 / 1,050 remain planned; selected T6 and T7 are implemented (`planned:false`). Future lower tiers should share broader mechanic/element/action groups more; no forced reduction of existing lower-tier special catalogs.
 - Tests: `t6_group_vfx_suite` (114 real producers / 207 child metadata routes, actual attack-role examples, eligibility/modes/purity/caps/gear); `t6_group_vfx_browser` (50 distinct shapes in all modes, 256 same-group pixel comparisons, 25 gear glyphs, mixed 24-cast Canvas stress). Final combined regression: **161/162 PASS, 0 FAIL, 1 previously recorded `startup_ui` overlay TIMEOUT**; syntax **239 JavaScript files**. New and existing visual suites pass. Mobile 80-NPC stress: **1.417 ms/tick** in the final combined run; unchanged isolated retry **1.818 ms/tick**. Development Canvas timings do not certify physical Android performance.
 - Exact assignments, selected exclusions, old artwork and previews: `docs/audits/T6_GROUP_VFX_REGISTRY.md`. Handoff `docs/handovers/NEXT_T5_VISUAL_PATCH.md` starts only when user requests T5; do not repeat T6/T7/Legendary or the completed chronicle feature. Core/save schema and 40-script order unchanged.
+
+## Post-13 review checks (2026-11-15)
+`test/post13_economy_review_suite.js` is registered in `run_all.js`: spawned provenance across four donations/save-load, depleted/fractional node reserves, persistent counsel knot/replay. A passing Final Release suite only establishes its assertions; its 180-tick conservation check does not cover all event payouts or all UI actions. For managed Chromium use `BROWSER_TEST_BASE_URL` with a local server and an available browser executable; classify launch failures separately from game assertions.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+เพิ่ม observer_controls_browser และ observer_autonomy_suite ใน run_all: ตรวจ UI denied/no mutation, editor exception, 31 optional opportunity families, สอง natural events, actual craft 8 สูตร และ normal seeded simulation 30,000 ticks; fixture ที่เลือกทางแยกพิสูจน์การทำงาน ไม่พิสูจน์อัตราเกิดจริง v320 performance รันเดี่ยวใน parallel runner เพื่อตัดการแย่ง CPU จาก browser
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+เพิ่ม test/life_traits_repair_suite.js ตรวจ stat once, active slots, terminal recovery, replay>512, birth filter, real mine/ranged/mercy/debate/stele producers, save and scoring purity ทุก24masteryผ่าน statpipeline แต่ไม่อ้างทุกtraitพบเองทั้งหมด Long-run80NPC30/10ขอบวันและ12,420stepฉบับสุดท้าย แยก movement stage=move จาก activity assignment
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+For map and civil government changes run the schema tool, `world_atlas`, `world_atlas_standalone`, `world_atlas_browser`, `observer_autonomy_suite` and `observer_controls_browser`. Also cover mount-adjusted trial travel in `v210_pagoda_warbeasts_conference_suite` and actual reserve/release behavior and convoy visual in the v400 and v520 suites. Compare failed legacy suites against the base before attributing failures to new work. See `PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md` for this run's scope and results.
+
+## JS2-v3.1.0 Living Lore Sync
+- **Version & Schema**: `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-living-lore'` (`187/187` suites passing in `run_parallel_tests.js`).
+- **Living Lore & Epistemic Engine**: `EXPED.LIVING_LORE` (`js/expedition.js`: 4 epistemic layers, 8 fallen dynasties, 28 multi-account canon facts, 20 multi-stage playable story chains `STORY_01..20`) and `COG.LORE` (`js/cognition.js`: bounded `npc.ext.lore`, strict `originEventId` anti-echo-chamber lineage tracking, social debate in `COG.shareLoreOnInteract`, and breakthrough folklore calibration in `COG.perceivedBreakthroughChance`).
+- **Read-Only UI & Autonomy**: `SECT.AUTONOMY.opportunities` includes optional lore follow-through gated by `stage >= 3 || rank >= 2 || post`; observer UI surfaces (`UI.renderNpcLivingLoreCard`, `UI.renderWorldLivingLoreArchive`, `UI.rPolities`, `UI.renderSettlementLoreHtml`) are 100% zero-RNG, zero-mutation, and secret-gated.

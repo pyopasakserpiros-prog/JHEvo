@@ -1,5 +1,8 @@
+- **[LIVING_LORE_JS2_V3_1_0.md](LIVING_LORE_JS2_V3_1_0.md)** — `JS2-v3.1.0 Living Lore`: 4 ชั้นความจริง, 8 ราชวงศ์ที่ล่มสลาย, 28 ข้อเท็จจริงหลายมุมมอง, 20 สายเรื่องราวที่เล่นได้จริง, เครื่องยนต์สายหลักฐานอิสระ `COG.LORE`, และหน้าต่างผู้สังเกตการณ์ (`187/187 PASS`)
+
 # สารบัญรายงานแพตช์และการตรวจสอบ (Patch Reports Index)
 
+- **ล่าสุด: 260c repair บน JS2-v2.6.0 main-debug:** [รายงาน](260C_REPAIR_JS2_V2_6_0.md) — แก้ real producers, stats/active mastery, recovery/receipts, acquired modifier contract และ calendar/work-step/save consistency; เก็บงานฉายา/ผัง/ภาพเดิม
 - **Complete Tier-Scaled VFX (T1–T7), Sub-Path Motifs, Equipment & Combat Action VFX บน JS2-v2.6.0:** [COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md](COMPLETE_TIER_SUBPATH_EQUIP_VFX_JS2_V2_6_0.md) — ครบทุกระดับ T1–T7 (>= 64 ลาย/ระดับ), 64 ตราสายย่อย/มรรคา, 122 มนตรา, 64 เอฟเฟกต์อุปกรณ์, 36 แอคชั่นการรบ และตรวจแก้พิกัดเป้าหมาย/ระยะไกล-ประชิด (164/164 PASS)
 - **T6 shared group VFX บน JS2-v2.6.0:** [T6_GROUP_VFX_JS2_V2_6_0.md](T6_GROUP_VFX_JS2_V2_6_0.md) — 50 ลาย / 114 วิชา / 207 ท่าย่อย + 8 พาสซีฟ และ 117 อุปกรณ์; เตรียม T5
 - **Ordinary T7 VFX บน JS2-v2.6.0:** [T7_VISUALS_JS2_V2_6_0.md](T7_VISUALS_JS2_V2_6_0.md) — 71 วิชา / 157 ท่าย่อย / 85 อุปกรณ์ใน 25 ประเภท พร้อมส่งต่อ T6
@@ -36,3 +39,19 @@
 - [`JHEvo_v3.1.0_Full_Game_Audit_Report.pdf`](JHEvo_v3.1.0_Full_Game_Audit_Report.pdf) — รายงานตรวจสอบระบบเกมฉบับเต็ม v3.1.0 (PDF 1.35 MB)
 - [`JHEvo_v3.1.0_Development_Proposals_and_Roadmap.pdf`](JHEvo_v3.1.0_Development_Proposals_and_Roadmap.pdf) — แผนงานพัฒนาและข้อเสนอวิวัฒนาการสำนัก v3.1.0 (PDF 1.58 MB)
 - [`Jianghu_Sect_Full_Game_Audit_2026-11-06.docx`](Jianghu_Sect_Full_Game_Audit_2026-11-06.docx) — รายงานตรวจสอบโครงสร้างเกมแบบละเอียดยิบ (DOCX)
+
+
+---
+## Latest Patch Update: Life-Experience Traits, Action Masteries, 360×304 Sect Expansion, 1.5× Day Length & 96× Speed (`JS2-v2.6.0` Next Patch)
+- **Life-Experience & Behavioral Action-Mastery Traits (`T01`–`T07`)**:
+  - Evaluated all **72 proposals** from `TRAIT_01B.pdf` + 6 existing `CULT.EXPERIENCE_TRAITS` + 4 existing `COMBAT.ACTION_MASTERY_TRAITS` + 6 Codex Life-Rhythm & Resilience traits (`88` cataloged entries in `docs/handovers/LIFE_TRAITS_72_REVIEW_TRACKER.csv` & `JD.LIFE_TRAITS_REGISTRY`).
+  - Expanded `CULT.EXPERIENCE_TRAITS.CATALOG` to **36** traits with wisdom-preserving recovery (`burdenActive = false, recovered = true`) and episode-watermark deduplication (`episodeWatermarks`).
+  - Expanded `COMBAT.ACTION_MASTERY_TRAITS.TRAIT_DEFS` to **24** masteries with an autonomous **3-slot active cap** (`activeMasteryIds`, max 3 with hysteresis) while retaining full lifetime history in `unlockedTraits`, plus `TRAIT_NONLETHAL_SUBDUER` 1 HP clamp.
+  - Enforced strict **Birth-Pool Guard** (`birthEligible: false` on all 27 Group E `TR_AC_*` traits and `CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits`).
+- **Expanded 360×304 Sect Compound & Wilderness (`M01`–`M06`)**:
+  - Expanded world grid from `240×192` to `360×304` (`109,440` tiles, `2.37×` area; `MAP.OX = 84, MAP.OY = 56`), inner compound wall `WX0 = 72, WY0 = 56, WX1 = 288, WY1 = 204` (`216×148`), central axis `x = 180`, plaza center `(180, 123)`.
+  - Placed all **8 Sacred Peaks** on outer-ring compound terraces with zero road/building overlaps, expanded `MAP.PLOTS` to **8**, added 4 directional gate outposts (`gate_north`, `gate_west`, `gate_east`, `gate`), and implemented true **4-Gate Dynamic Routing** (`S, N, W, E`) with blocked-gate fallback and `M.topologyRev` path-cache invalidation.
+  - Shifted Southern Spirit River to `y ≈ 268` (`3` bridges, `26` fishing stations), added **8 physical Beast Dens** (`W.wildlife.dens`), enforced `!MAP.blocked` on beast movement, and upgraded `COG.huntValue` for realm-appropriate hunting.
+- **1.5× Day Length & 96× Simulation Speed (`D01`–`D04`)**:
+  - `SIM.DAY_FACTOR = 1.5`, `SIM.WORK_STEPS_PER_DAY = 2160` work-steps per `1440`-minute calendar day with `W._isNewCalendarMinute` boundary-once guards and `1 / SIM.DAY_FACTOR` metabolic scaling.
+  - `UI.SPEEDS = [0, 1, 2, 4, 8, 16, 32, 48, 96]` with high-speed render throttling (`50ms` at `96×`) and automatic legacy `240×192` save coordinate migration `(+62, +42)`.

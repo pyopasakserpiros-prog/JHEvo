@@ -1,6 +1,8 @@
-# JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (Updated for JianghuSect 2 JS2-v2.6.0)
+# JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (JianghuSect 2 JS2-v3.0.0)
 
-All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '2.6.0'`, `SIM.SAVE_SCHEMA_VERSION = '2.6.0-living-chronicle-and-reporting'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). The current refinement tree has 160 registered test groups [159 suites + syntax across 237 JS files]; see the latest audit note below for observed browser-only limitations.
+All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '3.0.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.0.0-living-continent'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). Historical entries below describe their own patches. Read the current patch report for the latest test scope and results.
+
+**Living Continent:** Start with procedural-gen for the fixed geographic frame and route APIs. Game UI/UX covers atlas layers and the kingdom window, AI behavior covers hometowns and civil offices, and economy and save skills cover travel and convoy state. The [patch report](../../PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md) records their integration.
 
 ## Keeping the skills current
 
@@ -51,3 +53,71 @@ Ordinary T7 refinement: all 71 ordinary T7 techniques / 157 move-stage routes, 8
 Prior T7 combined audit: 157/160 PASS, lineage-startup and mobile-throughput failures both passed unchanged isolated retries; known startup-overlay timeout remains. Final T7/identity/standalone rechecks passed. See `PATCH_REPORTS/T7_VISUALS_JS2_V2_6_0.md` for raw limits and retry measurements.
 
 T6 shared-group refinement: 50 shapes / 114 actual active skills / 207 child routes, 8 passives and 117 gear templates / 25 semantic types (27 raw tags). Seven project skills above document exact group reuse, target/mode/cap/eligibility and equipment behavior; next requested frontier T5. Final combined regression: **161/162 PASS, 0 FAIL, 1 previously recorded `startup_ui` overlay TIMEOUT**; syntax **239 JavaScript files**. New and existing visual suites pass. Mobile 80-NPC stress: **1.417 ms/tick** in the final combined run; unchanged isolated retry **1.818 ms/tick**. See `docs/audits/T6_GROUP_VFX_REGISTRY.md` and `PATCH_REPORTS/T6_GROUP_VFX_JS2_V2_6_0.md`.
+
+- **Patch JS2-v2.6.0 (Bugfix Categories 02–03: NPC Brain & Martial Arts)**: Remediated confirmed findings across `02A`–`02C` (Epistemic Knowledge, 16-Weapon Parity, Goal/Utility Loops, Autonomous Executive & Mentorship Sync) and `03A`–`03G` (Move Profiles, Active Mantra Moves, Composable/Elemental Normalization, Mantra/Formation/Defensive/Support/Forbidden Combat Guards & Lifespan Sacrifice). See `PATCH_REPORTS/BUGFIX_CATEGORIES_02_03_JS2_V2_6_0.md` and `GAME_SOURCE/test/v260_bugfix_categories_02_03_suite.js`.
+
+## อัปเดตล่าสุด: แพตช์แก้บัคเชิงลึก หมวด 02–03 และ หมวด 04–05–06 (`JS2-v2.6.0`)
+- รายงานหมวด 02–03: `PATCH_REPORTS/BUGFIX_CATEGORIES_02_03_JS2_V2_6_0.md` (`GAME_SOURCE/test/v260_bugfix_categories_02_03_suite.js`)
+- รายงานหมวด 04–05–06: `PATCH_REPORTS/BUGFIX_CATEGORIES_04_05_06_JS2_V2_6_0.md` (`GAME_SOURCE/test/v260_bugfix_categories_04_05_06_suite.js`)
+- รักษา `GAME_SOURCE/js/human_core.js` (`155:2f9c9dd7`) และลำดับ `<script>` 40 ไฟล์ครบถ้วน 100%
+
+
+## Update: Bugfix Categories 07 & 08 Completed (JS2-v2.6.0)
+- **Categories 07–08 (`07A`–`07E` Sect Governance & `08A`–`08F` Outside World/Ecology)**: All confirmed root-cause bugs fixed on top of the Categories 01–06 codebase.
+- **Regression Suite**: `GAME_SOURCE/test/v260_bugfix_categories_07_08_suite.js` (registered in `GAME_SOURCE/test/run_all.js`).
+- **Patch Report**: `PATCH_REPORTS/BUGFIX_CATEGORIES_07_08_JS2_V2_6_0.md`.
+
+
+## อัปเดตแพตช์แก้บัคหมวด 09–10 (JS2-v2.6.0)
+- แก้ไขบัคหมวด 09 (Combat Engine & Tactical Simulation: `09A`–`09F`) และหมวด 10 (Economy & Supply Chain: `10A`–`10E`) ครบถ้วน
+- รายงานฉบับเต็ม: `PATCH_REPORTS/BUGFIX_CATEGORIES_09_10_JS2_V2_6_0.md`
+- ชุดทดสอบถดถอย: `GAME_SOURCE/test/v260_bugfix_categories_09_10_suite.js`
+
+- **Wave 5 (Categories 11–12 Human Core Bridge, Psychology, Social/Karma, UI, Visuals, Sect Map Layout & Build Pipeline)**: See `PATCH_REPORTS/BUGFIX_CATEGORIES_11_12_JS2_V2_6_0.md` and `GAME_SOURCE/test/v260_bugfix_categories_11_12_suite.js`.
+
+
+## อัปเดตสถานะล่าสุด: แก้ไขครบหมวด 01–13 (V2.6.0 Complete Audit Remediation)
+- แก้ไขและตรวจสอบครบทุกหมวด **01 ถึง 13** (รวมหมวด 13 `13_JS2_Deep_Audit_Lore_Cosmology_CanonSync_Terminology_and_Worldbuilding.pdf` และ `13B_JS2_Deep_Audit_Lore_Part2_LowerWorldCeiling_StageTitles_PowerScaling_SubpathBoilerplate_and_CanonCrises.pdf`)
+- ชุดทดสอบถดถอยใหม่: `GAME_SOURCE/test/v260_bugfix_category_13_suite.js` และรายงานฉบับสมบูรณ์ `PATCH_REPORTS/BUGFIX_CATEGORY_13_JS2_V2_6_0.md`
+- ผลรันชุดทดสอบทั้งหมดในโปรเจกต์: **ผ่านครบ 100% (0 errors, 0 warnings)** โดยรักษา `AGENTS.md` และ `human_core.js` (`155:2f9c9dd7`) ไม่เปลี่ยนแปลง
+
+
+## สถานะปล่อยตัวเต็ม (Final Release Ready — 174/174 Test Suites PASS)
+- ตรวจสอบและเก็บรายละเอียดครบทุกหมวด **01 ถึง 13** พร้อมชุดทดสอบตรวจสอบขั้นสุดท้าย `GAME_SOURCE/test/v260_final_release_audit_suite.js` และรายงานสรุป `PATCH_REPORTS/FINAL_RELEASE_MASTER_AUDIT_01_13_JS2_V2_6_0.md`
+- ชุดทดสอบทั้งหมด **174/174 ชุด** (`node tools/run_parallel_tests.js` และ `node tools/validate_data_schema.js`) ผ่านครบ 100% (`0 errors, 0 warnings, 0 failures`)
+
+
+2026-11-15: งาน UI/AI ต้องใช้ observer action policy และเส้นทาง NPC ในรายงาน04; สกิล AI, UI, architecture, progression, economy, procedural, data, QA และ performance อัปเดตขอบเขตแล้ว ปุ่มสั่งในตัวอย่างประวัติศาสตร์ไม่ใช่แนวทางปัจจุบัน.
+
+### Update Note (JS2-v2.6.0 Prose, Wuxia Naming Polish & Lore Canon Masterhaul)
+- Added `SIM.PROSE` (Zero-RNG), `UI.TERM_TH`, `UI.formatNpcInnerThought`, `metrics28` (28 hidden metrics), `memorialSections` (6-Hall Officer-Voiced Court Memorials), `EXPED.TAVERN_BALLAD_TEMPLATES` (10 ballads), `applyV260NamingAndLoreCanonSync()` (43 paths, 286 subpaths, 360 procTraits, 31 path relics verified against `gearType`, 27 legendary items, 33 scriptures, 12 Gate Worlds), and `STORY-SYNC-01..12` (`test/v260_prose_naming_and_lore_canon_suite.js` — 178 suites passing).
+
+Living Hunt phase 1: ทบทวนส่วนเพิ่มใน ai-behavior-patterns, combat-design และ gameplay-architecture; แผน/ข้อจำกัดอยู่ที่ PATCH_REPORTS/LIVING_HUNT_PHASE1.md. ระยะแรกยังไม่เปลี่ยนขนาดผังสำนัก.
+
+Living Hunt variety: procedural-gen/game-data-integrity/combat-design/ai-behavior-patterns อัปเดตการขยายpool125ชนิด การสร้างหน่วยพร้อมข้อมูล/ท่า และการเลือกเป้าหมายแบบจำกัดงาน ดู PATCH_REPORTS/LIVING_HUNT_VARIETY.md.
+
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Audit**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row decision ledger in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**:
+  - **Evidence & Anti-Farming (`npc.deedStats`)**: `recordDeed(W, npc, deedKey, amount, meta)` with `receiptId` idempotency and 6 anti-farming guards (blocks non-serious sparring, trivial targets >2 stages below, overhealing >=90% HP, zero-contribution AFK tag-alongs, and cauldron-explosion stat farming).
+  - **Witness & Epistemic Propagation (`VERIFIED` / `OBSERVED` / `RUMOR`)**: Unwitnessed wilderness feats stay in `npc.deedStats.unwitnessedDeeds` until verified via `verifySecretDeedWithProof`. `propagateRumor` (hooked into `COG.shareKnowledgeOnInteract`) deduplicates `originEventId` in `rumorLedger` to prevent echo-chamber `witnessCount` inflation. Supports `seedAccusationRumor` and `clearFalseAccusation`.
+  - **Multi-Perspective Perception (`evaluatePerception(W, observer, target)`)**: Pure zero-RNG, zero-mutation evaluation returning `attitudeDelta`, `trustDelta`, `fearDelta`, `respectDelta`, and `perceptionLabelTh`.
+  - **Shame Stigma & Autonomous Redemption (`wash_shame_epithet`)**: Shame epithets (`polarity === "SHAME"`) cannot be suppressed by stealth; upright/prideful NPCs activate `npc.epithets.redemptionDrive` and cognition goal `wash_shame_epithet`, redeeming stigma through real heroic deeds (`redeemShameEpithet`) with a 30-day `residualSkepticUntilDay` window.
+  - **12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`, `EPI_CRN_235..246`)**: Strictly 1 holder across `W.npcs`, `W.world.figuresById`, and `W.world.wanderingFigures`; supports direct duel transfer (`checkCrownDuelTransfer`), Tianji ranking reconciliation (`reconcileUniqueCrowns`) with tie-keeps-incumbent and >8% margin, age-28 vacation (`EPI_CRN_245`), immediate vacation on death (`vacateCrownOnDeath`), 2-day rumor lag (`publicKnownHolderId`), and max 1 Sovereign Aura in `ST._applyDaoTraits`.
+  - **Collective Group Epithets (`W.sect.collectiveEpithets`, `EPI_GRP_173..188`), Daoist Names (`EPI_DAO_077..084`), Lineage Seniority (`EPI_DAO_085..092`), Posthumous Tablets (`EPI_PST_247..260`) & Snapshot Immutability**: `bestowDaoName` preserves birth names; `bestowPosthumousTitle` engraves posthumous honorifics onto `W.sect.legacyTablets`; `SIM.snapshotPerson` and `EXPED.buildFactSnapshot` freeze `epithetAtEventTh` immutably.
+  - **Verification Suite**: `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair (JS2-v2.6.0)
+
+อัปเดต13สกิลตามตารางข้างต้น: stat/active mastery, real event producers, recovery/receipts, acquired modifiers, expanded geometry, work-step clock, current saves และ browser/performance checks ดู `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md` สถานะล่าสุดอยู่ใน `START_HERE_FOR_AI.md`; ข้อความแพตช์เก่าในสกิลเป็นประวัติ ไม่ใช่ใบสั่งงาน
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+## JS2-v3.1.0 Living Lore Sync
+- **Version & Schema**: `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-living-lore'` (`187/187` suites passing in `run_parallel_tests.js`).
+- **Living Lore & Epistemic Engine**: `EXPED.LIVING_LORE` (`js/expedition.js`: 4 epistemic layers, 8 fallen dynasties, 28 multi-account canon facts, 20 multi-stage playable story chains `STORY_01..20`) and `COG.LORE` (`js/cognition.js`: bounded `npc.ext.lore`, strict `originEventId` anti-echo-chamber lineage tracking, social debate in `COG.shareLoreOnInteract`, and breakthrough folklore calibration in `COG.perceivedBreakthroughChance`).
+- **Read-Only UI & Autonomy**: `SECT.AUTONOMY.opportunities` includes optional lore follow-through gated by `stage >= 3 || rank >= 2 || post`; observer UI surfaces (`UI.renderNpcLivingLoreCard`, `UI.renderWorldLivingLoreArchive`, `UI.rPolities`, `UI.renderSettlementLoreHtml`) are 100% zero-RNG, zero-mutation, and secret-gated.

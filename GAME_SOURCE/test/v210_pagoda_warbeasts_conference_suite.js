@@ -87,15 +87,22 @@ function makePathParty(W) {
   const cap = g.EXPED.applyCarryCapacity({ carryCapacity: mounted.carryCapacity }, cargo);
   assert.strictEqual(cap.used, 14);
   assert.strictEqual(cap.overflow, 16);
+  const pagoda = g.EXPED.estimateTravelTime(W,[n],g.EXPLORE.NINE_DAO_PAGODA.id);
   const trialTrip = g.EXPLORE.departNineDaoPagoda(W, [n], { maxFloor: 1 });
   assert(trialTrip && trialTrip.hasMount, 'trial expeditions should use the same mount support');
-  assert.strictEqual(trialTrip.days, 1.125);
+  assert.strictEqual(pagoda.durationMultiplier,.75);
+  assert.strictEqual(trialTrip.travelMinutes,Math.round(pagoda.days*1440));
+  assert.strictEqual(trialTrip.dwellMinutes,2160);
+  assert.strictEqual(trialTrip.ret-trialTrip.t0,trialTrip.travelMinutes*2+trialTrip.dwellMinutes);
   assert.strictEqual(trialTrip.carryCapacity, 44);
   unmountedCultivator.pets = [{ uid: 'MOUNT_V210_REALM', role: 'MOUNT_CHARGER', family: 'AVIAN', active: true }];
   W.day = 270;
+  const fireRealm = g.EXPED.estimateTravelTime(W,[unmountedCultivator],'REALM_FIRE');
   const realmTrip = g.EXPLORE.departElementalRealm(W, [unmountedCultivator], { realmId: 'REALM_FIRE' });
   assert(realmTrip && realmTrip.hasMount);
-  assert.strictEqual(realmTrip.days, 0.9375, 'mount travel reduction should remain 25% on short realm trips');
+  assert.strictEqual(fireRealm.durationMultiplier,.75,'mounts reduce travel time by 25%');
+  assert.strictEqual(realmTrip.travelMinutes,Math.round(fireRealm.days*1440));
+  assert.strictEqual(realmTrip.dwellMinutes,1800,'the mount does not shorten the trial itself');
 }
 
 // Reserve beasts can be assigned, enter the raid as allies, and use each named bloodline hook.
@@ -209,6 +216,8 @@ function makePathParty(W) {
   n.x = g.MAP.EXIT.x; n.y = g.MAP.EXIT.y; n.path = null;
   g.EXPED.travelStep(W, n);
   assert(n.away, 'the expedition should transition from leaving to away at the gate');
+  g.EXPED.hourly(W);
+  assert(ex.startedAt === W.t && ex.arriveAt < ex.ret);
   W.t = ex.ret; W.day = Math.floor(W.t / 1440);
   g.EXPED.hourly(W);
   assert(ex.done && ex.out && ex.out.floorLogs.length === 1, 'EXPED.hourly should route trial returns into their dedicated resolver');

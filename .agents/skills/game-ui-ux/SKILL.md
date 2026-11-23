@@ -7,6 +7,12 @@ category: ui-ux-design
 
 # JianghuSect Evolution — Wuxia UI/UX, Sprite Atlas & Edit Hub Blueprint (`js/ui.js`, `js/render.js`, `css/style.css`)
 
+Wild beasts on the sect map use `Render.resolveWildBeastArt` and `Render.methods.drawWild` for both roaming wildlife and active wild foes. Use the existing species ID overrides for anatomy, trim and color, with a family fallback for future species. Live raid grade adds distinct scale, aura rings and three phases through the read-only wild renderer. The pulse warning uses the actual simulation radius. The wildlife list's existing `focus-wild-fight` camera action accepts a beast ID to inspect a specific boss before or during a fight. Fight HP bars and names are anchored above the body and stay upright when it faces left. See the [wild beast model report](../../../PATCH_REPORTS/WILD_BEAST_MODELS_JS2_V2_6_0.md).
+
+For eighteen ordinary regional companions, `Render.drawRegionalCompanion` shares path geometry with `Render.regionalCompanionSvg` and `UI.regionalCompanionCard`. The card shows live tier, age, readiness, trade-offs, and recorded encounter locations. Travel poses use `EXPED.travelMount` when the assigned animal is available and the owner is on the expedition path, or the active `AI.goTo` aerial route for sword flight. [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
+
+Curated companion art is shared by the map, nursery, and profile through the sovereign companion renderer. Mythic lineages distinguish silhouettes and accessories by family, then grow visual scale and effect layers by age and grade. See [lineage report](../../../PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
+
 > **Current baseline 4.1.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
 
 This skill governs the DOM drawers, HUD, 104-cell item sprite atlas and illustrated stock atlas, responsive Grid/List inventory, Single-Pass Positional Log Linkifier, NPC Inspection Sheet, Sect Management Sheet, Mentorship & Jianghu panels, and Player Edit Hub (`SECT.EDITOR` + `UI.rEdit`) in **JianghuSect Evolution (สำนักยุทธ์เจียงหู) v2.0.17**.
@@ -64,7 +70,7 @@ This skill governs the DOM drawers, HUD, 104-cell item sprite atlas and illustra
 - **6 Edit Hub Tabs (`UI.tab`):**
   1. **`char` (Character Editor):** Edit Cultivation Path/Subpath/Stage/XP, Specialization Track, Stones/CP/Merit/Satisfaction, Spiritual Roots (`1–4` roots, elements, grades), Elemental Mastery (`0–100` + Special Element unlocks), and all 9 `SECT.EDITOR.EDITABLE_GROUPS` (`personality`, `values`, `interests`, `aptitudes`, `affinities`, `physiology`, `intellect`, `social`, `skills`) with live preview (`SECT.EDITOR.previewCharacterEdit`) and Undo stack (`W._editUndoStack`).
   2. **`pet` (Spirit Beasts, Timed Buffs, Mech/Karma & Doctrine):** Spawn/awaken/feed/breed Spirit Beasts (`SECT.EDITOR.petState`), cast any of the 12 Timed Buffs (`STATS.BUFF_CATALOG`), edit `MECH_PUPPET` / `KARMA_SAMSARA` state, configure `W.sect.supportDoctrine`, and upgrade Specialist Facilities.
-  3. **`spawn` (Paginated Universal Spawner):** Search and filter the runtime catalog across 10 categories (`SECT.EDITOR.catalogPaginated`) by destination (`sect` or `npc`), `kind`, `tier`, `element`, `rarity`, and `pageSize` (`40/80/150`), with 1-click **✨ เสก** (`spawn-item`), **⚔️ เสก+สวมใส่** (`spawn-equip-item`), and **📖 ถ่ายทอด** (`spawn-teach-item`).
+  3. **`spawn` (Paginated Universal Spawner):** Search and filter the runtime catalog through `SECT.EDITOR.catalogPaginated` by destination (`sect` or `npc`), `kind`, `tier`, `element`, `rarity`, and page size (`40/80/150`). Kind and rarity choices come from the actual catalog facets rather than a fixed UI list; the current catalog includes 12 kinds and Common, Uncommon, Refined, Rare, Exceptional, Legendary, and Transcendent grades. Each result shows its grade. Keep `PATH_MANUAL` and `PATH_CRYSTAL` visible as distinct kinds. Actions include **✨ เสก** (`spawn-item`), **⚔️ เสก+สวมใส่** (`spawn-equip-item`), and **📖 ถ่ายทอด** (`spawn-teach-item`).
   4. **`bag` (Personal Bag Inspector):** Inspect, equip, unequip, repair (`ECO.repairGear`), or transfer items in the target NPC's bag.
   5. **`dip` (Diplomacy & Political Events Hub):** Adjust rival sect `attitude` (`-100..100`), sign/clear treaties (`VASSAL_TREATY` etc.), reset cooldowns, trigger instant exchange caravans or envoy duels (`normal`/`win`/`loss`), and spawn/resolve Political Events.
   6. **`sanctum` (Ancient Sanctums, Pagoda & Catalysts Hub):** Unlock/clear sanctums, Nine-Dao Pagoda floors (`1–12`), grant T1–T7 catalysts, and reset cooldowns.
@@ -150,6 +156,10 @@ Real mentor bonds and qi transmissions are recorded in `W.sect.mentorship.histor
 ## หมายเหตุเฉพาะการแก้บั๊ก JS2-v2.4.0
 
 ปุ่มหมอยาพเนจรที่ผู้เล่นกดแสดงค่ารักษา 120 ศิลาและใช้เส้นทางชำระเงิน; เหตุการณ์อัตโนมัติอาจเป็นการช่วยฟรีตามเงื่อนไขของเหตุการณ์ ดู [`docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md`](../../../docs/audits/JS2_V2_4_0_FIX_TRACKER_TH.md) สำหรับสถานะและข้อจำกัดที่ยังเหลือ
+
+## Edit Hub live catalog filters (JS2-v2.6.0, 2026-11-18)
+
+`SECT.EDITOR.catalogPaginated` returns cached kind/rarity facets derived from the full runtime item catalog. `UI.rEdit` uses those facets so newly added categories and grades become selectable without maintaining a second hardcoded list. Result rows display the actual item grade. The catalog facet cache is safe because these catalog definitions are static for a loaded game session; clear/rebuild it if a future runtime feature makes item definitions mutable after startup. See [`PATCH_REPORTS/EDIT_HUB_FILTERS_JS2_V2_6_0.md`](../../../PATCH_REPORTS/EDIT_HUB_FILTERS_JS2_V2_6_0.md).
 
 ## Patch JS2-v2.5.0 Additions: 43-Path Ascendant Visual Signatures, Multi-Tier Motes & 30 Signature Skill VFX (`js/render.js`, `js/skills.js`)
 - **`Render.PATH_VISUAL_SIGNATURES` (43/43 Grand Dao Paths) & `Render.LEGACY_PATH_VISUAL_SIGNATURES` (12 Legacy Keys)**:
@@ -254,3 +264,54 @@ T7 rapid-repeat presentation: `updateCastEffects` coalesces the same ordinary T7
 - T4 24–29 px / 850 ms and T5 32–39 / 1,050 remain planned; selected T6 and T7 are implemented (`planned:false`). Future lower tiers should share broader mechanic/element/action groups more; no forced reduction of existing lower-tier special catalogs.
 - Tests: `t6_group_vfx_suite` (114 real producers / 207 child metadata routes, actual attack-role examples, eligibility/modes/purity/caps/gear); `t6_group_vfx_browser` (50 distinct shapes in all modes, 256 same-group pixel comparisons, 25 gear glyphs, mixed 24-cast Canvas stress). Final combined regression: **161/162 PASS, 0 FAIL, 1 previously recorded `startup_ui` overlay TIMEOUT**; syntax **239 JavaScript files**. New and existing visual suites pass. Mobile 80-NPC stress: **1.417 ms/tick** in the final combined run; unchanged isolated retry **1.818 ms/tick**. Development Canvas timings do not certify physical Android performance.
 - Exact assignments, selected exclusions, old artwork and previews: `docs/audits/T6_GROUP_VFX_REGISTRY.md`. Handoff `docs/handovers/NEXT_T5_VISUAL_PATCH.md` starts only when user requests T5; do not repeat T6/T7/Legendary or the completed chronicle feature. Core/save schema and 40-script order unchanged.
+
+## Post-13 startup loading correction (2026-11-15)
+`UI.showStart` hides the startup candidate overlay whenever `stLoad` opens the load menu, including before a world exists. `UI.close` restores the original candidate selection when no world was loaded. Without this, the higher-z-index startup overlay blocks real pointer access to the load drawer. `test/startup_ui.js` covers cancel, navigation, valid/corrupt slots, import failure/retry and overlay dismissal.
+Invalid/aborted import restores startup only when no drawer remains open; an open load drawer stays accessible for retry.
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+UI.playerActionKind/isPlayerActionAllowed อนุญาต observation 114 action และ state edits 29 action เฉพาะ edit; ปิด unknown/default และคำสั่ง NPC เดิม 157 action ทั้ง handler และ HTML filter ห้ามนำตัวอย่างปุ่มเก่าใน skill กลับมาใช้ เครื่องมือเสก/แก้สถานะเป็นข้อยกเว้นตาม AGENTS ไม่ใช่สิทธิ์สั่ง NPC
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+### Update Note (JS2-v2.6.0 Prose, Wuxia Naming Polish & Lore Canon Masterhaul)
+- Added `SIM.PROSE` (Zero-RNG), `UI.TERM_TH`, `UI.formatNpcInnerThought`, `metrics28` (28 hidden metrics), `memorialSections` (6-Hall Officer-Voiced Court Memorials), `EXPED.TAVERN_BALLAD_TEMPLATES` (10 ballads), `applyV260NamingAndLoreCanonSync()` (43 paths, 286 subpaths, 360 procTraits, 31 path relics verified against `gearType`, 27 legendary items, 33 scriptures, 12 Gate Worlds), and `STORY-SYNC-01..12` (`test/v260_prose_naming_and_lore_canon_suite.js` — 178 suites passing).
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+UI.rNpc แยก acquired/ภาระ/ภูมิปัญญาฟื้นแล้ว และ active mastery สูงสุด3; tooltip ต้องตรง p/f/consF จริง มี9ความเร็ว [0,1,2,4,8,16,32,48,96] ปุ่มโฟกัสศึกเป็นกล้อง ไม่สั่ง NPC การเปิดข้อมูลต้องไม่เติม state/เปลี่ยน RNG กลางการวาด
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+### Transcendent visuals, post-260e
+
+The central icon entry point is `UI.renderAtlasIconHtml`. It resolves Transcendent instances, raw catalog IDs and composite pill keys. `UI.transcendentShowcaseHtml` shares the same art with inspection and library panels. NPC map and diorama gear use the same vector silhouettes.
+
+### Sovereign archives
+
+New Sovereign codices and gear use `vfxShape` and the Transcendent grade route. The passive displays its two conditional forms without advertising an active cast. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+### Four-Symbol companion lifecycle
+
+`UI.sovereignCompanionCard` shows eggs and animals in the nursery and on the NPC sheet. `Render.drawSovereignCompanion` shares vector layers with the UI. Active companions use staged silhouettes in the map and final Four-Symbol aura. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+
+## JS2-v3.0.0 Living Continent (2026-11-18)
+
+Players reach the map and dedicated kingdom directory through **ยุทธภพ**. `UI.rPolities` reads the actual capital, court seats, city data, diplomacy and recent news. `world-polity` links a city or NPC profile to that directory. `atlas-event` centers on the recorded coordinate, including an expired event. Filters distinguish cities, sects, fortune and special sites. Symbols stay screen-sized across 1×–10× zoom. At 2.8× detail tiles use the second terrain image, and city sketches appear from 5.5×. Both JPEGs are embedded by `tools/build_single.js`. `test/world_atlas_browser.js` exercises these controls.
+
+## JS2-v3.1.0 Living Lore Sync
+- **Version & Schema**: `SIM.PATCH_VERSION = '3.1.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.1.0-living-lore'` (`187/187` suites passing in `run_parallel_tests.js`).
+- **Living Lore & Epistemic Engine**: `EXPED.LIVING_LORE` (`js/expedition.js`: 4 epistemic layers, 8 fallen dynasties, 28 multi-account canon facts, 20 multi-stage playable story chains `STORY_01..20`) and `COG.LORE` (`js/cognition.js`: bounded `npc.ext.lore`, strict `originEventId` anti-echo-chamber lineage tracking, social debate in `COG.shareLoreOnInteract`, and breakthrough folklore calibration in `COG.perceivedBreakthroughChance`).
+- **Read-Only UI & Autonomy**: `SECT.AUTONOMY.opportunities` includes optional lore follow-through gated by `stage >= 3 || rank >= 2 || post`; observer UI surfaces (`UI.renderNpcLivingLoreCard`, `UI.renderWorldLivingLoreArchive`, `UI.rPolities`, `UI.renderSettlementLoreHtml`) are 100% zero-RNG, zero-mutation, and secret-gated.

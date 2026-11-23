@@ -7,7 +7,14 @@ category: cultivation-progression
 
 # JianghuSect Progression: 12 Paths, 96 Subpaths, Stage Equivalence, Tracks, Ascension, Mentorship & Living Jianghu
 
+Ordinary T6–T1 regional forms use `CULT.regionalCompanionSpec` and normal pet ages, feeding, roster, and level. NPCs receive them through `AI.ACTS.wildHunt`. Grown, ready hawks and goats are expedition mounts (travel ×0.86 and ×0.92 respectively). [Implementation](../../../PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md)
+
+The four mythic companion lineages use `JD.CORE.lineageCompanions`, `EXPLORE.resolveSanctum`, and the existing sovereign nursery. Keep grade separate from age. Each grade needs its own sanctum acquisition gates, and NPC care governs growth. See [lineage report](../../../PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
+
 > **Current baseline 4.0.0 (updated from 2.0.28–3.6.0):** This project-specific skill contains historical material from earlier versions. The targeted corrections below do not certify every older formula or API. Before implementing, verify the relevant behavior against current source and tests; use `project_status_and_ai_onboarding.md` for the current feature inventory and `AGENTS.md` for project rules.
+
+
+ปราณจากศึกหุบเขาใช้ `WILD.awardLandQi` แบ่งงบเดียวตามผลงานก่อนลดส่วนของผู้รับแต่ละคนตามกำลังและ `CULT.equivalentStage` เทียบกับ tier อสูร สูตรไม่เอาส่วนที่ถูกหักไปเพิ่มให้สมาชิกอื่น บอสปรับขนาดงบรวมตามระดับความยากและคิดขั้นเทียบเคียงเป็น 7/8/9 สำหรับ T7/ตำนาน/เหนือตำนาน [รายละเอียด](../../../PATCH_REPORTS/VALLEY_BEAST_COMBAT_JS2_V2_6_0.md).
 
 ## Purpose
 Progression reference for `GAME_SOURCE/js/cultivation.js`, `js/bottleneck.js`, `js/retraining.js`, `js/sect.js`, `js/explore.js`, `js/expedition.js`, `data/data_cult.js`, `data/data_martial.js`; check historical details against current source.
@@ -225,3 +232,33 @@ Exterior figures (deputies, successors, prodigies) from foreign sects defecting 
 ## Patch JS2-v2.5.0 Additions: 43-Path `maxStage` Visual Equivalence (`js/render.js`, `js/cultivation.js`)
 - All 43 Major Cultivation Paths (`Object.keys(CULT.PATHS)`) use their true `CULT.PATHS[pathId].maxStage` ceiling (`GOD: 4`, `BODY: 5`, `XIAN`/`DEMON`/`HEART_SOUL`: `9`, and the remaining 38 paths: `8`) in `Render.resolveCultivationVisualState(npc)` and `CULT.normalizedStage(npc)`.
 - Reaching `npc.cult.stage >= CULT.PATHS[pathId].maxStage` immediately activates the path's Ascendant Apex visual tier (`isApex: true`, `normStage: 9`, `hasSilkRibbon: true`).
+
+
+## Observer autonomy / reachability audit (2026-11-15)
+
+Dao seals ผูก sparStreak/soloBossWins ที่บันทึกจาก combat จริง; core ใช้ของจริงเหลือสำรอง จำกัด distinct3/โบนัสต่อชิ้น; marrow ต้องมี latent bloodline และบ่อจริง คำสัตย์มีโอกาสเลือกเองไม่ใช่ผู้เล่นแจกตรา การทดสอบเส้นทางไม่ได้รับประกันว่าจะเกิดในทุกเซฟ
+
+รายละเอียด: `after debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md`; รายชื่อสิทธิ์: `docs/audits/OBSERVER_ACTION_POLICY.json`.
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Review**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row review in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**: Evidence-backed `npc.deedStats` with `receiptId` idempotency and 6 anti-farming guards, witness vs. unwitnessed wilderness deeds (`verifySecretDeedWithProof`), rumor propagation (`originEventId` deduplication), multi-perspective `evaluatePerception`, shame stigma & autonomous `wash_shame_epithet` redemption, 12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`), Collective Group Epithets (`W.sect.collectiveEpithets`), Daoist/Dharma names (`bestowDaoName`), lineage seniority (`refreshLineageTitles`), posthumous ancestral tablets (`bestowPosthumousTitle`), and Chronicle snapshot immutability (`epithetAtEventTh`). Verified by `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+## 260c repair — JS2-v2.6.0 (2026-11-17)
+
+CULT.EXPERIENCE_TRAITS.CATALOG มี36 (รวม6เดิม) โบนัส p/f/cultRateMult ต้องผ่าน pipeline ครั้งเดียว การฟื้นภาระเป็น terminal transition เก็บประวัติและข้อดี ไม่แจกลด stress ซ้ำ ET.onBreakthrough ผูกกับผลสำเร็จ/ล้มเหลวจริง และ TRIBULATION.tick นับ strikesLanded delta; tickAll dedup ด้วย workSteps ไม่ใช่นาทีปฏิทินที่อาจค้าง
+
+หลักฐานและขอบเขตตรวจ: `PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md`; ทะเบียน: `docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md` อ่านผลตรวจจริง ไม่ตีความจำนวนรายการว่าเล่นทุกสถานการณ์ครบแล้ว
+
+### Carbon Compendia Update (`JS2-v2.6.0-CARBON-COMPENDIA` — 31 PDFs `881fecf` & `6670b49`)
+- **Gen-7 Lineage & Regalia**: `W.sect.masterGeneration = 7`, 6 Gen 1–6 plaques (`W.sect.patriarchPreHistory`, 0 Upper-World spoilers), `SECT.PATRIARCH_REGALIA` (`REGALIA_ORIGIN_FORMLESS_STONE`, Stages 0–5, 24 polymorphic forms, 11 elements + dual-element Stage 4+, 12 `IMP_*` imprints, 10 `KW_SOV_*` keywords), and Valley Spirit-Beast Qi Crucible (`WILD.awardSpiritBeastCrucible` + non-lethal capture parity).
+- **Transcendent Pantheon & Wildcards**: `ARM_TRANSCENDENT_LOOM_OF_SCARS`, `ACC_TRANSCENDENT_OUROBOROS_SUNDIAL`, `WPN_TRANSCENDENT_MYRIAD_ARSENAL_COFFIN`, `SECT.evaluateTranscendentPantheonResonance` (`0.75×` soft-cap past `+55%`), 10 Alchemy-only wildcards (`MAT_TR_ALC_01..10`, `P:<pillId>@TR:<matId>`, `npc.ext.transcendentElixirMarks`), 3 Pure Elixirs (`PILL_TR_PURE_01..03`), 10 Equipment-only wildcards (`MAT_TR_SOV_01..10`, `_basePreTranscendent` non-destructive snapshot, 100% abort refund), and 3 Pure-Forged Genesis Artifacts (`EQ_TR_PURE_WPN/ARM/ACC_GENESIS`).
+- **352 Scriptures & Sovereign Codices + Visuals**: `170` `*_LOW_*` + `144` `*_EXP_*` + `38` `T*_SOV_*` stored in `JD.TECH.extraMantras` (77) & `JD.TECH.expansionNonCombatArts` (275) (preserving `JD.TECH.mantras === 122`, `JD.TECH.techniques === 1726`, `ECO.itemById` enumerable `1,177`, recipes `1,402`, `COMBAT.KEYWORDS_CATALOG === 16`). The 260e visual prototype is superseded by the live Canvas scenes and inventory artwork in `PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md`. Verified across `184 / 184` suites (`test/carbon_compendia_master_suite.js`).
+
+### Sovereign archives
+
+NPCs find Sovereign inheritances after eligible full clears of the four ancient sanctums. Mantra study unlocks the mantra for the existing NPC posture decision. Second active moves require 65 mastery. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+### Four-Symbol companion lifecycle
+
+The four Sovereign companions come from one archive each. Three start at egg incubation, the White Tiger starts as a juvenile. Four living stages require actual care days, bond and keeper realm. Regular evolution and breeding cannot bypass the lifecycle. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.

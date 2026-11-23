@@ -30,11 +30,11 @@ test('legendary spawn cannot bypass safe-belt exclusion', () => {
 });
 test('resource placement rejects isolated passable islands', () => {
   const { W } = setup('audit-reachability');
-  for (let y = 139; y <= 141; y++) for (let x = 99; x <= 101; x++) {
-    const k = y * MAP.W + x; W.map.block[k] = x === 100 && y === 140 ? 0 : 1;
-    W.map.cost[k] = x === 100 && y === 140 ? 1 : 0; W.map.terrain[k] = MAP.T.GRASS;
+  for (let y = 211; y <= 213; y++) for (let x = 149; x <= 151; x++) {
+    const k = y * MAP.W + x; W.map.block[k] = x === 150 && y === 212 ? 0 : 1;
+    W.map.cost[k] = x === 150 && y === 212 ? 1 : 0; W.map.terrain[k] = MAP.T.GRASS;
   }
-  W.rng.int = (lo, hi) => lo === 80 ? 100 : lo === 135 ? 140 : lo;
+  W.rng.int = (lo, hi) => lo === 124 ? 150 : lo === 206 ? 212 : lo;
   assert.strictEqual(R.spawnNode(W, { materialId: herb, zoneId: 'safe_belt' }), null);
 });
 test('learned recipes outside the scroll bag can motivate retaining gathered herbs', () => {

@@ -17,10 +17,13 @@
   ];
   X.beastPool = reg => {
     if (!reg) return [];
+    const hasWater = b => b && (b.archetype === 'AQUATIC' || b.terrain === 'water' || (Array.isArray(b.terrain) && b.terrain.includes('water')));
+    const maxTier = reg.beastMax >= 6 ? 7 : (reg.beastMax || 3);
+    const minTier = Math.max(1, (reg.beastMax || 3) - 4);
     if (reg.terrain === 'water' || reg.id === 'water') {
-      return JD.BEASTS.species.filter(b => (b.terrain === 'water' || b.archetype === 'AQUATIC') && b.tier <= reg.beastMax && b.tier >= Math.max(1, reg.beastMax - 3));
+      return JD.BEASTS.species.filter(b => hasWater(b) && b.tier <= maxTier && b.tier >= minTier);
     }
-    return JD.BEASTS.species.filter(b => (reg.beasts && reg.beasts.length ? reg.beasts.includes(b.id) : !b.sourcePack) && b.terrain !== 'water' && b.archetype !== 'AQUATIC' && b.tier <= reg.beastMax && b.tier >= Math.max(1, reg.beastMax - 3));
+    return JD.BEASTS.species.filter(b => (reg.beasts && reg.beasts.length ? reg.beasts.includes(b.id) : !b.sourcePack) && !hasWater(b) && b.tier <= maxTier && b.tier >= minTier);
   };
   X.MISSIONS = {
     fortune: { nameTh: 'ผจญโชควาสนา', icon: '🍀' },
@@ -32,12 +35,14 @@
     bounty: { nameTh: 'รับงานจ้างคุ้มกัน', icon: '🛡️' },
     sect_siege: { nameTh: 'กรีฑาทัพตีค่ายสำนักอริ', icon: '⚔️' },
     resource_claim: { nameTh: 'ยึดครองจุดยุทธศาสตร์ทรัพยากร', icon: '🚩' },
+    city_visit: { nameTh: 'เยี่ยมเมือง', icon: '🏮' },
     world_anomaly: { nameTh: 'ช่วงชิงวาสนาฟ้าดินจำกัดเวลา', icon: '☄️' }
   };
   const SECT_NAMES = ['สำนักกระบี่เมฆขาว', 'สำนักบัวหยก', 'ตระกูลหลงเหมิน', 'สำนักเสือคำราม', 'หอสุริยาสีทอง', 'สำนักพิรุณหยิน', 'ศาลาฟ้าครามพิรุธ', 'สำนักมังกรหมอก'];
   X.initWorld = (W) => {
     const rng = W.rng; const names = rng.shuffle(SECT_NAMES.slice()).slice(0, 6);
-    W.world = { sects: names.map((nm, i) => ({ id: 'S' + i, nameTh: nm, power: Math.round(rng.gauss(1, 0.35) * 100) / 100, attitude: Math.round(rng.gauss(0, 25)), style: rng.pick(['เป็นธรรม', 'โลภ', 'ทะนง', 'ใฝ่สงบ', 'ก้าวร้าว']), contact: 0 })), expeds: [], seq: 0, visitors: [] };
+    W.world = { sects: names.map((nm, i) => ({ id: 'S' + i, nameTh: nm, power: Math.round(clamp(rng.gauss(1, 0.06), 0.90, 1.10) * 100) / 100, attitude: Math.round(rng.gauss(0, 25)), style: rng.pick(['เป็นธรรม', 'โลภ', 'ทะนง', 'ใฝ่สงบ', 'ก้าวร้าว']), contact: 0 })), expeds: [], seq: 0, visitors: [], resourcePool: { stones: 50000, herbs: 5000, ores: 5000 } };
+    X.initContinent(W);
     W.threat = { alert: 0, roadBlocked: 0, raidCooldown: W.day + 40 };
   };
 
@@ -50,7 +55,7 @@
     if (pw > 60) opts.push({ k: 'hunt', w: Math.max(0.1, (e('interests.combat') - 35) / 30 + (e('personality.courage') - 40) / 50 + (e('values.wealthResource') - 40) / 80) });
     opts.push({ k: 'gather', w: Math.max(0.1, (e('interests.herbs') + e('interests.alchemy') + e('interests.labor') - 120) / 50 + ((n.h.skills.herbalism || 0) + (n.h.skills.mining || 0)) / 80) });
     if (n.rank >= 2) opts.push({ k: 'trade', w: Math.max(0.1, (e('interests.trade') - 35) / 30 + (e('aptitudes.socialCommerce') - 45) / 50) });
-    if (n.rank >= 2) opts.push({ k: 'diplomacy', w: Math.max(0.1, (e('social.charisma') + e('interests.socializing') + e('social.diplomacy' in {} ? '' : 'personality.empathy') - 130) / 50) });
+    if (n.rank >= 2) opts.push({ k: 'diplomacy', w: Math.max(0.1, (e('social.charisma') + e('interests.socializing') + ((n.h.skills.diplomacy || 0) * 0.5 + e('personality.empathy') * 0.5) - 130) / 50) });
     if (n.rank >= 3) opts.push({ k: 'recruit', w: Math.max(0.1, (e('interests.teaching') - 35) / 30 + (e('values.sectDuty') - 45) / 50 + (e('intellect.judgement') - 45) / 60) });
     if (pw > 80) opts.push({ k: 'bounty', w: Math.max(0.1, (e('values.wealthResource') - 40) / 30 + (e('interests.combat') - 40) / 50) });
     const elder=SECT.holder(W,'mission'),master=W.byId[W.sect.masterId];
@@ -272,6 +277,28 @@
     }
   };
 
+  const regionalMounts = Object.freeze({
+    HAWK: { duration:.86, capacity:1.4 },
+    GOAT: { duration:.92, capacity:1.15 }
+  });
+
+  const mountReady = pet => {
+    if (!pet || pet.active === false || pet.dead || pet.injured || (pet.fatigue || 0) >= 95) return false;
+    const lineage = CULT.lineageCompanionSpec(pet.speciesId);
+    if (lineage) return lineage.familyId === 'KUNPENG' && pet.growthStage >= 3 && pet.hunger >= 38 && pet.fatigue < 75;
+    const regional = CULT.regionalCompanionSpec(pet.speciesId);
+    if (regional && !pet.fourSymbol) return !!regionalMounts[regional.key] && pet.growthStage >= 2 && pet.hunger >= 38 && pet.fatigue < 75;
+    return pet.role === 'MOUNT_CHARGER' || pet.family === 'AVIAN' || pet.family === 'UNGULATE' ||
+      pet.fourSymbol === 'VERMILION_PHOENIX' || pet.fourSymbol === 'AZURE_DRAGON';
+  };
+
+  X.travelMount = npc => {
+    const uid = npc?.travel?.mountUid;
+    if (!uid || npc.dead || npc.away || npc.act?.id === 'fight') return null;
+    const sameMount = pet => (pet?.uid || pet?.id) === uid && mountReady(pet);
+    return npc.pets?.find(sameMount) || (sameMount(npc.pet) ? npc.pet : null);
+  };
+
   X.createParty = (W, party, opts) => {
     opts = opts || {};
     if (!W || !Array.isArray(party) || !party.length) return { ok: false, reason: 'invalid-party', members: [] };
@@ -286,10 +313,17 @@
     }
     const mounts = [];
     let hasPhoenixMount = false, hasAzureDragonMount = false;
+    let fastestMount = 1, mountCapacity = 1;
     for (const n of members) {
       const pets = (Array.isArray(n.pets) ? n.pets : []).concat(n.pet ? [n.pet] : []);
-      const pet = pets.find(p => p && p.active !== false && !p.dead && !p.injured && (p.fatigue || 0) < 95 && ((p.role === 'MOUNT_CHARGER') || p.family === 'AVIAN' || p.family === 'UNGULATE' || p.fourSymbol === 'VERMILION_PHOENIX' || p.fourSymbol === 'AZURE_DRAGON'));
+      const pet = pets.find(mountReady);
       if (pet) {
+        const lineage = CULT.lineageCompanionSpec(pet.speciesId);
+        const regional = !pet.fourSymbol && CULT.regionalCompanionSpec(pet.speciesId);
+        const route = regional && regionalMounts[regional.key];
+        const mountDuration = lineage ? [.83, .75, .69][lineage.gradeRank - 1] : (route?.duration ?? .75);
+        fastestMount = Math.min(fastestMount, mountDuration);
+        mountCapacity = Math.max(mountCapacity, route?.capacity ?? 1.4);
         if (pet.fourSymbol === 'VERMILION_PHOENIX' || pet.bloodlineTrait === 'VERMILION_PHOENIX') hasPhoenixMount = true;
         if (pet.fourSymbol === 'AZURE_DRAGON' || pet.bloodlineTrait === 'AZURE_DRAGON') hasAzureDragonMount = true;
         mounts.push({ ownerId: n.id, uid: pet.uid || pet.id || null, nameTh: pet.nameTh || 'พาหนะวิญญาณ', role: pet.role || null, family: pet.family || null, fourSymbol: pet.fourSymbol || null, tier: pet.tier || 1 });
@@ -304,10 +338,15 @@
       ? CULT.QINGGONG.evaluatePartyExpeditionBonus(W, members, { terrain: isWaterRoute ? 'water' : opts.terrain, nameTh: opts.regionId || '' })
       : { durationMultiplier: 1.0, capacityMultiplier: 1.0, hazardReduction: 0, dominantMode: 'MORTAL_WALK', summaryTh: 'เดินเท้าปกติ' };
     const applyQinggongToTrip = opts.useQinggong === true || (opts.useQinggong !== false && CULT && CULT.QINGGONG && members.some(m => CULT.QINGGONG.hasExplicitWorldQinggong(m)));
-    const mountDurMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : (hasMount ? 0.75 : 1);
-    const mountCapMult = hasPhoenixMount ? 1.60 : (hasMount ? 1.4 : 1);
-    const durMult = applyQinggongToTrip ? +(Math.max(0.45, mountDurMult * qgBonus.durationMultiplier)).toFixed(3) : mountDurMult;
-    const capMult = applyQinggongToTrip ? +(mountCapMult * qgBonus.capacityMultiplier).toFixed(2) : mountCapMult;
+    const hasDragonShipNav = members.some(m => m && m.cult && (m.cult.sub === 'DRAGON_SHIP_NAVIGATOR' || m.cult.path === 'TIDE_VOYAGER'));
+    const hasPocketArch = members.some(m => m && m.cult && m.cult.sub === 'POCKET_REALM_ARCHITECT');
+    const mountDurMult = hasPhoenixMount ? 0.60 : (hasAzureDragonMount && isWaterRoute) ? 0.65 : fastestMount;
+    const mountCapMult = hasPhoenixMount ? 1.60 : mountCapacity;
+    const navDurFactor = (isWaterRoute && hasDragonShipNav) ? (members.some(m => m && m.cult && m.cult.sub === 'DRAGON_SHIP_NAVIGATOR') ? 0.82 : 0.90) : 1;
+    const rawDurMult = applyQinggongToTrip ? mountDurMult * qgBonus.durationMultiplier : mountDurMult;
+    const durMult = +(Math.max(0.45, rawDurMult * navDurFactor)).toFixed(3);
+    const rawCapMult = applyQinggongToTrip ? mountCapMult * qgBonus.capacityMultiplier : mountCapMult;
+    const capMult = +(rawCapMult * (hasPocketArch ? 1.25 : 1)).toFixed(2);
     let supportHazRed = 0;
     if (CULT && CULT.SUPPORT_ARTS) {
       for (let i = 0; i < members.length; i++) {
@@ -335,6 +374,10 @@
     };
   };
 
+  const tripMountUid = (ex, npc) => Array.isArray(ex.mount)
+    ? ex.mount.find(mount => mount.ownerId === npc.id)?.uid || null
+    : null;
+
   X.depart = (W, party, kind, region, opts) => {
     opts = opts || {};
     if (!kind || !X.MISSIONS[kind]) return null;
@@ -345,19 +388,51 @@
     const lead = party[0];
     const partyRank = Math.max(1, ...party.map(x => CULT.worldRank ? CULT.worldRank(x) : 1));
     const regs = X.REGIONS.filter(r => (kind !== 'trade' && kind !== 'diplomacy' || r.danger <= 2));
-    region = region || (g.CONTENT && g.CONTENT.chooseRegion(W, party, kind, regs)) || rng.weighted(regs, r => 1 + (kind === 'fortune' ? r.danger * 0.4 : 0) + (kind === 'gather' ? (E(lead, 'interests.herbs') > 55 ? (r.terrain === 'forest' || r.terrain === 'mountain' ? 1 : 0) : (r.terrain === 'mountain' ? 1 : 0)) : 0) + (kind === 'hunt' ? r.danger * 0.3 : 0));
+    const topo = X.ensureWorldTopology(W);
+    const travelWeight = r => {
+      const route = X.planContinentalRoute(W,topo,topo.nodes[r.id]);
+      const reluctance = clamp(.36 + (E(lead,'personality.caution') - E(lead,'interests.exploring')) / 185,.13,.64);
+      // Nearby work saves food and duty time. A distant resource still has a chance when there is a reason to go.
+      return 1 / (1 + Math.pow((route?.days ?? r.days) * reluctance,1.5));
+    };
+    if (!region) region = (g.CONTENT && g.CONTENT.chooseRegion(W,party,kind,regs,travelWeight)) ||
+      rng.weighted(regs,r => travelWeight(r) * (1 + (kind === 'fortune' || kind === 'hunt' ? r.danger * .32 : 0)));
     if (!region || !X.REGIONS.includes(region)) return null;
     const requestedSite = opts.siteId && kind === 'fortune' && (X.FORTUNE_REGISTRY[partyRank] || []).find(s => s.id === opts.siteId);
     if (opts.siteId && (!requestedSite || !(requestedSite.biome === region.terrain || (requestedSite.biome === 'ruins' && region.terrain === 'mountain')))) return null;
-    const baseDays = Math.max(2, Math.round(region.days * (0.7 + rng.next() * 0.6) * (kind === 'trade' ? 1.1 : kind === 'recruit' ? 1.4 : 1)));
-    const trip = X.createParty(W, party, { kind, regionId: region.id, baseDays });
-    const days = trip.days;
+    const seasonHours = (0.7 + rng.next() * 0.6) * (kind === 'trade' ? 1.1 : kind === 'recruit' ? 1.4 : 1);
+    const regionNode = topo.nodes[region.id];
+    const sites = kind === 'fortune' ? X.FORTUNE_REGISTRY[partyRank] || X.FORTUNE_REGISTRY[1] : [];
+    const matching = sites.filter(s => s.biome === region.terrain || (s.biome === 'ruins' && region.terrain === 'mountain'));
+    const matchSite = kind === 'fortune' ? requestedSite || rng.pick(matching.length ? matching : sites) : null;
+    // A region remains the source of encounter data. The marker identifies its trailhead.
+    const destination = matchSite ? X.fortuneMapPoint(topo, matchSite, partyRank, sites.indexOf(matchSite)) : regionNode;
+    const route = X.planContinentalRoute(W, topo, destination);
+    const fallbackDays = Math.max(2, Math.round(region.days * seasonHours));
+    const baseDays = route ? 2 * route.days + seasonHours * 0.65 : fallbackDays;
+    const trip = X.createParty(W, party, { kind, regionId: region.id, terrain:region.terrain, baseDays });
+    const journeyDays = route ? route.days * trip.durationMultiplier : 0;
+    const dwellMinutes = Math.round(seasonHours * 936);
+    const days = route ? +(journeyDays * 2 + dwellMinutes / 1440).toFixed(3) : trip.days;
     if (g.SECT && g.SECT.ensureDirectives) g.SECT.ensureDirectives(W);
     const rd = W.sect && W.sect.reserveDirectives;
     const currentMeals = ECO.count(W, 'meal');
     const safetyReserve = (rd && rd.minMealReserve) || 15;
     const capPerDay = (rd && rd.expeditionMealCap) || 6;
-    const plannedFood = party.length * Math.min(days, capPerDay);
+    let supplySaveRatio = 0;
+    for (const pm of party) {
+      if (!pm) continue;
+      const bagAndEq = [pm.equip && pm.equip.ACCESSORY, pm.equip && pm.equip.ARMOR].concat((pm.inv && pm.inv.gear) || []).filter(Boolean);
+      for (const eq of bagAndEq) {
+        const fxL = eq.fx || eq.effects || (ECO && ECO.itemById && ECO.itemById[eq.id] && ECO.itemById[eq.id].effects) || [];
+        for (const fx of fxL) {
+          if (fx && fx.effectId === 'EFX_SUPPLY_EFFICIENCY') {
+            supplySaveRatio = Math.max(supplySaveRatio, (fx.params && fx.params.supplySavingRatio) || 0.25);
+          }
+        }
+      }
+    }
+    const plannedFood = Math.max(party.length, Math.round(party.length * Math.min(days, capPerDay) * (1 - clamp(supplySaveRatio, 0, 0.40))));
     let takeMax = Math.max(0, currentMeals - safetyReserve);
     if (takeMax < party.length && currentMeals > 0) {
       takeMax = Math.min(currentMeals, party.length);
@@ -367,11 +442,10 @@
     if (currentMeals - taken <= safetyReserve) {
       W.log('mission', 'คณะเดินทางเบิกเสบียง ' + taken + ' ชุด ทำให้เสบียงคลังเหลือ ' + (currentMeals - taken) + ' แตะเกณฑ์สำรองฉุกเฉิน (' + safetyReserve + ')', party.map(p => p.id));
     }
-    const ex = { id: ++w.seq, kind, region: region.id, party: party.map(p => p.id), partyRank, t0: W.t, ret: W.t + days * 1440 + rng.int(-300, 300), days, baseDays, mount: trip.mounts, hasMount: trip.hasMount, durationMultiplier: trip.durationMultiplier, capacityMultiplier: trip.capacityMultiplier, baseCarryCapacity: trip.baseCarryCapacity, carryCapacity: trip.carryCapacity, journal: [], carry: [], supplies: taken, done: false, state: 'leaving', lost: false };
-    if (kind === 'fortune') {
-      const sites = X.FORTUNE_REGISTRY[partyRank] || X.FORTUNE_REGISTRY[1];
-      const matching = sites.filter(s => s.biome === region.terrain || (s.biome === 'ruins' && region.terrain === 'mountain'));
-      const matchSite = requestedSite || rng.pick(matching.length ? matching : sites);
+    const ex = { id: ++w.seq, kind, region: region.id, party: party.map(p => p.id), partyRank, t0: W.t, ret: W.t + Math.round(days * 1440) + (route ? 0 : rng.int(-300, 300)), days, baseDays, mount: trip.mounts, hasMount: trip.hasMount, durationMultiplier: trip.durationMultiplier, capacityMultiplier: trip.capacityMultiplier, baseCarryCapacity: trip.baseCarryCapacity, carryCapacity: trip.carryCapacity, journal: [], carry: [], supplies: taken, done: false, state: 'leaving', lost: false };
+    setJourney(ex, route, journeyDays, dwellMinutes, true);
+    if (destination) ex.targetNodeId = destination.id;
+    if (matchSite) {
       const chosenPool = rng.pick(matchSite.pools);
       ex.siteId = matchSite.id;
       ex.poolId = chosenPool.id;
@@ -380,29 +454,33 @@
     if (kind === 'trade') {
       const sell = []; let cargoLeft = ex.carryCapacity;
       Object.keys(W.sect.stock).forEach(k => {
-        if (cargoLeft <= 0 || !ECO.isPill(k) || W.sect.stock[k] <= 6 || !ECO.pillInfo(k)) return;
-        const n = Math.min(cargoLeft, Math.floor((W.sect.stock[k] - 4) / 2));
+        if (cargoLeft <= 0 || !ECO.isPill(k) || !ECO.pillInfo(k)) return;
+        const spawned = (W.sect.spawnedPills && W.sect.spawnedPills[k]) || 0;
+        const realAvail = Math.max(0, (W.sect.stock[k] || 0) - spawned);
+        if (realAvail <= 6) return;
+        const n = Math.min(cargoLeft, Math.floor((realAvail - 4) / 2));
         if (n > 0 && ECO.take(W, k, n)) { sell.push({ id: k, n }); cargoLeft -= n; }
       });
       ex.carry = sell; if (!sell.length && (W.sect.stones < 1000)) { ex.kind = kind = 'gather'; }
     }
     w.expeds.push(ex);
-    party.forEach(p => { AI.interruptFor(W, p); p.expId = ex.id; p.lastTrip = W.day; p.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; p.travel = { to: 'exit', ex: ex.id }; p.path = null; p.run = false; });
+    party.forEach(p => { AI.interruptFor(W, p); p.expId = ex.id; p.lastTrip = W.day; p.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; p.travel = { to: 'exit', ex: ex.id, mountUid: tripMountUid(ex,p) }; p.path = null; p.run = false; });
     X.releaseDeployedGarrisons(W, party);
-    W.log('mission', party.map(p => p.h.name.given).join('、') + ' ออกเดินทาง「' + X.MISSIONS[kind].nameTh + '」ไปยัง' + region.nameTh + ' (ราว ' + days + ' วัน)', party.map(p => p.id));
+    W.log('mission', party.map(p => p.h.name.given).join('、') + ' ออกเดินทาง「' + X.MISSIONS[kind].nameTh + '」ไปยัง' + (destination?.nameTh || region.nameTh) + ' (ราว ' + days.toFixed(1) + ' วัน)', party.map(p => p.id), {location:stampPlace(destination)});
     return ex;
   };
   X.travelStep = (W, n) => {
     const tv = n.travel; if (!tv) return false;
+    const qgOverride = X.travelMount(n) ? null : undefined;
     if (tv.to === 'exit') {
-      if (!n.path) { if (!AI.goTo(W, n, MAP.EXIT.x, MAP.EXIT.y)) { n.x = MAP.EXIT.x + .5; n.y = MAP.EXIT.y + .5; } }
+      if (!n.path) { if (!AI.goTo(W, n, MAP.EXIT.x, MAP.EXIT.y, qgOverride)) { n.x = MAP.EXIT.x + .5; n.y = MAP.EXIT.y + .5; } }
       n.run = true;
-      if (AI.stepMove(W, n) || Math.hypot(n.x - MAP.EXIT.x, n.y - MAP.EXIT.y) < 1.5) { n.away = true; n.travel = null; n.run = false; n.path = null; n.hidden = true; }
+      if (AI.stepMove(W, n, qgOverride) || Math.hypot(n.x - MAP.EXIT.x, n.y - MAP.EXIT.y) < 1.5) { n.away = true; n.travel = null; n.run = false; n.path = null; n.hidden = true; }
       return true;
     }
     if (tv.to === 'home') {
-      if (!n.path) { if (!AI.goTo(W, n, MAP.GATE_IN.x, MAP.GATE_IN.y)) { n.x = MAP.GATE_IN.x + .5; n.y = MAP.GATE_IN.y + .5; } }
-      if (AI.stepMove(W, n) || Math.hypot(n.x - MAP.GATE_IN.x, n.y - MAP.GATE_IN.y) < 1.5) { n.travel = null; n.path = null; n.run = false; n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; }
+      if (!n.path) { if (!AI.goTo(W, n, MAP.GATE_IN.x, MAP.GATE_IN.y, qgOverride)) { n.x = MAP.GATE_IN.x + .5; n.y = MAP.GATE_IN.y + .5; } }
+      if (AI.stepMove(W, n, qgOverride) || Math.hypot(n.x - MAP.GATE_IN.x, n.y - MAP.GATE_IN.y) < 1.5) { n.travel = null; n.path = null; n.run = false; n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [] }; }
       return true;
     }
     return false;
@@ -415,12 +493,35 @@
       if (ex.done) return;
       const members = ex.party.map(i => W.byId[i]).filter(m => m && !m.dead && m.expId === ex.id && !m.fled);
       if (!members.length) { ex.done = true; return; }
-      if (ex.state === 'leaving' && members.every(m => m.away)) ex.state = 'away';
-      if (ex.state === 'away' && W.t >= ex.ret) {
-        if (ex.kind === 'sect_siege' && X.resolveSectSiege) X.resolveSectSiege(W, ex, { members });
-        else if (ex.kind === 'resource_claim' && X.resolveResourceClaim) X.resolveResourceClaim(W, ex, members);
-        else if (ex.kind === 'world_anomaly' && X.resolveWorldAnomaly) X.resolveWorldAnomaly(W, ex.anomalyId || ex, members, { ex });
-        else X.resolve(W, ex, members);
+      if (ex.state === 'leaving' && members.every(m => m.away)) {
+        ex.state = 'away';
+        startJourney(ex, W.t);
+      }
+      if (ex.route && ex.state === 'away' && ex.startedAt == null) startJourney(ex,ex.t0);
+      if (ex.route && ex.state === 'away' && W.t >= ex.arriveAt && !ex.arrivalRecorded) {
+        ex.arrivalRecorded = true;
+        if (ex.kind === 'city_visit') visitCity(W,ex,members);
+      }
+      if (ex.state !== 'away' || W.t < ex.ret) return;
+      const prior = W._expeditionLocation;
+      if (ex.route) W._expeditionLocation = routePlace(ex.route);
+      try {
+        if (ex.kind === 'city_visit' || ex.returnStartedAt != null) {
+          finishJourney(W, ex, members);
+        } else if (['sect_siege','resource_claim','world_anomaly'].includes(ex.kind)) {
+          if (ex.kind === 'sect_siege') X.resolveSectSiege(W, ex, { members });
+          else if (ex.kind === 'resource_claim') X.resolveResourceClaim(W, ex, members);
+          else X.resolveWorldAnomaly(W, ex.anomalyId || ex, members, { ex });
+          const returning = members.filter(m => !m.dead && !m.exiled && !m.fled && m.expId == null);
+          if (ex.route && ex.done && returning.length) {
+            ex.done = false;
+            ex.returnStartedAt = W.t; ex.ret = W.t + ex.travelMinutes;
+            for (const m of returning) { m.expId = ex.id; m.away = true; m.hidden = true; m.travel = null; }
+          }
+        } else X.resolve(W, ex, members);
+      } finally {
+        if (prior === undefined) delete W._expeditionLocation;
+        else W._expeditionLocation = prior;
       }
     });
     w.expeds = w.expeds.filter(e => !e.done || W.t - e.ret < 7 * 1440);
@@ -431,7 +532,8 @@
     const rng = W.rng; const reg = X.REGIONS.find(r => r.id === ex.region);
     const P = members.reduce((s, m) => s + CULT.power(m), 0);
     const perceive = Math.max(...members.map(m => E(m, 'intellect.perceptiveness'))), surv = Math.max(...members.map(m => m.h.skills.survival || 0)), luck = members.reduce((s, m) => s + E(m, 'destiny.luck'), 0) / members.length;
-    const nEnc = Math.max(2, Math.round(ex.days * 0.7)); const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], notes: [], rep: 0, newDisciples: 0 };
+    const workDays = ex.route ? reg.days || 3 : ex.days;
+    const nEnc = Math.max(2, Math.round(workDays * 0.7)); const out = { items: [], stones: 0, mats: {}, pills: {}, gear: [], techs: [], notes: [], rep: 0, newDisciples: 0 };
     const alive = members.slice(); let totalDmg = 0;
     const dangerMult = 0.6 + reg.danger * 0.35;
     for (let i = 0; i < nEnc && alive.length; i++) {
@@ -499,7 +601,7 @@
       } else {
         const ev = rng.pick(['storm', 'lost', 'traveler', 'bandits']);
         if (ev === 'storm') { ex.journal.push('เจอพายุ ต้องหลบอยู่หลายวัน'); alive.forEach(a => HC.feel(a, { stress: 4, energy: -10 })); }
-        else if (ev === 'lost') { ex.journal.push('หลงทางในป่า'); ex.ret += Math.round(rng.int(60, 600)); }
+        else if (ev === 'lost') { ex.journal.push('หลงทางในป่า'); if (!ex.route) ex.ret += rng.int(60,600); }
         else if (ev === 'traveler') { const encRes = X.resolveDiscipleSectEncounter(W, alive, null, { quiet: true }); if (encRes && encRes.ok) { ex.journal.push(encRes.summaryTh); out.stones += (encRes.stonesLoot || 0); out.rep += encRes.didClash ? (encRes.won ? 0.5 : -0.1) : 0.25; } else { ex.journal.push('พบนักเดินทางร่วมทาง แลกเปลี่ยนเรื่องราว'); } alive.forEach(a => { HC.feel(a, { mood: 4, novelty: 8 }); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, 'diplomacy', 0.5, 1); }); }
         else {
           const bp = (30 + reg.danger * 70) * (0.6 + rng.next()), pw = alive.reduce((s, m) => s + CULT.power(m), 0);
@@ -532,11 +634,12 @@
     try {
       if (alive.length) X.handover(W, ex, alive, out);
     } finally {
-      alive.forEach(m => { m.away = false; m.hidden = false; m.x = MAP.EXIT.x + .5 + rng.gauss(0, 0.8); m.y = MAP.EXIT.y + .5; m.travel = { to: 'home' }; m.expId = null; m.path = null; m.run = false; m.h.state.satiety = Math.max(30, m.h.state.satiety); HC.experience(m, 'adventure', 0.6); m.merit += 8 + reg.danger * 3; AI.mem(W, m, 'กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 ณ ' + reg.nameTh + ' ' + (ex.journal.slice(-2).join(', ') || ''), 0.8); });
+      alive.forEach(m => { m.away = false; m.hidden = false; m.x = MAP.EXIT.x + .5 + rng.gauss(0, 0.8); m.y = MAP.EXIT.y + .5; m.travel = { to: 'home', mountUid: tripMountUid(ex,m) }; m.expId = null; m.path = null; m.run = false; m.h.state.satiety = Math.max(30, m.h.state.satiety); HC.experience(m, 'adventure', 0.6); m.merit += 8 + reg.danger * 3; AI.mem(W, m, 'กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 ณ ' + reg.nameTh + ' ' + (ex.journal.slice(-2).join(', ') || ''), 0.8); });
     }
     const ppl = members.map(m => m.h.name.given).join('、');
     const brief = ex.kind === 'fortune' && out.notes.length ? out.notes.slice(0, 2).join(' / ') : Object.keys(out.mats).length || out.stones || out.gear.length ? ('ได้ ' + X.summarize(out)) : (ex.journal.slice(-1)[0] || 'ไม่ได้อะไรมากนัก');
-    W.log('mission', ppl + ' กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 — ' + brief, members.map(m => m.id));
+    W.log('mission', ppl + ' กลับจากภารกิจ「' + X.MISSIONS[ex.kind].nameTh + '」 — ' + brief,
+      members.map(m => m.id), {location:routePlace(ex.route)});
     W.fame(out.rep);
   };
   X.summarize = o => {
@@ -699,16 +802,34 @@
     }
     else if (kind === 'scroll') { const drop = g.MARTIAL.discover(W, out, { tier: Math.max(2, reg.danger + 2), rank, danger: reg.danger, source: 'expedition' }); if (drop) { ex.journal.push('พบองค์ความรู้หายาก'); out.notes.push(v.h.name.given + ' พบองค์ความรู้หายาก'); } }
     else if (kind === 'master') { const sk = AI.pickTeachSkill(v, v); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(v, sk, 6, 2.2); if (v.cult) CULT.gain(v, CULT.threshold(v) * 0.08); HC.experience(v, 'insight', 0.9); ex.journal.push('พบผู้เฒ่าลึกลับชี้แนะ'); out.notes.push(v.h.name.given + ' ได้รับการชี้แนะจากผู้เฒ่าลึกลับ'); }
-    else if (kind === 'spring') { if (v.cult) { CULT.gain(v, CULT.threshold(v) * 0.15); } v.h.state.hp = CULT.hpMax(v); HC.trainBody(v, 'vitality' in {} ? '' : 'endurance', 4); HC.experience(v, 'insight', 0.5); ex.journal.push('พบสระปราณธรรมชาติ'); out.notes.push(v.h.name.given + ' พบสระปราณลับ ตบะก้าวหน้า'); }
+    else if (kind === 'spring') { if (v.cult) { CULT.gain(v, CULT.threshold(v) * 0.15); } v.h.state.hp = CULT.hpMax(v); HC.trainBody(v, 'vitality', 2); HC.trainBody(v, 'endurance', 2); HC.experience(v, 'insight', 0.5); ex.journal.push('พบสระปราณธรรมชาติ'); out.notes.push(v.h.name.given + ' พบสระปราณลับ ตบะก้าวหน้า'); }
     else { HC.feel(v, { stress: 10, mood: -6 }); v.h.state.heartDemon = clamp(v.h.state.heartDemon + 7, 0, 100); if (rng.chance(0.3)) AI.injure(W, v, 1, 'ถูกคำสาปโบราณ'); ex.journal.push('ต้องคำสาปโบราณ'); out.notes.push(v.h.name.given + ' ต้องคำสาปโบราณ'); }
     out.rep += 0.3;
   };
   X.tradeResult = (W, ex, alive, out) => {
-    const best = Math.max(...alive.map(a => E(a, 'aptitudes.socialCommerce') + E(a, 'intellect.numeracy') + (a.h.skills.trading || 0)), 40) / 3;
-    let sum = 0; (ex.carry || []).forEach(c => { const pr = ECO.price(W, c.id) * 0.85 * (0.85 + best / 200); sum += Math.round(pr * c.n); });
+    const best = clamp(Math.max(...alive.map(a => E(a, 'aptitudes.socialCommerce') + E(a, 'intellect.numeracy') + (a.h.skills.trading || 0)), 40) / 3, 0, 100);
+    const sellMult = 0.72 + best / 420; // [0.72, 0.958]
+    const buyMult = Math.max(sellMult + 0.05, 1.16 - best / 600); // [0.993, 1.16], strictly > sellMult
+    let sum = 0; (ex.carry || []).forEach(c => { const pr = ECO.price(W, c.id) * sellMult; sum += Math.round(pr * c.n); });
     if (sum) { out.stones += sum; ex.journal.push('ขายสินค้าได้ ' + sum + ' ศิลา'); }
     const buy = (W.sect.buyList || []).slice(0, 5); let spent = 0;
-    buy.forEach(b => { const pr = Math.round(ECO.price(W, b.id) * 1.05 * (1.15 - best / 400)); const cost = pr * b.n; if (W.sect.stones + out.stones - spent >= cost + 100) { spent += cost; out.mats[b.id] = (out.mats[b.id] || 0) + b.n; } });
+    let capLeft = (ex && Number.isFinite(ex.carryCapacity) && ex.carryCapacity > 0) ? Math.max(0, Math.floor(ex.carryCapacity) - X.cargoUnits(out)) : Infinity;
+    buy.forEach(b => {
+      if (!b || !(b.n > 0) || capLeft <= 0) return;
+      const qty = Math.min(Math.floor(b.n), capLeft);
+      if (qty <= 0) return;
+      const pr = Math.max(1, Math.round(ECO.price(W, b.id) * buyMult));
+      const cost = pr * qty;
+      if (W.sect.stones + out.stones - spent >= cost + 100) {
+        spent += cost;
+        capLeft -= qty;
+        if (ECO.isPill && ECO.isPill(b.id)) {
+          out.pills[b.id] = (out.pills[b.id] || 0) + qty;
+        } else {
+          out.mats[b.id] = (out.mats[b.id] || 0) + qty;
+        }
+      }
+    });
     if (spent) { out.stones -= spent; ex.journal.push('ซื้อเสบียง/วัตถุดิบใช้ ' + spent + ' ศิลา'); }
     alive.forEach(a => (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(a, 'trading', 1.2, 1));
     out.rep += 0.1;
@@ -720,7 +841,10 @@
     return Math.max(best, Math.max(0, sk) / 50);
   }, 0));
   X.diplomacyResult = (W, ex, alive, out) => {
-    const s = W.rng.weighted(W.world.sects, x => 1 + Math.max(0, 50 - x.attitude) / 50); const lead = alive[0]; if (!lead) return;
+    const sectPool = ((Array.isArray(W.world.sects) && W.world.sects.length) ? W.world.sects : (W.world.allSects || [])).filter(x => x && !x.collapsed);
+    const s = sectPool.length ? W.rng.weighted(sectPool, x => 1 + Math.max(0, 50 - x.attitude) / 50) : null; const lead = alive[0]; if (!lead || !s) return;
+    out.sectId = s.id; ex.targetSectId = s.id;
+    ex.lifeHostileRelation=s.attitude;
     const skill = alive.reduce((m, a) => Math.max(m, E(a, 'social.charisma') * .5 + E(a, 'personality.empathy') * .3 + (a.h.skills.diplomacy || 0) * .4), 0);
     const delta = Math.round((skill - 45) / 4 + W.rng.gauss(0, 4) - (s.style === 'ทะนง' ? 3 : 0) + (W.sect.policy.openness - 50) / 15 + X.envoyBonus(alive));
     s.attitude = clamp(s.attitude + delta, -100, 100); s.contact = W.day;
@@ -731,7 +855,7 @@
   };
   X.recruitResult = (W, ex, alive, out) => {
     const lead = alive[0]; if (!lead) return;
-    const eye = alive.reduce((m, a) => Math.max(m, E(a, 'intellect.judgement') * .5 + E(a, 'intellect.perceptiveness') * .3 + E(a, 'social.teaching' in {} ? '' : 'interests.teaching') * .2), 0);
+    const eye = alive.reduce((m, a) => Math.max(m, E(a, 'intellect.judgement') * .5 + E(a, 'intellect.perceptiveness') * .3 + (E(a, 'social.teaching') * .5 + E(a, 'interests.teaching') * .5) * .2), 0);
     const n = W.rng.chance(0.55 + (W.sect.policy.openness - 50) / 200 + W.sect.fame / 600) ? (W.rng.chance(0.25 + eye / 400) ? 2 : 1) : 0;
     for (let i = 0; i < n; i++) {
       const occ = SECT.memberOccupancy ? SECT.memberOccupancy(W) : W.npcs.filter(x => !x.dead && !x.exiled).length;
@@ -741,8 +865,9 @@
         break;
       }
       const nn = W.makeNpc({ ageYears: W.rng.int(14, 26), rank: 0, fromExped: true, useTalentTier: true });
-      nn.x = MAP.EXIT.x + .5 + i; nn.y = MAP.EXIT.y + .5; nn.travel = { to: 'home' }; nn.mentor = lead.id;
-      (lead.h.life.family.disciples = lead.h.life.family.disciples || []).push(nn.id); nn.h.life.family.master = lead.id;
+      nn.x = MAP.EXIT.x + .5 + i; nn.y = MAP.EXIT.y + .5; nn.travel = { to: 'home' };
+      if (SECT.MENTORSHIP && SECT.MENTORSHIP.linkMasterDisciple) SECT.MENTORSHIP.linkMasterDisciple(W, lead, nn);
+      else { nn.mentor = lead.id; nn.mentorId = lead.id; (lead.h.life.family.disciples = lead.h.life.family.disciples || []).push(nn.id); nn.h.life.family.master = lead.id; }
       out.newDisciples++;
       const r = SECT.rel(nn, lead.id); r.a = 25; r.t = 55; r.r = 55; r.bond = 'อาจารย์';
       const r2 = SECT.rel(lead, nn.id); r2.a = 12; r2.bond = 'ศิษย์';
@@ -838,13 +963,16 @@
       }
     });
     if (out.stones > 0) {
-      const keep = Math.round(out.stones * keepFrac); donation.stones = out.stones - keep;
-      ECO.earn(W, donation.stones, 'รายได้จากคณะเดินทาง');
-      if (keep > 0) {
-        const holder = hoarder(); holder.inv.stones += keep;
+      const wantKeep = Math.round(out.stones * keepFrac), wantDonate = out.stones - wantKeep;
+      donation.stones = ECO.earnFromPool ? ECO.earnFromPool(W, wantDonate, 'รายได้จากคณะเดินทาง') : (ECO.earn(W, wantDonate, 'รายได้จากคณะเดินทาง') ? wantDonate : 0);
+      if (wantKeep > 0) {
+        const holder = hoarder();
+        const keep = ECO.transferStones
+          ? ECO.transferStones(W, { from: 'worldPool', to: 'npc:' + holder.id, amount: wantKeep, allowPartial: true }).moved
+          : (holder.inv.stones += wantKeep, wantKeep);
         if (keep > 20) { holder.h.state.stress += 1; W.sect.suspicion = (W.sect.suspicion || 0) + 1; }
       }
-    } else if (out.stones < 0) ECO.pay(W, Math.min(-out.stones, W.sect.stones), 'สูญเสียระหว่างเดินทาง');
+    } else if (out.stones < 0) ECO.pay(W, Math.min(-out.stones, W.sect.stones), 'สูญเสียระหว่างเดินทาง', { toPool: true });
     if (g.SECT && g.SECT.PATH_LIBRARY && g.SECT.PATH_LIBRARY.sellSurplusManuals) {
       const surp = g.SECT.PATH_LIBRARY.sellSurplusManuals(W, { quiet: true });
       if (surp && surp.revenueStones > 0) {
@@ -922,12 +1050,25 @@
     if (W.threat.roadBlocked > 0) { W.log('finance', 'ถนนถูกปิด คาราวานของสำนักเข้าไม่ถึง', []); return; }
     const skill = tre ? (E(tre, 'intellect.numeracy') + E(tre, 'aptitudes.socialCommerce')) / 2 : 40;
     (S.buyList || []).slice(0, 6).forEach(b => { const pr = Math.round(ECO.price(W, b.id) * (1.12 - skill / 600)); const n = b.n; const cost = pr * n; if (S.stones - spent >= cost + 150) { spent += cost; ECO.add(W, b.id, n); } });
-    if (spent) { S.stones -= spent; S.ledger.push({ t: W.t, amt: -spent, why: 'คาราวานซื้อวัตถุดิบ/เสบียง' }); }
-    Object.keys(S.stock).forEach(k => { if (ECO.isPill(k) && S.stock[k] > 10) { const n = S.stock[k] - 6; if (ECO.take(W, k, n)) { const v = Math.round(ECO.price(W, k) * 0.7 * n); ECO.earn(W, v, 'ขายโอสถส่วนเกิน'); sold += v; } } });
+    if (spent) {
+      S.stones -= spent;
+      S.ledger.push({ t: W.t, amt: -spent, why: 'คาราวานซื้อวัตถุดิบ/เสบียง' });
+      if (W.world && W.world.resourcePool && Number.isFinite(W.world.resourcePool.stones)) W.world.resourcePool.stones += spent;
+    }
+    Object.keys(S.stock).forEach(k => {
+      if (ECO.isPill(k) && S.stock[k] > 10) {
+        const n = S.stock[k] - 6;
+        if (ECO.take(W, k, n)) {
+          const v = Math.round(ECO.price(W, k) * 0.7 * n);
+          ECO.earn(W, v, 'ขายโอสถส่วนเกิน', { fromPool: true });
+          sold += v;
+        }
+      }
+    });
     // Patch v2.0.0: Caravan rare Grand Dao Path Manual & Path Crystal offering
     if (S.stones >= 1600 && g.SECT && g.SECT.PATH_LIBRARY && W.rng && W.rng.chance(0.35)) {
       const summary = g.SECT.PATH_LIBRARY.getSummary(W);
-      if (summary && summary.lockedPaths && summary.lockedPaths.length) {
+      if (summary && summary.lockedPaths.filter(pid => !g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY') && summary.lockedPaths.filter(pid => !g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY').length) {
         const pickPath = W.rng.pick(summary.lockedPaths);
         const manualId = 'MANUAL_PATH_' + pickPath;
         const mPrice = (ECO.itemById && ECO.itemById[manualId] && ECO.itemById[manualId].price) || 1200;
@@ -946,7 +1087,9 @@
 
   /* ---------- ศัตรูบุก ---------- */
   X.raidChance = W => {
-    const s = W.sect; const tension = W.world.sects.reduce((m, x) => Math.max(m, -x.attitude), 0) / 100;
+    const s = W.sect;
+    const allSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+    const tension = allSects.filter(x => x && !x.collapsed).reduce((m, x) => Math.max(m, -x.attitude), 0) / 100;
     return clamp(0.006 + s.fame / 12000 + Math.max(0, tension) * 0.012 + (s.stones > 4000 ? 0.004 : 0), 0, 0.05);
   };
   X.spawnRaid = (W, kind, strength) => {
@@ -961,15 +1104,22 @@
       for (let i = 0; i < n; i++) foes.push({ name: sp.nameTh, tier: sp.tier, power: sp.cp * (0.8 + rng.next() * 0.4), fleeAt: sp.flee / 100, kind: 'beast', sp: sp.id, speciesId: sp.id, element: sp.element, elementProfile: sp.elementProfile, drops: sp.drops });
       label = 'ฝูง' + sp.nameTh + ' ' + n + ' ตัว';
     } else {
-      const rival = kind === 'rival' ? W.world.sects.slice().sort((a, b) => a.attitude - b.attitude)[0] : null;
+      const allSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      const peacefulTreaties = new Set(['NON_AGGRESSION', 'ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY']);
+      const rivalPool = allSects.filter(sx => sx && !sx.collapsed && !sx.isVassal && !peacefulTreaties.has(sx.treaty));
+      const rival = kind === 'rival' && rivalPool.length ? rivalPool.slice().sort((a, b) => (a.attitude || 0) - (b.attitude || 0))[0] : null;
+      const docBonus = (rival && rival.doctrineBonus) || {};
+      const rivalPowerMult = clamp((docBonus.raidPowerMult || 1) * (1 + (docBonus.combatBonus || 0)), 0.75, 1.5);
+      const sectTier = (rival && rival.tierLevel) || 2;
       const n = clamp(Math.round(3 + total / 120), 3, 9);
       const roleTemplates = [
-        { suffix: 'แม่ทัพหน้า', weaponType: 'SPEAR', role: ' vanguard' },
+        { suffix: 'แม่ทัพหน้า', weaponType: 'SPEAR', role: 'vanguard' },
         { suffix: 'มือกระบี่', weaponType: 'SWORD', role: 'striker' },
         { suffix: 'มือเกาทัณฑ์', weaponType: 'BOW', role: 'archer' },
         { suffix: 'มือดาบหนัก', weaponType: 'BLADE', role: 'breaker' },
         { suffix: 'ผู้คุมอาคม', weaponType: 'FOCUS', role: 'caster' }
       ];
+      const bossWeapon = (rival && Array.isArray(rival.signatureWeaponTypes) && rival.signatureWeaponTypes[0]) || (rival && rival.primaryWeapon) || 'SWORD';
       for (let i = 0; i < n; i++) {
         const boss = i === 0;
         const tpl = roleTemplates[i % roleTemplates.length];
@@ -978,19 +1128,21 @@
           : (rival ? 'ศิษย์' + rival.nameTh + ' (' + tpl.suffix + ')' : 'โจรภูเขา (' + tpl.suffix + ')');
         foes.push({
           name: baseName,
-          tier: boss ? 3 : 1,
-          power: (total / n) * (boss ? 1.9 : 0.8) * (0.8 + rng.next() * 0.4),
+          tier: boss ? clamp(sectTier + 1, 2, 6) : clamp(sectTier, 1, 5),
+          power: (total / n) * (boss ? 1.9 : 0.8) * (0.8 + rng.next() * 0.4) * (rival ? rivalPowerMult : 1),
           fleeAt: boss ? 0.15 : 0.3,
           kind: 'human',
+          role: tpl.role,
+          path: rival ? rival.majorPath : undefined,
           boss,
-          weaponType: boss ? (rival && rival.primaryWeapon ? rival.primaryWeapon : 'SWORD') : tpl.weaponType
+          weaponType: boss ? bossWeapon : tpl.weaponType
         });
       }
       label = (rival ? 'ศิษย์จาก' + rival.nameTh : 'โจรภูเขา') + ' ' + n + ' คน';
       if (rival) foes.rivalId = rival.id;
     }
     W.foes = W.foes || []; W.foeById = W.foeById || {};
-    const f = COMBAT.startFight(W, [], [], 'raid', { serious: true, cb: X.raidEnd, ctx: { label, kind, total } });
+    const f = COMBAT.startFight(W, [], [], 'raid', { serious: true, cb: X.raidEnd, ctx: { label, kind, total, rivalId: foes.rivalId || null } });
     f.foes = [];
     foes.forEach((s, i) => { const id = 'F' + (++W.foeSeq || (W.foeSeq = 1)); const u = Object.assign({ id, foe: true, x: MAP.EXIT.x + .5 + (i % 4) * 1.1 - 1.6, y: MAP.EXIT.y + 0.5 + Math.floor(i / 4) * 1.1, px: 0, py: 0, face: 1, speed: 0.55 + s.tier * 0.02, dead: false, speedBase: 1 }, s); u.hpMax = Math.round(u.power * 1.3 + 30); u.hp = u.hpMax; W.foes.push(u); W.foeById[id] = u; f.B.push(id); f.foes.push(id); COMBAT.enter(W, f, id); });
     W.threat.alert = 3; W.sect.recentRaid = 1; W.threat.raid = f.id;
@@ -1106,17 +1258,24 @@
       const outcomeDesc = fOutcome === 'REPELLED_TIMEOUT'
         ? 'ตรึงแนวรับหน้าด่านจนผู้บุกหมดกำลังล่าถอย'
         : (fOutcome === 'PYRRHIC_DEFENSE' ? 'สละชีพต้านทานผู้บุกจนสิ้นซาก' : ('สังหาร ' + slain + ' ราย'));
-      const loot = Math.round(Math.min(260, 25 + (ctx.total || 80) * (fOutcome === 'REPELLED_TIMEOUT' ? 0.05 : 0.08)));
-      ECO.earn(W, loot, 'ยึดของจากผู้บุก');
-      W.log('raid', '✔ สำนักต้านการบุกของ' + ctx.label + ' สำเร็จ (' + outcomeDesc + ' · ยึดศิลา ' + loot + ')' + tacNote, defenders.map(d => d.id), {
+      const rawLoot = Math.round(Math.min(260, 25 + (ctx.total || 80) * (fOutcome === 'REPELLED_TIMEOUT' ? 0.05 : 0.08)));
+      const loot = ECO.earnFromPool
+        ? ECO.earnFromPool(W, rawLoot, 'ยึดของจากผู้บุก')
+        : (ECO.earn(W, rawLoot, 'ยึดของจากผู้บุก') ? rawLoot : 0);
+      W.log('raid', '✔ สำนักต้านการบุกของ' + ctx.label + ' สำเร็จ (' + outcomeDesc + (loot > 0 ? (' · ยึดศิลา ' + loot) : '') + ')' + tacNote, defenders.map(d => d.id), {
         combatSummary: cPayload, outcome: fOutcome, slain, loot
       });
       W.fame(3 + slain * 0.3);
+      if (g.CULT && g.CULT.updateDivineFaith) g.CULT.updateDivineFaith(W, 6, 'raid_victory');
       foes.forEach(u => { if (u.dead && u.drops) { const d = W.rng.pick(u.drops); ECO.add(W, d, 1 + W.rng.int(0, 1)); } });
       defenders.forEach(d => { if (!d.dead) { d.merit += 15 + (d.h.state.hp < CULT.hpMax(d) * 0.5 ? 10 : 0); HC.experience(d, 'duel_win', 0.6); d.sat = Math.min(100, (d.sat || 60) + 6); if (d.cult) CULT.gain(d, CULT.threshold(d) * 0.04); } });
       const best = defenders.filter(d => !d.dead).sort((a, b) => ((b.tac && b.tac.interceptCount || 0) * 2 + (b.stats && b.stats.kills || 0)) - ((a.tac && a.tac.interceptCount || 0) * 2 + (a.stats && a.stats.kills || 0)))[0];
       if (best) W.log('raid', best.h.name.given + ' เป็นกำลังสำคัญในการป้องกันสำนัก', [best.id]);
-      if (ctx.kind === 'rival') { const r = W.world.sects.slice().sort((a, b) => a.attitude - b.attitude)[0]; if (r) r.attitude = Math.min(100, r.attitude + 8); }
+      if (ctx.kind === 'rival') {
+        const allSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+        const r = ctx.rivalId ? X.findSect(W, ctx.rivalId) : allSects.slice().sort((a, b) => a.attitude - b.attitude)[0];
+        if (r) r.attitude = Math.min(100, (r.attitude || 0) + 8);
+      }
       if (X.recordChronicle) {
         X.recordChronicle(W, {
           category: 'BATTLE',
@@ -1135,13 +1294,17 @@
         });
       }
     } else {
-      const loss = Math.round(W.sect.stones * clamp(0.1 + W.rng.next() * 0.15, 0.05, 0.3)); W.sect.stones -= loss; W.sect.ledger.push({ t: W.t, amt: -loss, why: 'ถูกปล้นโดย' + ctx.label });
+      const rawLoss = Math.round(W.sect.stones * clamp(0.1 + W.rng.next() * 0.15, 0.05, 0.3));
+      const loss = Math.min(rawLoss, Math.max(0, Math.floor(W.sect.stones || 0)));
+      if (loss > 0 && ECO && ECO.pay) ECO.pay(W, loss, 'ถูกปล้นโดย' + ctx.label, { toPool: true });
+      else if (loss > 0) { W.sect.stones -= loss; W.sect.ledger.push({ t: W.t, amt: -loss, why: 'ถูกปล้นโดย' + ctx.label }); }
       Object.keys(W.sect.stock).forEach(k => { if (W.rng.chance(0.3)) { const n = Math.floor(W.sect.stock[k] * 0.25); if (n > 0) ECO.take(W, k, n); } });
       W.map.buildings.forEach(b => { if (W.rng.chance(0.25)) b.hp = Math.max(30, b.hp - W.rng.int(10, 35)); });
       W.log('raid', '✘ สำนักถูกบุกและปล้น เสียศิลา ' + loss + ' เสียหายหนัก' + tacNote, defenders.map(d => d.id), {
         combatSummary: cPayload, outcome: fOutcome, loss
       });
       W.fame(-4);
+      if (g.CULT && g.CULT.updateDivineFaith) g.CULT.updateDivineFaith(W, -8, 'raid_defeat');
       W.npcs.forEach(n => { if (!n.dead) { HC.experience(n, 'duel_lose', 0.3); n.sat = Math.max(0, (n.sat || 60) - 6); } });
       if (X.recordChronicle) {
         X.recordChronicle(W, {
@@ -1187,24 +1350,36 @@
   X.raidTick = W => {
     if (!W.foes || !W.foes.length) return;
     W.foes.forEach(u => COMBAT.foeStep(W, u));
-    if (W.t % 20 === 0 && W.threat.raid) { const f = (W.fights || []).find(q => q.id === W.threat.raid); if (f && !f.over) X.rally(W, f); }
+    if ((W._isNewCalendarMinute !== false && W.t % 20 === 0) && W.threat.raid) { const f = (W.fights || []).find(q => q.id === W.threat.raid); if (f && !f.over) X.rally(W, f); }
   };
 
   /* ---------- เหตุการณ์สุ่มรายวัน ---------- */
   X.daily = W => {
     const rng = W.rng; const T = W.threat;
+    if (W.world && !T.raid && (W.day || 0) > 10 && (W.day % 6 === 0)) {
+      const activeAnom = Array.isArray(W.world.anomalies) && W.world.anomalies.find(a => a && !a.resolved && !a.expired && !(W.world.expeds || []).some(e => !e.done && e.kind === 'world_anomaly' && e.anomalyId === a.id));
+      if (activeAnom && X.departWorldAnomaly) {
+        const avail = (W.npcs || []).filter(n => X.isAvailableForExpedition && X.isAvailableForExpedition(W, n) && CULT.power(n) >= 65).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 3);
+        if (avail.length >= 2) X.departWorldAnomaly(W, avail, activeAnom);
+      }
+    }
     if (T.alert > 0) T.alert--; if (T.roadBlocked > 0) T.roadBlocked--;
     if (W.day >= T.raidCooldown && !T.raid && rng.chance(X.raidChance(W))) {
-      const tension = W.world.sects.some(s => s.attitude < -40);
+      const allSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      const peaceful = new Set(['NON_AGGRESSION', 'ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY']);
+      const tension = allSects.some(s => s && !s.collapsed && !s.isVassal && !peaceful.has(s.treaty) && s.attitude < -40);
       const kind = tension && rng.chance(0.5) ? 'rival' : rng.chance(0.45) ? 'beast' : 'bandit';
       X.spawnRaid(W, kind); T.raidCooldown = W.day + 25 + rng.int(0, 30);
     }
-    W.world.sects.forEach(s => { s.attitude = clamp(s.attitude + (s.attitude > 0 ? -0.15 : 0.15) + (s.style === 'ก้าวร้าว' ? -0.1 : 0) + rng.gauss(0, 0.8), -100, 100); });
+    const driftSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+    driftSects.forEach(s => { if (s && !s.collapsed) s.attitude = clamp((s.attitude || 0) + (s.attitude > 0 ? -0.15 : 0.15) + (s.style === 'ก้าวร้าว' ? -0.1 : 0) + rng.gauss(0, 0.8), -100, 100); });
     if (rng.chance(0.025)) {
       if (g.VC && g.EXT && typeof g.EXT.openVisit === 'function') {
         if ((g.EXT.activeVisitors(W) || []).length < 2) g.EXT.openVisit(W);
       } else {
-        const gain = Math.round(40 + rng.next() * 100); W.log('event', 'พ่อค้าเร่แวะสำนัก ซื้อโอสถและของเหลือใช้ ได้ ' + gain + ' ศิลา', []); ECO.earn(W, gain, 'พ่อค้าเร่');
+        const rawGain = Math.round(40 + rng.next() * 100);
+        const gain = ECO.earnFromPool ? ECO.earnFromPool(W, rawGain, 'พ่อค้าเร่') : (ECO.earn(W, rawGain, 'พ่อค้าเร่') ? rawGain : 0);
+        if (gain > 0) W.log('event', 'พ่อค้าเร่แวะสำนัก ซื้อโอสถและของเหลือใช้ ได้ ' + gain + ' ศิลา', []);
       }
     }
     if (rng.chance(0.012) && W.season !== 3) {
@@ -1277,7 +1452,7 @@
       danger: 2,
       center: { x: 80, y: 48 },
       color: '#9ec459',
-      descTh: 'ทุ่งราบเมฆา ชุมทางการค้าเจียงหนาน แดนพฤกษากำเนิดชีพ และหุบเขาสมุนไพรหมื่นปี'
+      descTh: 'ทุ่งราบเมฆา ชุมทางการค้าหุบเขาสองแคว แดนพฤกษากำเนิดชีพ และหุบเขาสมุนไพรหมื่นปี'
     },
     WESTERN_BADLANDS: {
       id: 'WESTERN_BADLANDS',
@@ -1367,7 +1542,7 @@
     },
     TOLL_JIANGNAN_CROSSWAY: {
       id: 'TOLL_JIANGNAN_CROSSWAY',
-      nameTh: 'ด่านเก็บค่าผ่านทางเจียงหนาน',
+      nameTh: 'ด่านเก็บค่าผ่านทางลำน้ำหยกภาคกลาง',
       category: 'TRADE_TOLL',
       categoryTh: 'ด่านภาษีเส้นทางการค้า',
       icon: '🏮',
@@ -1381,7 +1556,7 @@
       mats: ['MAT_HERB_JADE_LOTUS_2'],
       garrisonPowerBase: 360,
       defaultOwnerFactionId: 'FAC_LONGMEN',
-      descTh: 'ด่านชุมทางการค้าตะวันออก เก็บค่าผ่านทางจากขบวนคาราวานและพ่อค้าเร่ทั่วเจียงหนาน'
+      descTh: 'ด่านชุมทางการค้าตะวันออก เก็บค่าผ่านทางจากขบวนคาราวานและพ่อค้าเร่ทั่วลุ่มน้ำหยกภาคกลาง'
     },
     TOLL_SOUTHERN_WATERWAY: {
       id: 'TOLL_SOUTHERN_WATERWAY',
@@ -1417,7 +1592,7 @@
       catalystId: 'CAT_RESONANCE_JADE_4',
       primordialId: 'CAT_PRIMORDIAL_METAL',
       grantManual: true,
-      descTh: 'ม่านค่ายกลพันปีสลายตัว เผยถ้ำพำนักของเซียนโบราณและคัมภีร์ยุทธ์ที่สาบสูญ สำนักคู่แข่งกำลังส่งยอดฝีมือมุ่งหน้าไป!'
+      descTh: 'ม่านค่ายกลพันปีสลายตัว เผยถ้ำพำนักของผู้ลงมาจากโลกเบื้องบนที่บาดเจ็บจนตบะร่วงหล่นติดค้างใต้ผืนฟ้า (เช่นเดียวกับทูตตกสวรรค์ ขงหมิง #21) และยอดฝีมือยุคเทียนกู่ สำนักคู่แข่งกำลังส่งยอดฝีมือมุ่งหน้าไป!'
     },
     BLOOM_CELESTIAL_LOTUS: {
       id: 'BLOOM_CELESTIAL_LOTUS',
@@ -1567,7 +1742,7 @@
       orgType: 'ป้อม',
       sectTier: 'STANDARD',
       tierLevel: 2,
-      alignment: 'NEUTRAL',
+      alignment: 'RIGHTEOUS',
       doctrineMode: 'THEMATIC',
       macroRegion: 'NORTHERN_PEAKS',
       x: 60, y: 24, baseDays: 5, terrain: 'mountain', danger: 3,
@@ -1921,7 +2096,6 @@
     { from: 'mountain', to: 'MINE_CELESTIAL_STONE', days: 2, terrain: 'mountain' },
     { from: 'mountain', to: 'REALM_METAL', days: 2, terrain: 'mountain' },
     { from: 'ruins', to: 'REALM_EARTH', days: 2, terrain: 'mountain' },
-    { from: 'water', to: 'REG_SLEEPING_DRAGON_LAKE', days: 2, terrain: 'water' },
     { from: 'water', to: 'VALLEY_IMMORTAL_MARSH', days: 2, terrain: 'water' },
     { from: 'water', to: 'TOLL_SOUTHERN_WATERWAY', days: 2, terrain: 'water' },
     { from: 'water', to: 'REALM_WATER', days: 2, terrain: 'water' },
@@ -1971,14 +2145,15 @@
       ? 'สายผสมผสานไร้กรอบ (เปิดรับทุกวิถี/ศาสตราตามวาสนาเหมือนผู้เล่น)'
       : ('สายเอกลักษณ์เฉพาะทาง (' + canon.majorPath + ' · ' + (canon.signatureWeaponTypes || ['SWORD']).join('/') + ')');
     s.sectTier = effTierSpec.id;
-    s.tierLevel = effTierSpec.tierLevel;
+    if (!s.livingRoster) s.tierLevel = effTierSpec.tierLevel;
     s.tierNameTh = effTierSpec.nameTh;
     s.tierBadgeTh = effTierSpec.badgeTh;
     s.alignment = alignSpec.id;
     s.alignmentLabelTh = alignSpec.nameTh;
     s.isAllianceLeader = Boolean(alignSpec.hasSupremeLeader && canon.isAllianceLeader);
     s.allianceTitleTh = s.isAllianceLeader ? (canon.allianceTitleTh || ('ผู้นำสูงสุด' + alignSpec.nameTh)) : null;
-    s.majorPath = canon.majorPath || s.majorPath || (f && f.majorPath) || 'XIAN';
+    const isReborn = !!(s.livingRoster && (s.livingRoster.rebornUntilDay || (s.livingRoster.dynastyGen || 1) > 1));
+    if (!isReborn) s.majorPath = canon.majorPath || s.majorPath || (f && f.majorPath) || 'XIAN';
     s.allowedPaths = Array.isArray(canon.allowedPaths) ? canon.allowedPaths.slice() : [s.majorPath];
     s.signatureSubs = Array.isArray(canon.signatureSubs) ? canon.signatureSubs.slice() : [];
     s.signatureWeaponTypes = Array.isArray(canon.signatureWeaponTypes) ? canon.signatureWeaponTypes.slice() : ['SWORD'];
@@ -1986,6 +2161,8 @@
     s.signatureGearTh = canon.signatureGearTh || 'ศาสตราประจำสำนัก';
     s.aliasNames = Array.isArray(canon.aliasNames) ? canon.aliasNames.slice() : [canon.nameTh];
     s.macroRegion = s.macroRegion || canon.macroRegion;
+    s.terrain = s.terrain || canon.terrain;
+    s.danger = Number.isFinite(s.danger) ? s.danger : canon.danger;
     s.x = Number.isFinite(s.x) ? s.x : canon.x;
     s.y = Number.isFinite(s.y) ? s.y : canon.y;
     s.baseDays = Number.isFinite(s.baseDays) ? s.baseDays : canon.baseDays;
@@ -1994,6 +2171,10 @@
     if (Array.isArray(canon.specialtyMatIds) && canon.specialtyMatIds.length) { const merged = canon.specialtyMatIds.concat(Array.isArray(s.specialtyMatIds) ? s.specialtyMatIds : []); s.specialtyMatIds = Array.from(new Set(merged)); } else if (!Array.isArray(s.specialtyMatIds) || !s.specialtyMatIds.length) { s.specialtyMatIds = (f && f.specialtyMatIds ? f.specialtyMatIds : []).slice(); }
     s.nodeId = s.nodeId || ('NODE_SECT_' + canon.codeId);
     if (!Number.isFinite(s.power) || s.power <= 0) s.power = canon.powerBase || effTierSpec.basePower;
+    else if (!s.livingRoster && !s.powerScaledToCanon) {
+      s.power = Math.round((canon.powerBase || effTierSpec.basePower) * clamp(s.power, 0.90, 1.10) * 100) / 100;
+      s.powerScaledToCanon = true;
+    }
     if (!Number.isFinite(s.influence)) s.influence = effTierSpec.influenceBase;
     return s;
   }
@@ -2012,16 +2193,17 @@
         c.codeId === s.factionId ||
         (Array.isArray(c.aliasNames) && c.aliasNames.includes(s.nameTh))
       ) || X.CANONICAL_SECTS[idx % X.CANONICAL_SECTS.length];
-      const f = factions.find(fc => fc.id === s.factionId) || factions[idx % Math.max(1, factions.length)];
-      if (f) {
-        s.factionId = s.factionId || f.id;
-        s.code = s.code || f.code;
-        s.factionNameTh = s.factionNameTh || canon.nameTh || f.nameTh;
-        s.shortTh = s.shortTh || f.shortTh;
-        s.icon = s.icon || f.icon;
-        s.specialtyTh = s.specialtyTh || f.specialtyTh;
-      }
-      s.nameTh = canon.nameTh;
+      const f = factions.find(fc => fc.id === s.factionId || fc.id === canon.codeId) || null;
+      s.factionId = s.factionId || canon.codeId;
+      s.code = s.code || canon.codeId;
+      const isReborn = !!(s.livingRoster && (s.livingRoster.rebornUntilDay || (s.livingRoster.dynastyGen || 1) > 1));
+      if (!isReborn) s.nameTh = canon.nameTh;
+      s.factionNameTh = s.factionNameTh || s.nameTh;
+      s.shortTh = s.shortTh || s.nameTh.replace(/^แดนศักดิ์สิทธิ์|^สำนัก|^ตระกูล|^หอ|^ศาลา|^หุบเขา|^นิกาย|^ภาคี|^หมู่ตึก|^ป้อม|^ชุมทาง|^อาราม|^มณฑล|^วัง/, '');
+      s.icon = s.icon || (canon.sectTier === 'SACRED_LAND' ? '👑' : canon.sectTier === 'HEGEMON' ? '🏯' : canon.doctrineMode === 'ECLECTIC' ? '☯️' : (f && f.icon) || '🏯');
+      s.specialtyTh = s.specialtyTh || (canon.signatureGearTh + ' · ' + canon.tributeDescTh);
+      s.treatyPref = s.treatyPref || (canon.alignment === 'DEMONIC' ? 'NON_AGGRESSION' : 'TRADE_PACT');
+      if (!s.doctrineBonus || typeof s.doctrineBonus !== 'object') s.doctrineBonus = {};
       enrichSectWithCanon(s, canon, f);
       if (s.treaty === 'VASSAL_TREATY') s.isVassal = true;
       if (s.isVassal) {
@@ -2033,10 +2215,16 @@
         if (!Number.isFinite(s.loyalty)) s.loyalty = 50;
       }
       const exIdx = w.allSects.findIndex(x => x && (x.id === s.id || x.canonicalId === canon.codeId || x.nameTh === canon.nameTh));
-      if (exIdx >= 0) w.allSects[exIdx] = Object.assign(w.allSects[exIdx], s);
-      if (exIdx >= 0) w.allSects[exIdx] = s;
-      else w.allSects.push(s);
+      if (exIdx >= 0) {
+        if (w.allSects[exIdx] !== s) {
+          w.allSects[exIdx] = Object.assign(w.allSects[exIdx], s);
+          w.sects[idx] = w.allSects[exIdx];
+        }
+      } else {
+        w.allSects.push(s);
+      }
     });
+    w.jianghuSects = w.allSects;
     // Ensure all 19 canonical Jianghu organizations exist in w.allSects across all 6 tiers & 3 alignments
     X.CANONICAL_SECTS.forEach((canon, idx) => {
       const existing = w.allSects.find(s => s && (s.canonicalId === canon.codeId || s.nameTh === canon.nameTh || (Array.isArray(canon.aliasNames) && canon.aliasNames.includes(s.nameTh))));
@@ -2245,13 +2433,13 @@
       baseDays: 2,
       ownerSectId: 'NEUTRAL',
       ownerNameTh: 'แดนทดสอบบรรพกาล',
-      descTh: 'เจดีย์ 12 ชั้นทดสอบ 12 มรรคา ปลดล็อกชุดสัจธรรมและเคล็ดวิชาประจำสาย'
+      descTh: 'มหาเจดีย์สี่สิบสามชั้นพิสูจน์สัจธรรมแห่งมรรคา ปลดล็อกชุดสัจธรรมและเคล็ดวิชาประจำสาย'
     };
 
     nodes.NODE_JIANGNAN_CROSSWAY = {
       id: 'NODE_JIANGNAN_CROSSWAY',
       kind: 'TRADE_HUB',
-      nameTh: 'ชุมทางการค้าเจียงหนาน',
+      nameTh: 'ชุมทางการค้าหุบเขาสองแคว',
       icon: '🏮',
       macroRegion: 'EASTERN_PLAINS',
       terrain: 'plains',
@@ -2259,7 +2447,7 @@
       x: 84, y: 56,
       baseDays: 3,
       ownerSectId: 'NEUTRAL',
-      ownerNameTh: 'สมาคมการค้าเจียงหนาน',
+      ownerNameTh: 'สมาคมการค้าหุบเขาสองแคว',
       descTh: 'ศูนย์กลางแลกเปลี่ยนสินค้า คาราวานโอสถ และข่าวสารยุทธภพแดนตะวันออก'
     };
 
@@ -2294,6 +2482,7 @@
       REALM_EARTH: { macroRegion: 'NORTHERN_PEAKS', x: 62, y: 28, icon: '🪨', nameTh: 'แดนปฐพีหยกเร้น', catalystId: 'CAT_PRIMORDIAL_EARTH' }
     };
     Object.entries(realmCoords).forEach(([rid, rc]) => {
+      const catTh = (ECO && ECO.REFINEMENT_CATALYSTS && ECO.REFINEMENT_CATALYSTS[rc.catalystId] && ECO.REFINEMENT_CATALYSTS[rc.catalystId].nameTh) || rc.catalystId;
       nodes[rid] = {
         id: rid,
         kind: 'ELEMENTAL_REALM',
@@ -2307,7 +2496,7 @@
         catalystId: rc.catalystId,
         ownerSectId: 'NEUTRAL',
         ownerNameTh: 'แดนปฐมภูมิเบญจธาตุ',
-        descTh: 'แดนลับเบญจธาตุ ดรอปแก่นปฐมธาตุ (' + rc.catalystId + ') สำหรับปลุกสายเลือด 4 เทพอสูร'
+        descTh: 'แดนลับเบญจธาตุ แหล่งกำเนิดแก่นปฐมธาตุ「' + catTh + '」สำหรับปลุกสายเลือด 4 เทพอสูร'
       };
     });
 
@@ -2400,26 +2589,31 @@
       };
     });
 
+    for (const city of Object.values(settlementById)) nodes[city.id] = city;
     topo.nodes = nodes;
-    topo.routes = X.WORLD_ROUTES;
+    topo.routes = makeContinentalRoutes(topo, nodes);
     if (!topo.selectedNodeId || !nodes[topo.selectedNodeId]) topo.selectedNodeId = 'NODE_HOME_SECT';
     return topo;
   };
 
   X.estimateTravelTime = (W, party, targetNodeId, opts) => {
     opts = opts || {};
-    const topo = X.ensureWorldTopology(W);
-    const node = (topo && topo.nodes && topo.nodes[targetNodeId]) ||
+    const topo = opts.topo || X.ensureWorldTopology(W);
+    const node = opts.target || (topo && topo.nodes && topo.nodes[targetNodeId]) ||
       Object.values((topo && topo.nodes) || {}).find(n => n.sectId === targetNodeId || n.factionId === targetNodeId);
-    const baseDays = Number.isFinite(opts.baseDays) ? opts.baseDays : (node && Number.isFinite(node.baseDays) ? node.baseDays : 4);
+    const route = X.planContinentalRoute(W, topo, node, opts.fromId);
+    const baseDays = route ? route.days : Number.isFinite(opts.baseDays) ? opts.baseDays
+      : (node && Number.isFinite(node.baseDays) ? node.baseDays : 4);
     if (baseDays <= 0) return { baseDays: 0, days: 0, durationMultiplier: 1, hasMount: false, hasPhoenixMount: false, hasAzureDragonMount: false };
     const cleanParty = Array.isArray(party) ? party.map(x => typeof x === 'string' ? (W && W.byId && W.byId[x]) : x).filter(Boolean) : [];
     const trip = cleanParty.length
       ? X.createParty(W, cleanParty, { baseDays, regionId: node ? node.id : targetNodeId, macroRegion: node ? node.macroRegion : null, terrain: node ? node.terrain : null, useSectPhoenixAura: !!opts.useSectPhoenixAura })
       : { ok: true, hasMount: false, hasPhoenixMount: false, hasAzureDragonMount: false, durationMultiplier: 1, days: baseDays, carryCapacity: 32 };
     const mult = trip.durationMultiplier || 1;
-    const days = Math.max(0.5, Math.round(baseDays * mult * 100) / 100);
+    const days = Math.max(route ? .08 : .5, Math.round(baseDays * mult * 100) / 100);
     return {
+      route,
+      distanceLi:route?.distanceLi,
       nodeId: node ? node.id : targetNodeId,
       macroRegion: node ? node.macroRegion : 'CENTRAL_HEARTLAND',
       terrain: node ? node.terrain : 'forest',
@@ -2565,10 +2759,11 @@
       done: false,
       state: 'away'
     };
+    setJourney(ex, travel.route, travel.days, 0, false);
     W.world.expeds.push(ex);
     members.forEach(m => { m.expId = ex.id; m.away = true; m.lastTrip = W.day; });
     X.releaseDeployedGarrisons(W, members);
-    W.log('mission', '⚔️ กรีฑาทัพ ' + members.map(m => m.h.name.given).join('、') + ' มุ่งหน้าตีค่าย「' + targetSect.nameTh + '」 (เดินทาง ' + travel.days + ' วัน)', members.map(m => m.id));
+    W.log('mission', '⚔️ กรีฑาทัพ ' + members.map(m => m.h.name.given).join('、') + ' มุ่งหน้าตีค่าย「' + targetSect.nameTh + '」 (เดินทาง ' + travel.days + ' วัน)', members.map(m => m.id), {location:routePlace(ex.route)});
     return { ok: true, queued: true, siege: siegeObj, expedition: ex, travel };
   };
   X.launchSectSiege = X.marshalStrikeForce;
@@ -2579,6 +2774,7 @@
   X.resolveSectSiege = (W, siegeOrEx, opts) => {
     opts = opts || {};
     if (!W || !W.world) return { ok: false, reason: 'invalid-world' };
+    if (!siegeOrEx) return { ok: false, reason: 'invalid-target-sect' };
     X.ensureWorldTopology(W);
     const isEx = siegeOrEx && siegeOrEx.kind === 'sect_siege';
     const siege = isEx ? (siegeOrEx.siege || W.world.sieges.find(s => s.id === siegeOrEx.siegeId)) : (typeof siegeOrEx === 'object' && siegeOrEx.sectId ? siegeOrEx : null);
@@ -2587,17 +2783,21 @@
     }
     const targetSect = X.findSect(W, (siege && siege.sectId) || (isEx && siegeOrEx.sectId) || siegeOrEx);
     if (!targetSect) return { ok: false, reason: 'invalid-target-sect' };
+    if (!isEx && !siege && !opts.allowRawSectReplay && Array.isArray(W.world.sieges) && W.world.sieges.some(sg => sg && sg.sectId === targetSect.id && sg.settlementApplied && (W.day || 0) - (sg.resolvedDay || 0) < 7)) {
+      return { ok: false, reason: 'already-resolved', sectId: targetSect.id };
+    }
 
     const partyIds = (siege && siege.partyIds) || (isEx && siegeOrEx.party) || (Array.isArray(opts.party) ? opts.party.map(p => typeof p === 'string' ? p : p.id) : []);
     const members = (opts.members || partyIds.map(id => W.byId[id]).filter(Boolean)).filter(n => n && !n.dead);
     if (!members.length) return { ok: false, reason: 'no-members' };
 
     const menagerie = (CULT && CULT.ensureMenagerie) ? CULT.ensureMenagerie(W) : ((W.sect && W.sect.beasts) || []);
-    const warBeasts = opts.warBeasts || ((siege && siege.warBeastUids) || []).map(uid => menagerie.find(b => b && (b.uid === uid || b.id === uid))).filter(Boolean);
+    const warBeasts = (opts.warBeasts || ((siege && siege.warBeastUids) || []).map(uid => menagerie.find(b => b && (b.uid === uid || b.id === uid))).filter(Boolean))
+      .filter(b => b && !b.dead && (b.hp == null || b.hp > 0));
     members.forEach(m => {
       const aPets = (CULT && CULT.activePets) ? CULT.activePets(m) : [];
       aPets.forEach(pt => {
-        if (pt && !warBeasts.some(wb => (wb.uid || wb.id) === (pt.uid || pt.id))) warBeasts.push(pt);
+        if (pt && !pt.dead && (pt.hp == null || pt.hp > 0) && !warBeasts.some(wb => (wb.uid || wb.id) === (pt.uid || pt.id))) warBeasts.push(pt);
       });
     });
 
@@ -2610,8 +2810,12 @@
       ? opts.coalitionBonusPower
       : (siege && Number.isFinite(siege.coalitionBonusPower) ? siege.coalitionBonusPower : 0);
     const basePartyPower = members.reduce((s, m) => s + CULT.power(m), 0) + coalitionBonusPower;
-    const beastPower = warBeasts.reduce((s, b) => s + (CULT.petPowerSingle ? CULT.petPowerSingle(b) : 65), 0);
-    const sectDefBase = Math.max(180, Math.round((targetSect.power || 1) * 320));
+    const beastPower = warBeasts.reduce((s, b) => {
+      const owner = b && b.ownerId && W.byId ? W.byId[b.ownerId] : null;
+      return s + (CULT.petPowerSingle ? CULT.petPowerSingle(owner, b) : 65);
+    }, 0);
+    const sectDefBonus = (targetSect.doctrineBonus && Number.isFinite(targetSect.doctrineBonus.defenseBonus)) ? (1 + targetSect.doctrineBonus.defenseBonus) : 1;
+    const sectDefBase = Math.max(180, Math.round((targetSect.power || 1) * 320 * sectDefBonus));
     const phases = [];
     let allPhasesWon = true;
 
@@ -2760,8 +2964,10 @@
     const lead = party[0] || W.byId[W.sect.masterId];
 
     if (choice === 'PILLAGE') {
-      const stonesLoot = Math.max(350, Math.round(420 + (s.power || 1) * 240));
-      ECO.earn(W, stonesLoot, 'ปล้นคลังสมบัติของ' + s.nameTh);
+      const wantLoot = Math.max(350, Math.round(420 + (s.power || 1) * 240));
+      const stonesLoot = (ECO && ECO.earnFromPool)
+        ? ECO.earnFromPool(W, wantLoot, 'ปล้นคลังสมบัติของ' + s.nameTh, { rivalSect: s })
+        : ((ECO && ECO.earn && ECO.earn(W, wantLoot, 'ปล้นคลังสมบัติของ' + s.nameTh)) ? wantLoot : 0);
       const matsLoot = {};
       const matPool = (Array.isArray(s.specialtyMatIds) && s.specialtyMatIds.length) ? s.specialtyMatIds : ['MAT_ORE_METEOR_IRON_5', 'MAT_HERB_SNOW_LOTUS_5'];
       matPool.forEach(mId => {
@@ -2799,10 +3005,12 @@
       s.tariffFree = true;
       s.bannerTh = '[ ด่านการค้าเสรี ]';
       s.attitude = clamp((s.attitude || 0) + 15, -20, 100);
-      const immediateDividend = alreadyFreeTrade ? 0 : 180;
-      if (immediateDividend > 0) {
-        ECO.earn(W, immediateDividend, 'ค่าเปิดด่านการค้าเสรีจาก' + s.nameTh);
-      }
+      const wantDividend = alreadyFreeTrade ? 0 : 180;
+      const immediateDividend = wantDividend > 0
+        ? ((ECO && ECO.earnFromPool)
+          ? ECO.earnFromPool(W, wantDividend, 'ค่าเปิดด่านการค้าเสรีจาก' + s.nameTh, { rivalSect: s })
+          : ((ECO && ECO.earn && ECO.earn(W, wantDividend, 'ค่าเปิดด่านการค้าเสรีจาก' + s.nameTh)) ? wantDividend : 0))
+        : 0;
       if (!alreadyFreeTrade && W.market && W.market.mult && Array.isArray(s.specialtyMatIds)) {
         s.specialtyMatIds.forEach(mId => {
           W.market.mult[mId] = Math.round(clamp((W.market.mult[mId] || 1) * 0.80, 0.55, 1.5) * 100) / 100;
@@ -2829,7 +3037,7 @@
     s.loyalty = Number.isFinite(opts.initialLoyalty) ? opts.initialLoyalty : 68;
     s.tributePolicy = opts.tributePolicy || 'STANDARD';
     s.subjugatedDay = W.day || 0;
-    s.lastVassalTributeDay = null;
+    s.lastVassalTributeDay = W.day || 0;
     const summaryTh = 'ปักธง「สำนักบริวารในอาณัติ」เหนือ' + s.nameTh + ' สำเร็จ (ความภักดีเริ่มต้น ' + s.loyalty + '/100)';
     W.log('mission', '🚩 ' + summaryTh, lead ? [lead.id] : []);
     X.ensureWorldTopology(W);
@@ -2850,8 +3058,9 @@
     }
     s.tributePolicy = p;
     s.lastPolicyChangeDay = curDay;
-    if (p === 'LENIENT') s.loyalty = clamp((s.loyalty || 60) + 6, 0, 100);
-    if (p === 'HARSH') s.loyalty = clamp((s.loyalty || 60) - 8, 0, 100);
+    const curLoyalty = Number.isFinite(s.loyalty) ? s.loyalty : 60;
+    if (p === 'LENIENT') s.loyalty = clamp(curLoyalty + 6, 0, 100);
+    if (p === 'HARSH') s.loyalty = clamp(curLoyalty - 8, 0, 100);
     return { ok: true, sectId: s.id, tributePolicy: p, loyalty: s.loyalty };
   };
 
@@ -2865,8 +3074,11 @@
     vassals.forEach(s => {
       if (!opts.force && s.lastVassalTributeDay != null && (curDay === s.lastVassalTributeDay || (curDay - s.lastVassalTributeDay < 90))) return;
       const polMult = s.tributePolicy === 'HARSH' ? 1.45 : s.tributePolicy === 'LENIENT' ? 0.75 : 1.0;
-      const baseStones = Math.max(80, Math.round((120 + (s.power || 1) * 45) * polMult));
-      ECO.earn(W, baseStones, 'บรรณาการตามฤดูกาลจากสำนักบริวาร ' + s.nameTh);
+      const rawStones = Math.max(80, Math.round((120 + (s.power || 1) * 45) * polMult));
+      const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
+      const baseStones = (pool && Number.isFinite(pool.stones)) ? Math.min(rawStones, Math.max(0, Math.floor(pool.stones))) : rawStones;
+      if (pool && Number.isFinite(pool.stones)) pool.stones -= baseStones;
+      if (baseStones > 0) ECO.earn(W, baseStones, 'บรรณาการตามฤดูกาลจากสำนักบริวาร ' + s.nameTh);
       const matsGiven = {};
       const matPool = (Array.isArray(s.specialtyMatIds) && s.specialtyMatIds.length) ? s.specialtyMatIds : ['MAT_HERB_JADE_LOTUS_2', 'MAT_ORE_COLD_STEEL_2'];
       matPool.slice(0, 2).forEach(mId => {
@@ -2907,9 +3119,12 @@
     X.ensureWorldTopology(W);
     const vassals = (W.world.allSects || []).filter(s => s && (s.isVassal || s.treaty === 'VASSAL_TREATY'));
     const target = sectOrId ? X.findSect(W, sectOrId) : vassals[0];
-    if (!target) return null;
+    if (!target || (!target.isVassal && target.treaty !== 'VASSAL_TREATY')) return null;
+    const callId = 'DISTRESS_' + (W.day || 0) + '_' + target.id;
+    const existingCall = (W.world.vassalDistressCalls || []).find(c => c && !c.resolved && c.id === callId);
+    if (existingCall) return existingCall;
     const call = {
-      id: 'DISTRESS_' + (W.day || 0) + '_' + target.id,
+      id: callId,
       sectId: target.id,
       sectNameTh: target.nameTh,
       threatNameTh: opts.threatNameTh || 'ฝูงอสูรคลั่งและสำนักอริปิดล้อมชายแดน',
@@ -2942,6 +3157,9 @@
     const s = X.findSect(W, call.sectId);
     if (!s) return { ok: false, reason: 'invalid-sect' };
     const actChoice = String(choice || 'REINFORCE').toUpperCase();
+    if (!['REINFORCE', 'AID', 'SEND_AID', 'REFUSE', 'IGNORE', 'DECLINE'].includes(actChoice)) {
+      return { ok: false, reason: 'invalid-choice', choice: actChoice };
+    }
     if (actChoice === 'REINFORCE' || actChoice === 'AID' || actChoice === 'SEND_AID') {
       const helpers = Array.isArray(party) && party.length
         ? party.map(x => typeof x === 'string' ? W.byId[x] : x).filter(n => n && !n.dead && !n.away && !n.exiled)
@@ -2994,10 +3212,10 @@
     if (W.world.politics && W.world.politics.treaties) {
       W.world.politics.treaties[s.id] = { type: 'RIVAL_FEUD', signedDay: W.day || 0, cause: 'VASSAL_REBELLION' };
     }
-    const coalition = (W.world.allSects || []).filter(other => other && other.id !== s.id && ((other.isVassal && (other.loyalty || 50) < 35) || other.treaty === 'RIVAL_FEUD' || (other.attitude || 0) <= -50));
+    const coalition = (W.world.allSects || []).filter(other => other && other.id !== s.id && ((other.isVassal && (Number.isFinite(other.loyalty) ? other.loyalty : 50) < 35) || other.treaty === 'RIVAL_FEUD' || (other.attitude || 0) <= -50));
     const coalitionIds = [s.id];
     coalition.forEach(c => {
-      if ((c.isVassal || c.treaty === 'VASSAL_TREATY') && (c.loyalty || 50) < 35) {
+      if ((c.isVassal || c.treaty === 'VASSAL_TREATY') && (Number.isFinite(c.loyalty) ? c.loyalty : 50) < 35) {
         c.isVassal = false; c.suzerainId = null; c.bannerTh = null; c.treaty = 'RIVAL_FEUD'; c.attitude = -85;
         if (W.world.politics && W.world.politics.treaties) {
           W.world.politics.treaties[c.id] = { type: 'RIVAL_FEUD', signedDay: W.day || 0, cause: 'VASSAL_REBELLION_CASCADE' };
@@ -3059,10 +3277,11 @@
       party: members.map(n => n.id), t0: W.t, ret: W.t + Math.round(travel.days * 1440), days: travel.days,
       baseDays: travel.baseDays, hasMount: travel.hasMount, durationMultiplier: travel.durationMultiplier,
       journal: ['ออกเดินทางสู่「' + node.nameTh + '」'], carry: [], supplies: 0, done: false, state: 'away' };
+    setJourney(ex, travel.route, travel.days, 0, false);
     W.world.expeds.push(ex);
     members.forEach(n => { AI.interruptFor(W, n); n.expId = ex.id; n.away = true; n.lastTrip = W.day; });
     X.releaseDeployedGarrisons(W, members);
-    W.log('mission', '🚩 ส่งคณะเข้ายึด「' + node.nameTh + '」 (เดินทาง ' + travel.days + ' วัน)', members.map(n => n.id));
+    W.log('mission', '🚩 ส่งคณะเข้ายึด「' + node.nameTh + '」 (เดินทาง ' + travel.days + ' วัน)', members.map(n => n.id), {location:routePlace(ex.route)});
     return { ok: true, queued: true, expedition: ex, travel };
   };
 
@@ -3151,7 +3370,8 @@
       (fsSummary && fsSummary.hasBlackTortoise && spec.useSectBastion !== false)
     );
     const discPower = disciples.reduce((s, d) => s + CULT.power(d), 0);
-    const beastPower = beast ? (CULT.petPowerSingle ? CULT.petPowerSingle(beast) : 120) : 0;
+    const beastOwner = beast && beast.ownerId && W.byId ? W.byId[beast.ownerId] : null;
+    const beastPower = beast ? (CULT.petPowerSingle ? CULT.petPowerSingle(beastOwner, beast) : 120) : 0;
     const baseDef = (X.RESOURCE_NODE_DEFS[nodeId] && X.RESOURCE_NODE_DEFS[nodeId].garrisonPowerBase) || 320;
     const bastionMult = isBlackTortoise ? 1.45 : 1.0;
     const defensePower = Math.round((baseDef * 0.65 + discPower + beastPower * 1.5) * bastionMult);
@@ -3181,7 +3401,10 @@
     if (rn.ownerSectId !== 'PLAYER' && !gObj.playerManaged && (!Array.isArray(gObj.discipleIds) || !gObj.discipleIds.length)) {
       return gObj;
     }
-    const aliveDisciples = (gObj.discipleIds || []).map(id => W.byId && W.byId[id]).filter(n => X.isAvailableForExpedition(W, n));
+    const aliveDisciples = (gObj.discipleIds || []).map(id => W.byId && W.byId[id]).filter(n =>
+      X.isAvailableForExpedition(W, n) ||
+      (n && !n.dead && !n.exiled && n.expId && W.world.expeds && W.world.expeds.some(e => e && e.id === n.expId && e.kind === 'resource_claim' && e.returnStartedAt != null))
+    );
     gObj.discipleIds = aliveDisciples.map(d => d.id);
     const menagerie = (CULT && CULT.ensureMenagerie) ? CULT.ensureMenagerie(W) : ((W.sect && W.sect.beasts) || []);
     const beast = gObj.beastUid ? menagerie.find(b => b && !b.dead && (b.uid === gObj.beastUid || b.id === gObj.beastUid)) : null;
@@ -3196,7 +3419,8 @@
       (fsSummary && fsSummary.hasBlackTortoise && gObj.bastionActive && (aliveDisciples.length > 0 || beast))
     );
     const discPower = aliveDisciples.reduce((s, d) => s + CULT.power(d), 0);
-    const beastPower = beast ? (CULT.petPowerSingle ? CULT.petPowerSingle(beast) : 120) : 0;
+    const gBeastOwner = beast && beast.ownerId && W.byId ? W.byId[beast.ownerId] : null;
+    const beastPower = beast ? (CULT.petPowerSingle ? CULT.petPowerSingle(gBeastOwner, beast) : 120) : 0;
     const baseDef = (X.RESOURCE_NODE_DEFS[rn.id] && X.RESOURCE_NODE_DEFS[rn.id].garrisonPowerBase) || 320;
     const bastionMult = isBlackTortoise ? 1.45 : 1.0;
     gObj.defensePower = Math.round((baseDef * 0.65 + discPower + beastPower * 1.5) * bastionMult);
@@ -3225,8 +3449,11 @@
       X.recomputeNodeGarrison(W, rn);
       const mult = (rn.garrison && rn.garrison.yieldMultiplier) || 1.0;
       const isSeasonal = !!opts.seasonal;
-      const stones = Math.round((isSeasonal ? (rn.seasonalStones || 300) : (rn.dailyStones || 16)) * mult);
+      const rawStones = Math.round((isSeasonal ? (rn.seasonalStones || 300) : (rn.dailyStones || 16)) * mult);
+      const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
+      const stones = pool && Number.isFinite(pool.stones) ? Math.min(rawStones, Math.max(0, Math.floor(pool.stones))) : 0;
       if (stones > 0) {
+        if (pool && Number.isFinite(pool.stones) && pool.stones >= stones) pool.stones -= stones;
         ECO.earn(W, stones, 'รายได้จากจุดยุทธศาสตร์「' + rn.nameTh + '」');
         totalStones += stones;
         rn.accumulatedStones = (rn.accumulatedStones || 0) + stones;
@@ -3255,7 +3482,8 @@
     const rn = W.world.resourceNodes && W.world.resourceNodes[nodeId];
     if (!rn) return { ok: false, reason: 'invalid-resource-node' };
     X.recomputeNodeGarrison(W, rn);
-    const attacker = X.findSect(W, attackerSectOrId) || (W.world.sects && W.world.sects[0]);
+    const allSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+    const attacker = X.findSect(W, attackerSectOrId) || allSects[0];
     const atkPower = opts.attackerPower || Math.round(((attacker && attacker.power) || 1.1) * 310);
     const defPower = (rn.garrison && rn.garrison.defensePower) || 260;
     const repelled = opts.forceLose ? false : (opts.forceRepel ? true : defPower >= atkPower * 0.85);
@@ -3283,7 +3511,8 @@
     const fsSummary = (CULT && CULT.sectFourSymbolSummary) ? CULT.sectFourSymbolSummary(W) : null;
     const phoenixBonusDays = (fsSummary && fsSummary.hasVermilionPhoenix) ? 4 : 0;
     const durationDays = (spec.durationDays || tpl.durationDays || 14) + phoenixBonusDays;
-    const rival = X.findSect(W, spec.rivalSectId) || (W.world.sects || []).find(s => !s.isVassal) || (W.world.sects && W.world.sects[0]);
+    const allSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+    const rival = X.findSect(W, spec.rivalSectId) || allSects.find(s => s && !s.isVassal && !s.collapsed) || allSects[0];
     const coords = {
       NORTHERN_PEAKS: { x: 48, y: 18 },
       SOUTHERN_WATERS: { x: 44, y: 82 },
@@ -3318,6 +3547,11 @@
       descTh: tpl.descTh
     };
     W.world.anomalies.unshift(anomaly);
+    if (spec.rivalEtaDays == null && rival) {
+      const topo = X.ensureWorldTopology(W);
+      const route = X.planContinentalRoute(W,topo,topo.nodes[anomaly.id],rival.nodeId);
+      if (route) anomaly.rivalEtaDay = (W.t || 0) / 1440 + 1 + route.days;
+    }
     X.revealMacroRegion(W, macroRegion);
     X.ensureWorldTopology(W);
     W.log('explore', '☄️ วาสนาฟ้าดินปรากฏ ณ ' + (X.WORLD_REGIONS[macroRegion]?.shortTh || macroRegion) + ':「' + anomaly.nameTh + '」 (คงอยู่ ' + durationDays + ' วัน · ' + anomaly.rivalSectNameTh + ' กำลังส่งคนไปแย่งชิง!)', []);
@@ -3369,10 +3603,11 @@
       done: false,
       state: 'away'
     };
+    setJourney(ex, travel.route, travel.days, 0, false);
     W.world.expeds.push(ex);
     members.forEach(m => { m.expId = ex.id; m.away = true; m.lastTrip = W.day; });
     X.releaseDeployedGarrisons(W, members);
-    W.log('explore', '☄️ ส่งคณะของ ' + members.map(m => m.h.name.given).join('、') + ' เร่งเดินทางสู่「' + anomaly.nameTh + '」 (ใช้เวลา ' + travel.days + ' วัน)', members.map(m => m.id));
+    W.log('explore', '☄️ ส่งคณะของ ' + members.map(m => m.h.name.given).join('、') + ' เร่งเดินทางสู่「' + anomaly.nameTh + '」 (ใช้เวลา ' + travel.days + ' วัน)', members.map(m => m.id), {location:routePlace(ex.route)});
     return { ok: true, queued: true, anomaly, expedition: ex, travel };
   };
 
@@ -3388,7 +3623,7 @@
         opts.ex.done = true;
         const returned = (opts.ex.party || []).map(id => W.byId[id]).filter(n => n && !n.dead && n.expId === opts.ex.id);
         returned.forEach(n => { n.expId = null; n.away = false; n.hidden = false; n.travel = null; });
-        if (returned.length) W.log('explore', 'คณะเดินทางกลับมาแล้ว วาสนาฟ้าดินสิ้นสุดก่อนเดินทางถึง', returned.map(n => n.id));
+        if (returned.length) W.log('explore', 'คณะถึงจุดหมายหลังวาสนาฟ้าดินสิ้นสุด จึงเดินทางกลับ', returned.map(n => n.id));
       }
       return { ok: false, reason: anomaly ? 'already-resolved' : 'anomaly-not-found', claimedBy: anomaly && anomaly.claimedBy };
     }
@@ -3398,8 +3633,10 @@
       : (W.npcs || []).filter(n => n && !n.dead).sort((a, b) => CULT.power(b) - CULT.power(a)).slice(0, 3);
     if (!members.length) return { ok: false, reason: 'no-party' };
 
-    const travel = opts.travel || X.estimateTravelTime(W, members, anomaly.id, { baseDays: anomaly.baseDays, useSectPhoenixAura: true });
-    const arrivalDay = (W.day || 0) + (opts.immediate ? travel.days : 0);
+    const travel = opts.travel || (opts.ex?.route && {days:opts.ex.travelMinutes / 1440, hasPhoenixMount:opts.ex.hasPhoenixMount}) ||
+      X.estimateTravelTime(W, members, anomaly.id, { baseDays: anomaly.baseDays, useSectPhoenixAura: true });
+    const arrivalDay = opts.ex?.arriveAt != null ? opts.ex.arriveAt / 1440 :
+      (W.day || 0) + (opts.immediate ? travel.days : 0);
     const arrivedBeforeRival = arrivalDay <= (anomaly.rivalEtaDay || 999999);
     const partyPower = members.reduce((s, m) => s + CULT.power(m), 0) * (travel.hasPhoenixMount ? 1.15 : 1.0);
     const wonContest = opts.forceRivalWin ? false : (opts.forceWin || (arrivedBeforeRival ? partyPower >= (anomaly.rivalPower || 250) * 0.65 : partyPower >= (anomaly.rivalPower || 250) * 1.25));
@@ -3424,8 +3661,12 @@
     }
 
     const tpl = X.ANOMALY_TEMPLATES[anomaly.templateId] || X.ANOMALY_TEMPLATES.GROTTO_ANCIENT_IMMORTAL;
-    const rewards = { stones: tpl.stones || 350, mats: {}, catalysts: [], manualId: null, recipeId: null };
-    ECO.earn(W, rewards.stones, 'พิชิตวาสนาฟ้าดิน「' + anomaly.nameTh + '」');
+    const pool = W.world && (W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 }));
+    const rawStones = tpl.stones || 350;
+    const anomStones = (pool && Number.isFinite(pool.stones)) ? Math.min(rawStones, Math.max(0, Math.floor(pool.stones))) : rawStones;
+    if (pool && Number.isFinite(pool.stones)) pool.stones -= anomStones;
+    const rewards = { stones: anomStones, mats: {}, catalysts: [], manualId: null, recipeId: null };
+    if (anomStones > 0) ECO.earn(W, rewards.stones, 'พิชิตวาสนาฟ้าดิน「' + anomaly.nameTh + '」');
     if (tpl.mats) {
       Object.entries(tpl.mats).forEach(([mId, qty]) => {
         if (ECO.matById && ECO.matById[mId]) {
@@ -3464,7 +3705,8 @@
     members.forEach(m => { m.merit = (m.merit || 0) + 22; HC.experience(m, 'duel_win', 0.7); });
     W.fame(4.5);
     X.ensureWorldTopology(W);
-    W.log('explore', '🌟 ช่วงชิงวาสนาฟ้าดิน「' + anomaly.nameTh + '」สำเร็จก่อน' + anomaly.rivalSectNameTh + '! ได้รับศิลา ' + rewards.stones + ' ก้อน และแก่นวิเศษ ' + rewards.catalysts.join(', '), members.map(m => m.id));
+    const catalystNamesTh = rewards.catalysts.map(cId => (ECO && ECO.REFINEMENT_CATALYSTS && ECO.REFINEMENT_CATALYSTS[cId] && ECO.REFINEMENT_CATALYSTS[cId].nameTh) || cId);
+    W.log('explore', '🌟 ช่วงชิงวาสนาฟ้าดิน「' + anomaly.nameTh + '」สำเร็จก่อน' + anomaly.rivalSectNameTh + '! ได้รับศิลาวิญญาณ ' + rewards.stones + ' ก้อน และแก่นวิเศษ「' + catalystNamesTh.join(', ') + '」', members.map(m => m.id));
     return { ok: true, won: true, claimedBy: 'PLAYER', anomalyId: anomaly.id, arrivedBeforeRival, travelDays: travel.days, rewards };
   };
 
@@ -3590,7 +3832,7 @@
     const lead = members[0] || (W.npcs && W.npcs.find(n => n && !n.dead));
     if (!lead) return { ok: false, reason: 'no-party' };
 
-    const pool = (W.world.allSects || []).filter(s => s && !s.isVassal);
+    const pool = (W.world.allSects || []).filter(s => s && !s.isVassal && !s.collapsed && !(s.livingRoster && s.livingRoster.collapsed));
     const targetSect = (otherSectOrId && X.findSect(W, otherSectOrId)) || (pool.length ? pool[(W.day || 0) % pool.length] : W.world.allSects[0]);
     if (!targetSect) return { ok: false, reason: 'no-target-sect' };
 
@@ -3611,11 +3853,14 @@
       const dsh = (COMBAT && COMBAT.evaluateTacticalBoutSummary) ? COMBAT.evaluateTacticalBoutSummary(activeParty, [rivalDummy]) : null;
       const dshMult = dsh ? (1 + clamp(dsh.advantageDelta * 0.5, -0.10, 0.10)) : 1;
       const ourPower = activeParty.reduce((sum, m) => sum + CULT.power(m), 0) * dshMult;
-      const theirPower = Math.round((targetSect.power || 1.1) * 190 * Math.max(1, (members.length || 1) * 0.65));
+      const docCombatMult = (targetSect.doctrineBonus && Number.isFinite(targetSect.doctrineBonus.combatBonus)) ? (1 + targetSect.doctrineBonus.combatBonus) : 1;
+      const theirPower = Math.round((targetSect.power || 1.1) * 190 * Math.max(1, (members.length || 1) * 0.65) * docCombatMult);
       const won = opts.forceWin === true ? true : opts.forceWin === false ? false : (ourPower >= theirPower * 0.82);
-      const stonesLoot = won ? Math.round(35 + (targetSect.tierLevel || 2) * 22) : 0;
+      const wantLoot = won ? Math.round(35 + (targetSect.tierLevel || 2) * 22) : 0;
+      const stonesLoot = (won && wantLoot > 0 && ECO)
+        ? (ECO.earnFromPool ? ECO.earnFromPool(W, wantLoot, 'ปราบศิษย์' + targetSect.nameTh + 'ระหว่างเดินทาง', { rivalSect: targetSect }) : (ECO.earn && ECO.earn(W, wantLoot, 'ปราบศิษย์' + targetSect.nameTh + 'ระหว่างเดินทาง') ? wantLoot : 0))
+        : 0;
       if (won) {
-        if (stonesLoot > 0 && ECO && ECO.earn) ECO.earn(W, stonesLoot, 'ปราบศิษย์' + targetSect.nameTh + 'ระหว่างเดินทาง');
         (members.length ? members : [lead]).forEach(m => { m.merit = (m.merit || 0) + 12; HC.experience(m, 'duel_win', 0.35); });
         W.fame(clashInfo.isOppositeAlignment ? 2.5 : 1.0);
         targetSect.attitude = clamp((targetSect.attitude || 0) - (clashInfo.isOppositeAlignment ? 10 : 6), -100, 100);
@@ -3696,6 +3941,9 @@
     if (treaty === 'RIVAL_FEUD' || treaty === 'EMBARGO') prob += 0.25;
     if (['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY', 'NON_AGGRESSION'].includes(treaty)) prob -= 0.35;
     if (Math.abs(tierA - tierB) <= 1) prob += 0.05; // Peer-tier rivalry
+    if (sB && sB.doctrineBonus && Number.isFinite(sB.doctrineBonus.warProbMod)) prob += sB.doctrineBonus.warProbMod;
+    const alliances = W && W.world && W.world.grandPolitics && W.world.grandPolitics.alliances;
+    if (alliances && alliances[alignB] && Number.isFinite(alliances[alignB].warProbMod)) prob += alliances[alignB].warProbMod;
     return {
       probability: clamp(+prob.toFixed(4), 0.02, 0.95),
       alignA,
@@ -3727,8 +3975,8 @@
     }
 
     // 2. Simulate an inter-sect conflict or alliance mobilization across the 19 Jianghu organizations
-    const righteousSects = all.filter(s => s && s.alignment === 'RIGHTEOUS' && !s.isVassal);
-    const demonicSects = all.filter(s => s && s.alignment === 'DEMONIC' && !s.isVassal);
+    const righteousSects = all.filter(s => s && s.alignment === 'RIGHTEOUS' && !s.isVassal && !s.collapsed && !(s.livingRoster && s.livingRoster.collapsed));
+    const demonicSects = all.filter(s => s && s.alignment === 'DEMONIC' && !s.isVassal && !s.collapsed && !(s.livingRoster && s.livingRoster.collapsed));
     if (righteousSects.length && demonicSects.length && (opts.forceWar || (W.day || 0) % 15 === 0)) {
       const rSect = righteousSects[(W.day || 0) % righteousSects.length];
       const dSect = demonicSects[(W.day || 0) % demonicSects.length];
@@ -3780,12 +4028,14 @@
 
   const origDailyV218 = X.daily;
   X.daily = W => {
+    X.initContinent(W);
     origDailyV218(W);
     X.ensureWorldTopology(W);
+    X.tickContinentalCourts(W);
     // Daily resource node income & hegemony tick
     if (W.day > 0) {
       X.harvestResourceNodes(W, { seasonal: W.day % 90 === 0, includeMats: W.day % 5 === 0 });
-      if (W.day % 10 === 0) X.tickHegemony(W);
+      if (W.day % 10 === 0) { X.tickHegemony(W); X.considerNaturalEndgameEvents(W); }
       if (W.day % 12 === 0 || W.day % 15 === 0) X.tickGrandAlliancePolitics(W);
       if (W.day % 14 === 0 && X.tickAllianceCouncil) X.tickAllianceCouncil(W);
       if (W.day % 16 === 0 && X.tickAutonomousVisitorsV2) X.tickAutonomousVisitorsV2(W);
@@ -3810,6 +4060,33 @@
       });
       if (W.day % 24 === 0 && !(W.world.anomalies || []).some(a => a && !a.resolved && !a.expired)) {
         X.spawnWorldAnomaly(W);
+      }
+      // Natural expiration and non-forced occurrence of vassal distress calls under real geopolitical pressure
+      if (Array.isArray(W.world.vassalDistressCalls)) {
+        W.world.vassalDistressCalls.forEach(c => {
+          if (c && !c.resolved && Number.isFinite(c.expiresDay) && W.day > c.expiresDay) {
+            c.resolved = true;
+            c.outcome = 'EXPIRED';
+            c.resolvedDay = W.day;
+            const vs = X.findSect(W, c.sectId);
+            if (vs) vs.loyalty = clamp((vs.loyalty == null ? 60 : vs.loyalty) - 10, 0, 100);
+            if (W.world.politics && W.world.politics.activeDistressCall === c) W.world.politics.activeDistressCall = null;
+          }
+        });
+      }
+      if (W.day >= 30 && W.day % 18 === 0 && !(W.world.vassalDistressCalls || []).some(c => c && !c.resolved)) {
+        const vassals = (W.world.allSects || []).filter(s => s && (s.isVassal || s.treaty === 'VASSAL_TREATY') && (s.lastDistressDay == null || W.day - s.lastDistressDay >= 60));
+        if (vassals.length) {
+          const hostiles = (W.world.allSects || []).filter(s => s && !s.isVassal && s.treaty !== 'VASSAL_TREATY' && ((s.attitude || 0) <= -30 || s.treaty === 'RIVAL_FEUD'));
+          const candidate = vassals[Math.floor(W.day / 18) % vassals.length];
+          const chance = 0.22 + (hostiles.length ? 0.14 : 0) + ((candidate.loyalty != null && candidate.loyalty < 45) ? 0.12 : 0);
+          const rollHit = !W.rng ? false : (typeof W.rng.chance === 'function' ? W.rng.chance(chance) : (W.rng.next() < chance));
+          if (rollHit) {
+            const threat = hostiles.length ? ('กองกำลังของ「' + hostiles[W.day % hostiles.length].nameTh + '」บุกประชิดชายแดน') : 'ฝูงอสูรคลั่งและกองโจรป่าปิดล้อมชายแดน';
+            candidate.lastDistressDay = W.day;
+            X.spawnVassalDistressCall(W, candidate, { threatNameTh: threat });
+          }
+        }
       }
     }
   };
@@ -3966,7 +4243,8 @@
       social: {
         charisma: rTrait(),
         leadership: rTrait(),
-        persuasion: rTrait()
+        persuasion: rTrait(),
+        diplomacy: rTrait()
       },
       intellect: {
         comprehension: rTrait(),
@@ -4005,6 +4283,513 @@
     return new U.RNG(baseSeed + ':v220:' + tag);
   }
 
+  /* Continental geography and civil government. Distances use map units, never CSS pixels. */
+  const continent = JD.CONTINENT;
+  const homeId = 'NODE_HOME_SECT';
+  const settlementById = {};
+  const settlementIds = [homeId];
+  const terrainFor = { river:'plains', farm:'plains', ferry:'plains', academy:'plains', road:'plains',
+    port:'plains', forge:'mountain', mountain:'mountain', desert:'desert', marsh:'marsh', hunt:'forest' };
+  continent.rows.forEach(([id, nameTh, x, y, tier, owner, specialty], i) => {
+    const polity = continent.polities[owner];
+    settlementIds.push(id);
+    settlementById[id] = Object.freeze({
+      id, nameTh, x, y, tier, order:i + 1, specialty, polityId:polity?.id || null,
+      macroRegion:polity?.macroRegion || 'SOUTHERN_WATERS',
+      kind:'SETTLEMENT', icon:tier >= 4 ? '🏛️' : tier === 2 ? '🚩' : specialty === 'port' ? '⚓' : tier === 1 ? '🏘️' : '🏮',
+      terrain:terrainFor[specialty], danger:tier === 2 ? 2 : 1
+    });
+  });
+  const polityById = Object.fromEntries(continent.polities.map(p => [p.id, p]));
+  X.SETTLEMENTS = Object.freeze(settlementById);
+  X.POLITY_DEFS = Object.freeze(polityById);
+  Object.defineProperty(X,'LI_PER_MAP_UNIT',{value:10,enumerable:true});
+  const terrainPace = { plains:1, forest:1.13, mountain:1.32, desert:1.24, marsh:1.4, water:1.08 };
+  const mapDistance = (a,b) => Math.hypot(b.x - a.x,b.y - a.y);
+  function routeLeg(a, b, terrain, bends = []) {
+    const start = {x:a.x, y:a.y}, end = {x:b.x, y:b.y};
+    const points = [start,...bends.map(([x,y]) => ({x,y})),end];
+    const units = points.slice(1).reduce((sum,p,i) => sum + mapDistance(points[i],p),0);
+    const distanceLi = Math.round(units * X.LI_PER_MAP_UNIT);
+    const days = Math.max(.08, +(distanceLi / 123 * (terrainPace[terrain] || 1)).toFixed(3));
+    return {from:a.id, to:b.id, terrain, days, distanceLi, a:start, b:end, points, units};
+  }
+  const routeMaps = new WeakMap();
+  function makeContinentalRoutes(topo, nodes) {
+    const old = routeMaps.get(topo);
+    if (old) return old;
+    const links = [];
+    const linked = new Set();
+    function add(a, b, terrain, bends) {
+      if (!a || !b || a.id === b.id) return;
+      links.push(routeLeg(a, b, terrain || b.terrain || 'plains',bends));
+      linked.add(a.id); linked.add(b.id);
+    }
+    for (const [a,b,terrain,bends] of continent.roads) add(nodes[settlementIds[a]],nodes[settlementIds[b]],terrain,bends);
+    // Anchor old routes to the settled road network; cross-country trails fill out existing physical destinations.
+    for (const r of X.WORLD_ROUTES) {
+      if (r.from === homeId) continue;
+      add(nodes[r.from], nodes[r.to], r.terrain);
+    }
+    add(nodes['PASS_BM_HANLONG_GATE'],nodes.mountain,'mountain');
+    add(nodes['TOWN_YH_WUYUN_POST'],nodes.plains,'plains');
+    add(nodes['PASS_YH_XIFENG_GORGE'],nodes.forest,'forest');
+    add(nodes['TOWN_BM_BAIMEI_OLD_FORT'],nodes.SANCTUM_SWORD_ABYSS,'mountain');
+    add(nodes['CITY_BM_XINGYUN_CITADEL'],nodes.ruins,'mountain');
+    const anchors = ['forest','plains','mountain','desert','water'];
+    for (const id of anchors) {
+      const n = nodes[id];
+      if (!n) continue;
+      const candidate = Object.values(settlementById).filter(s => n.terrain === 'water'
+        ? ['port','river','ferry'].includes(s.specialty) : s.specialty !== 'port');
+      add(nearestPlace(n, candidate), n);
+    }
+    const destinations = Object.values(nodes).filter(n => !linked.has(n.id) && n.id !== homeId &&
+      ['NEIGHBOR_SECT','EXPEDITION_REGION','RESOURCE_NODE','TRADE_HUB','PAGODA','SANCTUM','ELEMENTAL_REALM'].includes(n.kind));
+    for (const n of destinations) {
+      const nearby = Object.values(settlementById).concat(anchors.map(id => nodes[id]).filter(Boolean))
+        .filter(s => s.specialty !== 'port' || n.terrain === 'water');
+      add(nearestPlace(n, nearby), n);
+    }
+    routeMaps.set(topo, links);
+    return links;
+  }
+  function nearestPlace(point, options) {
+    let nearest = null, best = Infinity;
+    for (const other of options) {
+      const distance = Math.hypot(point.x - other.x, point.y - other.y);
+      if (distance < best) { best = distance; nearest = other; }
+    }
+    return nearest;
+  }
+  X.fortuneMapPoint = (topo, site, rank, index) => {
+    const id = topo.nodes[site.biome] ? site.biome : 'forest';
+    const anchor = topo.nodes[id];
+    return {id:'FORTUNE:' + site.id, anchorId:id, nameTh:site.nameTh, terrain:anchor.terrain,
+      macroRegion:anchor.macroRegion, x:clamp(anchor.x + ((index * 7 + rank * 3) % 11) - 5, 3, 97),
+      y:clamp(anchor.y + ((index * 5 + rank * 4) % 11) - 5, 3, 97)};
+  };
+  const roadCondition = (W, leg) => {
+    const a = W.world?.continent?.cities[leg.from], b = W.world?.continent?.cities[leg.to];
+    const average = ((a?.safety ?? 65) + (b?.safety ?? 65)) / 2;
+    return 1 + Math.max(0, 60 - average) / 160;
+  };
+  X.planContinentalRoute = (W, topo, target, fromId = homeId) => {
+    if (!target || !topo?.nodes) return null;
+    if (target.id === fromId) return {fromId, targetId:target.id, legs:[], days:0, distanceLi:0};
+    const edges = topo.routes.slice();
+    if (!topo.nodes[fromId]) {
+      const anom = (W && W.world && Array.isArray(W.world.anomalies)) ? W.world.anomalies.find(a => a && a.id === fromId) : null;
+      if (!anom) return null;
+      const near = nearestPlace(anom, Object.values(settlementById).filter(s => s.specialty !== 'port'));
+      if (!near) return null;
+      edges.push(routeLeg(near, anom, anom.terrain));
+    }
+    if (!edges.some(e => e.to === target.id || e.from === target.id)) {
+      if (target.kind !== 'WORLD_ANOMALY' && !target.anchorId) return null;
+      const near = topo.nodes[target.anchorId] || nearestPlace(target, Object.values(settlementById).filter(s => s.specialty !== 'port'));
+      if (!near) return null;
+      edges.push(routeLeg(near, target, target.terrain));
+    }
+    const loreMods = (W && W.world && W.world.livingLore && W.world.livingLore.routeModifiers) || null;
+    const adjacency = new Map();
+    for (const leg of edges) {
+      if (!adjacency.has(leg.from)) adjacency.set(leg.from, []);
+      if (!adjacency.has(leg.to)) adjacency.set(leg.to, []);
+      const lrKey = leg.from < leg.to ? (leg.from + '<>' + leg.to) : (leg.to + '<>' + leg.from);
+      const lrMod = loreMods && loreMods[lrKey];
+      const lrMult = (lrMod && Number.isFinite(lrMod.multiplier)) ? lrMod.multiplier : 1;
+      const days = +(leg.days * roadCondition(W, leg) * lrMult).toFixed(4);
+      const extra = lrMod && lrMod.storyId ? { loreModifierStoryId: lrMod.storyId } : {};
+      adjacency.get(leg.from).push(Object.assign({}, leg, {days}, extra));
+      adjacency.get(leg.to).push(Object.assign({...leg,from:leg.to,to:leg.from,days,a:leg.b,b:leg.a,points:leg.points.slice().reverse()}, extra));
+    }
+    const open = new Set([fromId]), costs = new Map([[fromId, 0]]), prev = new Map();
+    while (open.size) {
+      let id = null;
+      for (const candidate of open) if (id === null || costs.get(candidate) < costs.get(id)) id = candidate;
+      open.delete(id);
+      if (id === target.id) break;
+      for (const leg of adjacency.get(id) || []) {
+        const next = costs.get(id) + leg.days;
+        if (next >= (costs.get(leg.to) ?? Infinity)) continue;
+        costs.set(leg.to, next); prev.set(leg.to, leg); open.add(leg.to);
+      }
+    }
+    if (!prev.has(target.id)) return null;
+    const legs = [];
+    for (let id = target.id; id !== fromId;) {
+      const leg = prev.get(id);
+      legs.unshift(leg); id = leg.from;
+    }
+    return {fromId, targetId:target.id, nameTh:target.nameTh, macroRegion:target.macroRegion, legs, days:costs.get(target.id),
+      distanceLi:legs.reduce((sum, leg) => sum + leg.distanceLi, 0)};
+  };
+  X.routePosition = (route, fraction) => {
+    if (!route?.legs.length) return null;
+    let left = route.days * clamp(fraction, 0, 1);
+    for (const leg of route.legs) {
+      if (left <= leg.days) {
+        let distance = leg.units * clamp(left / leg.days,0,1);
+        for (let i = 1; i < leg.points.length; i++) {
+          const a = leg.points[i - 1], b = leg.points[i], length = mapDistance(a,b);
+          if (distance <= length && length) {
+            const f = distance / length;
+            return {x:a.x + (b.x-a.x)*f,y:a.y + (b.y-a.y)*f};
+          }
+          distance -= length;
+        }
+        return leg.b;
+      }
+      left -= leg.days;
+    }
+    return route.legs[route.legs.length - 1].b;
+  };
+  const stampPlace = n => n && {nodeId:n.id,nameTh:n.nameTh,x:n.x,y:n.y,macroRegion:n.macroRegion};
+  const routePlace = route => route?.legs.length && {
+    nodeId:route.targetId, nameTh:route.nameTh, macroRegion:route.macroRegion,
+    x:route.legs[route.legs.length - 1].b.x, y:route.legs[route.legs.length - 1].b.y
+  };
+  X.prepareTrialJourney = (W,ex,targetId,dwellDays,travel) => {
+    if (!travel.route) return;
+    ex.targetNodeId = targetId;
+    ex.days = +(2 * travel.days + dwellDays).toFixed(2);
+    ex.ret = ex.t0 + Math.round(ex.days * 1440);
+    setJourney(ex,travel.route,travel.days,Math.round(dwellDays * 1440),true);
+  };
+  X.locationOfJourney = ex => routePlace(ex.route);
+  function setJourney(ex, route, days, dwellMinutes, roundTrip) {
+    if (!route?.legs.length) return;
+    ex.route = route;
+    ex.travelMinutes = Math.max(1, Math.round(days * 1440));
+    ex.dwellMinutes = dwellMinutes;
+    ex.roundTrip = roundTrip;
+    ex.ret = ex.t0 + ex.travelMinutes * (roundTrip ? 2 : 1) + (roundTrip ? dwellMinutes : 0);
+    if (ex.state === 'away') startJourney(ex, ex.t0);
+  }
+  function startJourney(ex, start) {
+    if (!ex.route || ex.startedAt != null) return;
+    ex.startedAt = start;
+    ex.arriveAt = start + ex.travelMinutes;
+    ex.leaveAt = ex.arriveAt + ex.dwellMinutes;
+    ex.ret = ex.roundTrip ? ex.leaveAt + ex.travelMinutes : ex.arriveAt;
+  }
+  function finishJourney(W, ex, members) {
+    ex.done = true;
+    members.forEach(m => {
+      m.expId = null; m.away = false; m.hidden = false;
+      m.x = MAP.EXIT.x + .5; m.y = MAP.EXIT.y + .5;
+      m.path = null; m.travel = {to:'home', mountUid:tripMountUid(ex,m)};
+    });
+  }
+  X.journeyProgress = (W, ex) => {
+    if (!ex.route) return null;
+    const t = W.t || 0, start = ex.startedAt ?? t;
+    const back = ex.returnStartedAt != null || (ex.roundTrip && t >= (ex.leaveAt ?? Infinity));
+    const atDestination = !back && t >= (ex.arriveAt ?? Infinity);
+    const f = back ? 1 - (t - (ex.returnStartedAt ?? ex.leaveAt)) / ex.travelMinutes
+      : (t - start) / ex.travelMinutes;
+    return {point:X.routePosition(ex.route, f), back, atDestination, remaining:Math.max(0, ex.ret - t)};
+  };
+
+  const originGroups = {
+    'ภูเขาสูง':['mountain','hunt'], 'หมู่บ้านลุ่มน้ำ':['river','ferry','farm','marsh'],
+    'เมืองการค้า':['road','port','river','forge'], 'เมืองหลวง':['capital'], 'ที่ราบกลาง':['farm','road'],
+    'ชายฝั่งทะเล':['port'], 'ทะเลทรายตะวันตก':['desert'], 'ป่าลึก':['hunt','marsh'],
+    'วงศ์แพทย์':['academy','marsh'], 'ตระกูลยุทธ์':['mountain','capital']
+  };
+  X.assignHometown = (W, n, preferredId) => {
+    if (!n?.h || n.ext?.world?.hometownNodeId) return;
+    const tags = originGroups[n.h.origin?.region];
+    const pool = Object.values(settlementById).filter(s => s.tier !== 2 &&
+      (!tags || tags.includes(s.specialty) || (tags.includes('capital') && s.tier >= 4)));
+    const rng = makeChildRng(W, 'birthplace:' + n.id);
+    const city = settlementById[preferredId] || rng.weighted(pool, s => s.polityId === 'POL_YUNHE' ? 2.2 : 1);
+    if (!city) return;
+    n.ext = n.ext || {};
+    n.ext.world = Object.assign({}, n.ext.world, {
+      hometownNodeId:city.id, birthPolityId:city.polityId, originPublic:!!preferredId || !!tags
+    });
+  };
+  X.originView = n => {
+    const origin = n?.ext?.world;
+    if (!origin) return null;
+    const city = settlementById[origin.hometownNodeId];
+    const polity = polityById[origin.birthPolityId];
+    return city ? {city, polity} : null;
+  };
+  function borderKey(a, b) { return a < b ? a + ':' + b : b + ':' + a; }
+  X.polityOpinion = (W, a, b) => {
+    if (!a || !b || a === b) return 0;
+    return W.world?.continent?.relations[borderKey(a,b)] || 0;
+  };
+  X.homelandFeeling = (W, observer, other, relation) => {
+    let baseVal = 0;
+    const a = observer && observer.ext && observer.ext.world, b = other && other.ext && other.ext.world;
+    if (a && b && a.originPublic && b.originPublic && a.birthPolityId && b.birthPolityId) {
+      const samePolity = a.birthPolityId === b.birthPolityId;
+      const opinion = samePolity ? 0 : X.polityOpinion(W, a.birthPolityId, b.birthPolityId);
+      const trust = relation?.t ?? 40;
+      if (samePolity || (opinion < -24 && trust < 88)) {
+        const rooted = clamp((E(observer,'values.familyClan') * .42 + E(observer,'personality.loyalty') * .34 +
+          E(observer,'values.honorLegacy') * .24 - E(observer,'values.freedom') * .30 - 22) / 48, 0, 1);
+        if (rooted) {
+          const familiarity = clamp(1 - (relation?.n || 0) / 70, .18, 1);
+          const local = a.hometownNodeId === b.hometownNodeId ? .24 : .15;
+          if (samePolity) baseVal = rooted * local * familiarity;
+          else {
+            const openness = clamp((E(observer,'personality.empathy') + E(observer,'personality.trustfulness')) / 200, 0, 1);
+            baseVal = -(Math.min(1, (-opinion - 24) / 52) * rooted * (1 - openness * .65) *
+              clamp(1 - (trust - 40) / 48, 0, 1) * .33);
+          }
+        }
+      }
+    }
+    let clanAdj = 0;
+    if (X.POLITICAL_LIVES && X.POLITICAL_LIVES.evaluateClanEncounterModifier && observer && other) {
+      const cm = X.POLITICAL_LIVES.evaluateClanEncounterModifier(W, observer, other);
+      const _cd = (typeof cm === "number") ? cm : (cm ? (cm.clanDelta != null ? cm.clanDelta : (cm.delta || 0)) : 0);
+      if (_cd) clanAdj = clamp(_cd * 0.04, -0.16, 0.16);
+    }
+    return clamp(baseVal + clanAdj, -0.33, 0.28);
+  };
+
+  const civilRoles = {
+    ruler:['ผู้ปกครอง','social.leadership'],
+    minister:['อัครเสนาบดี','personality.rationality'],
+    governor:['เจ้าเมือง','social.leadership'],
+    marshal:['แม่ทัพประจำด่าน','personality.courage'],
+    revenue:['ขุนนางคลัง','aptitudes.socialCommerce'],
+    envoy:['ราชทูต','social.diplomacy'],
+    censor:['ผู้ตรวจการ','personality.integrity'],
+    scholar:['ราชครู','intellect.comprehension']
+  };
+  const rulerTitles = {council:'ประธานสภาเจ็ดวาณิช', dynasty:'เจ้าแผ่นดิน', bureaucracy:'จักรพรรดิ',
+    military:'จอมทัพผู้ปกครอง', guild:'ประธานสมาพันธ์ช่าง', monastic:'ประมุขสภาธรรม', tribal:'ผู้นำสภาชนเผ่า'};
+  const civilSeason = W => Math.floor((W.day || 0) / 30);
+  X.initContinent = W => {
+    if (W.world.continent) return;
+    const state = W.world.continent = {cities:{}, courts:{}, relations:{}, figures:{}, figureSeq:0, lastMonth:civilSeason(W), lastVisitDay:W.day};
+    const rng = makeChildRng(W, 'continent:courts');
+    Object.values(settlementById).forEach(n => {
+      state.cities[n.id] = {safety:67 + rng.int(-10, 10), prosperity:43 + n.tier * 7, visits:0};
+    });
+    function seedSeat(p, stationId, role, titleTh, vacant = false) {
+      const court = state.courts[p.id];
+      const id = p.id + ':' + role + ':' + stationId;
+      const seat = court.seats[id] = {id, role, nameTh:titleTh || civilRoles[role][0], stationId, holderId:null};
+      if (!vacant) seat.holderId = newCourtFigure(W, state, p, stationId, rng).id;
+    }
+    for (const p of continent.polities) {
+      const capital = settlementIds[p.capital];
+      state.courts[p.id] = {seats:{}, reserveIds:[], stability:65, policy:'balance'};
+      seedSeat(p,capital,'ruler',rulerTitles[p.government]);
+      seedSeat(p,capital,p.government === 'guild' ? 'revenue' : 'minister',
+        p.government === 'monastic' ? 'ผู้อำนวยการโรงทาน' : undefined);
+      if (p.government !== 'guild') seedSeat(p,capital,'revenue',p.government === 'council' ? 'นายคลังเจ็ดวาณิช' : undefined);
+      seedSeat(p,capital,'envoy');
+      seedSeat(p,capital,p.government === 'military' ? 'censor' : 'scholar',undefined,true);
+      for (const city of Object.values(settlementById)) {
+        if (city.polityId !== p.id) continue;
+        if (city.tier === 2) seedSeat(p,city.id,'marshal');
+        if (city.tier === 3) seedSeat(p,city.id,'governor');
+      }
+      for (let i = 0; i < 4; i++) {
+        state.courts[p.id].reserveIds.push(newCourtFigure(W,state,p,capital,rng).id);
+      }
+    }
+    for (const [a,b,opinion] of [
+      ['BEIMING','DONGHUANG',-58],['XIRONG','DONGHUANG',-49],['XIRONG','YUNHE',-29],
+      ['DONGHUANG','YUNXIAO',-40],['XIRONG','CHIYAN',-26],['BEIMING','YOUMING',19],
+      ['GUJIAO','SUVARNABODHI',-34],['YUNHE','SUVARNABODHI',23]
+    ]) state.relations[borderKey('POL_' + a, 'POL_' + b)] = opinion;
+  };
+  function newCourtFigure(W, state, polity, hometownId, rng) {
+    const id = 'court:' + (++state.figureSeq);
+    const h = generateFastFigureCore(rng, rng.chance(.5) ? 'F' : 'M');
+    const age = rng.int(21, 67);
+    const figure = {id, h, bornDay:W.day - age * 360, retirementAge:rng.int(62, 86),
+      residenceId:hometownId, officeSince:W.day,
+      ext:{world:{hometownNodeId:hometownId, birthPolityId:polity.id, originPublic:true}}};
+    state.figures[id] = figure;
+    return figure;
+  }
+  function courtEvent(W, seat, text) {
+    const city = settlementById[seat.stationId];
+    W.log('appoint','🏛️ ' + text + ' ณ ' + city.nameTh, [], {
+      location:stampPlace(city), storyThreadId:'court:' + ((W.world && W.world.continent && W.world.continent.cityOwners && W.world.continent.cityOwners[city.id]) || city.polityId)
+    });
+  }
+  X.tickContinentalCourts = W => {
+    const state = W.world.continent;
+    const month = civilSeason(W);
+    if (!state || month <= state.lastMonth) return;
+    state.lastMonth = month;
+    const rng = makeChildRng(W, 'continent:' + month);
+    const retired = new Set();
+    for (const p of continent.polities) {
+      const court = state.courts[p.id], capital = settlementIds[p.capital];
+      const seats = Object.values(court.seats);
+      for (const seat of seats) {
+        const f = state.figures[seat.holderId];
+        if (!f || (W.day - f.bornDay) / 360 < f.retirementAge) continue;
+        if (!rng.chance(.28)) continue;
+        retired.add(f.id); seat.holderId = null;
+        courtEvent(W, seat, figFullName(f) + ' วางมือจากตำแหน่ง' + seat.nameTh);
+      }
+      if (court.reserveIds.length < 4) court.reserveIds.push(newCourtFigure(W,state,p,capital,rng).id);
+      for (const seat of seats.filter(s => !s.holderId)) {
+        const applicants = court.reserveIds.map(id => state.figures[id]).filter(f => f &&
+          (W.day - f.bornDay) / 360 < f.retirementAge &&
+          rng.chance(clamp(.36 + (figTrait(f,'personality.ambition') - 50) / 105, .10, .73)));
+        if (!applicants.length || !rng.chance(seat.role === 'ruler' ? .83 : .62)) continue;
+        const sponsor = state.figures[seats.find(s => s.role === 'ruler')?.holderId];
+        const f = rng.weighted(applicants, candidate => {
+          const fit = figTrait(candidate, civilRoles[seat.role][1]);
+          const patronage = sponsor && candidate.h.name.sur === sponsor.h.name.sur
+            ? (100 - figTrait(sponsor,'personality.integrity')) / 20 : 0;
+          return 1 + Math.pow(fit / 35, 2) + patronage;
+        });
+        seat.holderId = f.id; f.officeSince = W.day; f.residenceId = seat.stationId;
+        court.reserveIds = court.reserveIds.filter(id => id !== f.id);
+        courtEvent(W,seat,figFullName(f) + ' เข้ารับตำแหน่ง' + seat.nameTh);
+      }
+      court.reserveIds = court.reserveIds.filter(id => {
+        const f = state.figures[id];
+        if (!f) return false;
+        if ((W.day - f.bornDay) / 360 < f.retirementAge) return true;
+        retired.add(id); return false;
+      });
+      const rulerSeat = seats.find(s => s.role === 'ruler');
+      const ruler = state.figures[rulerSeat.holderId];
+      const holder = role => state.figures[seats.find(s => s.role === role)?.holderId];
+      const coordination = holder('minister') ? (figTrait(holder('minister'),'personality.rationality') - 25) / 10 : 0;
+      const budgetSkill = holder('revenue') ? (figTrait(holder('revenue'),'aptitudes.socialCommerce') - 25) / 11 : 0;
+      const inspection = holder('censor') ? figTrait(holder('censor'),'personality.integrity') / 20 : 0;
+      const towns = Object.values(settlementById).filter(city => ((state.cityOwners && state.cityOwners[city.id]) || city.polityId) === p.id);
+      if (!towns.length) continue;
+      const distress = towns.reduce((v,city) => v + Math.max(0, 65 - state.cities[city.id].safety),0) / towns.length;
+      const policies = [
+        ['guard', .8 + distress / 8 + (figTrait(ruler,'personality.caution') - 25) / 66],
+        ['market', .8 + (figTrait(ruler,'values.wealthResource') - 25) / 30],
+        ['balance', 1.2 + (figTrait(ruler,'personality.empathy') - 25) / 40]
+      ];
+      const policy = ruler ? rng.weighted(policies, ([id,w]) => Math.max(.1, w + (id === court.policy ? 1.4 : 0)))[0] : 'balance';
+      if (policy !== court.policy && W.day >= (court.lastPolicyDay || 0) + 90) {
+        court.policy = policy; court.lastPolicyDay = W.day;
+        const reason = {guard:'ให้รักษาด่านและคุ้มทาง', market:'หนุนตลาดและเสบียงเมือง', balance:'จัดกำลังดูแลทั้งตลาดและทางหลวง'};
+        courtEvent(W,rulerSeat,(ruler ? figFullName(ruler) : p.nameTh) + ' มีมติ' + reason[policy]);
+      }
+      for (const city of towns) {
+        const stats = state.cities[city.id];
+        const hasWatch = seats.some(s => s.stationId === city.id && s.holderId && (s.role === 'marshal' || s.role === 'governor'));
+        const pressure = 62 + coordination + inspection + (hasWatch ? 10 : 0) + (court.policy === 'guard' ? 11 : 0) - (ruler ? 0 : 5);
+        stats.safety = clamp(stats.safety + (pressure - stats.safety) * .20 + rng.int(-5,5), 25, 95);
+        const prosperity = 40 + budgetSkill + city.tier * 7 + (court.policy === 'market' ? 9 : 0) - Math.max(0, 65 - stats.safety) / 3;
+        stats.prosperity = clamp(stats.prosperity + (prosperity - stats.prosperity) * .22 + rng.int(-3,3),20,95);
+      }
+      court.stability = Math.round(towns.reduce((v,city) => v + (state.cities[city.id].safety + state.cities[city.id].prosperity) / 2,0) / towns.length);
+    }
+    for (const id of retired) delete state.figures[id];
+
+    const pairs = new Map();
+    const dynOwner = c => (state.cityOwners && state.cityOwners[c.id]) || c.polityId;
+    for (const [i,j] of continent.roads) {
+      const a = settlementById[settlementIds[i]], b = settlementById[settlementIds[j]];
+      const oA = a && dynOwner(a), oB = b && dynOwner(b);
+      if (!oA || !oB || oA === oB) continue;
+      const key = borderKey(oA, oB);
+      if (!pairs.has(key)) pairs.set(key,[a,b,oA,oB]);
+    }
+    for (const [key,[a,b,oA,oB]] of pairs) {
+      const stateA = state.courts[oA], stateB = state.courts[oB];
+      if (!stateA || !stateB) continue;
+      const envoys = [stateA,stateB].map(c => state.figures[Object.values(c.seats).find(s => s.role === 'envoy')?.holderId]);
+      const base = state.relations[key] || 0;
+      const safety = (state.cities[a.id].safety + state.cities[b.id].safety) / 2;
+      const dialogue = envoys.every(Boolean) && rng.chance(.36 + (figTrait(envoys[0],'social.diplomacy') + figTrait(envoys[1],'social.diplomacy') - 100) / 300);
+      const delta = dialogue ? rng.int(1,5) : safety < 63 ? -rng.int(1,5) : rng.int(-3,1);
+      const next = state.relations[key] = clamp(base * .98 + delta, -85, 75);
+      if ((base < -24) !== (next < -24)) {
+        W.log('diplomacy', '🏛️ ' + polityById[oA].nameTh + ' กับ ' + polityById[oB].nameTh +
+          (next < -24 ? ' ตึงเครียดเรื่องชายแดน' : ' ลดความตึงเครียดชายแดน') + ' ที่ ' + a.nameTh, [], {location:stampPlace(a)});
+      }
+    }
+  };
+
+  X.cityVisitDrive = (W,npc) => {
+    const state = W.world?.continent;
+    if (!state || npc.rank < 1 || npc.id === W.sect.masterId || npc.sealed || npc.sealedBt ||
+      npc.inj?.length || W.day < state.lastVisitDay + 3 || W.threat?.roadBlocked || W.threat?.raid ||
+      W.day - (npc.lastTrip ?? -100) < 7 || ECO.count(W,'meal') < 12 ||
+      npc.h.state.rest < 40 || npc.h.state.satiety < 45 ||
+      (W.world.expeds || []).some(e => e.kind === 'city_visit' && !e.done)) return 0;
+    const residents = (W.npcs || []).filter(n => !n.dead && !n.exiled && !n.away && !n.expId).length;
+    if (residents < 3) return 0;
+    const stateNeeds = npc.h.state;
+    const belonging = E(npc,'values.familyClan') * .28 + E(npc,'temperament.sociability') * .23;
+    const exploration = E(npc,'personality.curiosity') * .24 + E(npc,'values.freedom') * .25;
+    return clamp((belonging + exploration - 16) / 56 + (stateNeeds.loneliness || 0) / 180, .1, 1.8);
+  };
+  X.departCityVisit = (W,npc) => {
+    if (!X.cityVisitDrive(W,npc) || !X.isAvailableForExpedition(W,npc) || npc.h.state.hp < CULT.hpMax(npc) * .65) {
+      return {ok:false,reason:'city-visit-unavailable'};
+    }
+    const state = W.world.continent, topo = X.ensureWorldTopology(W);
+    const rng = makeChildRng(W,'city-visit:' + W.day + ':' + npc.id);
+    const ownerOf = n => (state.cityOwners && state.cityOwners[n.id]) || n.polityId;
+    const cities = Object.values(settlementById).filter(n => ownerOf(n) === 'POL_YUNHE' && n.tier !== 2);
+    const origin = npc.ext?.world?.originPublic ? X.originView(npc) : null;
+    if (origin?.city && origin.city.tier !== 2 && ownerOf(origin.city) !== 'POL_YUNHE') cities.push(origin.city);
+    const tolerance = E(npc,'personality.courage') > 65 ? 7 : 4.5;
+    const available = ECO.count(W,'meal') - 10;
+    const options = cities.map(city => {
+      const route = X.planContinentalRoute(W,topo,city);
+      const travel = X.createParty(W,[npc],{kind:'city_visit',regionId:city.id,terrain:city.terrain});
+      const days = (route?.days || 0) * (travel.durationMultiplier || 1);
+      return {city,route,travel,days,meals:Math.ceil(2 * days + .2)};
+    }).filter(o => o.route && o.travel.ok && o.days <= tolerance && o.meals <= available);
+    if (!options.length) return {ok:false,reason:'no-feasible-city'};
+    const stay = rng.weighted(options, ({city,days}) => {
+      const home = city.id === origin?.city.id ? E(npc,'values.familyClan') / 27 : .35;
+      const safety = state.cities[city.id].safety / 100;
+      const school = city.specialty === 'academy' ? E(npc,'values.knowledgeCraft') / 125 : 0;
+      return (home + .5 + school + (city.tier >= 3 ? E(npc,'interests.socializing') / 100 : 0)) *
+        Math.pow(safety, E(npc,'personality.caution') / 40) / (1 + days * .8);
+    });
+    const {travel,days:tripDays,meals} = stay;
+    if (!ECO.take(W,'meal',meals)) return {ok:false,reason:'insufficient-meals'};
+    const ex = {id:++W.world.seq, kind:'city_visit', region:stay.city.id, targetNodeId:stay.city.id, party:[npc.id],
+      t0:W.t, days:tripDays * 2 + .2, ret:W.t + Math.round((2 * tripDays + .2) * 1440), supplies:meals,
+      mount:travel.mounts, state:'leaving', done:false, carry:[], journal:[]};
+    setJourney(ex, stay.route, tripDays, 288, true);
+    W.world.expeds.push(ex);
+    state.lastVisitDay = W.day;
+    AI.interruptFor(W,npc);
+    npc.expId = ex.id; npc.lastTrip = W.day;
+    npc.act = {id:'idle',stage:'do',left:0,total:0,ctx:{},why:[]};
+    npc.travel = {to:'exit',ex:ex.id,mountUid:tripMountUid(ex,npc)}; npc.path = null;
+    X.releaseDeployedGarrisons(W,[npc]);
+    const reason = origin?.city.id === stay.city.id ? 'เดินทางกลับไปเยี่ยมบ้านเกิด' : 'ออกไปพบปะผู้คน';
+    W.log('mission',HC.fullName(npc) + ' ' + reason + 'ที่' + stay.city.nameTh,[npc.id],{location:stampPlace(stay.city)});
+    return {ok:true,expedition:ex};
+  };
+  function visitCity(W, ex, members) {
+    const city = settlementById[ex.targetNodeId], stats = W.world.continent?.cities[ex.targetNodeId];
+    if (!city || !stats) return;
+    stats.visits++;
+    stats.lastVisitDay = W.day;
+    for (const npc of members) {
+      const homecoming = X.originView(npc)?.city.id === city.id;
+      HC.feel(npc,{mood:homecoming ? 9 : 4, loneliness:homecoming ? -14 : -7, novelty:8});
+      HC.practice(npc,'diplomacy',.25,1);
+      AI.mem(W,npc,homecoming ? 'ได้กลับไปเยี่ยมบ้านเกิดที่' + city.nameTh : 'พบผู้คนใหม่ที่' + city.nameTh,.55);
+    }
+    W.log('mission',members.map(HC.fullName).join('、') + ' เดินทางถึง' + city.nameTh,
+      members.map(n => n.id),{location:stampPlace(city),storyThreadId:'city:' + city.id});
+    if (typeof X.onCityVisitLore === 'function') X.onCityVisitLore(W, ex, members);
+  }
+
   /* =========================================================================
    * JS2-v2.6.0 — Living Chronicle, Fact Snapshot, 12-Format Narrative Presenter,
    * Periodic Sect Digest, Continuing Storyline Threads & News Intake Preferences
@@ -4013,123 +4798,124 @@
   X.CHRONICLE_REPORT_FORMATS = Object.freeze({
     PIGEON_DISPATCH: {
       id: 'PIGEON_DISPATCH',
-      nameTh: '🕊️ สารลับพิราบสื่อสารหอข่าวกรอง',
+      nameTh: '🕊️ สารพิราบสื่อวิญญาณด่วนพิเศษ',
       shortTh: '🕊️ สารลับพิราบ',
-      toneTh: 'กระชับ ฉับไว เน้นพิกัดแคว้น แหล่งข่าว และความเร่งด่วน',
-      leadPrefixTh: '【สารด่วนพิราบสื่อสาร】',
+      toneTh: 'กระชับ ฉับไว ดั่งกระบอกสารผูกขาพิราบปราณจากหน่วยลาดตระเวนหรือกองคาราวานแดนไกล',
+      leadPrefixTh: '【สารด่วนพิราบสื่อวิญญาณ】',
       impactLabelTh: 'ผลต่อสถานการณ์ยุทธภพ',
-      followUpDefaultTh: 'ติดตามความเคลื่อนไหวในแคว้นที่เกี่ยวข้องหรือส่งสายสืบตรวจสอบเพิ่มเติม',
-      descTh: 'รายงานข่าวกรองด่วนจากเครือข่ายพิราบสื่อสารและผู้ตรวจการยุทธภพ'
+      followUpDefaultTh: 'เครือข่ายสายสืบของหอข่าวกรองกำลังเฝ้าจับตาความเคลื่อนไหวในแคว้นที่เกี่ยวข้องอย่างใกล้ชิด',
+      descTh: 'รายงานข่าวกรองด่วนจากเครือข่ายพิราบสื่อวิญญาณและผู้ตรวจการยุทธภพ'
     },
     WAR_PAVILION_RECORD: {
       id: 'WAR_PAVILION_RECORD',
-      nameTh: '⚔️ บันทึกศึกหอพิชัยยุทธ์',
+      nameTh: '⚔️ จดหมายเหตุศึกหอยุทธ์โลหิต',
       shortTh: '⚔️ บันทึกศึก',
-      toneTh: 'หนักแน่น แม่นยำ เน้นผลแพ้ชนะ จุดเปลี่ยนยุทธวิธี ผู้โดดเด่น และความสูญเสียจริง',
-      leadPrefixTh: '【ใบบอกศึกหอพิชัยยุทธ์】',
+      toneTh: 'น้ำเสียงขุนพลบันทึกการรบ เน้นสภาพสมรภูมิ จังหวะพลิกผันจริง ผู้กอบกู้ศึก และความสูญเสีย',
+      leadPrefixTh: '【จดหมายเหตุศึกหอยุทธ์โลหิต】',
       impactLabelTh: 'ผลลัพธ์ทางยุทธวิธีและกำลังพล',
-      followUpDefaultTh: 'ตรวจอาการบาดเจ็บของศิษย์ที่หอหมอยา ซ่อมบำรุงศาสตรา และทบทวนเวรยามหน้าด่าน',
-      descTh: 'บันทึกรายงานการรบ กำลังพล กระบวนท่า และผลแพ้ชนะจากหอพิชัยยุทธ์'
+      followUpDefaultTh: 'ศิษย์ที่บาดเจ็บกำลังทยอยเข้าหอหมอยา ส่วนโรงหลอมและเวรยามหน้าด่านกำลังฟื้นฟูแนวป้องกันตามลำดับ',
+      descTh: 'บันทึกรายงานการรบ กำลังพล กระบวนท่า และผลแพ้ชนะจากหอยุทธ์โลหิต'
     },
     DISCIPLINE_EDICT: {
       id: 'DISCIPLINE_EDICT',
-      nameTh: '⚖️ ประกาศิตหอวินัยและสารคำขาด',
-      shortTh: '⚖️ ประกาศิตหอวินัย',
-      toneTh: 'เด็ดขาด เป็นทางการ ระบุข้อกล่าวหา หลักฐาน ผู้ตัดสิน และบทลงโทษหรือคำขาด',
-      leadPrefixTh: '【ประกาศิตหอวินัย】',
+      nameTh: '⛓️ หมายอาญาและคำพิพากษาหอวินัย',
+      shortTh: '⛓️ หมายอาญาหอวินัย',
+      toneTh: 'เฉียบขาด เที่ยงธรรมดั่งไม้บรรทัดเหล็ก บันทึกคดีทุจริต การฝ่าฝืนกฎ และโทษทัณฑ์ที่ได้รับ',
+      leadPrefixTh: '【หมายอาญาและคำพิพากษาหอวินัย】',
       impactLabelTh: 'ผลบังคับใช้ทางวินัยและการทูต',
-      followUpDefaultTh: 'ตรวจสอบความพึงพอใจของศิษย์ในสำนักหรือท่าทีของสำนักคู่กรณี',
-      descTh: 'หมายจับ สารทวงตัวผู้ลี้ภัย มติสภา และการตัดสินโทษระหว่างสำนัก'
+      followUpDefaultTh: 'ผู้คุมกฎหอวินัยและโถงสภากำลังบังคับใช้บทลงโทษและเฝ้าดูคลื่นใต้น้ำภายในสำนักต่อเนื่อง',
+      descTh: 'หมายจับ สารทวงตัวผู้ลี้ภัย มติสภา และการตัดสินโทษโดยหอวินัย'
     },
     ANCESTRAL_INSCRIPTION: {
       id: 'ANCESTRAL_INSCRIPTION',
-      nameTh: '🕯️ จารึกศิลาหอบรรพชน',
+      nameTh: '🕯️ ศิลาจารึกหอบรรพชนและทำเนียบเซียน',
       shortTh: '🕯️ จารึกบรรพชน',
-      toneTh: 'ขรึมขลัง สง่างาม บันทึกการผลัดแผ่นดิน การสละชีพ หรือการบรรลุเซียนไว้เป็นอนุสรณ์',
-      leadPrefixTh: '【จารึกศิลาบรรพชน】',
+      toneTh: 'เปี่ยมความเคารพและโศกนาฏกรรม บันทึกการดับขันธ์ของยอดคน การสลักป้ายวิญญาณ และการผลัดแผ่นดิน',
+      leadPrefixTh: '【ศิลาจารึกหอบรรพชน】',
       impactLabelTh: 'มรดกสืบทอดและผลต่อรากฐานสำนัก',
-      followUpDefaultTh: 'สักการะป้ายวิญญาณในศาลบรรพชนหรือตรวจสอบสายการสืบทอดตำแหน่ง',
-      descTh: 'จารึกเหตุการณ์เปลี่ยนผ่านยุคสมัย การผลัดแผ่นดิน และการสืบทอดมรดก'
+      followUpDefaultTh: 'เหล่าศิษย์ร่วมสายกำลังทยอยเข้าจุดธูปคารวะป้ายวิญญาณและรับช่วงสืบทอดเจตจำนงในหอบรรพชน',
+      descTh: 'จารึกเหตุการณ์เปลี่ยนผ่านยุคสมัย การผลัดแผ่นดิน และการสืบทอดมรดกบรรพชน'
     },
     TAVERN_BALLAD: {
       id: 'TAVERN_BALLAD',
-      nameTh: '🍶 เรื่องเล่าขานและลำนำโรงเตี๊ยม',
+      nameTh: '🍶 ลำนำซุบซิบจากโรงเตี๊ยมริมทาง',
       shortTh: '🍶 ลำนำโรงเตี๊ยม',
-      toneTh: 'มีชีวิตชีวาแบบนักเล่านิทาน แยกแยะชัดเจนว่าเป็นคำร่ำลือที่อาจต้องส่งคนไปพิสูจน์',
-      leadPrefixTh: '【คำร่ำลือจากโรงเตี๊ยม】',
+      toneTh: 'น้ำเสียงนักเล่านิทานเคาะกรับไม้ในโรงน้ำชา แยกแยะชัดเจนว่าเป็นคำร่ำลือในวงสุราที่รอการพิสูจน์',
+      leadPrefixTh: '【ลำนำซุบซิบจากโรงเตี๊ยม】',
       impactLabelTh: 'เบาะแสและกระแสข่าวลือในยุทธภพ',
-      followUpDefaultTh: 'ส่งศิษย์ออกสืบข่าวลือหรือตรวจสอบเบาะแสก่อนตัดสินใจทุ่มกำลัง',
+      followUpDefaultTh: 'เรื่องนี้ยังเป็นเพียงคำร่ำลือในวงสุรา ศิษย์สายข่าวกรองและผู้ใฝ่หาความจริงจะทยอยออกพิสูจน์เบาะแส',
       descTh: 'ข่าวลือและลำนำขับขานของนักเล่านิทานเกี่ยวกับจอมยุทธ์พเนจรและแดนลับ'
     },
     LINEAGE_COMPANION_SCROLL: {
       id: 'LINEAGE_COMPANION_SCROLL',
-      nameTh: '💞 สมุดหยกหอวาสนาและสายเลือดตระกูล',
-      shortTh: '💞 สมุดหยกวาสนา',
-      toneTh: 'อบอุ่น ลุ่มลึก เน้นสายใยอาจารย์–ศิษย์ คู่บำเพ็ญ ทายาท และสภาพจิตมรรคา',
-      leadPrefixTh: '【บันทึกสมุดหยกหอวาสนา】',
+      nameTh: '🧧 ม้วนแพรแดงสายสัมพันธ์และสืบทอดมรรคา',
+      shortTh: '🧧 ม้วนแพรแดงวาสนา',
+      toneTh: 'อบอุ่น ลึกซึ้ง กินใจ บันทึกพิธีคำนับน้ำชา การผูกด้ายแดงคู่บำเพ็ญ และการกำเนิดทายาทสายเลือดใหม่',
+      leadPrefixTh: '【บันทึกม้วนแพรแดงหอวาสนา】',
       impactLabelTh: 'ผลต่อสายสัมพันธ์และตบะสืบทอด',
-      followUpDefaultTh: 'ดูผังสายสืบทอดหรือจัดสรรทรัพยากรหนุนศิษย์และคู่บำเพ็ญที่เกี่ยวข้อง',
-      descTh: 'บันทึกพิธีผูกด้ายแดงคู่บำเพ็ญ การกำเนิดทายาท และการตื่นรู้แห่งจิตมรรคา'
+      followUpDefaultTh: 'สายสัมพันธ์อาจารย์–ศิษย์และคู่บำเพ็ญจะส่งผลเกื้อหนุนการฝึกฝนและการคุ้มกันในสมรภูมิโดยอัตโนมัติ',
+      descTh: 'บันทึกพิธีผูกด้ายแดงคู่บำเพ็ญ การกำเนิดทายาท และการสืบทอดเจตจำนงแห่งจิตมรรคา'
     },
     IMPERIAL_COUNCIL_DECREE: {
       id: 'IMPERIAL_COUNCIL_DECREE',
-      nameTh: '🏛️ มติสภาผู้อาวุโสและราชโองการเจ้าสำนัก',
-      shortTh: '🏛️ มติสภา/ราชโองการ',
-      toneTh: 'สุขุม รอบคอบ แสดงเหตุผลเชิงนโยบาย งบสำรองคลัง และมติขุนนางทั้ง 6 ฝ่าย',
-      leadPrefixTh: '【มติสภาและโองการสำนัก】',
+      nameTh: '🏛️ ประกาศิตโถงสภาและตราเจ้าสำนัก',
+      shortTh: '🏛️ ประกาศิตโถงสภา',
+      toneTh: 'ขลัง สง่างาม ดั่งราชโองการประทับตราหยก แสดงเหตุผลเชิงนโยบาย งบสำรองคลัง และมติขุนนางทั้ง 25 ตำแหน่ง',
+      leadPrefixTh: '【ประกาศิตโถงสภาและตราเจ้าสำนัก】',
       impactLabelTh: 'ผลต่อการบริหารและงบประมาณสำนัก',
-      followUpDefaultTh: 'ตรวจดูสถานะหอทำงาน คลังศิลาวิญญาณ และความพร้อมของขุนนางผู้รับผิดชอบ',
+      followUpDefaultTh: 'ขุนนางผู้รับผิดชอบแต่ละหอกำลังนำมติสภาและโควตาราชโองการไปบังคับใช้ตามสายงาน',
       descTh: 'บันทึกการลงมติสภาผู้อาวุโส 4 ขั้วการเมือง วาระประจำฤดูกาล โควตาราชโองการ และการตรวจสอบผู้ถือตำแหน่ง'
     },
     SECRET_REALM_LOGBOOK: {
       id: 'SECRET_REALM_LOGBOOK',
-      nameTh: '🧭 บันทึกการสำรวจแดนลับและหอโบราณคดี',
-      shortTh: '🧭 บันทึกแดนลับ/โบราณคดี',
-      toneTh: 'บันทึกการเดินทาง ด่านที่ผ่าน ทรัพยากร/คัมภีร์ที่ค้นพบ และสภาพคณะสำรวจเมื่อกลับถึงสำนัก',
-      leadPrefixTh: '【สมุดปูมคณะสำรวจ】',
+      nameTh: '🧭 สมุดบันทึกบุกเบิกแดนลับและโบราณสถาน',
+      shortTh: '🧭 บันทึกแดนลับ/โบราณสถาน',
+      toneTh: 'น้ำเสียงผจญภัยลี้ลับ บันทึกชั้นมหาเจดีย์ 43 วิถี ปริศนาประตูธาตุ ร่องรอยยุคเทียนกู่ และสมบัติที่กู้คืนมาได้',
+      leadPrefixTh: '【สมุดปูมบุกเบิกแดนลับ】',
       impactLabelTh: 'สิ่งค้นพบและทรัพยากรที่นำกลับสำนัก',
-      followUpDefaultTh: 'ตรวจสอบของวิเศษ/คัมภีร์ใหม่ในคลังสำนักและให้คณะสำรวจพักฟื้นกำลัง',
-      descTh: 'บันทึกการเดินหมากโหนดแดนลับ ด่านตรวจทักษะ 12 มรรคา สายใยผู้ช่วยชีวิต และการบูรณะเศษคัมภีร์โบราณ'
+      followUpDefaultTh: 'คณะสำรวจนำของวิเศษและเศษคัมภีร์เข้าเก็บรักษาในคลังสำนัก ก่อนแยกย้ายไปพักฟื้นกำลัง',
+      descTh: 'บันทึกการเดินหมากโหนดแดนลับ ด่านตรวจทักษะมรรคา สายใยผู้ช่วยชีวิต และการบูรณะเศษคัมภีร์โบราณ'
     },
     CONTINENTAL_ASSEMBLY_GAZETTE: {
       id: 'CONTINENTAL_ASSEMBLY_GAZETTE',
-      nameTh: '🏆 ประกาศเกียรติคุณมหาชุมนุมยุทธภพและหอการค้า',
-      shortTh: '🏆 มหาชุมนุม/หอการค้า',
-      toneTh: 'ชัดเจนด้านตัวเลขการค้า การประมูล รางวัลการประชัน และดุลทรัพยากร',
-      leadPrefixTh: '【จดหมายเหตุการค้าและมหาชุมนุม】',
+      nameTh: '🌏 ประกาศทำเนียบยุทธภพและหอการค้าใหญ่',
+      shortTh: '🌏 ทำเนียบยุทธภพ/การค้า',
+      toneTh: 'น้ำเสียงจดหมายเหตุระดับมหาทวีป รายงานผลการประลองชุมนุมเซียน สนธิสัญญาการค้า และตลาดประมูล',
+      leadPrefixTh: '【ประกาศทำเนียบยุทธภพและหอการค้า】',
       impactLabelTh: 'ดุลการค้า ชื่อเสียง และรางวัลที่ได้รับ',
-      followUpDefaultTh: 'ตรวจทานรายการคงคลังและราคาตลาดเพื่อวางแผนผลิตหรือค้าขายรอบถัดไป',
+      followUpDefaultTh: 'หอคลังและหอทูตกำลังปรับแผนแลกเปลี่ยนสินค้าและท่าทีทางการทูตตามดุลอำนาจใหม่',
       descTh: 'บันทึกผลการประชัน 4 สายในมหาชุมนุมยุทธภพ งานเลี้ยงฉลองสำนักปราณโอชา กองคาราวาน และหอประมูลแดนเซียน'
     },
     HEAVENLY_DAO_OMEN_SCROLL: {
       id: 'HEAVENLY_DAO_OMEN_SCROLL',
-      nameTh: '🌌 ลิขิตสวรรค์และบันทึกวัฏจักรยุคสมัย',
-      shortTh: '🌌 ลิขิตสวรรค์/ยุคสมัย',
-      toneTh: 'ยิ่งใหญ่ระดับมหภาค ระบุผลคูณปราณฟ้าดิน ฮวงจุ้ย และเงื่อนไขยุคสมัยที่กระทบทั้งยุทธภพ',
-      leadPrefixTh: '【บันทึกปรากฏการณ์ฟ้าดิน】',
+      nameTh: '🌌 จารึกนิมิตดาราและลางแปรปรวนแห่งม่านฟ้า',
+      shortTh: '🌌 นิมิตดารา/ม่านฟ้า',
+      toneTh: 'น้ำเสียงพยากรณ์ระดับมหากาพย์ บันทึกปรากฏการณ์ดาวเรียงตัว จันทร์สีเลือด รอยร้าวม่านกั้นภพ และวัฏจักรยุคสมัย',
+      leadPrefixTh: '【จารึกนิมิตดาราและม่านฟ้า】',
       impactLabelTh: 'ผลกระทบระดับมหภาคและชีพจรปราณ',
-      followUpDefaultTh: 'ปรับแผนการบ่มเพาะหรือค่ายกลฮวงจุ้ยให้สอดคล้องกับกระแสปราณยุคสมัย',
+      followUpDefaultTh: 'เหล่าผู้บำเพ็ญและหอค่ายกลกำลังปรับจังหวะโคจรปราณให้สอดรับกับกระแสฟ้าดินยุคใหม่',
       descTh: 'บันทึกการเปลี่ยนผ่านยุคสมัยแห่งปราณ บททดสอบจากผู้กำกับชะตาฟ้าดิน ค่ายกลฮวงจุ้ย 10 ธาตุ และตราหยกสำนัก'
     },
     PEAK_HALL_SCROLL: {
       id: 'PEAK_HALL_SCROLL',
-      nameTh: '🏔️ ทำเนียบยอดเขาและพันธะสายสัมพันธ์',
-      shortTh: '🏔️ ทำเนียบยอดเขา/สายสัมพันธ์',
-      toneTh: 'สะท้อนชีวิตภายใน 8 ยอดเขา การแต่งตั้งเจ้าหุบเขา และการเกื้อหนุนระหว่างศิษย์ร่วมสำนัก',
-      leadPrefixTh: '【ทำเนียบ 8 ยอดเขาศักดิ์สิทธิ์】',
+      aliasId: 'SECT_SCRIBE_SCROLL',
+      nameTh: '📜 ม้วนไม้ไผ่หออาลักษณ์และทำเนียบแปดยอดเขา',
+      shortTh: '📜 หออาลักษณ์/แปดยอดเขา',
+      toneTh: 'น้ำเสียงอาลักษณ์ประจำสำนัก สะท้อนชีวิตภายใน 8 ยอดเขา การแต่งตั้งเจ้าหุบเขา และสายใยระหว่างศิษย์ร่วมสำนัก',
+      leadPrefixTh: '【ม้วนไม้ไผ่หออาลักษณ์สำนัก】',
       impactLabelTh: 'ผลต่อโบนัสยอดเขาและขวัญกำลังใจศิษย์',
-      followUpDefaultTh: 'ตรวจดูสมดุลสมาชิกและทรัพยากรประจำยอดเขาในหน้าต่างสำนัก',
+      followUpDefaultTh: 'เจ้าหุบเขาและศิษย์ประจำยอดเขากำลังดำเนินกิจวัตรและเกื้อหนุนกันตามสายสัมพันธ์ภายในสำนัก',
       descTh: 'บันทึกการสถาปนายอดเขา การจัดสรรทรัพยากรหุบเขา การประลองระหว่างยอดเขา ยศผู้อาวุโส และสายใยความสัมพันธ์เชิงลึก'
     },
     PERIODIC_SECT_DIGEST: {
       id: 'PERIODIC_SECT_DIGEST',
-      nameTh: '📊 สมุดสรุปสถานการณ์สำนักประจำรอบ',
-      shortTh: '📊 สรุปประจำรอบ',
-      toneTh: 'สรุปรอบด้านแบบเจ้าสำนักตรวจงาน: ดุลศิลา คงคลัง ผลงานเด่น ศิษย์ที่ติดปัญหา และความเสี่ยงที่ต้องตัดสินใจ',
-      leadPrefixTh: '【รายงานสรุปกิจการสำนักประจำรอบ】',
+      nameTh: '📊 สมุดฎีกาสรุปราชการหกหอประจำรอบ',
+      shortTh: '📊 สมุดฎีกาหกหอ',
+      toneTh: 'รายงานสังเคราะห์ประจำรอบด้วยน้ำเสียงขุนนางประจำหอ แยกบัญชีคลังหลวง การโอนภายใน คอขวดตบะ วิกฤตอายุขัย และความแออัดอาคาร',
+      leadPrefixTh: '【สมุดฎีกาถวายรายงานหกหอประจำรอบ】',
       impactLabelTh: 'สถานะคงคลังและความเสี่ยงที่ต้องเฝ้าระวัง',
-      followUpDefaultTh: 'ใช้ข้อมูลสรุปรอบนี้ปรับคำสั่งหอผลิต จัดสรรโอสถ หรือช่วยเหลือศิษย์ที่บาดเจ็บ/ติดคอขวด',
-      descTh: 'สรุปรายวัน/รายสัปดาห์/รายเดือน แสดงดุลศิลาจริง คงคลัง การโอนภายใน ผู้ทำผลงาน ผู้ประสบปัญหา และความเสี่ยงสำนัก'
+      followUpDefaultTh: 'ขุนนางทั้งหกหอและศิษย์ในสำนักกำลังปรับแผนการผลิต การบ่มเพาะ และการดูแลผู้บาดเจ็บตามฎีกาฉบับนี้โดยอัตโนมัติ',
+      descTh: 'สรุปรายวัน/รายสัปดาห์/รายเดือน แสดงดุลศิลาจริง คงคลัง การโอนภายใน 28 ตัวชี้วัดเชิงลึก และฎีกาถวายรายงานจากขุนนางทั้ง 6 หอ'
     }
   });
 
@@ -4303,6 +5089,7 @@
     if (item.isRumor || item.epistemicStatus === 'RUMOR' || item.reportFormat === 'TAVERN_BALLAD') return 'RUMOR';
     if (item.category) {
       const c = String(item.category);
+      if (c === 'PERIODIC_DIGEST') return 'SECT_FOCUS';
       if (c === 'BATTLE') return 'BATTLE';
       if (c === 'SUCCESSION' || c === 'FACTION' || c === 'INTERNAL' || c === 'ELDER_COUNCIL_EDICT' || c === 'SECT_PEAK_POLITICS') return 'GOVERNANCE';
       if (c === 'DAO_HEART_SUTRA') return 'CULT';
@@ -4401,8 +5188,10 @@
       return item.id > (rs.lastReadLogSeq || 0);
     }
     if (typeof item.id === 'string' && item.id.startsWith('CHRON_')) {
-      const seq = Number(item.id.slice(6)) || 0;
-      return seq > (rs.lastReadChronSeq || 0);
+      const seq = Number(item.id.slice(6));
+      if (Number.isFinite(seq)) return seq > (rs.lastReadChronSeq || 0);
+      if (Number.isFinite(item.seq)) return item.seq > (rs.lastReadChronSeq || 0);
+      return Number.isFinite(item.day) ? item.day >= (rs.lastReadDay || 0) : true;
     }
     return false;
   };
@@ -4438,16 +5227,24 @@
     const chrons = (W.world && Array.isArray(W.world.chronicles)) ? W.world.chronicles : [];
     const sChrons = (W.sect && Array.isArray(W.sect.sectChronicle)) ? W.sect.sectChronicle : [];
     let unreadChronicles = 0, unreadMajorLogs = 0, unreadCritical = 0;
+    const seenKeys = new Set();
     for (let i = 0; i < chrons.length; i++) {
       const c = chrons[i];
-      if (c && X.isEntryUnread(W, c)) {
+      if (!c) continue;
+      if (c.id) seenKeys.add(String(c.id));
+      if (c.eventKey) seenKeys.add(String(c.eventKey));
+      if (X.isEntryUnread(W, c)) {
         unreadChronicles++;
         if (X.classifyNewsSeverity(c) === 'CRITICAL') unreadCritical++;
       }
     }
     for (let i = 0; i < sChrons.length; i++) {
       const sc = sChrons[i];
-      if (sc && X.isEntryUnread(W, sc)) {
+      if (!sc) continue;
+      const cid = sc.chronicleId || (sc.meta && sc.meta.chronicleId);
+      const ekey = sc.eventKey || (sc.meta && sc.meta.eventKey);
+      if ((cid && seenKeys.has(String(cid))) || (ekey && seenKeys.has(String(ekey)))) continue;
+      if (X.isEntryUnread(W, sc)) {
         unreadMajorLogs++;
         if (X.classifyNewsSeverity(sc) === 'CRITICAL') unreadCritical++;
       }
@@ -4461,6 +5258,7 @@
   };
 
   function inferChronicleReportFormat(entry) {
+    if (entry.reportFormat === 'SECT_SCRIBE_SCROLL') return 'PEAK_HALL_SCROLL';
     if (entry.reportFormat && X.CHRONICLE_REPORT_FORMATS[entry.reportFormat]) return entry.reportFormat;
     const cat = entry.category || 'JIANGHU';
     const title = String(entry.titleTh || '');
@@ -4489,7 +5287,7 @@
     }
     const cat = entry.category || '';
     const title = String(entry.titleTh || '');
-    const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(Boolean) : [];
+    const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(id => id && !/^(?:GUEST|ENVOY)_/.test(String(id))) : [];
     const day = Number.isFinite(entry.day) ? entry.day : ((W && W.day) || 0);
     const sects = Array.isArray(entry.involvedSects) ? entry.involvedSects.filter(Boolean) : [];
     const sectName = (W && W.sect && W.sect.name) || '';
@@ -4594,7 +5392,7 @@
 
     const directorInsightTh = entry.directorInsightTh || (
       (isRumor ? "[ข่าวลือโรงเตี๊ยม — รอการพิสูจน์] " : "[ข้อสังเกตเชิงระบบ] ") +
-      "ต้นเหตุจาก" + originCauseTh + " ➔ แนะนำให้" + followUpTh
+      "ต้นเหตุจาก" + originCauseTh + " ➔ แนวโน้มต่อจากนี้: " + followUpTh
     );
     const playerLensHighlights = entry.playerLensHighlights || {
       WORLD_WATCHER: "🌍 [มุมมองผู้เฝ้ามองโลก]: " + sects + " — " + systemImpactTh,
@@ -4656,6 +5454,7 @@
     }
 
     return {
+      location:entry.location || entry.meta?.location || null,
       capturedAtTick: Number.isFinite(entry.t) ? entry.t : ((W && W.t) || 0),
       capturedAtDay: Number.isFinite(entry.day) ? entry.day : ((W && W.day) || 0),
       epistemicStatus,
@@ -4687,15 +5486,19 @@
     const list = W.world.chronicles;
     if (list.length <= cap) return;
     const overflow = list.length - cap;
-    let removed = 0;
-    let pinnedCount = 0;
-    for (let i = list.length - 1; i >= 0 && removed < overflow; i--) {
+    const pinnedIdx = new Set();
+    // Always protect founding chronicle (CHRON_1) if present
+    const chron1Idx = list.findIndex(c => c && c.id === 'CHRON_1');
+    if (chron1Idx >= 0) pinnedIdx.add(chron1Idx);
+    // Protect newest milestones first (list[0] is newest)
+    for (let i = 0; i < list.length && pinnedIdx.size < pinLim; i++) {
       const c = list[i];
       const isPin = c && (c.isMilestone || c.severity === 'CRITICAL' || ['SUCCESSION', 'HEAVENLY_DAO_ERA'].includes(c.category));
-      if (isPin && pinnedCount < pinLim) {
-        pinnedCount++;
-        continue;
-      }
+      if (isPin) pinnedIdx.add(i);
+    }
+    let removed = 0;
+    for (let i = list.length - 1; i >= 0 && removed < overflow; i--) {
+      if (pinnedIdx.has(i)) continue;
       list.splice(i, 1);
       removed++;
     }
@@ -4707,6 +5510,7 @@
 
   X.recordChronicle = (W, entry) => {
     if (!W || !W.world || !entry) return null;
+    if (W._expeditionLocation && !entry.location) entry = {...entry,location:W._expeditionLocation};
     if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
     W.chronicle = W.world.chronicles;
     if (W.sect) X.ensureNewsPrefs(W);
@@ -4721,7 +5525,7 @@
     W.world.chronicleSeq = (W.world.chronicleSeq || 0) + 1;
     const fmtId = inferChronicleReportFormat(entry);
     const fmtDef = X.CHRONICLE_REPORT_FORMATS[fmtId] || X.CHRONICLE_REPORT_FORMATS.PIGEON_DISPATCH;
-    const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(Boolean) : [];
+    const npcIds = Array.isArray(entry.npcIds) ? entry.npcIds.filter(id => id && !/^(?:GUEST|ENVOY)_/.test(String(id))) : [];
     const actorSnapshots = npcIds.map(id => {
       const live = W.byId && W.byId[id];
       if (live && g.SIM && g.SIM.snapshotPerson) {
@@ -4750,11 +5554,12 @@
     const epistemicStatus = entry.epistemicStatus || (isRumor ? "RUMOR" : (entry.partiallyObserved ? "OBSERVED" : "VERIFIED"));
     const threadInfo = X.inferStoryThread(W, Object.assign({}, entry, { day, npcIds }));
     const factSnapshot = X.buildFactSnapshot(W, Object.assign({}, entry, { day, t, isRumor, epistemicStatus }), actorSnapshots, fmtId);
-    const severity = entry.severity || X.classifyNewsSeverity({ category: entry.category, titleTh: entry.titleTh, isMilestone: entry.isMilestone });
+    const chronId = entry.id || ("CHRON_" + W.world.chronicleSeq);
+    const severity = entry.severity || X.classifyNewsSeverity({ id: chronId, category: entry.category, titleTh: entry.titleTh, isMilestone: entry.isMilestone });
     const isMilestone = !!(entry.isMilestone || severity === 'CRITICAL' || ['SUCCESSION', 'HEAVENLY_DAO_ERA'].includes(entry.category));
 
     const rec = {
-      id: entry.id || ("CHRON_" + W.world.chronicleSeq),
+      id: chronId,
       eventKey,
       day,
       t,
@@ -4833,7 +5638,8 @@
   /* ---------- Pillar 2: Format-Specific Narrative Presenter (Pure Read-Only, Zero RNG) ---------- */
   X.presentChronicleEntry = (W, rec) => {
     if (!rec) return null;
-    const fmtId = (rec.reportFormat && X.CHRONICLE_REPORT_FORMATS[rec.reportFormat]) ? rec.reportFormat : 'PIGEON_DISPATCH';
+    const rawFmt = rec.reportFormat === 'SECT_SCRIBE_SCROLL' ? 'PEAK_HALL_SCROLL' : rec.reportFormat;
+    const fmtId = (rawFmt && X.CHRONICLE_REPORT_FORMATS[rawFmt]) ? rawFmt : 'PIGEON_DISPATCH';
     const fmtDef = X.CHRONICLE_REPORT_FORMATS[fmtId];
     const snap = rec.factSnapshot || X.buildFactSnapshot(W, rec, rec.actorSnapshots || [], fmtId);
     const cs = rec.combatSummary || null;
@@ -4892,7 +5698,7 @@
     numericDetails.push({
       labelTh: 'สถานะความน่าเชื่อถือของข้อมูล',
       valueTh: snap.certaintyLabelTh,
-      meaningTh: snap.isRumor ? 'ข้อมูลจากข่าวลืออาจคลาดเคลื่อน ควรส่งศิษย์ตรวจสอบก่อนตัดสินใจใหญ่' : 'บันทึกจากเหตุการณ์ที่เกิดขึ้นจริงในระบบจำลอง ณ เวลานั้น'
+      meaningTh: snap.isRumor ? 'ข้อมูลจากข่าวลืออาจคลาดเคลื่อน คณะสอดแนมของหอข่าวกรองและผู้ใฝ่รู้จะทยอยพิสูจน์ความจริงตามลำดับ' : 'บันทึกจากเหตุการณ์ที่เกิดขึ้นจริงในระบบจำลอง ณ เวลานั้น'
     });
     if (Array.isArray(snap.actorsAtEvent) && snap.actorsAtEvent.length) {
       snap.actorsAtEvent.forEach(a => {
@@ -4916,7 +5722,7 @@
       if (cs.stats) {
         const s = cs.stats;
         numericDetails.push({
-          labelTh: 'ตัวเลขจังหวะยุทธวิธี (Tactical Counters)',
+          labelTh: 'จังหวะแก้ทางยุทธวิธี (Tactical Counters)',
           valueTh: 'คุ้มกัน ' + (s.intercepts || 0) + ' · บังวิถี ' + (s.losBlocks || 0) + ' · สกัดเขตคุกคาม ' + (s.zocStrikes || 0) + ' · ขัดจังหวะร่าย ' + (s.interrupts || 0) + ' · เปลี่ยนเป้า ' + (s.targetSwitches || 0),
           meaningTh: 'จำนวนครั้งที่ระบบคำนวณระยะอาวุธและตำแหน่งทำงานจริงในศึกนี้'
         });
@@ -4992,10 +5798,15 @@
     const ledger = Array.isArray(W.sect.ledger) ? W.sect.ledger : [];
     let stoneIncome = 0, stoneExpense = 0;
     const incByReason = {}, expByReason = {};
+    let internalLedgerTransferCount = 0;
     for (let i = 0; i < ledger.length; i++) {
       const tx = ledger[i];
       if (!tx || !Number.isFinite(tx.t) || !Number.isFinite(tx.amt)) continue;
-      if (tx.t <= fromTick || tx.t > toTick) continue;
+      if ((fromTick === 0 ? tx.t < 0 : tx.t <= fromTick) || tx.t > toTick) continue;
+      if (tx.internalTransfer) {
+        internalLedgerTransferCount++;
+        continue;
+      }
       const why = String(tx.why || 'รายการทั่วไป').split(':')[0].trim();
       if (tx.amt > 0) {
         stoneIncome += tx.amt;
@@ -5018,10 +5829,11 @@
     const closingGrain = g.ECO ? g.ECO.count(W, 'grain') : 0;
     const closingFoodEquiv = closingMeals + closingGrain * 3;
     const aliveNpcs = (W.npcs || []).filter(n => n && !n.dead && !n.exiled);
-    const alivePop = Math.max(1, aliveNpcs.length);
-    const foodDaysRemaining = +(closingFoodEquiv / Math.max(1, alivePop * 2.2)).toFixed(1);
+    const alivePop = aliveNpcs.length;
+    const popDiv = Math.max(1, alivePop);
+    const foodDaysRemaining = +(closingFoodEquiv / Math.max(1, popDiv * 2.2)).toFixed(1);
     const generosity = (W.sect.policy && W.sect.policy.generosity != null) ? W.sect.policy.generosity : 50;
-    const cashReserveFloor = Math.max(300, alivePop * 20) + Math.round(alivePop * 10 * (1 - generosity / 200));
+    const cashReserveFloor = Math.max(300, popDiv * 20) + Math.round(popDiv * 10 * (1 - generosity / 200));
 
     const logs = Array.isArray(W.logs) ? W.logs : [];
     let internalGiftsCount = 0;
@@ -5048,7 +5860,7 @@
 
     for (let i = 0; i < logs.length; i++) {
       const l = logs[i];
-      if (!l || !Number.isFinite(l.t) || l.t <= fromTick || l.t > toTick) continue;
+      if (!l || !Number.isFinite(l.t) || (fromTick === 0 ? l.t < 0 : l.t <= fromTick) || l.t > toTick) continue;
       const txKind = l.txKind || (l.meta && l.meta.txKind) || null;
       const txt = String(l.text || '');
       const primaryId = Array.isArray(l.ids) && l.ids[0] ? l.ids[0] : null;
@@ -5164,7 +5976,7 @@
       verifiedRisks.push({
         severity: foodDaysRemaining < 3 ? 'CRITICAL' : 'MAJOR',
         titleTh: 'เสบียงสำรองต่ำกว่าเกณฑ์ 7 วัน (เหลือราว ' + foodDaysRemaining + ' วัน)',
-        detailTh: 'มีอาหารปรุงสุก ' + closingMeals + ' ชุด และข้าวสาร ' + closingGrain + ' หน่วย สำหรับสมาชิก ' + alivePop + ' คน'
+        detailTh: 'มีอาหารปรุงสุก ' + closingMeals + ' ชุด และข้าวสาร ' + closingGrain + ' กระสอบ สำหรับสมาชิก ' + alivePop + ' คน'
       });
     }
     if (closingStones < cashReserveFloor) {
@@ -5190,6 +6002,198 @@
         detailTh: troubledDisciples.slice(0, 2).map(d => d.fullName + ' (' + d.issuesTh + ')').join(' · ')
       });
     }
+
+    // 5. Compute the 28 Untapped Simulation Metrics (14A Section 2 — 100% Deterministic, Zero W.rng)
+    const calNow = (g.SIM && g.SIM.calendar) ? g.SIM.calendar(toTick) : { season: 0, year: 1 };
+    const dyingLampElders = aliveNpcs.filter(n => {
+      const age = (g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 20;
+      const maxL = n.lifespanMax || (g.CULT && g.CULT.lifespan ? g.CULT.lifespan(n) : 80);
+      return maxL > 0 && (age / maxL) >= 0.88;
+    });
+    const bottleneckedNpcs = aliveNpcs.filter(n => n.cult && n.cult.bn);
+    const qiDeviationRiskNpcs = aliveNpcs.filter(n => ((n.h && n.h.state && n.h.state.heartDemon) || 0) >= 65 || ((n.cult && n.cult.toxic) || 0) >= 35 || ((n.forbiddenArtState && n.forbiddenArtState.tabooStrain) || 0) >= 60);
+    const suspendedGoalNpcs = aliveNpcs.filter(n => n.cognition && n.cognition.suspendedGoal);
+    const facDem = (W.sect && W.sect.facilityDemand) || {};
+    let topCongestedId = null, topCongestedHours = 0, topUnmet = 0;
+    Object.entries(facDem).forEach(([bid, fd]) => {
+      const ch = (fd && fd.congestedHours) || 0;
+      if (ch > topCongestedHours) { topCongestedHours = ch; topCongestedId = bid; topUnmet = (fd && fd.unmetDemands) || 0; }
+    });
+    const bedlessCount = aliveNpcs.filter(n => !n.away && n.bed == null).length;
+    const cpPriceMult = +((W.sect && W.sect.cp && W.sect.cp.price) || 1.0).toFixed(2);
+    const personalStonesArr = aliveNpcs.map(n => (n.inv && n.inv.stones) || 0).sort((a, b) => b - a);
+    const richestStones = personalStonesArr[0] || 0;
+    const needSum = (g.ECO && g.ECO.needSummary) ? g.ECO.needSummary(W) : { noWeapon: 0, noArmor: 0 };
+    let topRelicKills = 0, topRelicName = 'ยังไม่มีศาสตราดื่มโลหิต';
+    aliveNpcs.forEach(n => {
+      const wpn = n.equip && n.equip.WEAPON;
+      if (wpn && (wpn.kills || 0) > topRelicKills) { topRelicKills = wpn.kills; topRelicName = wpn.nameTh || wpn.id; }
+    });
+    const pathCounts = {};
+    aliveNpcs.forEach(n => { const p = (n.cult && n.cult.path) || 'MORTAL'; pathCounts[p] = (pathCounts[p] || 0) + 1; });
+    const dominantPathEntry = Object.entries(pathCounts).sort((a, b) => b[1] - a[1])[0] || ['XIAN', 0];
+    const mentorCount = aliveNpcs.filter(n => Array.isArray(n.apprenticeIds) && n.apprenticeIds.length > 0).length;
+    let romancePairs = 0, feudPairs = 0;
+    aliveNpcs.forEach(n => {
+      const rels = (n.h && n.h.mind && n.h.mind.relations) || {};
+      Object.entries(rels).forEach(([oid, r]) => {
+        if (n.id < oid && r) {
+          if ((r.l || 0) >= 45 || r.bond === 'คนรัก' || r.bond === 'คู่ครอง' || r.bond === 'TAOIST_COMPANION') romancePairs++;
+          if ((r.a || 0) < -30 && (r.v || 0) > 40) feudPairs++;
+        }
+      });
+    });
+    const cliqueCount = (W.sect && W.sect.cliques && Object.keys(W.sect.cliques).length) || 4;
+    const suspicionVal = Math.round((W.sect && W.sect.suspicion) || 0);
+    const petitionsCount = (W.sect && Array.isArray(W.sect.petitions) && W.sect.petitions.length) || 0;
+    const peaksCount = (W.sect && W.sect.peaks && Object.keys(W.sect.peaks).length) || 8;
+    const fsScore = (W.sect && W.sect.fengShui && W.sect.fengShui.sectAverageScore) || 68;
+    const reservePetsCount = (W.sect && Array.isArray(W.sect.reservePets) && W.sect.reservePets.length) || 0;
+    const worldSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && Array.isArray(W.world.sects)) ? W.world.sects : []);
+    const hostileSectsCount = worldSects.filter(s => s && !s.collapsed && (s.attitude || 0) <= -35).length;
+    const worldPoolStones = Math.round((W.world && W.world.resourcePool && W.world.resourcePool.stones) || 50000);
+    const pagodaFloorMax = (W.sect && W.sect.pagoda && W.sect.pagoda.highestFloorCleared) || (W.explore && W.explore.maxPagodaFloor) || 1;
+    const vowKeepersCount = aliveNpcs.filter(n => (Array.isArray(n.voluntaryVows) && n.voluntaryVows.length > 0) || n.daoOath).length;
+
+    const metrics28 = {
+      M01_famineRunwayDays: foodDaysRemaining,
+      M02_dyingLampEldersCount: dyingLampElders.length,
+      M03_bottleneckStalledCount: bottleneckedNpcs.length,
+      M04_qiDeviationRiskCount: qiDeviationRiskNpcs.length,
+      M05_suspendedGoalsCount: suspendedGoalNpcs.length,
+      M06_topCongestedHall: { buildingId: topCongestedId, congestedHours: topCongestedHours, unmetDemands: topUnmet },
+      M07_bedlessDisciplesCount: bedlessCount,
+      M08_cpInflationMult: cpPriceMult,
+      M09_topPersonalStones: richestStones,
+      M10_cashReserveGap: closingStones - cashReserveFloor,
+      M11_workshopCraftSummary: { crafted: craftsInWindow, failed: craftFailsInWindow },
+      M12_unarmedDisciplesCount: needSum.noWeapon || 0,
+      M13_topBloodiedWeapon: { nameTh: topRelicName, kills: topRelicKills },
+      M14_dominantPath: { pathId: dominantPathEntry[0], count: dominantPathEntry[1] },
+      M15_activeMentorsCount: mentorCount,
+      M16_buddingRomancesCount: romancePairs,
+      M17_festeringFeudsCount: feudPairs,
+      M18_elderCliquesCount: cliqueCount,
+      M19_corruptionAndPetitions: { suspicion: suspicionVal, petitions: petitionsCount },
+      M20_sacredPeaksActive: peaksCount,
+      M21_fengShuiScore: fsScore,
+      M22_orphanedSpiritBeasts: reservePetsCount,
+      M23_sectFame: Math.round(W.sect.fame || 0),
+      M24_hostileRivalSects: hostileSectsCount,
+      M25_worldStonePoolRemaining: worldPoolStones,
+      M26_pagodaFrontierFloor: pagodaFloorMax,
+      M27_battlesWonInWindow: battlesInWindow,
+      M28_vowKeepersCount: vowKeepersCount
+    };
+
+    // 6. Build the 6 Officer-Voiced Court Memorial Sections (สมุดฎีกาถวายรายงานหกหอ — 14A Section 3)
+    const buildOfficerHeader = (postId, fallbackPostNameTh) => {
+      const holder = (g.SECT && g.SECT.holder) ? g.SECT.holder(W, postId) : null;
+      const pNameTh = (g.SECT && g.SECT.POSTS && g.SECT.POSTS[postId] && g.SECT.POSTS[postId].nameTh) || fallbackPostNameTh;
+      if (!holder) {
+        return {
+          postId,
+          postNameTh: pNameTh,
+          officerId: null,
+          officerNameTh: 'เสมียนเวรประจำหอ',
+          headerTh: 'บันทึกชั่วคราวโดยเสมียนเวร (ตำแหน่ง ' + pNameTh + ' ยังว่างเว้นผู้ดูแล)',
+          tone: 'CLERK'
+        };
+      }
+      const full = (g.HC && g.HC.fullName) ? g.HC.fullName(holder) : holder.h.name.given;
+      const p = (holder.h && holder.h.personality) || {};
+      const integrity = p.integrity != null ? p.integrity : 50;
+      const caution = p.caution != null ? p.caution : 50;
+      const ambition = p.ambition != null ? p.ambition : 50;
+      const aggression = p.aggression != null ? p.aggression : 50;
+      const tone = (integrity < 42 && (holder.embezzled || 0) > 0) ? 'CORRUPT_SMOOTH'
+        : (caution >= 65 ? 'CAUTIOUS'
+        : ((ambition >= 65 || aggression >= 65) ? 'BOLD' : 'BALANCED'));
+      return {
+        postId,
+        postNameTh: pNameTh,
+        officerId: holder.id,
+        officerNameTh: full,
+        headerTh: 'ฎีกาจาก ' + pNameTh + ' · ' + full,
+        tone
+      };
+    };
+
+    const treOff = buildOfficerHeader('treasury', 'เจ้าหอคลังและบรรณาการ');
+    const cultOff = buildOfficerHeader('scripture', 'เจ้าหอคัมภีร์');
+    const marOff = buildOfficerHeader('martial', 'เจ้าหอยุทธ์');
+    const crfOff = buildOfficerHeader('alchemy', 'เจ้าหอปรุงโอสถ');
+    const govOff = buildOfficerHeader('discipline', 'ผู้คุมกฎหอวินัย');
+    const dipOff = buildOfficerHeader('diplomat', 'ทูตยุทธภพ');
+
+    const netSignStr = netStones >= 0 ? ('+' + netStones) : String(netStones);
+    const winterWarn = calNow.season === 2 ? ' อนึ่ง อีกไม่นานจะย่างเข้าสู่เหมันตฤดูที่นาข้าวชะงักงัน สมควรสำรองเสบียงไว้แต่เนิ่นๆ' : '';
+    const treClosingLine = treOff.tone === 'CORRUPT_SMOOTH'
+      ? 'บัญชีคลังหลวงเรียบร้อยร่มเย็นเป็นสุข มิมีสิ่งใดน่ากังวลขอรับ'
+      : (treOff.tone === 'CAUTIOUS'
+        ? ('สมควรรักษากันชนสำรอง ' + cashReserveFloor + ' ก้อนไว้อย่างเคร่งครัดเพื่อรับมือเหตุฉุกเฉิน' + winterWarn)
+        : ('ดุลการค้าหมุนเวียนคล่องตัว พร้อมหนุนการเติบโตของสำนักในรอบหน้า' + winterWarn));
+
+    const memorialSections = [
+      {
+        id: 'TREASURY',
+        icon: '💰',
+        titleTh: 'ฎีกาหอคลังและยุ้งฉาง',
+        headerTh: treOff.headerTh,
+        officerId: treOff.officerId,
+        tone: treOff.tone,
+        bodyTh: 'ในรอบ ' + windowDays + ' วันที่ผ่านมา รายรับศิลาวิญญาณจากภายนอก +' + stoneIncome + ' ก้อน หักรายจ่าย -' + stoneExpense + ' ก้อน คงเหลือสุทธิ ' + netSignStr + ' ก้อน (ยอดคลังหลวงรวม ' + closingStones + ' ก้อน · หมุนเวียนภายในผ่านการแลกแต้มคุณูปการ ' + internalCpPurchasesCount + ' รายการ และศิษย์ส่งของเข้าคลัง ' + internalDonationsCount + ' รายการ) ส่วนยุ้งฉางมีเสบียงพอเลี้ยงดูสมาชิกทั้ง ' + alivePop + ' ชีวิตไปได้อีกราว ' + foodDaysRemaining + ' วัน — ' + treClosingLine
+      },
+      {
+        id: 'CULTIVATION',
+        icon: '🕯️',
+        titleTh: 'ฎีกาหอบำเพ็ญและชะตาชีวิต',
+        headerTh: cultOff.headerTh,
+        officerId: cultOff.officerId,
+        tone: cultOff.tone,
+        bodyTh: 'เวลานี้มีศิษย์ติดคอขวดด่านใหญ่รอวันฝ่าทัณฑ์สวรรค์ ' + bottleneckedNpcs.length + ' คน (ทะลวงสำเร็จในรอบนี้ ' + breakthroughSuccessCount + ' ครั้ง / พลาด ' + breakthroughFailCount + ' ครั้ง) ' +
+          (dyingLampElders.length > 0 ? ('อนึ่ง ตะเกียงอายุขัยของ ' + dyingLampElders.slice(0, 2).map(e => g.HC.fullName(e)).join(', ') + ' เหลือเวลาชีวิตน้อยกว่า 12% กำลังเร่งหาทางทะลวงขั้นต่อชะตาหรือสั่งเสียผู้สืบทอด ') : 'ผู้ฝึกตนอาวุโสยังมีปราณอายุขัยมั่นคง ') +
+          (topCongestedHours > 0 ? ('ส่วนความแออัด อาคาร ' + ((W.map && W.map.byId && W.map.byId[topCongestedId] && W.map.byId[topCongestedId].nameTh) || topCongestedId) + ' มีผู้แย่งเบาะนั่งเต็มพิกัดรวม ' + topCongestedHours + ' ชั่วยาม') : 'เบาะนั่งบำเพ็ญและหอคัมภีร์ยังรองรับศิษย์ได้เพียงพอ')
+      },
+      {
+        id: 'MARTIAL',
+        icon: '⚔️',
+        titleTh: 'ฎีกาหอยุทธ์และคลังแสง',
+        headerTh: marOff.headerTh,
+        officerId: marOff.officerId,
+        tone: marOff.tone,
+        bodyTh: 'ในรอบนี้เกิดศึกปะทะสำคัญ ' + battlesInWindow + ' ครั้ง · ศิษย์ไร้ศาสตราคู่กายต้องออกศึกมือเปล่า ' + (needSum.noWeapon || 0) + ' คน และไร้เสื้อเกราะ ' + (needSum.noArmor || 0) + ' คน · ศาสตราที่ดื่มโลหิตสูงสุดคือ「' + topRelicName + '」(' + topRelicKills + ' ศพ) ' +
+          (feudPairs > 0 ? ('ด้านคลื่นใต้น้ำในลานฝึก มีคู่ศิษย์บาดหมางรุนแรง ' + feudPairs + ' คู่ ที่เสี่ยงชักดาบดวลสะสางแค้น') : 'ระเบียบวินัยในลานฝึกยุทธ์ยังเรียบร้อยดี')
+      },
+      {
+        id: 'CRAFT',
+        icon: '⚗️',
+        titleTh: 'ฎีกาหอโอสถและโรงหลอม',
+        headerTh: crfOff.headerTh,
+        officerId: crfOff.officerId,
+        tone: crfOff.tone,
+        bodyTh: 'เตาหลอมโอสถและทั่งตีเหล็กผลิตผลงานสำเร็จเข้าคลัง ' + craftsInWindow + ' ชิ้น และเกิดเหตุไฟปราณสะดุดสูญเสียวัตถุดิบ ' + craftFailsInWindow + ' ครั้ง · ดัชนีค่าครองชีพแต้มคุณูปการปัจจุบันอยู่ที่ ×' + cpPriceMult + ' · ' +
+          (shortages.length > 0 ? ('มีรายการพัสดุขาดแคลนเร่งด่วน ' + shortages.length + ' รายการที่ศิษย์สายผลิตกำลังเร่งมือ') : 'วัตถุดิบหลักในคลังยังหมุนเวียนได้ตามปกติ')
+      },
+      {
+        id: 'GOVERNANCE',
+        icon: '⚖️',
+        titleTh: 'ฎีกาโถงสภาและหอวินัย',
+        headerTh: govOff.headerTh,
+        officerId: govOff.officerId,
+        tone: govOff.tone,
+        bodyTh: 'ศิษย์ที่ต้องพับปณิธานชั่วคราวเพื่อรักษาชีวิตมี ' + suspendedGoalNpcs.length + ' คน · ศิษย์ไร้เตียงประจำต้องนอนตากน้ำค้าง ' + bedlessCount + ' คน · ศิษย์ที่มารในใจหรือพิษโอสถสะสมสูงมี ' + qiDeviationRiskNpcs.length + ' คน · ระดับพิรุธทางบัญชีคลังอยู่ที่ ' + suspicionVal + '/100 และมีฎีการ้องทุกข์ค้างพิจารณา ' + petitionsCount + ' ฉบับ'
+      },
+      {
+        id: 'DIPLOMACY',
+        icon: '🌏',
+        titleTh: 'ฎีกาหอทูตและสำรวจยุทธภพ',
+        headerTh: dipOff.headerTh,
+        officerId: dipOff.officerId,
+        tone: dipOff.tone,
+        bodyTh: 'บารมีสำนักในยุทธภพอยู่ที่ ' + Math.round(W.sect.fame || 0) + ' แต้ม · มีสำนักต่างแดนตั้งตนเป็นอริ ' + hostileSectsCount + '/' + worldSects.length + ' สำนัก · ชีพจรแร่ศิลาปราณทั่วแผ่นดินคงเหลือ ' + worldPoolStones + ' ก้อน · สถิติบุกเบิกมหาเจดีย์ 43 วิถีไปถึงชั้นที่ ' + pagodaFloorMax
+      }
+    ];
 
     return {
       periodKey: 'digest:' + fromDay + ':' + toDay + ':' + windowDays,
@@ -5230,7 +6234,9 @@
       },
       topContributors,
       troubledDisciples: troubledDisciples.slice(0, 5),
-      verifiedRisks
+      verifiedRisks,
+      metrics28,
+      memorialSections
     };
   };
 
@@ -5240,11 +6246,14 @@
     X.ensureNewsSystem(W);
     const d = X.computePeriodDigest(W, opts);
     if (!d) return null;
-    const existing = W.sect.digestHistory.find(x => x && x.periodKey === d.periodKey);
-    if (existing && !opts.force) return existing;
+    const existingIdx = W.sect.digestHistory.findIndex(x => x && x.periodKey === d.periodKey);
+    if (existingIdx >= 0 && !opts.force) return W.sect.digestHistory[existingIdx];
 
-    W.sect.digestHistory.unshift(d);
-    if (W.sect.digestHistory.length > 24) W.sect.digestHistory.length = 24;
+    if (existingIdx >= 0) W.sect.digestHistory[existingIdx] = d;
+    else {
+      W.sect.digestHistory.unshift(d);
+      if (W.sect.digestHistory.length > 24) W.sect.digestHistory.length = 24;
+    }
 
     if (opts.alsoRecordChronicle !== false) {
       const netSign = d.treasury.netStones >= 0 ? ('+' + d.treasury.netStones) : String(d.treasury.netStones);
@@ -5263,7 +6272,7 @@
         storyTh: 'คงคลังศิลา ' + d.treasury.closingStones + ' ก้อน (รายรับ +' + d.treasury.stoneIncome + ' / รายจ่าย -' + d.treasury.stoneExpense + ' / สุทธิ ' + netSign + ' ศิลา) · เสบียงพอใช้ราว ' + d.stockAndInternal.foodDaysRemaining + ' วัน · ' + contribTxt,
         originCauseTh: 'ประมวลผลจากสมุดบัญชีคลัง (แยกจากการโอนภายใน ' + (d.stockAndInternal.internalGiftsCount + d.stockAndInternal.internalCpPurchasesCount + d.stockAndInternal.internalDonationsCount) + ' รายการ) และเหตุการณ์จริงใน ' + d.periodLabelTh,
         consequenceTh: riskTxt,
-        followUpTh: d.troubledDisciples.length ? ('ดูแลศิษย์ที่ติดปัญหา: ' + d.troubledDisciples.slice(0, 2).map(t => t.fullName).join(', ')) : 'ตรวจสอบคำสั่งหอผลิตและแผนการฝึกตามปกติ',
+        followUpTh: d.troubledDisciples.length ? ('หอหมอยาและผู้อาวุโสกำลังประคองอาการของ ' + d.troubledDisciples.slice(0, 2).map(t => t.fullName).join(', ') + ' อย่างใกล้ชิด') : 'ขุนนางทั้งหกหอดำเนินการจัดสรรทรัพยากรและแผนการฝึกตามปกติ',
         npcIds: d.topContributors.map(c => c.id).concat(d.troubledDisciples.map(t => t.id)).slice(0, 4),
         digestPayload: d,
         severity: d.verifiedRisks.some(r => r.severity === 'CRITICAL') ? 'CRITICAL' : (d.verifiedRisks.length ? 'MAJOR' : 'NOTABLE'),
@@ -5277,8 +6286,10 @@
     if (!W || !W.sect || W._founding) return;
     const np = X.ensureNewsPrefs(W);
     const interval = np.digestIntervalDays || 0;
-    if (interval <= 0 || !W.day || W.day <= 0) return;
-    if (W.day % interval === 0) {
+    const startOff = (g.SIM && g.SIM.CALENDAR && g.SIM.CALENDAR.START_DAY_OFFSET) || 360;
+    const elapsed = (W.day || 0) - startOff;
+    if (interval <= 0 || elapsed <= 0) return;
+    if (elapsed % interval === 0) {
       X.recordPeriodicDigest(W, { windowDays: interval, alsoRecordChronicle: true });
     }
   };
@@ -5378,7 +6389,7 @@
     const s = typeof sectOrId === 'object' && sectOrId ? sectOrId : X.findSect(W, sectOrId);
     if (!s) return null;
     W.world.figureSeq = (W.world.figureSeq || 0) + 1;
-    const seq = opts.seq != null ? opts.seq : W.world.figureSeq;
+    const seq = opts.seq != null ? opts.seq : (W.world.figureSeq = (W.world.figureSeq || 0) + 1);
     const rng = opts.rng || makeChildRng(W, (s.canonicalId || s.id) + ':' + role + ':' + seq + ':' + (W.day || 360));
 
     const tierLv = s.tierLevel || 2;
@@ -5567,7 +6578,7 @@
       }
       if (s.figures.master) {
         hideFigCaches(s.figures.master, W);
-        s.leaderNameTh = s.figures.master.titleAndNameTh;
+        if (!s.livingRoster || !s.livingRoster.leader) s.leaderNameTh = s.figures.master.titleAndNameTh;
         s.masterDoctrineId = s.figures.master.doctrineId;
         s.masterDoctrineNameTh = s.figures.master.doctrineNameTh;
         W.world.figuresById[s.figures.master.id] = s.figures.master;
@@ -5715,12 +6726,22 @@
     if (!Array.isArray(W.world.fallenLegends)) W.world.fallenLegends = [];
     ensureFiguresMap(W.world);
 
-    const alive = W.world.wanderingLegends.filter(l => l && !l.dead);
-    let idx = W.world.wanderingLegends.length;
+    W.world.wanderingLegends = W.world.wanderingLegends.filter(l => {
+      if (!l) return false;
+      if (l.dead) {
+        if (!W.world.fallenLegends.some(f => f && f.id === l.id)) {
+          W.world.fallenLegends.unshift(l);
+          if (W.world.fallenLegends.length > 30) W.world.fallenLegends.length = 30;
+        }
+        return false;
+      }
+      return true;
+    });
+    const alive = W.world.wanderingLegends.slice();
     while (alive.length < want) {
-      idx++;
-      const rng = makeChildRng(W, 'init_legend_' + idx);
-      const leg = X.generateWanderingLegend(W, { rng, seq: idx, isReemergence: idx > want });
+      const seq = (W.world.legendSeq || 0) + 1;
+      const rng = makeChildRng(W, 'init_legend_' + seq);
+      const leg = X.generateWanderingLegend(W, { rng, seq, isReemergence: seq > want });
       W.world.wanderingLegends.push(leg);
       alive.push(leg);
     }
@@ -5778,17 +6799,19 @@
       const idx = figs.coreDisciples.indexOf(promoted);
       promoted.role = 'successor';
       promoted.roleTh = 'ศิษย์สืบทอด';
+      promoted.cognitionTier = 1;
+      promoted.domain = 'SUPREME_GOVERNANCE';
       promoted.rank = 3;
       if (promoted.cult) {
         promoted.cult.stage = Math.min(9, (promoted.cult.stage || 3) + 1);
       }
       promoted.power = Math.round((promoted.power || 220) * 1.25);
       promoted.backingBonus = (promoted.backingBonus || 10) + 12;
-      promoted.promotedFromRole = 'core_disciple';
+      promoted.promotedFromRole = 'coreDisciple';
       promoted.promotedDay = (W && W.day) || 360;
       promoted.titleAndNameTh = promoted.fullNameTh + ' 「ศิษย์สืบทอด' + (s.shortTh || s.nameTh) + '」';
       figs.successor = promoted;
-      const replacementCore = X.generateProceduralSectFigure(W, s, 'core_disciple', { slotIdx: idx >= 0 ? idx : 0 });
+      const replacementCore = X.generateProceduralSectFigure(W, s, 'coreDisciple', { slotIdx: idx >= 0 ? idx : 0 });
       if (idx >= 0) figs.coreDisciples[idx] = replacementCore;
       else figs.coreDisciples.push(replacementCore);
       return promoted;
@@ -5811,6 +6834,8 @@
       promoted.promotedFromRole = promoted.role;
       promoted.role = 'deputy';
       promoted.roleTh = 'รองเจ้าสำนัก';
+      promoted.cognitionTier = 1;
+      promoted.domain = 'SUPREME_GOVERNANCE';
       promoted.rank = 5;
       if (promoted.cult) {
         promoted.cult.stage = Math.min(9, (promoted.cult.stage || 4) + 1);
@@ -5819,8 +6844,8 @@
       promoted.promotedDay = (W && W.day) || 360;
       promoted.titleAndNameTh = promoted.fullNameTh + ' 「รองเจ้าสำนัก' + (s.shortTh || s.nameTh) + '」';
       figs.deputy = promoted;
-      const roleMap = { warMarshal: 'war_marshal', disciplineElder: 'discipline_elder', craftElder: 'craft_elder' };
-      figs[slotKey] = X.generateProceduralSectFigure(W, s, roleMap[slotKey] || 'war_marshal');
+      const roleMap = { warMarshal: 'warMarshal', disciplineElder: 'disciplineElder', craftElder: 'craftElder' };
+      figs[slotKey] = X.generateProceduralSectFigure(W, s, roleMap[slotKey] || 'warMarshal');
       return promoted;
     }
     figs.deputy = X.generateProceduralSectFigure(W, s, 'deputy');
@@ -6191,7 +7216,7 @@
     X.ensureJianghuFigures(W);
     const alliances = X.evaluateAllianceLeadership(W);
     const all = W.world.allSects || [];
-    const alignId = opts.alignment || (((W.day || 360) % 2 === 0) ? 'RIGHTEOUS' : 'DEMONIC');
+    const alignId = opts.alignment || ((Math.floor((W.day || 360) / 14) % 2 === 0) ? 'RIGHTEOUS' : 'DEMONIC');
     const gp = W.world.grandPolitics || (W.world.grandPolitics = {});
     gp.lastCouncilDayByAlignment = gp.lastCouncilDayByAlignment || {};
     const curDay = W.day || 360;
@@ -6596,7 +7621,11 @@
     }
 
     if (winEntry.entrantType === 'PLAYER_SECT') {
-      if (ECO && ECO.earn) ECO.earn(W, realm.stones || 500, 'คว้าชัยศึกชิงมรดกแดนลับ「' + realm.nameTh + '」');
+      const realmStones = realm.stones || 500;
+      if (ECO) {
+        if (ECO.earnFromPool) ECO.earnFromPool(W, realmStones, 'คว้าชัยศึกชิงมรดกแดนลับ「' + realm.nameTh + '」');
+        else if (ECO.earn) ECO.earn(W, realmStones, 'คว้าชัยศึกชิงมรดกแดนลับ「' + realm.nameTh + '」');
+      }
       if (realm.catalystId && ECO && ECO.addCatalyst) ECO.addCatalyst(W, realm.catalystId, 1);
       const rTpl = X.SECRET_REALM_TEMPLATES[realm.templateId] || {};
       if (Array.isArray(rTpl.rewardMatIds) && ECO && ECO.add) {
@@ -6682,14 +7711,16 @@
     if (kind === 'ENVOY_DELEGATION' && targetSect) {
       const fig = (targetSect.figures && targetSect.figures.deputy) || (targetSect.figures && targetSect.figures.master);
       const dipSkill = envoyOfficer ? ((envoyOfficer.h.skills.diplomacy || 0) + HC.eff(envoyOfficer, 'social.charisma')) : 90;
-      const giftStones = Math.round(65 + (targetSect.tierLevel || 2) * 28);
+      const wantGift = Math.round(65 + (targetSect.tierLevel || 2) * 28);
       if (dipSkill >= 85 || HC.eff(envoyOfficer || master, 'personality.empathy') >= 48) {
         targetSect.attitude = clamp((targetSect.attitude || 0) + 10, -100, 100);
-        if (ECO && ECO.earn) ECO.earn(W, giftStones, 'ของกำนัลเชื่อมไมตรีจากคณะทูต' + targetSect.nameTh);
+        const giftStones = (ECO && ECO.earnFromPool)
+          ? ECO.earnFromPool(W, wantGift, 'ของกำนัลเชื่อมไมตรีจากคณะทูต' + targetSect.nameTh, { rivalSect: targetSect })
+          : ((ECO && ECO.earn && ECO.earn(W, wantGift, 'ของกำนัลเชื่อมไมตรีจากคณะทูต' + targetSect.nameTh)) ? wantGift : 0);
         outcome = 'CORDIAL_ACCORD';
         titleTh = 'คณะทูตจาก「' + targetSect.nameTh + '」เดินทางมาเยือนหน้าประตูสำนัก';
-        storyTh = '「' + (fig ? fig.titleAndNameTh : targetSect.leaderNameTh) + '」นำคณะทูตจาก「' + targetSect.nameTh + '」(' + targetSect.tierNameTh + ') เดินทางมาเยือนสำนักของเรา 「' + (envoyOfficer ? HC.fullName(envoyOfficer) : 'ผู้แทนสำนัก') + '」ออกต้อนรับและเจรจาด้วยวาจาหลักแหลม จนบรรลุข้อตกลงแลกเปลี่ยนสิ่งของและมอบศิลาวิญญาณกำนัล ' + giftStones + ' ก้อน!';
-        consequenceTh = 'ความสัมพันธ์กับ ' + targetSect.nameTh + ' เพิ่มขึ้น +10 · ได้รับศิลาวิญญาณ +' + giftStones + ' ก้อน';
+        storyTh = '「' + (fig ? fig.titleAndNameTh : targetSect.leaderNameTh) + '」นำคณะทูตจาก「' + targetSect.nameTh + '」(' + targetSect.tierNameTh + ') เดินทางมาเยือนสำนักของเรา 「' + (envoyOfficer ? HC.fullName(envoyOfficer) : 'ผู้แทนสำนัก') + '」ออกต้อนรับและเจรจาด้วยวาจาหลักแหลม จนบรรลุข้อตกลงแลกเปลี่ยนสิ่งของ' + (giftStones > 0 ? ('และมอบศิลาวิญญาณกำนัล ' + giftStones + ' ก้อน!') : 'ด้วยความเคารพซึ่งกันและกัน!');
+        consequenceTh = 'ความสัมพันธ์กับ ' + targetSect.nameTh + ' เพิ่มขึ้น +10' + (giftStones > 0 ? (' · ได้รับศิลาวิญญาณ +' + giftStones + ' ก้อน') : '');
       } else {
         targetSect.attitude = clamp((targetSect.attitude || 0) - 6, -100, 100);
         outcome = 'TENSE_STANDOFF';
@@ -6920,9 +7951,11 @@
     const sfReport = '【รอบรองชนะเลิศ】 「' + champion.nameTh + '」สำแดงวิชา「' + champion.techNameTh + '」เอาชนะ「' + semi1.nameTh + '」ขณะที่「' + finalist.nameTh + '」ฟาดฟันด้วย' + finalist.weaponNameTh + 'เฉือนชนะ「' + semi2.nameTh + '」ผ่านเข้าสู่รอบชิงชนะเลิศ!';
     const finalReport = '【รอบชิงชนะเลิศยุทธภพสิบทิศ】 ท่ามกลางสายตาผู้ชมทั่วหล้า ณ ลานประลองของ「' + hostSect.nameTh + '」「' + champion.nameTh + '」(' + champion.sectNameTh + ') ปะทะเดือดกับ「' + finalist.nameTh + '」(' + finalist.sectNameTh + ') นานนับร้อยกระบวนท่า ก่อนที่ ' + champion.shortNameTh + ' จะเร่งปราณสูงสุดสำแดง「' + champion.techNameTh + '」คู่กับ' + champion.weaponNameTh + ' คว้าตำแหน่งเจ้ายุทธภพสิบทิศประจำปีไปครองอย่างยิ่งใหญ่!';
 
-    const stonePrize = 480;
+    let stonePrize = 0;
     if (champion.isPlayer) {
-      if (ECO && ECO.earn) ECO.earn(W, stonePrize, 'รางวัลชนะเลิศงานประลองยุทธภพสิบทิศ');
+      stonePrize = (ECO && ECO.earnFromPool)
+        ? ECO.earnFromPool(W, 480, 'รางวัลชนะเลิศงานประลองยุทธภพสิบทิศ')
+        : ((ECO && ECO.earn && ECO.earn(W, 480, 'รางวัลชนะเลิศงานประลองยุทธภพสิบทิศ')) ? 480 : 0);
       W.fame(12);
       const pm = W.byId[champion.npcId];
       if (pm && !pm.dead) {
@@ -7130,10 +8163,13 @@
       }
     }
 
-    // Ensure weapon skill matching fig.weaponType
+    // Ensure weapon skill matching fig.weaponType (both canonical uppercase and lowercase)
     if (fig.weaponType && fullNpc.h.skills) {
-      const wpnSkillKey = String(fig.weaponType).toLowerCase();
-      fullNpc.h.skills[wpnSkillKey] = Math.max(fullNpc.h.skills[wpnSkillKey] || 0, Math.round(55 + (fig.cult ? fig.cult.stage * 4 : 10)));
+      const wpnUpper = fig.weaponType === 'FIST' ? 'FIST_PALM' : String(fig.weaponType).toUpperCase();
+      const wpnLower = String(fig.weaponType).toLowerCase();
+      const targetVal = Math.round(55 + (fig.cult ? fig.cult.stage * 4 : 10));
+      fullNpc.h.skills[wpnUpper] = Math.max(fullNpc.h.skills[wpnUpper] || 0, targetVal);
+      fullNpc.h.skills[wpnLower] = Math.max(fullNpc.h.skills[wpnLower] || 0, targetVal);
     }
 
     // 3. Populate Resident State & Sect Membership
@@ -7153,11 +8189,17 @@
       mentor: null,
       bed: null,
       joinDay: W.day || 360,
-      inv: {
-        stones: (fig.inv && fig.inv.stones) ? fig.inv.stones : rng.int(50, 180),
-        pills: {},
-        mats: {}
-      },
+      inv: (() => {
+        const rawSt = (fig.inv && Number.isFinite(fig.inv.stones)) ? fig.inv.stones : rng.int(50, 180);
+        const pool = W.world && W.world.resourcePool;
+        const stVal = (pool && Number.isFinite(pool.stones)) ? Math.min(rawSt, Math.max(0, Math.floor(pool.stones))) : rawSt;
+        if (pool && Number.isFinite(pool.stones)) pool.stones -= stVal;
+        return {
+          stones: stVal,
+          pills: {},
+          mats: {}
+        };
+      })(),
       equip: {},
       inj: [],
       cool: {},
@@ -7185,10 +8227,12 @@
         ? fig.cult.sub
         : (pathSubs[0] ? pathSubs[0].id : 'SWORD_IMMORTAL');
       const mant = CULT.bestMantra ? CULT.bestMantra(pPath, pStage, fullNpc) : null;
+      const _hydMaxS = (CULT.PATHS[pPath] && Array.isArray(CULT.PATHS[pPath].stages) && CULT.PATHS[pPath].stages.length) ? CULT.PATHS[pPath].stages.length : 7;
+      const _hydStage = Math.max(1, Math.min(_hydMaxS, pStage || 1));
       fullNpc.cult = {
         path: pPath,
         sub: validSub,
-        stage: pStage,
+        stage: _hydStage,
         prog: 0,
         mantra: mant ? mant.id : null,
         techs: Array.isArray(fig.cult.techs) ? fig.cult.techs.slice() : [],
@@ -7218,9 +8262,9 @@
 
     // Equip Starter / Existing Gear (with guaranteed weapon fallback for all weapon types)
     if (fig.weaponType && ECO && ECO.mintGear) {
-      const wpnRecipes = ECO.recipesFor ? ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.weaponType === fig.weaponType) : [];
-      const allRecipes = (!wpnRecipes.length && JD && JD.RECIPES && Array.isArray(JD.RECIPES.recipes))
-        ? JD.RECIPES.recipes.filter(r => r && r.outType === 'EQUIPMENT' && r.weaponType === fig.weaponType)
+      const wpnRecipes = ECO.recipesFor ? ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && (r.gearType === fig.weaponType || r.weaponType === fig.weaponType)) : [];
+      const allRecipes = (!wpnRecipes.length && JD && JD.ITEMS && Array.isArray(JD.ITEMS.recipes))
+        ? JD.ITEMS.recipes.filter(r => r && r.outType === 'EQUIPMENT' && (r.gearType === fig.weaponType || r.weaponType === fig.weaponType))
         : wpnRecipes;
       if (allRecipes.length) {
         const pickedR = allRecipes.find(r => r.tier === (fullNpc.cult ? fullNpc.cult.stage : 3)) || allRecipes[0];
@@ -7239,10 +8283,12 @@
         weaponType: wType,
         gearType: wType,
         tier: stg,
+        q: 1.15,
         quality: 1.15,
         combatMult: +(0.12 + stg * 0.04).toFixed(3),
         dur: 100,
-        maxDur: 100
+        maxDur: 100,
+        listedAtDay: W.day || 0
       };
     }
 
@@ -7282,8 +8328,16 @@
       }
     }
     // Register into World Simulation
+    fullNpc.personalStones = (fullNpc.inv && fullNpc.inv.stones) || 0;
+    if (W.sect && W.sect.totemPillars && Array.isArray(W.sect.totemPillars.activeTotems) && W.sect.totemPillars.activeTotems.length) {
+      fullNpc.sectTotems = W.sect.totemPillars.activeTotems.slice();
+      fullNpc._sectTotems = fullNpc.sectTotems;
+    }
+    X.assignHometown(W, fullNpc);
     W.npcs.push(fullNpc);
     W.byId[fullNpc.id] = fullNpc;
+    if (g.AI && g.AI.assignBed && W.map) g.AI.assignBed(W, fullNpc);
+    if (g.SIM && g.SIM.snapshotPerson) g.SIM.snapshotPerson(W, fullNpc);
 
     if (fullNpc.renegadeOrigin && fullNpc.renegadeOrigin.offenseType === 'SUCCESSION_DEFECTION' && g.SECT && g.SECT.HEART_DEMON && g.SECT.HEART_DEMON.spawnFromCause) {
       g.SECT.HEART_DEMON.spawnFromCause(W, fullNpc, 'DEFEAT_HUMILIATION', {
@@ -7322,10 +8376,10 @@
       involvedSects: [fig.sectNameTh || 'สำนักภายนอก', W.sect.name || 'สำนักของเรา'],
       involvedFigures: [HC.fullName(fullNpc)],
       titleTh: 'ยอดฝีมือแปรพักตร์สวามิภักดิ์! 「' + HC.fullName(fullNpc) + '」เข้าสู่สำนัก',
-      storyTh: 'หลังเหตุการณ์คลื่นลมผันผวนในยุทธภพ 「' + HC.fullName(fullNpc) + '」(' + (fig.roleTh || 'อดีตยอดฝีมือ') + 'แห่ง' + (fig.sectNameTh || 'สำนักภายนอก') + ') ผู้มีตบะ' + (fullNpc.cult ? fullNpc.cult.path + ' ขั้น ' + fullNpc.cult.stage : '') + ' และความทะเยอทะยาน (' + Math.round(figTrait(fig, 'personality.ambition')) + ') ได้เดินทางมาขอกราบคารวะเข้าพึ่งพิงสำนัก「' + (W.sect.name || 'สำนักของเรา') + '」! เจ้าสำนักพิจารณาแล้วรับเข้าเป็นศิษย์ชั้นสูงทันที!',
-      originCauseTh: fullNpc.renegadeOrigin ? ('วิกฤตชิงบัลลังก์/ความขัดแย้งภายใน「' + (fig.sectNameTh || 'สำนักเดิม') + '」บีบให้ต้องลี้ภัย') : ('ความเลื่อมใสในชื่อเสียงของสำนักเราและการชักชวนยอดฝีมือพเนจร'),
+      storyTh: 'หลังเหตุการณ์คลื่นลมผันผวนในยุทธภพ 「' + HC.fullName(fullNpc) + '」(' + (fig.roleTh || 'อดีตยอดฝีมือ') + 'แห่ง' + (fig.sectNameTh || 'สำนักภายนอก') + ') ผู้บำเพ็ญ' + (fullNpc.cult ? (((CULT.PATHS && CULT.PATHS[fullNpc.cult.path] && CULT.PATHS[fullNpc.cult.path].nameTh) || fullNpc.cult.path) + ' ขั้น ' + fullNpc.cult.stage) : '') + ' มีความทะเยอทะยาน (' + Math.round(figTrait(fig, 'personality.ambition')) + ') ได้เดินทางมาขอกราบคารวะเข้าพึ่งพิงสำนัก「' + (W.sect.name || 'สำนักของเรา') + '」! เจ้าสำนักพิจารณาแล้วรับเข้าเป็นศิษย์ชั้นสูงทันที!',
+      originCauseTh: fullNpc.renegadeOrigin ? ('วิกฤตชิงบัลลังก์และความขัดแย้งภายใน「' + (fig.sectNameTh || 'สำนักเดิม') + '」บีบให้ต้องลี้ภัย') : ('ความเลื่อมใสในชื่อเสียงของสำนักเราและการชักชวนยอดฝีมือพเนจร'),
       actorChainTh: HC.fullName(fullNpc) + ' (' + (fig.roleTh || 'ยอดฝีมือ') + ') ➔ เดินทางเข้าพึ่งใบบุญ「' + (W.sect.name || 'สำนักของเรา') + '」',
-      systemImpactTh: 'แปลงข้อมูลเป็น NPC เต็มรูปแบบใน W.npcs (รักษาแกนมนุษย์ 155 มิติ + วิชา + อาวุธเดิม) · บันทึกชีวประวัติ h.life.bio' + (fullNpc.renegadeOrigin ? ' · ตั้งเวลาสารทวงตัวจากหอวินัยสำนักเดิมและเกิดปมมารในใจรอการชี้แนะ' : ''),
+      systemImpactTh: 'ขึ้นทำเนียบเป็นศิษย์ประจำสำนักอย่างเป็นทางการ โดยคงพื้นฐานนิสัย วิชา และศาสตราเดิมครบถ้วน' + (fullNpc.renegadeOrigin ? ' · สำนักเดิมอาจส่งหน่วยล่าสังหารตามทวงตัว และศิษย์ผู้นี้ยังคงมีปมในใจรอการชี้แนะ' : ''),
       consequenceTh: HC.fullName(fullNpc) + ' เข้าร่วมเป็นสมาชิกสำนักเราอย่างสมบูรณ์ รักษาอุปนิสัยและวิชาเดิมครบถ้วน!',
       quiet: opts.quiet
     });
@@ -7516,7 +8570,9 @@
     while (W.world.wanderingFigures.length < want) {
       idx++;
       const rng = makeChildRng(W, 'init_wandering_fig_' + idx + '_' + (W.day || 360));
-      const archId = archKeys[(idx - 1) % archKeys.length];
+      const present = new Set(W.world.wanderingFigures.map(f => f && f.archetypeId).filter(Boolean));
+      const missing = archKeys.filter(k => !present.has(k));
+      const archId = missing.length ? missing[0] : archKeys[(idx - 1) % archKeys.length];
       const wf = X.generateWanderingFigure(W, archId, { rng, seq: (W.world.wanderingSeq || 0) + idx, visitingPlayerSect: idx === 1 });
       if (wf) W.world.wanderingFigures.push(wf);
     }
@@ -7658,21 +8714,41 @@
       consequenceTh = 'รักษาอาการบาดเจ็บและขับพิษโอสถครบถ้วน · ไมตรีของ ' + wf.fullNameTh + ' เพิ่มเป็น ' + wf.affinity + '/100';
     } else if (act === 'BEFRIEND' || act === 'SUPPRESS' || (act === 'INTERACT' && wf.archetypeId === 'UNORTHODOX_BANDIT')) {
       if (act === 'SUPPRESS') {
-        const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
-        const bountyStones = Math.min(260, Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 260);
-        if (Number.isFinite(pool.stones)) pool.stones -= bountyStones;
-        if (ECO && ECO.earn) ECO.earn(W, bountyStones, 'รางวัลปราบปรามผู้บำเพ็ญนอกรีต');
-        W.fame(8);
-        wf.dead = true;
-        W.world.wanderingFigures = (W.world.wanderingFigures || []).filter(x => x && x.id !== wf.id);
-        W.wandering = W.world.wanderingFigures;
-        extra.stonesEarned = bountyStones;
-        titleTh = 'ปราบปรามผู้บำเพ็ญนอกรีต「' + wf.titleAndNameTh + '」สร้างชื่อเสียงขจรขจาย!';
-        storyTh = (champ ? HC.fullName(champ) : 'ยอดฝีมือสำนักเรา') + ' ออกสกัดกั้นและปราบปราม「' + wf.titleAndNameTh + '」ยึดทรัพย์สินที่ได้จากการปล้นชิงเข้าคลังสำนัก!';
-        consequenceTh = 'คลังสำนัก +' + bountyStones + ' ศิลาวิญญาณ · ชื่อเสียงสำนัก +8';
+        const cPower = champ ? CULT.power(champ) : 100;
+        const wfPower = wf.power || 320;
+        const winRatio = cPower / Math.max(1, cPower + wfPower);
+        const wonSuppress = opts.forceWin ? true : (opts.forceLose ? false : (winRatio >= 0.45 && (W.rng ? W.rng.chance(clamp(winRatio * 1.15, 0.15, 0.92)) : winRatio >= 0.5)));
+        if (champ && champ.h && champ.h.state) {
+          champ.h.state.energy = Math.max(5, (champ.h.state.energy || 50) - 24);
+          const hm = CULT.hpMax(champ);
+          const hpLoss = wonSuppress ? clamp(1 - winRatio, 0.08, 0.35) : clamp(0.25 + (1 - winRatio) * 0.4, 0.25, 0.65);
+          champ.h.state.hp = Math.max(1, Math.round((champ.h.state.hp || hm) - hm * hpLoss));
+        }
+        if (!wonSuppress) {
+          if (champ && g.AI && g.AI.injure) g.AI.injure(W, champ, 1, 'ปะทะกับ' + wf.titleAndNameTh);
+          wf.affinity = clamp((wf.affinity || 30) - 30, 0, 100);
+          extra.won = false;
+          titleTh = 'สกัดกั้นผู้บำเพ็ญนอกรีต「' + wf.titleAndNameTh + '」ไม่สำเร็จ!';
+          storyTh = (champ ? HC.fullName(champ) : 'ศิษย์สำนัก') + ' เข้าปะทะกับ「' + wf.titleAndNameTh + '」แต่ตบะยังไม่พอ ฝ่ายตรงข้ามฝ่าวงล้อมหลบหนีไปได้';
+          consequenceTh = (champ ? HC.fullName(champ) : 'ศิษย์') + ' บาดเจ็บและสูญเสียเรี่ยวแรง';
+        } else {
+          const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
+          const bountyStones = Math.min(260, Number.isFinite(pool.stones) ? Math.max(0, Math.floor(pool.stones)) : 260);
+          if (Number.isFinite(pool.stones)) pool.stones -= bountyStones;
+          if (ECO && ECO.earn) ECO.earn(W, bountyStones, 'รางวัลปราบปรามผู้บำเพ็ญนอกรีต');
+          W.fame(8);
+          wf.dead = true;
+          W.world.wanderingFigures = (W.world.wanderingFigures || []).filter(x => x && x.id !== wf.id);
+          W.wandering = W.world.wanderingFigures;
+          extra.won = true;
+          extra.stonesEarned = bountyStones;
+          titleTh = 'ปราบปรามผู้บำเพ็ญนอกรีต「' + wf.titleAndNameTh + '」สร้างชื่อเสียงขจรขจาย!';
+          storyTh = (champ ? HC.fullName(champ) : 'ยอดฝีมือสำนักเรา') + ' ออกสกัดกั้นและปราบปราม「' + wf.titleAndNameTh + '」ยึดทรัพย์สินที่ได้จากการปล้นชิงเข้าคลังสำนัก!';
+          consequenceTh = 'คลังสำนัก +' + bountyStones + ' ศิลาวิญญาณ · ชื่อเสียงสำนัก +8';
+        }
       } else {
         const pool = W.world.resourcePool || (W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 });
-        const sharedStones = Math.min(220, Number.isFinite(pool.stones) ? Math.max(0, pool.stones) : 0);
+        const sharedStones = Math.min(220, Number.isFinite(pool.stones) ? Math.max(0, Math.floor(pool.stones)) : 0);
         pool.stones -= sharedStones;
         wf.banditGiftClaimed = true;
         if (ECO && ECO.earn) ECO.earn(W, sharedStones, 'ส่วนแบ่งคาราวานจากจอมโจรคุณธรรม');
@@ -7688,7 +8764,8 @@
       if (!sr) return { ok: false, reason: 'realm-unavailable' };
       wf.arrayistGiftClaimed = true;
       wf.affinity = clamp((wf.affinity || 30) + 35, 0, 100);
-      if (ECO && ECO.add) ECO.add(W, 'CAT_PRIMORDIAL_METAL', 2);
+      const arrayMat = (ECO && ((ECO.REFINEMENT_CATALYSTS && ECO.REFINEMENT_CATALYSTS.CAT_PRIMORDIAL_METAL) || (ECO.matById && ECO.matById.CAT_PRIMORDIAL_METAL) || (ECO.getItem && ECO.getItem('CAT_PRIMORDIAL_METAL')))) ? 'CAT_PRIMORDIAL_METAL' : 'MAT_ORE_STAR_COPPER_3';
+      if (ECO && ECO.add) ECO.add(W, arrayMat, 2);
       extra.secretRealm = sr;
       titleTh = 'นักวางค่ายกลพเนจร「' + wf.titleAndNameTh + '」มอบแผ่นหยกค่ายกลและเปิดเผยพิกัดแดนลับ!';
       storyTh = '「' + wf.titleAndNameTh + '」ตรวจสอบชีพจรปฐพีรอบสำนักและมอบแผ่นหยกค่ายกลโบราณพร้อมบอกพิกัดของ「' + (sr ? sr.nameTh : 'แดนลับโบราณ') + '」ที่เพิ่งคลายผนึกแก่สำนักเรา!';
@@ -7731,7 +8808,7 @@
       return { ok: false, reason: 'insufficient-stones', required: cost };
     }
     if (cost > 0 && ECO && ECO.pay) {
-      ECO.pay(W, cost, 'แลกเปลี่ยนโอสถและแร่ปราณกับผู้อาวุโสหลอมสร้างแห่ง「' + s.nameTh + '」');
+      ECO.pay(W, cost, 'แลกเปลี่ยนโอสถและแร่ปราณกับผู้อาวุโสหลอมสร้างแห่ง「' + s.nameTh + '」', { toPool: true });
     }
     const ce = s.figures.craftElder;
     const alch = (ce.h && ce.h.skills && ce.h.skills.ALCHEMY) || 80;
@@ -7771,7 +8848,7 @@
       storyTh: 'สำนักเราส่งทูตการค้าไปแลกเปลี่ยนวัตถุดิบและตำรับหลอมสร้างกับ「' + ce.titleAndNameTh + '」(ผู้อาวุโสหอโอสถ/หลอมสร้างแห่ง「' + s.nameTh + '」) ได้รับ ' + rewardItems.join(' และ ') + ' เข้าสู่คลังสำนัก!',
       originCauseTh: 'ผู้อาวุโสสายหลอมสร้าง (Tier 2: ' + ce.fullNameTh + ' · ทักษะปรุงยา ' + Math.round(alch) + '/ตีเหล็ก ' + Math.round(forg) + ') เปิดช่องทางแลกเปลี่ยนผลผลิตส่วนเกินระหว่างสำนัก',
       actorChainTh: (W.sect.name || 'สำนักเรา') + ' ➔ เจรจาแลกเปลี่ยนกับ ' + ce.titleAndNameTh + ' (' + s.nameTh + ')',
-      systemImpactTh: 'เชื่อมโยงระบบการทูตสำนักนอก (Tier 2 Craft Elder) ➔ คลังวัตถุดิบ/โอสถสำนัก (ECO) ➔ ระบบแก่นชีพจรฮวงจุ้ย (SECT.FENG_SHUI)',
+      systemImpactTh: 'การทูตสายช่างหลอมโอสถจากสำนักพันธมิตร ➔ เติมเต็มคลังวัตถุดิบและโอสถหายาก ➔ หนุนเนื่องแก่นชีพจรฮวงจุ้ยประจำสำนัก',
       consequenceTh: 'ได้รับ ' + rewardItems.join(' · ') + ' · ไมตรีกับ ' + s.nameTh + ' +6',
       quiet: opts.quiet
     });
@@ -7918,8 +8995,9 @@
       }
       // Tier 3: Core Disciples incremental training
       if (Array.isArray(figs.coreDisciples)) {
+        const masterCap = Math.round(((figs.master && figs.master.power) || (220 * (s.tierLevel || 2))) * 0.85);
         figs.coreDisciples.forEach(cd => {
-          if (cd && !cd.dead) cd.power = Math.round((cd.power || 180) * 1.01);
+          if (cd && !cd.dead) cd.power = Math.min(masterCap, Math.round((cd.power || 180) * 1.01));
         });
       }
     });
@@ -7927,8 +9005,10 @@
     // Annual/Monthly Eternal Sworn Ally Tribute
     all.filter(s => s && s.eternalSwornAlly).forEach(s => {
       if (opts.collectSwornTribute || ((W.day || 360) % 360 === 0)) {
-        const trib = s.annualTributeStones || 450;
-        if (ECO && ECO.earn) ECO.earn(W, trib, 'บรรณาการพันธมิตรร่วมสาบานนิรันดร์จาก「' + s.nameTh + '」');
+        const wantTrib = s.annualTributeStones || 450;
+        const trib = (ECO && ECO.earnFromPool)
+          ? ECO.earnFromPool(W, wantTrib, 'บรรณาการพันธมิตรร่วมสาบานนิรันดร์จาก「' + s.nameTh + '」', { rivalSect: s })
+          : ((ECO && ECO.earn && ECO.earn(W, wantTrib, 'บรรณาการพันธมิตรร่วมสาบานนิรันดร์จาก「' + s.nameTh + '」')) ? wantTrib : 0);
         tierActions.push({ tier: 1, role: 'master', sectId: s.id, action: 'SWORN_ALLY_TRIBUTE', stones: trib });
       }
     });
@@ -8155,7 +9235,7 @@
       storyTh,
       originCauseTh: 'สารคำขาดจากหอวินัยแห่ง「' + ult.sectNameTh + '」(นำโดย ' + ult.disciplineElderNameTh + ') เรียกร้องให้ส่งตัวผู้ลี้ภัย「' + ult.npcNameTh + '」',
       actorChainTh: ult.disciplineElderNameTh + ' (ยื่นคำขาด) ➔ เจ้าสำนัก「' + W.sect.name + '」(ตัดสินใจ: ' + ult.resolvedChoice + ') ➔ ' + ult.npcNameTh,
-      systemImpactTh: 'เชื่อมโยงระบบผู้ลี้ภัย (renegadeOrigin) ➔ ความภักดีและความทรงจำ NPC (h.mind.memories / SECT.rel) ➔ ท่าทีการทูตและหน่วยมือสังหารหอวินัย (s.assassinThreat) ➔ ขวัญกำลังใจศิษย์ในสำนัก',
+      systemImpactTh: 'การตัดสินใจต่อชะตาผู้ลี้ภัย ➔ ตราตรึงความจงรักภักดีและความทรงจำของศิษย์ ➔ แรงกระเพื่อมต่อไมตรีและหน่วยสังหารหอวินัยสำนักเดิม ➔ ขวัญกำลังใจศิษย์ทั้งสำนัก',
       consequenceTh,
       quiet: opts.quiet
     });
@@ -8285,8 +9365,12 @@
       if (Array.isArray(W.gone) && !W.gone.includes(npc.id)) W.gone.push(npc.id);
     }
 
-    const immediateTribute = targetSect.annualTributeStones;
-    if (ECO && ECO.earn) ECO.earn(W, immediateTribute, 'บรรณาการฉลองชัยศึกทวงคืนสำนักจาก「' + targetSect.nameTh + '」');
+    const wantTribute = targetSect.annualTributeStones || 0;
+    const immediateTribute = (wantTribute > 0 && ECO)
+      ? (ECO.earnFromPool
+        ? ECO.earnFromPool(W, wantTribute, 'บรรณาการฉลองชัยศึกทวงคืนสำนักจาก「' + targetSect.nameTh + '」', { rivalSect: targetSect })
+        : ((ECO.earn && ECO.earn(W, wantTribute, 'บรรณาการฉลองชัยศึกทวงคืนสำนักจาก「' + targetSect.nameTh + '」')) ? wantTribute : 0))
+      : 0;
     W.fame(18);
 
     const titleTh = 'ศึกทวงคืนบัลลังก์สำเร็จ! สถาปนา「' + HC.fullName(npc) + '」ขึ้นครอง「' + targetSect.nameTh + '」เป็นพันธมิตรร่วมสาบานนิรันดร์!';
@@ -8316,7 +9400,7 @@
       storyTh,
       originCauseTh: 'หนี้แค้นชิงบัลลังก์ของ「' + HC.fullName(npc) + '」(ความซาบซึ้งต่อสำนักเรา ' + Math.round(ro.gratitude || 50) + ') เมื่อบ่มเพาะตบะถึงขั้น ' + curStage,
       actorChainTh: HC.fullName(npc) + ' + ทัพหน้า「' + W.sect.name + '」➔ โค่นล้ม ' + (usurperMaster ? usurperMaster.titleAndNameTh : 'เจ้าสำนักผู้ทรยศ') + ' ➔ ขึ้นครอง「' + targetSect.nameTh + '」',
-      systemImpactTh: 'ย้าย ' + HC.fullName(npc) + ' จาก W.npcs ขึ้นเป็นเจ้าสำนัก ' + targetSect.nameTh + ' · ผูกสัญญา ETERNAL_SWORN_ALLY (บรรณาการ ' + immediateTribute + ' ศิลา/ปี) · สร้างสายสัมพันธ์ SWORN_ALLY ใน W.world.jianghu.bonds · สั่งสมจิตศาสตรา (SOUL_FORGE)',
+      systemImpactTh: HC.fullName(npc) + ' ก้าวขึ้นครองตำแหน่งเจ้าสำนัก「' + targetSect.nameTh + '」· ผูกสัตย์สาบานเป็นพันธมิตรนิรันดร์ (ส่งบรรณาการ ' + immediateTribute + ' ศิลา/ปี) · ขยายเครือข่ายสายใยยุทธภพและสั่งสมบารมีศาสตราคู่กาย',
       combatBreakdownTh: 'กำลังทัพทวงคืน ' + Math.round(partyPower) + ' บดขยี้ค่ายของ ' + targetSect.nameTh + ' (' + enemyPower + ')',
       consequenceTh,
       quiet: opts.quiet
@@ -8391,12 +9475,22 @@
       coalitionAllies: coalitionLeaders
     }));
 
-    if (siegeRes && siegeRes.siege) {
+    if (!siegeRes || !siegeRes.ok) {
+      return Object.assign({}, siegeRes || { ok: false, reason: 'siege-rejected' }, {
+        isCoalitionOffensive: false,
+        coalitionAllies: coalitionLeaders,
+        coalitionBonusPower: 0
+      });
+    }
+
+    if (siegeRes.siege) {
       siegeRes.siege.isCoalitionOffensive = true;
       siegeRes.siege.coalitionAllies = coalitionLeaders;
       siegeRes.siege.coalitionBonusPower = coalitionBonusPower;
     }
 
+    const isQueued = !!siegeRes.queued;
+    const isWon = !isQueued && !!siegeRes.won;
     const allyNamesTh = coalitionLeaders.map(c => '「' + c.sectNameTh + '」(นำโดยแม่ทัพศึก ' + c.marshalNameTh + ')').join(' และ ');
     const chron = X.recordChronicle(W, {
       category: 'BATTLE',
@@ -8404,14 +9498,20 @@
       macroRegion: targetSect.macroRegion || 'CENTRAL_HEARTLAND',
       involvedSects: [W.sect.name].concat(coalitionLeaders.map(c => c.sectNameTh), [targetSect.nameTh]),
       involvedFigures: coalitionLeaders.map(c => c.marshalNameTh),
-      titleTh: 'ศึกพันธมิตรร่วมทัพ: 「' + W.sect.name + '」สนธิกำลังถล่มค่าย「' + targetSect.nameTh + '」!',
-      storyTh: 'สำนักเราส่งเทียบเชิญพันธมิตรไปยัง ' + (allyNamesTh || 'สำนักพันธมิตร') + ' ยกทัพใหญ่ข้ามพรมแดนมาสมทบกันเปิดศึกปิดล้อมค่ายของ「' + targetSect.nameTh + '」เสริมกำลังรบรวมอีก +' + coalitionBonusPower + ' จนสะท้านสะเทือนไปทั้งยุทธภพ!',
-      combatBreakdownTh: 'กำลังหนุนจากแม่ทัพศึกพันธมิตร (' + coalitionLeaders.length + ' สำนัก): +' + coalitionBonusPower + ' คะแนนรบ · ผลศึก: ' + (siegeRes && siegeRes.won ? 'คว้าชัยชนะทั้ง 3 ด่าน!' : 'กำลังเดินทัพ/ปะทะ'),
-      consequenceTh: siegeRes && siegeRes.won ? ('พิชิต「' + targetSect.nameTh + '」สำเร็จด้วยกำลังทัพพันธมิตร!') : 'กองทัพพันธมิตรร่วมรบเคียงบ่าเคียงไหล่',
+      titleTh: isQueued
+        ? ('ระดมทัพพันธมิตร: 「' + W.sect.name + '」เคลื่อนพลมุ่งหน้าสู่ค่าย「' + targetSect.nameTh + '」')
+        : ('ศึกพันธมิตรร่วมทัพ: 「' + W.sect.name + '」สนธิกำลัง' + (isWon ? 'ถล่ม' : 'ปะทะ') + 'ค่าย「' + targetSect.nameTh + '」!'),
+      storyTh: isQueued
+        ? ('สำนักเราส่งเทียบเชิญพันธมิตรไปยัง ' + (allyNamesTh || 'สำนักพันธมิตร') + ' จัดทัพสมทบกำลังรบ +' + coalitionBonusPower + ' ออกเดินทางมุ่งหน้าสู่ค่ายของ「' + targetSect.nameTh + '」')
+        : ('สำนักเราส่งเทียบเชิญพันธมิตรไปยัง ' + (allyNamesTh || 'สำนักพันธมิตร') + ' ยกทัพใหญ่ข้ามพรมแดนมาสมทบกันเปิดศึกปิดล้อมค่ายของ「' + targetSect.nameTh + '」เสริมกำลังรบรวมอีก +' + coalitionBonusPower + ' จนสะท้านสะเทือนไปทั้งยุทธภพ!'),
+      combatBreakdownTh: 'กำลังหนุนจากแม่ทัพศึกพันธมิตร (' + coalitionLeaders.length + ' สำนัก): +' + coalitionBonusPower + ' คะแนนรบ · ผลศึก: ' + (isQueued ? 'กำลังเดินทัพ (รอปะทะเมื่อถึงค่าย)' : (isWon ? 'คว้าชัยชนะทั้ง 3 ด่าน!' : 'ถอยตั้งหลัก/ไม่สำเร็จ')),
+      consequenceTh: isQueued
+        ? ('กองทัพพันธมิตรกำลังเดินทางสู่「' + targetSect.nameTh + '」')
+        : (isWon ? ('พิชิต「' + targetSect.nameTh + '」สำเร็จด้วยกำลังทัพพันธมิตร!') : ('ทัพพันธมิตรถอยจากค่าย「' + targetSect.nameTh + '」')),
       quiet: opts.quiet
     });
 
-    if (siegeRes && siegeRes.won && SECT && SECT.recordTimelineMilestone) {
+    if (isWon && SECT && SECT.recordTimelineMilestone) {
       SECT.recordTimelineMilestone(W, {
         milestoneType: 'WAR_VICTORY',
         icon: '🚩',
@@ -8426,6 +9526,26 @@
       coalitionBonusPower,
       chronicle: chron
     });
+  };
+
+  // World-side opportunities: hostility and advanced cultivation permit events, never guarantee them.
+  X.considerNaturalEndgameEvents = W => {
+    if (!W?.world || !W.sect || W.world.lastNaturalEndgameDay === W.day) return;
+    W.world.lastNaturalEndgameDay = W.day;
+    const living=(W.npcs||[]).filter(n=>n&&!n.dead&&!n.exiled&&n.cult);
+    const stage=Math.max(0,...living.map(n=>CULT.effectiveTechStage(n)));
+    const options=[{id:'wait',score:1}];
+    const old=W.world.activeEnemySiege;
+    if(old?.status==='BESIEGING' && W.day-(old.day||0)>=20)return X.triggerSiegeReinforcementBeacon(W,{requestReinforcements:false});
+    if(stage>=3 && (!old || old.status!=='BESIEGING' && W.day-(old.resolvedDay||old.day||0)>=90)) {
+      for(const s of W.world.allSects||[])if(s&&!s.destroyed&&!s.isVassal&&(s.attitude||0)<=-60 && (s.power||0)*320 >= living.reduce((p,n)=>p+CULT.power(n),0)*0.65)
+        options.push({id:'siege:'+s.id,score:0.01,run:()=>X.startEnemyGrandSiege(W,s.id)});
+    }
+    const crisis=W.world.worldCrisisState;
+    if(stage>=6 && (!crisis?.activeArc || crisis.activeArc.completed && W.day-(crisis.activeArc.completedDay||0)>=180))
+      options.push({id:'crisis',score:0.015,run:()=>g.SECT.WORLD_CRISIS.startWorldCrisis(W,null,{deferChapter1:true})});
+    const picked=W.rng.weighted(options,o=>o.score);
+    return picked?.run ? picked.run() : {ok:false,reason:'wait'};
   };
 
   X.startEnemyGrandSiege = (W, attackerSectOrId, opts) => {
@@ -8469,13 +9589,13 @@
     if (!siege || siege.status !== 'BESIEGING' || siege.beaconLit) return { ok: false, reason: 'no-active-siege' };
 
     const allSects = W.world.allSects || [];
-    let helpers = allSects.filter(s => s && s.id !== siege.attackerSectId && ((s.attitude || 0) >= 60 || s.eternalSwornAlly || ['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY'].includes(s.treaty)));
+    let helpers = opts.requestReinforcements === false ? [] : allSects.filter(s => s && s.id !== siege.attackerSectId && ((s.attitude || 0) >= 60 || s.eternalSwornAlly || ['ALLIANCE', 'ALLIANCE_PACT', 'VASSAL_TREATY'].includes(s.treaty)));
     if (!helpers.length && opts.forceReinforcement === true) {
       helpers = allSects.filter(s => s && s.id !== siege.attackerSectId).slice(0, 1);
     }
     helpers = helpers.slice(0, 2);
 
-    const playerPower = (W.npcs || []).filter(n => n && !n.dead && !n.exiled).reduce((sum, n) => sum + CULT.power(n), 0);
+    const playerPower = (W.npcs || []).filter(n => n && !n.dead && !n.exiled && !n.away).reduce((sum, n) => sum + CULT.power(n), 0);
     let reinforcementPower = 0;
     const reinforcementLeaders = [];
     helpers.forEach(hSect => {
@@ -8493,24 +9613,48 @@
     const totalDefense = Math.round(playerPower + reinforcementPower);
     const won = opts.forceLose ? false : (opts.forceWin === true ? true : (totalDefense >= siege.enemyPower * 0.65));
 
-    siege.beaconLit = true;
-    siege.status = won ? 'REPELLED_BY_COALITION' : 'BREACHED';
+    siege.beaconLit = opts.requestReinforcements !== false;
+    siege.status = won ? (reinforcementLeaders.length ? 'REPELLED_BY_COALITION' : 'REPELLED') : 'BREACHED';
     siege.reinforcements = reinforcementLeaders;
     siege.resolvedDay = W.day || 360;
-    if (W.threat && W.threat.raid && won) {
-      W.threat.raid = null;
+    if (won) {
+      if (W.threat && W.threat.raid) {
+        const raidId = W.threat.raid;
+        W.threat.raid = null;
+        if (Array.isArray(W.fights)) {
+          W.fights.forEach(f => {
+            if (f && (f.id === raidId || f.kind === 'raid') && !f.over) {
+              f.over = true;
+              if (f.ctx) f.ctx._raidEndProcessed = true;
+            }
+          });
+        }
+        W.foes = [];
+        W.foeById = {};
+      }
     }
 
-    const spoilsStones = won ? 360 : 0;
+    const spoilsStones = won ? Math.min(360, Math.max(0, Math.floor(W.world.resourcePool?.stones || 0))) : 0;
+    let breachLoss = 0;
     if (won) {
-      if (ECO && ECO.earn) ECO.earn(W, spoilsStones, 'ยึดเสบียงศึกจากการตีขนาบทัพศัตรูที่มาปิดล้อม');
+      if (ECO && ECO.earn) ECO.earn(W, spoilsStones, 'ยึดเสบียงศึกจากการตีขนาบทัพศัตรูที่มาปิดล้อม', {fromPool:true});
       W.fame(10);
+    } else {
+      const rawBreachLoss = Math.min(240, Math.round((W.sect.stones || 0) * 0.12));
+      breachLoss = Math.min(rawBreachLoss, Math.max(0, Math.floor(W.sect.stones || 0)));
+      if (breachLoss > 0 && ECO && ECO.pay) ECO.pay(W, breachLoss, 'ถูกทัพปิดล้อม' + siege.attackerSectNameTh + 'ปล้นสะดม', { toPool: true });
+      W.fame(-6);
+      if (W.map && Array.isArray(W.map.buildings)) {
+        W.map.buildings.slice(0, 3).forEach(b => { if (b) b.hp = Math.max(25, (b.hp || 100) - 18); });
+      }
+      const homeDefender = (W.npcs || []).find(n => n && !n.dead && !n.away && !n.exiled);
+      if (homeDefender && g.AI && g.AI.injure) g.AI.injure(W, homeDefender, 1, 'บาดเจ็บระหว่างต้านทัพปิดล้อม');
     }
 
     const helperText = reinforcementLeaders.map(r => '「' + r.sectNameTh + '」(นำโดย ' + r.marshalNameTh + ')').join(' และ ');
-    const titleTh = 'จุดพลุสัญญาณพันธมิตร! กองหนุนจาก ' + (helperText || 'สำนักพันธมิตร') + ' บุกตีขนาบหลังทัพ「' + siege.attackerSectNameTh + '」แตกพ่าย!';
-    const storyTh = 'ท่ามกลางวิกฤตที่กองทัพของ「' + siege.attackerSectNameTh + '」นำโดย ' + siege.commanderNameTh + ' ยกพลมาปิดล้อมสำนักเรา เจ้าสำนักได้สั่งจุดควันสัญญาณฉุกเฉินและส่งพิราบสื่อสารขอความช่วยเหลือ ทันใดนั้นกองทัพพันธมิตรจาก ' + (helperText || 'พันธมิตรยุทธภพ') + ' ก็ยกทัพม้าศึกบุกเข้าตีขนาบตลบหลังค่ายศัตรู ประสานกับศิษย์ในสำนักที่พุ่งทะลวงออกมารับศึก จนทัพของ「' + siege.attackerSectNameTh + '」แตกพ่ายยับเยิน!';
-    const consequenceTh = 'ทำลายวงล้อมของ ' + siege.attackerSectNameTh + ' สำเร็จ · ยึดศิลาวิญญาณ +' + spoilsStones + ' ก้อน · ชื่อเสียงสำนัก +10';
+    const titleTh = won ? 'สำนักต้านทัพปิดล้อม「' + siege.attackerSectNameTh + '」สำเร็จ' : 'ทัพ「' + siege.attackerSectNameTh + '」ฝ่าวงป้องกันสำนัก';
+    const storyTh = 'กองทัพของ「' + siege.attackerSectNameTh + '」นำโดย ' + siege.commanderNameTh + ' เข้าปะทะแนวป้องกันสำนัก' + (reinforcementLeaders.length ? ' โดยมีทัพหนุนจาก ' + helperText : ' โดยสำนักรับศึกด้วยกำลังของตนเอง') + (won ? ' ฝ่ายป้องกันขับไล่ผู้รุกรานสำเร็จ' : ' ฝ่ายป้องกันไม่อาจหยุดการบุกได้');
+    const consequenceTh = won ? 'ทำลายวงล้อมสำเร็จ · ยึดศิลาวิญญาณ +' + spoilsStones + ' ก้อน · ชื่อเสียงสำนัก +10' : ('แนวป้องกันถูกฝ่า · สูญเสียศิลา ' + breachLoss + ' ก้อน · ชื่อเสียง -6');
 
     const chron = X.recordChronicle(W, {
       category: 'BATTLE',
@@ -8520,7 +9664,7 @@
       involvedFigures: [siege.commanderNameTh].concat(reinforcementLeaders.map(r => r.marshalNameTh)),
       titleTh,
       storyTh,
-      combatBreakdownTh: 'กำลังป้องกันสำนัก (' + Math.round(playerPower) + ') + กองหนุนพันธมิตร (+' + reinforcementPower + ') = ' + totalDefense + ' เอาชนะทัพปิดล้อม (' + siege.enemyPower + ')',
+      combatBreakdownTh: 'กำลังป้องกันสำนัก (' + Math.round(playerPower) + ') + กองหนุนพันธมิตร (+' + reinforcementPower + ') = ' + totalDefense + (won ? ' ต้านทัพปิดล้อมสำเร็จ (' : ' ไม่อาจต้านทัพปิดล้อม (') + siege.enemyPower + ')',
       consequenceTh,
       quiet: opts.quiet
     });
@@ -8538,4 +9682,7843 @@
 
   g.EXPED = X;
   if (typeof module === 'object' && module.exports) module.exports = X;
+
+  /* ---------- Patch JS2-v2.6.0 Category 13: Tiangu & Three-Empires World Lore, Empire Spheres & 60 Canonical Legends ---------- */
+  const REGION_TO_EMPIRE_SPHERE = {
+    NORTHERN_PEAKS: { id: 'BEIMING', nameTh: 'เขตอิทธิพลจักรวรรดิเป่ยหมิง (สกุลกู่ · แดนเหนือ)' },
+    EASTERN_PLAINS: { id: 'DONGHUANG', nameTh: 'เขตอิทธิพลมหาอาณาจักรตงหวง (สกุลซือหม่า · แดนตะวันออก)' },
+    SOUTHERN_WATERS: { id: 'BUFFER_INDEPENDENT', nameTh: 'เขตรัฐกันชนลุ่มน้ำทักษิณ (สุวรรณโพธิ์ · กู่เจียว)' },
+    WESTERN_BADLANDS: { id: 'XIRONG', nameTh: 'เขตอิทธิพลจักรวรรดิซีหรง (สกุลทัวป๋า · แดนตะวันตก)' },
+    CENTRAL_HEARTLAND: { id: 'BUFFER_INDEPENDENT', nameTh: 'เขตรอยต่อยุทธภพอิสระและซากนครหลวงเทียนกู่' }
+  };
+  if (Array.isArray(X.CANONICAL_SECTS)) {
+    X.CANONICAL_SECTS.forEach(s => {
+      if (!s) return;
+      const sph = REGION_TO_EMPIRE_SPHERE[s.macroRegion] || REGION_TO_EMPIRE_SPHERE.CENTRAL_HEARTLAND;
+      try {
+        s.empireSphere = sph.id;
+        s.empireSphereNameTh = sph.nameTh;
+      } catch (_) {}
+    });
+  }
+  X.WORLD_LORE = Object.freeze({
+    VERSION: '2.6.0-tiangu-canon',
+    DIEGETIC_STAGE_NAMING_LORE_TH: g.CULT && g.CULT.LOWER_WORLD_CEILING_LORE_TH,
+    UPPER_WORLD_DESCENT_LAW: g.CULT && g.CULT.UPPER_WORLD_DESCENT_LAW,
+    ERAS: Object.freeze([
+      { id: 'ERA_1_ANCIENT_TIANGU', nameTh: 'ยุคที่ 1: มหาจักรวรรดิเทียนกู่และสงครามรุกรานข้ามมิติ' },
+      { id: 'ERA_2_SHATTERED_GATE', nameTh: 'ยุคที่ 2: การระเบิดประตูมิติหลวงและการผนึกม่านกั้นภพ' },
+      { id: 'ERA_3_THREE_EMPIRES', nameTh: 'ยุคที่ 3: ยุคสามมหาอาณาจักร (เป่ยหมิง · ตงหวง · ซีหรง) และ 19 สำนักยุทธภพ' },
+      { id: 'ERA_4_CURRENT_CONVERGENCE', nameTh: 'ยุคที่ 4: รอยร้าวประตูมิติใต้สำนักและการตื่นขึ้นของมรดกเทียนกู่' }
+    ]),
+    EMPIRES: Object.freeze({
+      TIANGU: { id: 'TIANGU', codeNum: 0, nameTh: 'มหาจักรวรรดิโบราณเทียนกู่', royalClanTh: 'ราชวงศ์กู่โบราณ' },
+      BEIMING: { id: 'BEIMING', codeNum: 1, nameTh: 'จักรวรรดิเป่ยหมิง (แดนเหนือ)', royalClanTh: 'สกุลกู่ (#46 กู่เทียนเฉิน / #47 กู่ชิงเสวี่ย)' },
+      DONGHUANG: { id: 'DONGHUANG', codeNum: 2, nameTh: 'มหาอาณาจักรตงหวง (แดนตะวันออก)', royalClanTh: 'สกุลซือหม่า (#52 มหาเสนาบดีซือหม่าชิง / #54 เหยียนหลัว)' },
+      XIRONG: { id: 'XIRONG', codeNum: 3, nameTh: 'จักรวรรดิซีหรง (แดนตะวันตก)', royalClanTh: 'สกุลทัวป๋า (#57 ทัวป๋าหงเหลียน)' }
+    }),
+    ERA5_SURVIVOR_LONGEVITY_RULES: Object.freeze({
+      STASIS_SEAL: 'ผนึกน้ำแข็งนิรันดร์และค่ายกลหยุดเวลา (กู่เย่ #3, หลี่เจี้ยนซิน #6)',
+      SOUL_VESSEL_RELIC: 'ฝากดวงจิตไว้ในหุ่นหยกขาวและศาสตราเทพ (กงซูจี #15, โอวหยางเหยียน #14)',
+      THOUSAND_YEAR_COCOON: 'จำศีลผลัดเปลี่ยนเนื้อหนังในรังไหมบรรพกาล (ไป๋เฉ่า #13)',
+      CRIPPLED_UPPER_WORLD_STRANDING: 'ผู้มาจากโลกเบื้องบนที่บาดเจ็บจนตบะร่วงหล่นต่ำกว่าเกณฑ์ม่านฟ้า จึงไม่ถูกม่านกั้นภพดีดกลับ (ขงหมิง #21, เฮ่อเหลียนม่อ #19)'
+    }),
+    SCHEMA_REMAPPINGS: Object.freeze({
+      ASTRAL_NOMAD_STARSHIP_DAO: 'TIDE_VOYAGER',
+      CELESTIAL_JURISPRUDENCE_DAO: 'STRATEGY_GOVERNANCE',
+      REL_V250_ASTRAL_NOMAD_STARSHIP_DAO: 'REL_V230_TIDE_VOYAGER',
+      CURRENCY_GOLD_TO_STONES: 'ศิลาวิญญาณ (Closed-Loop ECO.transferStones)'
+    }),
+    NOTABLE_FIGURES: Object.freeze({
+      1: { id: 'FIG_01_GU_XUANYUAN', nameTh: 'จักรพรรดิองค์สุดท้าย กู่เสวียนหยวน (#1)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้สละราชบัลลังก์ระเบิดประตูมิติหลวงเพื่อผนึกม่านฟ้า' },
+      6: { id: 'FIG_06_LI_JIANXIN', nameTh: 'หัวหน้าองครักษ์หลวง หลี่เจี้ยนซิน (#6)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้ถือกระบี่เหล็กนิลไร้คมยืนหยัดหน้าประตูเมืองเทียนกู่ 7 วัน 7 คืน' },
+      8: { id: 'FIG_08_YE_QINGCANG', nameTh: 'ขุนพลตาเดียว เย่ชิงชาง (#8)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้เหนี่ยวธนูเหล็กไหลยิงนาวาฟ้าของทัพรุกรานร่วงหล่น' },
+      13: { id: 'FIG_13_BAI_CAO', nameTh: 'หมอหลวง ไป๋เฉ่า (#13)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้รจนาตำราฝังเข็มเก้าดาราและเตาหลอมหมื่นโอสถ' },
+      14: { id: 'FIG_14_OUYANG_YAN', nameTh: 'ปรมาจารย์ช่างหลอม โอวหยางเหยียน (#14)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้หลอมกระบี่อิงฟ้าพิฆาตมารและดาบฆ่ามังกรบัญชาหล้าจากเหล็กดาวตก' },
+      15: { id: 'FIG_15_GONGSHU_JI', nameTh: 'เจ้ากรมกลไก กงซูจี (#15)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'ผู้สร้างหุ่นเชิดกายทิพย์และขนนกยูงทองคำกลไกสวรรค์' },
+      16: { id: 'FIG_16_XINGCHENZI', nameTh: 'นักพรตดารา ซิงเฉินจื่อ (#16)', era: 'ERA_1_ANCIENT_TIANGU', roleTh: 'เจ้าหอพยากรณ์ดาราผู้ทิ้งป้ายหยกดาราสืบทอดถึงซิงอวิ๋น (#49)' },
+      19: { id: 'FIG_19_HELIAN_MO', nameTh: 'แม่ทัพศัตรูตกค้าง เฮ่อเหลียนม่อ (#19)', era: 'ERA_2_SHATTERED_GATE', roleTh: 'แม่ทัพผู้รุกรานที่บาดเจ็บจนตบะพังทลายและถูกผนึกพร้อมเศษศาสตรามาร' },
+      21: { id: 'FIG_21_KONG_MING', nameTh: 'ทูตตกสวรรค์ ขงหมิง (#21)', era: 'ERA_2_SHATTERED_GATE', roleTh: 'ผู้มาจากโลกเบื้องบนที่บาดเจ็บจนตบะสูญสลาย จึงไม่ถูกม่านกั้นภพดีดกลับและเร้นกายทิ้งมรดกไว้ในโลกเบื้องล่าง' },
+      25: { id: 'FIG_25_FACELESS_GATEKEEPER', nameTh: 'ผู้เฝ้าประตูไร้หน้า (#25)', era: 'ERA_2_SHATTERED_GATE', roleTh: 'ผู้พิทักษ์ซากประตูมิติหลวงใต้ฐานสำนัก' },
+      30: { id: 'FIG_30_MO_JI', nameTh: 'จักรพรรดิกลไก ม่อจี๋ (#30)', era: 'ERA_2_SHATTERED_GATE', roleTh: 'ผู้วางรากฐานปราการศิลาจักรกลและสุสานจักรพรรดิกลไกพันปี' },
+      38: { id: 'FIG_38_HONG_QI', nameTh: 'ราชันย์พเนจรผู้ลี้ภัย หงชี (#38)', era: 'ERA_3_THREE_EMPIRES', roleTh: 'ผู้ถือพลองหยกเขียวมรกตปราบพยัคฆ์คุ้มครองคาราวานผู้ลี้ภัย' },
+      40: { id: 'FIG_40_PU_JAO_SAMING', nameTh: 'ปู่เจ้าสมิงพราย (#40)', era: 'ERA_3_THREE_EMPIRES', roleTh: 'ปรมาจารย์ไสยเวทย์บรรพกาลแห่งบึงทมิฬทักษิณ' },
+      41: { id: 'FIG_41_KENSHIN', nameTh: 'ปรมาจารย์ดาบไร้เงา เคนชิน (#41)', era: 'ERA_3_THREE_EMPIRES', roleTh: 'ผู้ก่อตั้งสายวิชาหมู่เกาะบูรพาผาเมฆานอกม่านหมอก' },
+      46: { id: 'FIG_46_GU_TIANCHEN', nameTh: 'จักรพรรดิเป่ยหมิง กู่เทียนเฉิน (#46)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ประมุขสกุลกู่แห่งแดนเหนือผู้หมายฟื้นฟูบัลลังก์เทียนกู่' },
+      47: { id: 'FIG_47_GU_QINGXUE', nameTh: 'องค์หญิงน้ำแข็ง กู่ชิงเสวี่ย (#47)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ทายาทสายเลือดเหมันต์แห่งราชวงศ์เป่ยหมิง' },
+      49: { id: 'FIG_49_XING_YUN', nameTh: 'ผู้สืบทอดดารา ซิงอวิ๋น (#49)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ทายาทผู้ถือป้ายหยกดาราของซิงเฉินจื่อ (#16)' },
+      52: { id: 'FIG_52_SIMA_QING', nameTh: 'มหาเสนาบดี ซือหม่าชิง (#52)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ผู้กุมอำนาจสูงสุดแห่งมหาอาณาจักรตงหวง' },
+      53: { id: 'FIG_53_WAN_JINNIANG', nameTh: 'นายหญิงหอการค้า ว่านจินเหนียง (#53)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ประมุขเครือข่ายการค้าหมื่นสมุทรแห่งตงหวง' },
+      54: { id: 'FIG_54_YAN_LUO', nameTh: 'หัวหน้าสำนักตรวจการ เหยียนหลัว (#54)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'ผู้ถือมีดสั้นเสี่ยวหลี่และพู่กันพิพากษาแห่งตงหวง' },
+      57: { id: 'FIG_57_TUOBA_HONGLIAN', nameTh: 'แม่ทัพหญิงเพลิงโลหิต ทัวป๋าหงเหลียน (#57)', era: 'ERA_4_CURRENT_CONVERGENCE', roleTh: 'จอมทัพหน้าแห่งจักรวรรดิซีหรงแดนตะวันตก' }
+    }),
+    STORY_RIPPLE_CANON_SYNC: Object.freeze({
+      'STORY-SYNC-01': 'ยายเมิ่ง (#24) แบ่งเศษผ้ารองถาดน้ำชาแช่เย็นจากเรือสำราญสวรรค์เป็น 2 ส่วน: แกนกลางเป็นภูษาชั้นในผนึกเหมันต์ที่กู่หลิงเฟย (#2) สวมจำศีล ส่วนเศษด้ายขอบนอกทอเป็นอาภรณ์ขนนกกระเรียนสวรรค์ในซากอุทยานหลวง และปราณหยกใสหมิงยวี่ที่กู่เทียนเฉิน (#46) ฝึกโดยไร้ผ้าคุ้มกายจึงค่อยๆ แช่แข็งหัวใจตนเอง',
+      'STORY-SYNC-02': 'ซือหม่าชุน (#4) ดัดแปลงสมุดระเบียบคุมทะเบียนทาสเหมืองและอักขระแปะผนึกลังส่วยของสวรรค์เป็นระบบปกครองตงหวง และคุณชายสาม ซือหม่าชิง (#52) แสร้งเสเพลกว้านซื้อของเก่าชำรุดทั่วแผ่นดินเพราะรู้ความจริงว่ามีเพียงของขยะไร้ปราณเซียนเท่านั้นที่รอดม่านกั้นภพลงมาได้',
+      'STORY-SYNC-03': 'เถ้าแก่เฉียน (#22) นำโครงลูกคิดเหล็กเบี้ยวที่เสมียนเหมืองสวรรค์โยนทิ้งมาใส่ลูกปัดทองคำคลังหลวง 99 เม็ดซ่อนไว้ในเจดีย์หินริมผา และเก็บลูกปัดแม่กุญแจเม็ดที่ 100 ไว้ที่โต๊ะคิดเงินโรงเตี๊ยมไร้ชื่อริมทาง (อีเวนต์ #10)',
+      'STORY-SYNC-04': 'ซิงเฉินจื่อ (#16) ใช้แผ่นจานจำลองกลุ่มดาวของเล่นเด็กจากตระกูลโหรสวรรค์ที่เฟืองบิ่นสองซี่ส่องพบว่าม่านกั้นภพหักเหดวงดาวและมีเงามืดเบื้องบนชักใย จึงซ่อนจานสวรรค์ไว้นอกหอดูดาวก่อนเวลาหยุดนิ่ง (อีเวนต์ #29) และส่งต่อภารกิจแก่ซิงอวิ๋น (#49)',
+      'STORY-SYNC-05': 'ตราพยัคฆ์ไท่จี๋ประกาศิตทัพของทัวป๋าเลี่ย (#5) หล่อเป็น 2 ซีกคู่กัน: ทัวป๋ากัง (#60) เฝ้าซีกพยัคฆ์ขวาบนผาหินแดงซีหรงเพื่อถ่วงดุลทัวป๋าเจิ้นเทียน (#56) ส่วนซีกไท่จี๋ซ้ายจมอยู่ในค่ายทะเลทรายโบราณ (เควสต์เบาะแส)',
+      'STORY-SYNC-06': 'กำไลหยกมังกรหงส์คู่สวรรค์ถูกแกะสลักเป็น 2 วงคู่กันจากหยกหลวงเทียนกู่: วงมังกรเหมันต์อยู่กับองค์หญิงกู่ชิงเสวี่ย (#47) ในฐานะตราตั้งรัชทายาทเป่ยหมิง ส่วนวงหงส์มังกรคู่บำเพ็ญตกค้างอยู่ในตำหนักหยกคู่กลางซากอุทยานหลวง',
+      'STORY-SYNC-07': 'พญาอสูรคลั่ง โซ่วหวง (#31) นำเศษคราบปลอกเล็บผุของสุนัขคุ้ยซากสายเลือดเทาเที่ยเจือจางที่ร่วงจากรอยแยกอเวจีมาตีเป็นกรงเล็บเทาเที่ย จนคืนจันทร์สีเลือดสัญชาตญาณตะกละในคราบอเวจีปลุกฝูงสัตว์เลี้ยงหันกลับมาฉีกเนื้อโซ่วหวงกินทั้งเป็น (อีเวนต์ #8)',
+      'STORY-SYNC-08': 'แม่ทัพหญิง มู่หรงเสวี่ย (#7) เผาอายุขัยและแก่นโลหิตทั้งหมดเป็นบงกชโลหิตระเบิดสังหารร่างทรงที่อัญเชิญเศษเสี้ยวจิตหนึ่งในพันส่วนของผู้ตรวจการโลกเบื้องบนลงมาประทับกลางสนามรบ (อีเวนต์ #20)',
+      'STORY-SYNC-09': 'เซียนกระบี่ขี้เมา จิ้วเจี้ยนเซียน (#39) แทงหนึ่งกระบี่เซียนเหินจากฟากฟ้าสะกิดม่านกั้นภพเป็นรูเข็มเหนือซากอุทยานหลวง และเห็นคนกวาดถนนชั้นต่ำบนโลกเบื้องบนสะบัดไม้กวาดปัดปราณกระบี่สูงสุดของเขาดับวูบเหมือนปัดขี้เถ้าไฟ (อีเวนต์ #35)',
+      'STORY-SYNC-10': 'ทูตตกสวรรค์ ขงหมิง (#21) คืออดีตผู้เหินหาวที่ถูกส่งลงมาเป็นเบี้ยสงครามและถูกแรงระเบิดประตูมิติหลวงบดขยี้ตันเถียนจนตบะร่วงต่ำกว่าเกณฑ์ม่านฟ้า จึงติดค้างในโลกล่างถาวร ส่วนเสิ่นเทียนจุน (#28) ใช้เศษใบปลิวบทสวดคนรับใช้หน้าประตูวัดสวรรค์ทำพิธีจนถูกม่านฟ้าตบสวน (อีเวนต์ #25)',
+      'STORY-SYNC-11': 'ศาสตรา REL_V230_* ของปรมาจารย์ทั้ง 5 (#17 ซูเหยียน, #28 เสิ่นเทียนจุน, #35 ไป๋อวี่, #40 ปู่เจ้าสมิงพราย, #41 เคนชิน) คือศาสตราต้นกำเนิดคู่ชีพปฐมครู ส่วน REC_REL_V230_* ที่สำนักหลอมขึ้นคือศาสตราจำลองภาชนะมรรคา และโซ่ตรวนอาญาสวรรค์เทียนกู่ทำงานโดยสกัดจุดตัดการเชื่อมต่อของร่างทรงในโลกล่าง',
+      'STORY-SYNC-12': 'ซากอุทยานสวรรค์คือซากพระราชอุทยานหลวงเทียนกู่ที่จักรพรรดิกู่เสวียนหยวน (#1) สร้างจำลองสวรรค์และรวบรวมเศษวัตถุตกจากฟากฟ้า ส่วนเศษหยกโลกเบื้องบนในอีเวนต์ #7 คือเศษกรวดหางแร่ก้นเหมืองศิลาเซียนที่ทาสผู้เหินหาวสลักอักษรเลือดเตือนภัยทิ้งลงเหวมิติ'
+    })
+  });
+
+  X.TAVERN_BALLAD_TEMPLATES = Object.freeze([
+    {
+      id: 'BALLAD_01_BEIMING_FROST',
+      macroRegion: 'NORTHERN_PEAKS',
+      titleTh: 'ข่าวลือพายุหิมะตำหนักน้ำแข็งเป่ยหมิง',
+      storyTh: 'นักเดินทางจากแดนเหนือร่ำลือในวงสุราว่า พายุหิมะรอบตำหนักน้ำแข็งต้องห้ามแห่งเป่ยหมิงทวีความหนาวเหน็บผิดปกติ คล้ายผู้ครองบัลลังก์กำลังเร่งเสาะหาโอสถธาตุหยางล้ำค่ามารักษาโรคร้ายในสายเลือด',
+      involvedSects: ['ราชสำนักเป่ยหมิง'],
+      involvedFigures: ['กู่เทียนเฉิน (#46)', 'กู่ชิงเสวี่ย (#47)']
+    },
+    {
+      id: 'BALLAD_02_DONGHUANG_CURIOS',
+      macroRegion: 'EASTERN_PLAINS',
+      titleTh: 'ข่าวลือคุณชายตงหวงกว้านซื้อถ้วยชามร้าวโบราณ',
+      storyTh: 'พ่อค้าของเก่าจากเมืองตงหวงหัวเราะเล่าว่า ช่วงนี้มีคนของหอการค้าใหญ่เที่ยวเดินกว้านซื้อถ้วยชามร้าวและเศษพัดพังๆ ตามแผงแบกะดินด้วยราคาสูงลิ่ว ไม่มีใครเข้าใจว่าซื้อเศษของเก่าไปทำไม',
+      involvedSects: ['หอการค้าตงหวง'],
+      involvedFigures: ['ว่านจินเหนียง (#53)', 'ซือหม่าชิง (#52)']
+    },
+    {
+      id: 'BALLAD_03_XIRONG_PHANTOM_SPEARS',
+      macroRegion: 'WESTERN_BADLANDS',
+      titleTh: 'ข่าวลือเสียงทวนปะทะกลางพายุทรายสีเลือด',
+      storyTh: 'ทหารรับจ้างชายแดนตะวันตกโจษจันกันว่า ยามค่ำคืนที่มีพายุทรายสีเลือด มักได้ยินเสียงทวนเหล็กปะทะกันดังกึกก้องมาจากซากป้อมโบราณ ราวกับกองทัพเมื่อแสนปีก่อนยังไม่รู้ตัวว่าสงครามจบสิ้นแล้ว',
+      involvedSects: ['กองทัพซีหรง'],
+      involvedFigures: ['ทัวป๋าหงเหลียน (#57)', 'เฮ่อเหลียนม่อ (#19)']
+    },
+    {
+      id: 'BALLAD_04_SOUTHERN_GHOST_JUNK',
+      macroRegion: 'SOUTHERN_WATERS',
+      titleTh: 'ข่าวลือสำเภาโบราณฝ่าทะเลหมอกทักษิณ',
+      storyTh: 'ชาวประมงริมทะเลหมอกทักษิณเล่าขานด้วยความหวาดผวาว่า ในคืนไร้จันทร์จะมีเงาสำเภาโบราณขาดวิ่นแล่นฝ่าม่านหมอกเข้ามาเทียบท่า พร้อมสินค้านอกแผ่นดินที่ไม่เคยมีใครพบเห็นมาก่อน',
+      involvedSects: ['สมาคมการค้าหุบเขาสองแคว'],
+      involvedFigures: ['ปู่เจ้าสมิงพราย (#40)']
+    },
+    {
+      id: 'BALLAD_05_VALLEY_STONE_HEARTBEAT',
+      macroRegion: 'CENTRAL_HEARTLAND',
+      titleTh: 'ข่าวลือเสียงหัวใจศิลาเต้นใต้ก้นเหวหุบเขาสองแคว',
+      storyTh: 'พรานเฒ่าในหุบเขาสองแควกระซิบว่า บางคืนที่ได้แนบหูกับพื้นหินก้นเหว จะได้ยินเสียงหัวใจศิลาเต้นเป็นจังหวะทุ้มลึกอยู่ใต้ผืนดินที่ตั้งสำนักใหญ่ใจกลางหุบเขา',
+      involvedSects: [],
+      involvedFigures: ['ผู้เฝ้าประตูไร้หน้า (#25)']
+    },
+    {
+      id: 'BALLAD_06_FALLING_ENVOY_CHESS',
+      macroRegion: 'CENTRAL_HEARTLAND',
+      titleTh: 'ข่าวลือนักพรตพเนจรวางหมากหินริมผาเมฆา',
+      storyTh: 'เสี่ยวเอ้อร์โรงเตี๊ยมด่านหน้าเล่าว่า มีนักพรตชราในชุดผ้าป่านขาดวิ่นเคยวางเศษหยกสลักอักษรประหลาดจ่ายค่าสุรา ก่อนถอนหายใจแหงนมองม่านฟ้าเหมือนคนคิดถึงบ้านที่ไม่มีวันกลับไปได้',
+      involvedSects: [],
+      involvedFigures: ['ทูตตกสวรรค์ ขงหมิง (#21)']
+    },
+    {
+      id: 'BALLAD_07_IRON_SWORD_MOUND',
+      macroRegion: 'NORTHERN_PEAKS',
+      titleTh: 'ข่าวลือเสียงกระบี่เหล็กนิลคร่ำครวญหน้าซากกำแพงหลวง',
+      storyTh: 'คนตัดฟืนแถบเทือกเขาเหนือยืนยันว่า ยามสายลมเหมันต์พัดผ่านเนินกระบี่ร้าง จะได้ยินเสียงโลหะหนักอึ้งสั่นสะท้านตอบรับ ราวกับดวงวิญญาณองครักษ์โบราณยังคงยืนเฝ้าประตูเมืองที่พังทลายไปแล้ว',
+      involvedSects: [],
+      involvedFigures: ['หลี่เจี้ยนซิน (#6)']
+    },
+    {
+      id: 'BALLAD_08_GOLDEN_PEACOCK_GEAR',
+      macroRegion: 'WESTERN_BADLANDS',
+      titleTh: 'ข่าวลือขนนกยูงทองคำในสุสานจักรพรรดิกลไก',
+      storyTh: 'นักขุดสุสานที่รอดตายกลับมาเพ้อในโรงน้ำชาว่า ลึกเข้าไปในสุสานกลไกพันปีมีหุ่นหยกขาวที่ยังขยับนิ้วดีดลูกคิดและซ่อมแซมกระบอกกลไกขนนกยูงอยู่ลำพังในความมืด',
+      involvedSects: [],
+      involvedFigures: ['กงซูจี (#15)', 'ม่อจี๋ (#30)']
+    },
+    {
+      id: 'BALLAD_09_THOUSAND_YEAR_COCOON',
+      macroRegion: 'SOUTHERN_WATERS',
+      titleTh: 'ข่าวลือกลิ่นหอมโอสถเก้าดารากลางบึงหมอกพิษ',
+      storyTh: 'คนเก็บสมุนไพรร่ำลือว่า ทุกคืนวันเพ็ญจะมีผีเสื้อแสงดาวบินออกจากโพรงไม้โบราณกลางบึงทักษิณ พร้อมกลิ่นหอมโอสถที่เพียงสูดดมก็ช่วยให้บาดแผลเรื้อรังทุเลาลงอย่างน่าอัศจรรย์',
+      involvedSects: [],
+      involvedFigures: ['หมอหลวง ไป๋เฉ่า (#13)']
+    },
+    {
+      id: 'BALLAD_10_YAN_LUO_SHADOW_DECREE',
+      macroRegion: 'EASTERN_PLAINS',
+      titleTh: 'ข่าวลือสำนักตรวจการตงหวงออกตามล่าเศษแผ่นหยกดำ',
+      storyTh: 'คนเดินม้าต่างโจษจันกันทั่วโต๊ะสุราว่า มือปราบชุดดำของเอี๊ยนหลัวกำลังตั้งด่านตรวจค้นขบวนสินค้าอย่างเข้มงวด เพื่อตามหาเศษแผ่นหยกดำที่มีอักษรโบราณจากยุคเทียนกู่',
+      involvedSects: ['สำนักตรวจการตงหวง'],
+      involvedFigures: ['เอี๊ยนหลัว (#54)', 'ซิงอวิ๋น (#49)']
+    }
+  ]);
+
+  X.recordTavernBalladRumor = (W, idxOrId) => {
+    if (!W || !W.world) return null;
+    const pool = X.TAVERN_BALLAD_TEMPLATES;
+    const tpl = (typeof idxOrId === 'string' && pool.find(b => b.id === idxOrId))
+      || pool[Math.abs(Number(idxOrId) || ((W.day || 1) + (W.world.chronicleSeq || 0))) % pool.length];
+    if (!tpl) return null;
+    return X.recordChronicle(W, {
+      eventKey: 'ballad:' + tpl.id + ':' + (W.day || 0),
+      category: 'LEGEND',
+      reportFormat: 'TAVERN_BALLAD',
+      isRumor: true,
+      unverified: true,
+      icon: '🍶',
+      titleTh: tpl.titleTh,
+      storyTh: tpl.storyTh,
+      originCauseTh: 'นักเดินทางและคนเดินม้าเล่าขานต่อกันมาในโรงเตี๊ยมริมทาง',
+      consequenceTh: 'เรื่องนี้ยังเป็นเพียงคำร่ำลือในวงสุรา รอสายสืบสำนักพิสูจน์ความจริง',
+      macroRegion: tpl.macroRegion,
+      involvedSects: tpl.involvedSects,
+      involvedFigures: tpl.involvedFigures,
+      quiet: true
+    });
+  };
+  if (g.MAP) g.MAP.WORLD_LORE = X.WORLD_LORE;
+/* === LIVING_JIANGHU_EPITHETS_EXPED_HOOK_V260 === */
+
+  const _origHydrateFigEp = X.hydrateFigureToNpc;
+  X.hydrateFigureToNpc = (W, figOrId, opts) => {
+    const srcFig = (typeof figOrId === 'object' && figOrId) ? figOrId : (W && W.world && W.world.figuresById && W.world.figuresById[figOrId]);
+    const res = _origHydrateFigEp(W, figOrId, opts);
+    if (res && res.ok && res.npc && g.CULT && g.CULT.EPITHETS) {
+      g.CULT.EPITHETS.onHydrateExternalFigure(W, res.npc, srcFig || res.npc);
+    }
+    return res;
+  };
+
+  const _origBuildFactSnapEp = X.buildFactSnapshot;
+  X.buildFactSnapshot = (W, entry, actorSnapshots, fmtId) => {
+    const snap = _origBuildFactSnapEp(W, entry, actorSnapshots, fmtId);
+    if (snap && Array.isArray(snap.actorsAtEvent)) {
+      snap.actorsAtEvent.forEach((act, idx) => {
+        if (!act) return;
+        const srcA = (actorSnapshots && actorSnapshots[idx]) || (W && W.byId && W.byId[act.id]) || null;
+        if (srcA) {
+          const epSnap = srcA.epithetSnapshot || (srcA.epithets ? {
+            primaryId: srcA.epithets.primaryId,
+            primaryTextTh: srcA.epithets.primaryTextTh,
+            campusTextTh: srcA.epithets.campusTextTh,
+            daoNameTh: srcA.epithets.daoNameTh,
+            groupTitleTh: srcA.epithets.groupTitleTh,
+            crownIds: (srcA.epithets.crownIds || []).slice(),
+            posthumousTitleTh: srcA.epithets.posthumousTitleTh
+          } : null);
+          act.epithetAtEventTh = (srcA.epithetAtEventTh) ||
+            (epSnap && (epSnap.primaryTextTh || epSnap.daoNameTh || epSnap.campusTextTh)) ||
+            null;
+          act.epithetSnapshot = epSnap;
+        }
+      });
+    }
+    return snap;
+  };
+
+  if (typeof X.awakenAncientDaoLegacy === 'function') {
+    const _origAwakenDaoEp = X.awakenAncientDaoLegacy;
+    X.awakenAncientDaoLegacy = function(W, npcOrId, legacyId, opts) {
+      const res = _origAwakenDaoEp.apply(this, arguments);
+      const npc = typeof npcOrId === 'object' ? npcOrId : (W && W.byId && W.byId[npcOrId]);
+      if (res && res.ok && npc && g.CULT && g.CULT.EPITHETS) {
+        g.CULT.EPITHETS.recordDeed(W, npc, 'ancient_dao_legacy_awakened', 1, {
+          receiptId: 'dao_leg_' + npc.id + '_' + (legacyId || 'legacy'),
+          descTh: 'ปลุกมรดกมรรคาโบราณที่สาบสูญสำเร็จ'
+        });
+      }
+      return res;
+    };
+  }
+
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+/* ============================================================================
+ * JS2-v3.1.0 — LIVING LORE, 4 EPISTEMIC LAYERS, FALLEN DYNASTIES ARCHIVE,
+ * 28 MULTI-PERSPECTIVE CANON FACTS & 20 MULTI-STAGE PLAYABLE STORY CHAINS
+ * ============================================================================ */
+(function initLivingLoreExpeditionEngine(g) {
+  'use strict';
+  const X = g.EXPED, HC = g.HC, U = g.U, JD = g.JD;
+  const getCOG = () => g.COG, getCULT = () => g.CULT, getECO = () => g.ECO, getSECT = () => g.SECT, getAI = () => g.AI;
+  if (!X || !HC || !U) return;
+  const E = (n, p) => HC.eff(n, p), clamp = U.clamp;
+
+  const EPISTEMIC_LAYERS = Object.freeze({
+    PROVINCIAL_VEIL: Object.freeze({
+      id: 'PROVINCIAL_VEIL',
+      order: 1,
+      nameTh: 'ชั้นที่ 1 · ม่านหมอกชนบทและคำบอกเล่าพื้นบ้าน',
+      shortTh: 'คำบอกเล่าพื้นบ้าน',
+      secretGate: false,
+      descTh: 'เรื่องเล่าปากเปล่าในโรงเตี๊ยม เพลงคนแจวเรือ คติความเชื่อของชาวบ้าน และจารีตท้องถิ่นใน 54 เมืองและด่าน ซึ่งมักเจืออภินิหารหรืออคติของแต่ละท้องที่'
+    }),
+    IMPERIAL_CHESSBOARD: Object.freeze({
+      id: 'IMPERIAL_CHESSBOARD',
+      order: 2,
+      nameTh: 'ชั้นที่ 2 · กระดานหมากเก้าแคว้น ราชวงศ์ที่ล่มสลาย และศึกตัวแทน 19 สำนัก',
+      shortTh: 'กระดานหมากเก้าแคว้น',
+      secretGate: false,
+      descTh: 'สนธิสัญญาหยุนเหอ 820 ปีของซูฉิน (#42) การคานอำนาจของ 3 มหาจักรวรรดิ 5 แคว้นกลาง สภาเจ็ดวาณิช และร่องรอยของราชวงศ์ที่เพิ่งล่มสลายซึ่งยังหลงเหลืออยู่ในระบบภาษีและสายตระกูล'
+    }),
+    SHATTERED_SUBCONTINENT: Object.freeze({
+      id: 'SHATTERED_SUBCONTINENT',
+      order: 3,
+      nameTh: 'ชั้นที่ 3 · ความลับอนุทวีปแตกสลาย ม่านกั้นภพเทียนกู่ และของตกค้างจากเบื้องบน',
+      shortTh: 'ความลับม่านกั้นภพ',
+      secretGate: true,
+      descTh: 'ความจริงเรื่องการระเบิดประตูมิติหลวงของกู่เสวียนหยวน (#1) กฎเพดานตบะขั้น 9 ที่ม่านฟ้ากดทับ สัจธรรมว่าของวิเศษโบราณหลายชิ้นเป็นเพียงของใช้สามัญจากโลกเบื้องบน และแผ่นดินห้าภูมิภาคเป็นเพียงหลุมอุกกาบาตที่ถูกล้อมด้วยทะเลหมอกไร้ขอบเขต'
+    }),
+    ERASED_PREHISTORY: Object.freeze({
+      id: 'ERASED_PREHISTORY',
+      order: 4,
+      nameTh: 'ชั้นที่ 4 · ยุคบรรพกาลก่อนเทียนกู่และปฐมบทผู้ก่อตั้งสำนักที่ถูกปิดบัง',
+      shortTh: 'ปฐมประวัติที่ถูกลบ',
+      secretGate: true,
+      descTh: 'ยุคบรรพกาลสามสมัยที่ถูกราชสำนักเทียนกู่ลบออกจากพงศาวดาร หอจดหมายเหตุสี่มหาแดนลับ และชาติกำเนิดที่แท้จริงของปรมาจารย์ผู้ก่อตั้งสำนักรุ่นที่ 1 (#45) ผู้ทิ้งตราหินเทาไร้ลักษณ์ไว้เพื่อหลบเลี่ยงสายตาสวรรค์'
+    })
+  });
+
+  const FALLEN_DYNASTIES_ARCHIVE = Object.freeze({
+    DYN_TIANGU: Object.freeze({
+      id: 'DYN_TIANGU',
+      nameTh: 'มหาจักรวรรดิโบราณเทียนกู่',
+      eraTh: 'ยุคที่ 0 ปีที่ 0 · ล่มสลายในคืนประตูมิติหลวงแตก (~100,000 ปีก่อน)',
+      successorPolityIds: ['POL_BEIMING', 'POL_DONGHUANG', 'POL_XIRONG', 'POL_YUNHE'],
+      anchorNodeIds: ['CITY_YH_OLD_DAREN_SQUARE', 'PASS_YH_YUGUAN_RUIN_POST', 'CITY_BM_HANYU_CAPITAL'],
+      remnantSignTh: 'เหรียญสำริดตราประตูสวรรค์ ศิลาจารึกอักษรหลวงยุคกู่เสวียนหยวน (#1) และฐานค่ายกลสิบสองคบเพลิง',
+      courtAccountTh: 'ราชสำนักเป่ยหมิงอ้างสิทธิ์สายเลือดสกุลกู่โดยตรง ส่วนตงหวงบันทึกว่าเทียนกู่ล่มสลายเพราะความอหังการของกษัตริย์องค์สุดท้าย',
+      folkAccountTh: 'ชาวบ้านเล่าขานว่านครหลวงเทียนกู่ถูกทวยเทพลงทัณฑ์จนจมลงใต้หุบเขาและกลายเป็นซากอุทยานสวรรค์'
+    }),
+    DYN_QINGLAN: Object.freeze({
+      id: 'DYN_QINGLAN',
+      nameTh: 'ราชวงศ์ชิงหลานโบราณ (แคว้นสายน้ำคราม)',
+      eraTh: 'ยุคก่อนปัจจุบัน · เพิ่งล่มสลายเมื่อ ~90 ปีก่อนและถูกผนวกเข้าตงหวง',
+      successorPolityIds: ['POL_DONGHUANG'],
+      anchorNodeIds: ['CITY_DH_QINGLAN_DICE_CITY', 'PASS_DH_BAILANG_RIVER_LOCK'],
+      remnantSignTh: 'ตราประทับครั่งทองเหลืองรูปคลื่นคู่ของด่านภาษีเก่า และตั๋วแลกเงินใต้ดินที่โรงจำนำเก่ายังรับแลก',
+      courtAccountTh: 'พงศาวดารตงหวงระบุว่าเจ้าแคว้นชิงหลานบริหารคลังล้มเหลวจนต้องขอสวามิภักดิ์ต่อราชธานีเก้าคลังสุริยัน',
+      folkAccountTh: 'คนแจวเรือและนายหน้าเก่ากระซิบว่าคลังเสบียงใต้น้ำของชิงหลานยังไม่เคยถูกเปิด และตราภาษีเก่ายังใช้เบิกของในห้องลับได้'
+    }),
+    DYN_ZHENYANG: Object.freeze({
+      id: 'DYN_ZHENYANG',
+      nameTh: 'แคว้นปราการเจิ้นหยาง',
+      eraTh: 'ยุคก่อนปัจจุบัน · ล่มสลายในศึกพรมแดนตะวันออก–กลางเมื่อ ~110 ปีก่อน',
+      successorPolityIds: ['POL_DONGHUANG', 'POL_YUNHE'],
+      anchorNodeIds: ['CITY_DH_ZHENYANG_RUIN_PREF', 'TOWN_YH_WUYUN_POST'],
+      remnantSignTh: 'ป้อมศิลาครึ่งซีกและหมุดเหล็กบอกแนวเขตแดนที่ตอกซ้อนกับหลักศิลาหยุนเหอ',
+      courtAccountTh: 'ตงหวงถือว่าเจิ้นหยางเป็นมณฑลหน้าด่านที่ถูกกบฏเผาทำลาย จึงตั้งด่านเก็บภาษีซ่อมป้อมทับที่เดิม',
+      folkAccountTh: 'ทายาททหารยามเจิ้นหยางเล่าว่าแม่ทัพคนสุดท้ายเปิดประตูระบายพลเรือนหนีเข้าหยุนเหอก่อนเผาคลังแสงตนเอง'
+    }),
+    DYN_CANGLAN: Object.freeze({
+      id: 'DYN_CANGLAN',
+      nameTh: 'แคว้นหมอกชางหลาน',
+      eraTh: 'ยุคกลางเจ็ดธงศึก · ล่มสลายเมื่อ ~240 ปีก่อนในหุบเขาหมอกเหนือ',
+      successorPolityIds: ['POL_YOUMING', 'POL_BEIMING'],
+      anchorNodeIds: ['CITY_YM_HUNDENG_CAPITAL', 'TOWN_YM_SHIBEI_RUBBING', 'PASS_YM_WUKUI_MIST_GATE'],
+      remnantSignTh: 'ป้ายหยกครึ่งซีกสลักนามสกุลผู้อพยพ และเทคนิคลอกลายศิลาจารึกด้วยหมึกควันสน',
+      courtAccountTh: 'ถูกบันทึกสั้นๆ ว่าเป็นแคว้นเล็กที่สลายตัวไปเองจากภัยหนาวและหมอกพิษ',
+      folkAccountTh: 'ตระกูลที่อพยพลงใต้ยังเก็บป้ายหยกครึ่งซีกไว้เทียบหาญาติพี่น้องที่พลัดพรากในคืนเผาบัญชีเกณฑ์ทหาร'
+    }),
+    DYN_YANLING: Object.freeze({
+      id: 'DYN_YANLING',
+      nameTh: 'ราชวงศ์เหยียนหลิง (แคว้นสองแควโบราณ)',
+      eraTh: 'ยุคสิบสองแคว้นล่มสลาย · ~420 ปีก่อน ก่อนกำเนิดสภาเจ็ดวาณิชหยุนเหอ',
+      successorPolityIds: ['POL_YUNHE'],
+      anchorNodeIds: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE', 'TOWN_YH_CUIZHU_TEA'],
+      remnantSignTh: 'ขีดวัดระดับน้ำท่วมโบราณใต้ตอม่อสะพานศิลาสามแคว และสมุดบัญชีส่วยข้าวฤดูแล้ง',
+      courtAccountTh: 'สภาเจ็ดวาณิชหยุนเหอบันทึกว่าเหยียนหลิงล่มสลายเพราะเก็บภาษีน้ำขูดรีดพ่อค้า',
+      folkAccountTh: 'ชาวประมงเชื่อว่ากษัตริย์เหยียนหลิงทำผิดคำสัตย์ต่อพญามังกรน้ำ ทำให้แม่น้ำสองแควไหลย้อนกลับทุกเจ็ดปี'
+    }),
+    DYN_DAXIA_SEVEN_BANNERS: Object.freeze({
+      id: 'DYN_DAXIA_SEVEN_BANNERS',
+      nameTh: 'พันธมิตรเจ็ดธงศึกต้าเซี่ย',
+      eraTh: 'ยุคกลางตอนปลาย (ยุคที่ 100 ปีที่ 251) · ~750 ปีก่อน',
+      successorPolityIds: ['POL_BEIMING', 'POL_XIRONG'],
+      anchorNodeIds: ['PASS_BM_HANLONG_GATE', 'TOWN_BM_BAIMEI_OLD_FORT', 'PASS_BM_XUEFENG_WEST'],
+      remnantSignTh: 'หัวทวนสำริดหักและแผนที่หนังแกะที่วาดโค้งน้ำโบราณก่อนแผ่นดินทรุด',
+      courtAccountTh: 'เป่ยหมิงบันทึกว่าเป็นกองทัพขุนศึกนอกรีตที่ถูกปฐมกษัตริย์สกุลกู่ปราบปรามจนราบคาบ',
+      folkAccountTh: 'พรานแดนเหนือเล่าว่าเป็นกองทัพผู้รอดชีวิตที่ตั้งค่ายสกัดอสูร裂缝มิติจนตัวตายหมดทั้งเจ็ดกองธง'
+    }),
+    DYN_HUANGSHA_OASIS: Object.freeze({
+      id: 'DYN_HUANGSHA_OASIS',
+      nameTh: 'สมาพันธ์โอเอซิสทรายทองหวงซา',
+      eraTh: 'ยุคก่อนการรวมแผ่นดินซีหรง · ~310 ปีก่อน',
+      successorPolityIds: ['POL_XIRONG', 'POL_CHIYAN'],
+      anchorNodeIds: ['CITY_XR_SHAYU_OASIS', 'PASS_XR_HUANGSHA_FORT', 'TOWN_XR_XINYUE_WELL'],
+      remnantSignTh: 'ช่องส่งน้ำใต้ดินโบราณ (Karez) และแท่นฝนหมึกหินทรายแดงสลักตราพยัคฆ์ครึ่งซีก',
+      courtAccountTh: 'จักรวรรดิซีหรงบันทึกว่าชนเผ่าโอเอซิสยอมมอบบ่อน้ำทั้งเก้าแลกกับการคุ้มครองจากกองทัพทัวป๋า',
+      folkAccountTh: 'คนนำทางทะเลทรายรู้ดีว่ายังมีท่อส่งน้ำใต้ดินและจุดพักคาราวานลับที่ไม่อยู่ในแผนที่ทหารซีหรง'
+    }),
+    DYN_NANZHU_LEAGUE: Object.freeze({
+      id: 'DYN_NANZHU_LEAGUE',
+      nameTh: 'สันนิบาตเดินเรือสมุทรทักษิณ',
+      eraTh: 'ยุคสำรวจทะเลหมอก · ~180 ปีก่อน',
+      successorPolityIds: ['POL_DONGHUANG', 'POL_GUJIAO'],
+      anchorNodeIds: ['CITY_SO_NANZHU_PEARL_ISLE', 'CITY_SO_LONGWAN_SHIPYARD', 'PASS_SO_DENGTAI_LIGHTHOUSE'],
+      remnantSignTh: 'สมุดปมเชือกหยั่งร่องน้ำสามตะเกียง และแผ่นไม้สักสลักชื่อเรือที่สูญหายในม่านหมอก',
+      courtAccountTh: 'ตงหวงสั่งยุบสันนิบาตเดินเรือโดยอ้างว่าลักลอบค้าเกลือเถื่อนและสมคบโจรสลัดโขดหินดำ',
+      folkAccountTh: 'ชาวเรือเกาะไข่มุกเล่าว่ากองเรือใหญ่แล่นเลยแนวประภาคารออกไปพบกำแพงหมอกไร้ก้นบึ้งก่อนจะเหลือเรือรอดกลับมาเพียงลำเดียว'
+    })
+  });
+
+  const CANON_FACTS = Object.freeze([
+    {"id": "FACT_V370_01_LEG_READ_FORM_BLADE", "titleTh": "ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "era": "ปลายกลียุคหลังสงครามใหญ่", "polityId": "POL_BEIMING", "regionId": "NORTHERN_PEAKS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_READ_FORM_BLADE", "summaryTh": "ครูฝึกด่านซานเจียงผู้รอดชีวิตจากทัพม้าเหล็ก — ด่านซานเจียงถือว่าเป็นวิชารักษาด่านท้องถิ่น ขณะที่หอคัมภีร์บางแห่งเข้าใจผิดว่าเป็นเศษคัมภีร์สำนักกระบี่โบราณ", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_BM_HANYU_CAPITAL"], "relatedPaths": ["LEG_READ_FORM_BLADE"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "ครูฝึกด่านซานเจียงผู้รอดชีวิตจากทัพม้าเหล็ก — ด่านซานเจียงถือว่าเป็นวิชารักษาด่านท้องถิ่น ขณะที่หอคัมภีร์บางแห่งเข้าใจผิดว่าเป็นเศษคัมภีร์สำนักกระบี่โบราณ"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีกระบี่อ่านช่องฟ้า (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_02_LEG_TRIAGE_MERIDIAN", "titleTh": "ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "era": "ต้นยุคดุลยภาพสามมหาอำนาจ", "polityId": "POL_YUNHE", "regionId": "CENTRAL_HEARTLAND", "originType": "LOWLY_UPPER_WORLD", "pathId": "LEG_TRIAGE_MERIDIAN", "summaryTh": "แผ่นฝึกหายใจชั้นผู้น้อยที่ถูกคัดทิ้งจากหอพักโลกเบื้องบน — สำนักแพทย์บางแห่งยกย่องว่าเป็นตำราเซียนโอสถ แต่บันทึกหอรักษาเก่าชี้ชัดว่าเริ่มต้นจากแผ่นฝึกหายใจคนรับใช้ที่ถูกดัดแปลงจนใช้งานได้จริงในโลกเบื้องล่าง", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_YH_SHUANGJIANG"], "relatedPaths": ["LEG_TRIAGE_MERIDIAN"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีชีพจรประคองสหาย (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีชีพจรประคองสหาย (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "แผ่นฝึกหายใจชั้นผู้น้อยที่ถูกคัดทิ้งจากหอพักโลกเบื้องบน — สำนักแพทย์บางแห่งยกย่องว่าเป็นตำราเซียนโอสถ แต่บันทึกหอรักษาเก่าชี้ชัดว่าเริ่มต้นจากแผ่นฝึกหายใจคนรับใช้ที่ถูกดัดแปลงจนใช้งานได้จริงในโลกเบื้องล่าง"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีชีพจรประคองสหาย (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีชีพจรประคองสหาย (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_03_LEG_STORM_CALLER_TEMPEST", "titleTh": "ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "era": "ยุคภัยแล้งและมรสุมเจ็ดปี", "polityId": "POL_SUVARNABODHI", "regionId": "SOUTHERN_WATERS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_STORM_CALLER_TEMPEST", "summaryTh": "กัปตันเรือเดินสมุทรและพรานยอดเขาที่ร่วมกันจดทิศลม — ชาวประมงถือว่าเป็นวิชาพยากรณ์คลื่นลม ขณะที่นักค่ายกลมองว่าเป็นการชักนำประจุฟ้าในวงแคบ", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_SB_JINYA_SANGHA"], "relatedPaths": ["LEG_STORM_CALLER_TEMPEST"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "กัปตันเรือเดินสมุทรและพรานยอดเขาที่ร่วมกันจดทิศลม — ชาวประมงถือว่าเป็นวิชาพยากรณ์คลื่นลม ขณะที่นักค่ายกลมองว่าเป็นการชักนำประจุฟ้าในวงแคบ"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีจอมพายุบัญชาฟ้า (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_04_LEG_JADE_CARAVAN_VOYAGER", "titleTh": "ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "era": "ยุคน้ำหลากใหญ่ลุ่มน้ำหยุนเหอ", "polityId": "POL_DONGHUANG", "regionId": "EASTERN_PLAINS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_JADE_CARAVAN_VOYAGER", "summaryTh": "นายท่าเรือข้ามฟากและกองคาราวานจากตำนานเรือข้าวสามหนี้ — พงศาวดารเมืองหลวงอ้างว่าขุนนางผู้ตรวจการเป็นผู้คิดค้น แต่สมุดบัญชีด่านเก็บภาษีเก่าชี้ว่าเป็นผลงานของนายท่าสามัญชนสามคน", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_DH_JIUKU_CAPITAL"], "relatedPaths": ["LEG_JADE_CARAVAN_VOYAGER"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีจอมคาราวานหยก (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีจอมคาราวานหยก (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "นายท่าเรือข้ามฟากและกองคาราวานจากตำนานเรือข้าวสามหนี้ — พงศาวดารเมืองหลวงอ้างว่าขุนนางผู้ตรวจการเป็นผู้คิดค้น แต่สมุดบัญชีด่านเก็บภาษีเก่าชี้ว่าเป็นผลงานของนายท่าสามัญชนสามคน"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีจอมคาราวานหยก (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีจอมคาราวานหยก (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_05_LEG_OATH_JUDGE_WARDEN", "titleTh": "ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "era": "ยุคก่อตั้งพันธมิตรสำนักหลังกลียุค", "polityId": "POL_YUNHE", "regionId": "CENTRAL_HEARTLAND", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_OATH_JUDGE_WARDEN", "summaryTh": "กลุ่มผู้เฒ่าและตุลาการพเนจรที่แยกตัวจากความขัดแย้งนองเลือด — ฝ่ายธรรมะมองว่าเป็นศาลยุทธภพเที่ยงธรรม ขณะที่สำนักอิสระบางแห่งเกรงว่าถูกใช้เป็นเครื่องมือการเมือง", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_YH_SHUANGJIANG"], "relatedPaths": ["LEG_OATH_JUDGE_WARDEN"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "กลุ่มผู้เฒ่าและตุลาการพเนจรที่แยกตัวจากความขัดแย้งนองเลือด — ฝ่ายธรรมะมองว่าเป็นศาลยุทธภพเที่ยงธรรม ขณะที่สำนักอิสระบางแห่งเกรงว่าถูกใช้เป็นเครื่องมือการเมือง"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีผู้คุมสัตย์สาบาน (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_06_LEG_ASHEN_KILN_ALCHEMY", "titleTh": "ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "era": "ศึกปิดล้อมเมืองเตาเผาสามฤดู", "polityId": "POL_XIRONG", "regionId": "WESTERN_BADLANDS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "LEG_ASHEN_KILN_ALCHEMY", "summaryTh": "ช่างปั้นเครื่องเคลือบและศิษย์หลอมโอสถที่ถูกขับออกจากสำนักใหญ่ — สำนักหลอมโอสถชั้นสูงดูแคลนว่าเป็นวิชาเก็บกากของเหลือ แต่เมืองชายแดนที่รอดพ้นการปิดล้อมต่างยกย่องว่าเป็นวิถีแห่งการเอาชีวิตรอด", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_XR_CHIYAN_CAPITAL"], "relatedPaths": ["LEG_ASHEN_KILN_ALCHEMY"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "ช่างปั้นเครื่องเคลือบและศิษย์หลอมโอสถที่ถูกขับออกจากสำนักใหญ่ — สำนักหลอมโอสถชั้นสูงดูแคลนว่าเป็นวิชาเก็บกากของเหลือ แต่เมืองชายแดนที่รอดพ้นการปิดล้อมต่างยกย่องว่าเป็นวิถีแห่งการเอาชีวิตรอด"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีเตาเถ้าคืนชีวิต (ตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_07_TRANS_CONSTELLATION_RELAY", "titleTh": "ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "era": "ปลายยุคสามมหาอำนาจตอนต้น", "polityId": "POL_BEIMING", "regionId": "NORTHERN_PEAKS", "originType": "ASCENDED_LOWER_MASTER", "pathId": "TRANS_CONSTELLATION_RELAY", "summaryTh": "ปรมาจารย์หมอทัพผู้บรรลุจุดสูงสุดโลกเบื้องล่างและข้ามม่านฟ้าไปแล้ว — บันทึกสองสำนักขัดแย้งกันว่าแผนภาพไตรดาราหรือสายพิณประสานใจกันแน่ที่ช่วยศิษย์รอดจากฟ้าทัณฑ์ในวันนั้น", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_BM_HANYU_CAPITAL"], "relatedPaths": ["TRANS_CONSTELLATION_RELAY"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "ปรมาจารย์หมอทัพผู้บรรลุจุดสูงสุดโลกเบื้องล่างและข้ามม่านฟ้าไปแล้ว — บันทึกสองสำนักขัดแย้งกันว่าแผนภาพไตรดาราหรือสายพิณประสานใจกันแน่ที่ช่วยศิษย์รอดจากฟ้าทัณฑ์ในวันนั้น"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีประสานปราณหมู่ดาว (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_08_TRANS_FIELD_CLAUSE_SOVEREIGN", "titleTh": "ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "era": "ปลายสมัยมหาอาณาจักรเทียนกู่ก่อนล่มสลาย", "polityId": "POL_DONGHUANG", "regionId": "EASTERN_PLAINS", "originType": "ASCENDED_LOWER_MASTER", "pathId": "TRANS_FIELD_CLAUSE_SOVEREIGN", "summaryTh": "แม่ทัพนักกฎหมายยุคเทียนกู่ผู้ฝึกตนจนข้ามม่านฟ้าก่อนอาณาจักรแตก — ราชสำนักตงหวงอ้างสิทธิ์สืบทอดสายตรง แต่นักค่ายกลอิสระพบหลักฐานเดียวกันสลักไว้บนศิลาด่านสองแห่งที่ไม่อยู่ในอำนาจราชสำนัก", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_DH_JIUKU_CAPITAL"], "relatedPaths": ["TRANS_FIELD_CLAUSE_SOVEREIGN"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "แม่ทัพนักกฎหมายยุคเทียนกู่ผู้ฝึกตนจนข้ามม่านฟ้าก่อนอาณาจักรแตก — ราชสำนักตงหวงอ้างสิทธิ์สืบทอดสายตรง แต่นักค่ายกลอิสระพบหลักฐานเดียวกันสลักไว้บนศิลาด่านสองแห่งที่ไม่อยู่ในอำนาจราชสำนัก"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีธรรมนูญฟ้าขีดเขต (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_09_TRANS_TEMPO_SOVEREIGN", "titleTh": "ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "era": "ยุคหอกลองริมแม่น้ำและกองเรือลำเลียง", "polityId": "POL_SUVARNABODHI", "regionId": "SOUTHERN_WATERS", "originType": "LOCAL_LOWER_HISTORY", "pathId": "TRANS_TEMPO_SOVEREIGN", "summaryTh": "นายกลองเรือรบและช่างนาฬิกาน้ำริมแม่น้ำใหญ่ — บางคนนึกว่าเป็นวิถีกาลเวลาจากแดนลับ แต่จารึกหอกลองเก่าพิสูจน์ว่าเกิดจากการจับจังหวะฝีพายและสายน้ำจริงในโลกเบื้องล่าง", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_SB_JINYA_SANGHA"], "relatedPaths": ["TRANS_TEMPO_SOVEREIGN"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "นายกลองเรือรบและช่างนาฬิกาน้ำริมแม่น้ำใหญ่ — บางคนนึกว่าเป็นวิถีกาลเวลาจากแดนลับ แต่จารึกหอกลองเก่าพิสูจน์ว่าเกิดจากการจับจังหวะฝีพายและสายน้ำจริงในโลกเบื้องล่าง"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีปรมาจารย์จังหวะกาล (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_10_TRANS_SEALKEEPER_FORBIDDEN_KEY", "titleTh": "ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "era": "ยุคสำรวจซากคลังโบราณหลังสงครามใหญ่", "polityId": "POL_XIRONG", "regionId": "WESTERN_BADLANDS", "originType": "LOWLY_UPPER_WORLD", "pathId": "TRANS_SEALKEEPER_FORBIDDEN_KEY", "summaryTh": "ปมเชือกผูกหีบสินค้าแตกหักง่ายของพนักงานคลังชั้นผู้น้อยในโลกเบื้องบน — สองสำนักยันต์ถกเถียงกันไม่จบว่าควรถ่ายระบายไออันตรายในปมผนึกทิ้งกลางทางหรือถือไปส่งผู้เชี่ยวชาญ", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_XR_CHIYAN_CAPITAL"], "relatedPaths": ["TRANS_SEALKEEPER_FORBIDDEN_KEY"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "ปมเชือกผูกหีบสินค้าแตกหักง่ายของพนักงานคลังชั้นผู้น้อยในโลกเบื้องบน — สองสำนักยันต์ถกเถียงกันไม่จบว่าควรถ่ายระบายไออันตรายในปมผนึกทิ้งกลางทางหรือถือไปส่งผู้เชี่ยวชาญ"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีผู้ถือกุญแจผนึก (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_11_TRANS_PRIMAL_VORTEX_MIRROR", "titleTh": "ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "era": "ยุคชุมนุมหอคัมภีร์ห้าสำนัก", "polityId": "POL_DONGHUANG", "regionId": "EASTERN_PLAINS", "originType": "ASCENDED_LOWER_MASTER", "pathId": "TRANS_PRIMAL_VORTEX_MIRROR", "summaryTh": "อาลักษณ์พเนจรที่รวบรวมบันทึกวิชาต่างสำนักข้ามสามชั่วคนก่อนบรรลุและข้ามม่านฟ้า — หอคัมภีร์หลายแห่งต่างถือเศษสำเนาคนละบทและโต้เถียงกันว่าบทใดคือต้นฉบับก่อนอาจารย์ขึ้นสู่เบื้องบน", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_DH_JIUKU_CAPITAL"], "relatedPaths": ["TRANS_PRIMAL_VORTEX_MIRROR"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "อาลักษณ์พเนจรที่รวบรวมบันทึกวิชาต่างสำนักข้ามสามชั่วคนก่อนบรรลุและข้ามม่านฟ้า — หอคัมภีร์หลายแห่งต่างถือเศษสำเนาคนละบทและโต้เถียงกันว่าบทใดคือต้นฉบับก่อนอาจารย์ขึ้นสู่เบื้องบน"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีกระจกสะท้อนหมื่นวิชา (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {"id": "FACT_V370_12_TRANS_DYNASTIC_MANDATE_WEAVER", "titleTh": "ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "era": "ยุควัฏจักรผลัดแผ่นดินสามราชวงศ์", "polityId": "POL_YUNHE", "regionId": "CENTRAL_HEARTLAND", "originType": "LOCAL_LOWER_HISTORY", "pathId": "TRANS_DYNASTIC_MANDATE_WEAVER", "summaryTh": "บัณฑิตสันโดษผู้รอดชีวิตจากการล่มสลายของสามอาณาจักรยุคหลังเทียนกู่ — ราชสำนักบางแห่งเกรงว่าผู้ฝึกวิถีนี้จะแทรกแซงการเมือง แต่บันทึกเดิมย้ำชัดว่าวิถีนี้เป็นเพียงการอ่านกระแสโลกและประคองผู้คนมิใช่การยึดครองบัลลังก์", "layer": "PROVINCIAL_VEIL", "category": "LINEAGE", "anchorNodeIds": ["CITY_YH_SHUANGJIANG"], "relatedPaths": ["TRANS_DYNASTIC_MANDATE_WEAVER"], "relatedFigures": [], "secretGate": false, "defaultAccount": "FOLK_ORAL", "accounts": {"FOLK_ORAL": {"id": "FOLK_ORAL", "labelTh": "เรื่องเล่าชาวบ้าน · ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "credibilityBase": 46, "biasTh": "ชาวบ้านและนักเดินทางมักแต่งเติมปาฏิหาริย์และสลับชื่อเจ้าของเคล็ดวิชา", "summaryTh": "เรื่องเล่าตามโรงน้ำชาและท่าเรือกล่าวขานถึงปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน) ว่าเคยพลิกชะตาศึกสำคัญในถิ่นนี้"}, "COURT_CANON": {"id": "COURT_CANON", "labelTh": "จดหมายเหตุราชสำนัก · ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "credibilityBase": 62, "biasTh": "ราชสำนักบันทึกโดยเน้นผลต่อความมั่นคงด่านชายแดนและเสถียรภาพการปกครอง", "summaryTh": "บันทึกหอราชสำนักระบุที่มาของปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน) โดยเชื่อมโยงกับเหตุการณ์บ้านเมืองและการจัดระเบียบผู้ฝึกตน"}, "SECT_ORTHODOX": {"id": "SECT_ORTHODOX", "labelTh": "อรรถาธิบายหอคัมภีร์ · ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "credibilityBase": 74, "biasTh": "สำนักหลักให้ความสำคัญกับสายสืบทอดที่ตรวจสอบได้และข้อจำกัดตบะในโลกเบื้องล่าง", "summaryTh": "บัณฑิตสันโดษผู้รอดชีวิตจากการล่มสลายของสามอาณาจักรยุคหลังเทียนกู่ — ราชสำนักบางแห่งเกรงว่าผู้ฝึกวิถีนี้จะแทรกแซงการเมือง แต่บันทึกเดิมย้ำชัดว่าวิถีนี้เป็นเพียงการอ่านกระแสโลกและประคองผู้คนมิใช่การยึดครองบัลลังก์"}, "VERIFIED_CHRONICLE": {"id": "VERIFIED_CHRONICLE", "labelTh": "หลักฐานผู้ปฏิบัติจริง · ปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน)", "credibilityBase": 86, "biasTh": "พยานผู้ฝึกจริงยึดผลลัพธ์และต้นทุนที่วัดได้ ตัดเรื่องเล่าเกินจริงออก", "summaryTh": "ผู้ฝึกปฏิบัติยืนยันว่าปฐมบทวิถีทอชะตาแผ่นดิน (เหนือตำนาน) ทำงานภายใต้กฎม่านฟ้าและสเกลตบะโลกเบื้องล่าง ต้องแลกด้วยเงื่อนไขและจังหวะจริง"}}},
+    {
+      id: 'FACT_01_SHUANGJIANG_BACKFLOW',
+      storyId: 'STORY_01_SHUANGJIANG_FLOOD_LEDGER',
+      titleTh: 'ปรากฏการณ์น้ำไหลย้อนและสมุดระดับน้ำซวงเจียง',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'],
+      relatedPaths: ['TIDE_VOYAGER', 'STRATEGY_GOVERNANCE', 'MERCANTILE_DAO'],
+      relatedFigures: [37, 53],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'ROUTE_SAFETY', legNodes: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'], travelBonus: 0.14, descTh: 'ลดความล่าช้าและความเสี่ยงขบวนเรือข้ามสองแควหยุนเหอ–ด่านสะพานศิลาสามแคว' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานพญานาคราชทวงส่วยสองแคว',
+          credibilityBase: 48,
+          biasTh: 'เรื่องเล่าคนแจวเรือและโรงสุราท่าเทียบเรือซวงเจียง',
+          summaryTh: 'ชาวเรือร่ำลือว่าทุกปลายฤดูใบไม้ร่วงปีที่เจ็ด พญามังกรใต้น้ำจะพลิกตัวทวงส่วยกษัตริย์เหยียนหลิง ทำให้กระแสน้ำสองแควไหลย้อนกลับและกลืนเรือสินค้าที่บรรทุกหนัก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศเตือนภัยร่องน้ำสภาเจ็ดวาณิช',
+          credibilityBase: 62,
+          biasTh: 'ประกาศทางการของนายท่าเรือหยุนเหอเพื่อเก็บค่าธรรมเนียมนำร่อง',
+          summaryTh: 'สภาเจ็ดวาณิชระบุว่ากระแสน้ำปั่นป่วนเกิดจากเรือต่างแคว้นทอดสมอขวางร่องน้ำ จึงต้องเรียกเก็บค่านำร่องพิเศษในช่วงน้ำหลาก'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกปราณวารีปะทะชีพจรปฐพี',
+          credibilityBase: 65,
+          biasTh: 'สมมติฐานของผู้ฝึกตนสายวารีและค่ายกล',
+          summaryTh: 'ผู้ฝึกตนเชื่อว่าใต้จุดบรรจบแม่น้ำมีรอยรั่วของชีพจรปฐพีที่ดันมวลน้ำให้ตีกลับเป็นพักๆ เมื่อปราณหยินสะสมตัว'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'หลักฐานขีดวัดระดับน้ำแล้งและสมุดส่วยข้าวราชวงศ์เหยียนหลิง',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการเทียบขีดหินใต้ตอม่อสะพานศิลาสามแควกับสมุดคลังข้าวโบราณ',
+          summaryTh: 'รอยสิ่ววัดระดับน้ำใต้ตอม่อสะพานศิลาสามแควและสมุดส่วยข้าวโบราณพิสูจน์ว่า เมื่อปีใดหิมะแดนเหนือละลายช้าประจวบกับฝนหลงฤดูฝั่งตะวันออก สันดอนทรายใต้น้ำจะหนุนให้น้ำตีกลับเป็นเวลา 9 วัน สามารถคำนวณล่วงหน้าและปรับเส้นทางคาราวานหลบได้อย่างแม่นยำ'
+        }
+      }
+    },
+    {
+      id: 'FACT_02_BAILU_DUAL_COMMENTARY',
+      storyId: 'STORY_02_BAILU_DUAL_ANNOTATED_MANUAL',
+      titleTh: 'อรรถาธิบายสองลายมือในคัมภีร์สำนักศึกษาไป๋ลู่',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'MARTIAL_SCHISM',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_BAILU_ACADEMY', 'CITY_YH_OLD_DAREN_SQUARE'],
+      relatedPaths: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'LORE_ARCHIVIST'],
+      relatedFigures: [21, 37],
+      secretGate: false,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'STUDY_SYNTHESIS', studySpeedBonus: 0.12, descTh: 'เพิ่มความเร็วและความปลอดภัยในการตีความคัมภีร์ด้วยอรรถาธิบายประสานสองสำนักคิด' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือคัมภีร์ต้องสาปของศิษย์ทรยศ',
+          credibilityBase: 45,
+          biasTh: 'คำเล่าลือในหมู่บัณฑิตฝึกหัดเมืองไป๋ลู่',
+          summaryTh: 'ร่ำลือกันว่าผู้เขียนหมึกสีชาดในขอบคัมภีร์คือศิษย์เอกที่ธาตุไฟเข้าแทรกและจงใจเขียนเคล็ดวิชาลวงไว้สังหารผู้เรียนรุ่นหลัง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ทะเบียนตำราต้องห้ามของหอตรวจการการศึกษา',
+          credibilityBase: 60,
+          biasTh: 'มุมมองขุนนางผู้ควบคุมสำนักศึกษา',
+          summaryTh: 'หอทะเบียนตำราจัดให้ฉบับที่มีรอยแก้หมึกแดงเป็นฉบับคัดลอกผิดพลาดที่ควรเก็บเข้ากรุเพื่อรักษามาตรฐานการสอบ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ข้อพิพาทสายเร่งรัดหมึกชาดกับสายมั่นคงหมึกดำ',
+          credibilityBase: 68,
+          biasTh: 'ความขัดแย้งระหว่างอาจารย์สายรุกและสายตั้งรับ',
+          summaryTh: 'หมึกดำเน้นเดินปราณช้าแต่ปลอดภัย ส่วนหมึกชาดแนะให้บีบอัดปราณผ่านจุดชีพจรลัดซึ่งรุนแรงกว่าแต่เสี่ยงบาดเจ็บภายใน'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'บันทึกโต้ตอบของสองปรมาจารย์ร่วมสาบานแห่งไป๋ลู่',
+          credibilityBase: 93,
+          biasTh: 'พิสูจน์จากการเทียบลายมือต้นฉบับในหอสมุดไป๋ลู่และตราประทับคู่',
+          summaryTh: 'ทั้งสองลายมือเขียนโดยปรมาจารย์คู่ร่วมสาบานคนเดียวกันในช่วงวัยหนุ่ม (หมึกชาด) และวัยชรา (หมึกดำ) เพื่อชี้แนะว่าผู้มีกายาแข็งแกร่งใช้ทางลัดหมึกชาดได้เมื่อมีหมึกดำคอยคุมจังหวะผ่อนลมหายใจ'
+        }
+      }
+    },
+    {
+      id: 'FACT_03_QINGLAN_DOUBLE_TOLL_SEAL',
+      storyId: 'STORY_03_QINGLAN_SECOND_TOLL_STAMP',
+      titleTh: 'ตราประทับด่านภาษีซ้อนแห่งราชวงศ์ชิงหลาน',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'DYNASTY',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_QINGLAN_DICE_CITY', 'CITY_DH_ZHENYANG_RUIN_PREF'],
+      relatedPaths: ['MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'STRATEGY_GOVERNANCE'],
+      relatedFigures: [52, 53, 54],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'TRADE_TRUST_AND_CACHE', tradeBonus: 0.10, descTh: 'เข้าใจธรรมเนียมตั๋วแลกเงินเก่าชิงหลานและระเบียบศุลกากรตงหวง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือภาษีผีราชวงศ์ชิงหลาน',
+          credibilityBase: 46,
+          biasTh: 'เรื่องเล่าของคนคุมเกวียนและนักพนันเมืองชิงหลาน',
+          summaryTh: 'พ่อค้าร่ำลือว่าหีบสินค้าใดที่มีตราคลื่นคู่ของราชวงศ์ชิงหลานที่ล่มสลายไปเมื่อเก้าสิบปีก่อนประทับซ้อนอยู่ จะถูกผีขุนนางเก่าตามทวงส่วยกลางทาง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'หมายปราบปรามตราปลอมของสำนักตรวจการตงหวง',
+          credibilityBase: 64,
+          biasTh: 'ประกาศของมือปราบเอี๊ยนหลัว (#54)',
+          summaryTh: 'สำนักตรวจการตงหวงประกาศว่าตราคลื่นคู่เป็นตราเถื่อนของกบฏหลงยุค ผู้ครอบครองหีบสินค้าต้องถูกยึดของกลางและสอบสวน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'รหัสลับเครือข่ายนายหน้าหอการค้าหมื่นสมุทร',
+          credibilityBase: 67,
+          biasTh: 'บันทึกของนายวาณิชย์สายการค้า',
+          summaryTh: 'นายหน้าอาวุโสทราบว่าตระกูลคหบดีเก่าในเมืองชิงหลานและเจิ้นหยางยังใช้ตราครั่งทองเหลืองดั้งเดิมเป็นตั๋วรับประกันสินค้าระหว่างห้องใต้ดินเก่า'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'สมุดเทียบตราภาษีเปลี่ยนผ่านชิงหลาน–ตงหวง',
+          credibilityBase: 92,
+          biasTh: 'พิสูจน์จากการสอบทานสมุดบัญชีด่านเจิ้นหยางเก่ากับนายหน้าเมืองชิงหลาน',
+          summaryTh: 'เมื่อตงหวงผนวกแคว้นชิงหลาน ว่านจินเหนียง (#53) ได้อนุญาตให้นายหน้าคลังเก่าประทับตราคลื่นคู่กำกับใต้ตราลูกคิดทองคำเพื่อรับรองสิทธิเบิกพัสดุคงค้างจากคลังใต้ดินโดยไม่ผิดกฎหมายศุลกากร'
+        }
+      }
+    },
+    {
+      id: 'FACT_04_YUGUAN_REFUGEE_BOUNDARY',
+      storyId: 'STORY_04_YUGUAN_TWO_VILLAGE_BOUNDARY',
+      titleTh: 'หลักศิลาสองชื่อแห่งด่านหยกเก่าอวี้กวาน',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_YUGUAN_RUIN_POST', 'TOWN_YH_LIUWAN_FERRY'],
+      relatedPaths: ['WANDERING_DAO', 'STRATEGY_GOVERNANCE', 'ARCHITECT_FORTIFIER'],
+      relatedFigures: [38],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'SETTLEMENT_HARMONY', anchorNodeIds: ['PASS_YH_YUGUAN_RUIN_POST'], safetyBonus: 6, descTh: 'ประสานรอยร้าวสองหมู่บ้านรอบด่านหยกเก่าอวี้กวาน เพิ่มความปลอดภัยเส้นทาง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข้อพิพาทสันเขาแย่งน้ำสองตระกูล',
+          credibilityBase: 50,
+          biasTh: 'คำอ้างของชาวบ้านสองฝั่งสันเขาอวี้กวาน',
+          summaryTh: 'หมู่บ้านฝั่งเหนือเรียกสันเขานี้ว่าเนินพักพลองเขียว ส่วนหมู่บ้านฝั่งใต้เรียกว่าผาแบ่งข้าว ต่างฝ่ายต่างอ้างว่าบรรพชนตนเป็นผู้ตั้งหลักศิลาก่อน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'แผนที่รังวัดที่ดินของด่านภาษีอวี้กวาน',
+          credibilityBase: 61,
+          biasTh: 'บันทึกของเสมียนด่านเพื่อเก็บส่วยทั้งสองหมู่บ้าน',
+          summaryTh: 'เสมียนด่านอ้างว่าหลักศิลาเดิมลบเลือนไปแล้ว พื้นที่ทั้งสองฝั่งจึงถือเป็นที่หลวงซึ่งต้องจ่ายค่าธรรมเนียมผ่านทางเพิ่ม'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกเส้นทางอพยพของราชันย์พเนจรหงชี (#38)',
+          credibilityBase: 68,
+          biasTh: 'ตำนานสายจอมยุทธ์พเนจร',
+          summaryTh: 'เล่าขานว่าหงชี (#38) ใช้พลองหยกเขียวปักแบ่งเขตให้ขบวนผู้ลี้ภัยสองกลุ่มพักแรมคนละฟากเขาเพื่อไม่ให้แย่งฟืนและน้ำกัน'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'รอยสลักสองด้านบนฐานศิลาบอกทางม้าเร็วโบราณ',
+          credibilityBase: 93,
+          biasTh: 'พิสูจน์จากการขุดแต่งฐานหลักศิลาและเทียบสมุดสายตระกูลทั้งสองหมู่บ้าน',
+          summaryTh: 'ฐานศิลาที่จมอยู่ใต้ดินครึ่งศอกสลักชื่อทั้งสองไว้คนละด้านโดยหงชี (#38) เพื่อให้สองตระกูลผลัดกันดูแลบ่อน้ำและคบเพลิงนำทางแก่คนเดินทางไกล'
+        }
+      }
+    },
+    {
+      id: 'FACT_05_FORD_BEAST_MOLTING_CYCLE',
+      storyId: 'STORY_05_BEAST_KEEPER_FORD_NOTEBOOK',
+      titleTh: 'สมุดบันทึกคนเลี้ยงอสูรและวงจรลอกคราบริมแก่งน้ำตื้น',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'ECOLOGY',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['TOWN_BM_BINGHE_FUR_POST', 'TOWN_GJ_YaoZhai_HUNT'],
+      relatedPaths: ['BEAST_SOVEREIGN', 'SPIRIT_HUSBANDRY', 'PRIMORDIAL_SHIFTER'],
+      relatedFigures: [31, 40],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'BEAST_ECOLOGY_INSIGHT', companionAffinityBonus: 0.12, descTh: 'เข้าใจวงจรลอกคราบและวางรังของสัตว์อสูรริมน้ำ ลดการปะทะโดยไม่จำเป็นและเก็บคราบสมุนไพรได้' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลืออสูรคลั่งอาละวาดปิดแก่งน้ำ',
+          credibilityBase: 47,
+          biasTh: 'ความตื่นตระหนกของพ่อค้าขนสัตว์และชาวบ้าน',
+          summaryTh: 'ร่ำลือว่ามีอสูรกลายพันธุ์ดุร้ายดักซุ่มทำร้ายขบวนเดินทางตรงแก่งน้ำตื้น ต้องระดมมือปราบไปกวาดล้างให้สิ้นซาก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศตั้งค่าหัวอสูรรบกวนเส้นทางเสบียง',
+          credibilityBase: 60,
+          biasTh: 'คำสั่งด่านทหารชายแดน',
+          summaryTh: 'ด่านหน้าออกประกาศปิดแก่งน้ำชั่วคราวและตั้งรางวัลนำจับเขี้ยวอสูรเพื่อเปิดทางส่งเสบียงทหาร'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ตำราเก็บเกี่ยววัตถุดิบอสูรช่วงผลัดเกล็ด',
+          credibilityBase: 66,
+          biasTh: 'มุมมองของนักปรุงยาและผู้ล่าอสูร',
+          summaryTh: 'ระบุว่าช่วงที่สัตว์อสูรริมน้ำรวมฝูงคือจังหวะที่เกล็ดอ่อนแอที่สุด เหมาะแก่การชิงเก็บแก่นอสูรและคราบเกล็ด'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'สมุดบันทึกสนามของคนเลี้ยงอสูรเฒ่า',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการตรวจสมุดบันทึกหนังสัตว์และร่องรอยรังริมตลิ่ง',
+          summaryTh: 'สัตว์อสูรเพียงขึ้นมาถูหินลอกคราบและเฝ้าไข่ริมแก่งน้ำตื้นเพียง 6 วันต่อฤดู หากเลี่ยงทางเดินริมตลิ่งหรือวางเกลือแร่ล่อไว้ห่างแก่ง จะสามารถเก็บคราบเกล็ดสมบูรณ์ได้โดยไม่เกิดการนองเลือด'
+        }
+      }
+    },
+    {
+      id: 'FACT_06_STOREROOM_ANVIL_TALISMAN',
+      storyId: 'STORY_06_STOREROOM_FLOORBOARD_SHRINE',
+      titleTh: 'หิ้งบูชาช่างหลอมและตราเหล็กใต้พื้นห้องเก็บของเก่า',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'CRAFT_LABOR',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['TOWN_YH_TIEKUANG_HOLLOW', 'CITY_CY_RONGLU_CAPITAL'],
+      relatedPaths: ['CRAFT_CREATION', 'RECLAMATION_DAO', 'ARCHITECT_FORTIFIER'],
+      relatedFigures: [14],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'GEAR_REPAIR_WARD', craftBonus: 0.10, descTh: 'ฟื้นฟูตำรับชุบขี้เถ้าถนอมเกราะและซ่อมบำรุงอุปกรณ์ป้องกันจากวัสดุสามัญ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือยันต์อาถรรพ์ใต้พื้นไม้ห้องเก็บของ',
+          credibilityBase: 44,
+          biasTh: 'ความหวาดระแวงของศิษย์เวรทำความสะอาด',
+          summaryTh: 'ศิษย์รับใช้ที่ไปรื้อแผ่นไม้ผุในห้องเก็บของเก่าพบทั่งเหล็กจิ๋วเปื้อนเขม่าและแผ่นไม้สลักชื่อแปลกๆ จึงลือกันว่าเป็นของทำคุณไสยที่คนรุ่นก่อนซ่อนไว้'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บัญชีพัสดุชำรุดรอหลอมทิ้ง',
+          credibilityBase: 58,
+          biasTh: 'มุมมองเสมียนคลังที่เน้นความเป็นระเบียบ',
+          summaryTh: 'จัดให้เศษเหล็กและแผ่นไม้ใต้พื้นเป็นเพียงขยะจากการซ่อมอาคารรุ่นเก่าที่ควรนำไปหลอมรวมเป็นเหล็กแท่งธรรมดา'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ธรรมเนียมฝากคมทั่งของช่างฝึกหัดสายโอวหยางเหยียน (#14)',
+          credibilityBase: 70,
+          biasTh: 'จารีตโรงหลอมโบราณ',
+          summaryTh: 'ช่างตีเหล็กยุคก่อนนิยมซ่อนทั่งจำลองและสูตรผสมขี้เถ้าชุบเกราะไว้ใต้พื้นโรงงาน เพื่อเป็นเครื่องรางคุ้มกันไฟเตาหลอมตีกลับ'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ตำรับชุบเกราะเหล็กผสมขี้เถ้าไม้สนของช่างรุ่นที่สี่',
+          credibilityBase: 93,
+          biasTh: 'พิสูจน์จากการถอดรหัสตราช่างบนทั่งจิ๋วและทดลองชุบแผ่นเกราะจริง',
+          summaryTh: 'เป็นหิ้งรำลึกถึงหัวหน้าช่างหลอมสมัยเจ้าสำนักรุ่นที่ 4 ที่คิดค้นวิธีใช้ขี้เถ้าสมุนไพรและแร่เหล็กสามัญชุบผิวชุดเกราะให้ทนแรงกระแทกและซ่อมแซมง่ายในยามสำนักขาดแคลนศิลาวิญญาณ'
+        }
+      }
+    },
+    {
+      id: 'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR',
+      storyId: 'STORY_07_SEVENTH_GEN_EMPTY_CHAIR',
+      titleTh: 'ปริศนาเก้าอี้ว่างและกระบี่ไม้ท้อข้างแท่นตราหินเทาไร้ลักษณ์',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'SECT_LINEAGE',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_OLD_DAREN_SQUARE', 'TOWN_YH_QINGXI_FOOT'],
+      relatedPaths: ['XIAN', 'SWORD_DOMAIN', 'ANCESTRAL_RITUAL'],
+      relatedFigures: [45],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'LINEAGE_COHESION', regaliaInsightBonus: 1, descTh: 'ประสานความเข้าใจมรดกเจ้าสำนักรุ่นที่ 7 ระหว่างกระบี่ไม้ท้อฝึกหัดกับตราหินเทาไร้ลักษณ์' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือกระบี่ไม้ท้อคือศาสตราเซียนที่ถูกสับเปลี่ยน',
+          credibilityBase: 46,
+          biasTh: 'คำซุบซิบของศิษย์ใหม่และชาวยุทธ์นอกสำนัก (อิงร่าง LORE_05 เดิม)',
+          summaryTh: 'คนภายนอกร่ำลือว่าสมบัติประจำตำแหน่งเจ้าสำนักรุ่นที่ 7 คือกระบี่ไม้ท้อไร้คมที่แขวนอยู่ข้างเก้าอี้ว่างในโถงบรรพชน และสงสัยว่าเหตุใดเจ้าสำนักปัจจุบันจึงถือครองตราหินเทาไร้ลักษณ์แทน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกสำรวจสำนักยุทธ์ของหอทะเบียนหยุนเหอ',
+          credibilityBase: 59,
+          biasTh: 'รายงานของเสมียนแคว้นหยุนเหอ',
+          summaryTh: 'ระบุว่าสำนักเคยเกิดศึกชิงตำแหน่งในรุ่นที่ 6 จนศิษย์พี่ใหญ่หนีออกจากสำนักไปพร้อมเก้าอี้ประจำตำแหน่งที่ถูกปล่อยว่างไว้'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ธรรมเนียมคารวะผู้พิทักษ์ด่านและศาสตราไร้รูป',
+          credibilityBase: 72,
+          biasTh: 'คำสอนของผู้อาวุโสหอคัมภีร์',
+          summaryTh: 'ยืนยันว่าตราประจำตำแหน่งที่แท้จริงตั้งแต่รุ่นที่ 1 คือ「ตราหินเทาไร้ลักษณ์」(REGALIA_ORIGIN_FORMLESS_STONE) ส่วนกระบี่ไม้ท้อและเก้าอี้ว่างเป็นอนุสรณ์ภายในของรุ่นที่ 6'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'บันทึกสั่งเสียของเจ้าสำนักรุ่นที่ 6 โม่ชางไห่',
+          credibilityBase: 96,
+          biasTh: 'พิสูจน์จากการเทียบจารึกป้ายบรรพชนรุ่นที่ 5–6 กับสมุดรายนามผู้สละชีพหน้าด่าน',
+          summaryTh: 'ตราประจำตำแหน่งที่แท้จริงคือ「ตราหินเทาไร้ลักษณ์」ซึ่งจำแลงได้ 24 รูปลักษณ์ ส่วนกระบี่ไม้ท้อเป็นเพียงไม้ฝึกซ้อมวัยเยาว์ที่เจ้าสำนักรุ่นที่ 6 โม่ชางไห่ แขวนไว้คู่กับเก้าอี้ว่างของศิษย์พี่ร่วมสาบานผู้สละชีพต้านศึกหน้าหุบเขา เพื่อให้เจ้าสำนักรุ่นที่ 7 จดจำทั้งอำนาจแห่งตราหินและคุณธรรมแห่งผู้เสียสละ'
+        }
+      }
+    },
+    {
+      id: 'FACT_08_TIANGU_MISSING_RIVER_BEND',
+      storyId: 'STORY_08_MISSING_BEND_TRAIL_SKETCH',
+      titleTh: 'ภาพร่างแผนที่รอยพับขาดของสมรภูมิกำแพงหลวงเทียนกู่',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['PASS_BM_HANLONG_GATE', 'CITY_BM_XINGYUN_CITADEL', 'TOWN_BM_BAIMEI_OLD_FORT'],
+      relatedPaths: ['SWORD_DOMAIN', 'STAR_FATE', 'WANDERING_DAO'],
+      relatedFigures: [6, 8, 16],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'RUIN_TRAIL_PRECISION', expedSafetyBonus: 0.12, descTh: 'กำหนดพิกัดร่องรอยสมรภูมิเทียนกู่แม่นยำขึ้นและรับมือกรณีมีผู้สำรวจไปถึงก่อนได้อย่างสมบูรณ์' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'แผนที่ขุมทรัพย์รอยพับขาดจากโรงเตี๊ยมแดนเหนือ',
+          credibilityBase: 45,
+          biasTh: 'คำโฆษณาของนักขายแผนที่โบราณ',
+          summaryTh: 'อ้างว่าหลังรอยพับที่ขาดหายไปของแผนที่หนังแกะคือคลังอาวุธลับของหลี่เจี้ยนซิน (#6) และเย่ชิงชาง (#8) ที่ยังไม่เคยมีผู้ใดค้นพบ'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'เขตหวงห้ามทางทหารของด่านประตูมังกรน้ำแข็ง',
+          credibilityBase: 62,
+          biasTh: 'คำสั่งกองทัพเป่ยหมิง',
+          summaryTh: 'กองทัพเป่ยหมิงประกาศว่าแนวสันเขาหลังด่านหานหลงเป็นเพียงหน้าผาน้ำแข็งถล่มที่ไม่มีเส้นทางเดินทัพหรือโบราณสถานใดๆ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกการเปลี่ยนร่องน้ำหลังแรงระเบิดประตูมิติหลวง',
+          credibilityBase: 70,
+          biasTh: 'แผนที่ดาราพยากรณ์ของสายซิงเฉินจื่อ (#16)',
+          summaryTh: 'ชี้ว่าคุ้งน้ำในภาพร่างไม่ได้วาดผิด แต่แม่น้ำโบราณเปลี่ยนทิศทางไปสามสิบลี้หลังจากแผ่นดินทรุดตัวในวันระเบิดประตูมิติหลวง'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'พิกัดจริงของเนินธนูหักและหลักศิลาองครักษ์เทียนกู่',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการคำนวณมุมดาวซิงหยวนเทียบกับร่องน้ำแห้งหลังเมืองเก่ากระบี่เหมยขาว',
+          summaryTh: 'รอยพับที่หายไปคือร่องน้ำแห้งที่เชื่อมระหว่างด่านหานหลงกับเมืองเก่าไป๋เหมย แม้สมบัติเอกอาจถูกผู้มีวาสนาหรือสำนักอื่นอัญเชิญไปแล้ว แต่หลักศิลาบันทึกกลยุทธ์ตั้งรับ 7 วัน 7 คืนของหลี่เจี้ยนซิน (#6) ยังคงสลักอยู่บนผนังผาให้ผู้มาเยือนศึกษามรรคายุทธ์ได้เสมอ'
+        }
+      }
+    },
+    {
+      id: 'FACT_09_HAIMEN_NANZHU_SALT_CURRENT',
+      storyId: 'STORY_09_ONE_SALT_LINE_TWO_PORTS',
+      titleTh: 'สายเกลือหนึ่งเส้นและร่องน้ำมรสุมระหว่างสองท่าเรือ',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_HAIMEN_PORT', 'CITY_SO_NANZHU_PEARL_ISLE', 'CITY_SO_LONGWAN_SHIPYARD'],
+      relatedPaths: ['TIDE_VOYAGER', 'MERCANTILE_DAO', 'CRAFT_CREATION'],
+      relatedFigures: [53],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'SALT_PROVISION_BUFFER', provisionBonus: 0.12, descTh: 'สำรองเกลือและเสบียงก่อนฤดูมรสุมและเพิ่มความราบรื่นของเส้นทางเรือไห่เหมิน–หนานจู' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข้อกล่าวหากักตุนเกลือระหว่างไห่เหมินกับเกาะหนานจู',
+          credibilityBase: 49,
+          biasTh: 'ความบาดหมางของกรรมกรท่าเรือทั้งสองฝั่ง',
+          summaryTh: 'ชาวท่าเรือไห่เหมินโทษว่าชาวเกาะไข่มุกหนานจูแอบกักตุนเกลือทะเลไว้โก่งราคาหน้ามรสุม ส่วนชาวเกาะหนานจูโทษว่ากองเรือตงหวงสั่งกักเรือเสบียง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ระเบียบควบคุมโควตาเกลือหลวงตงหวง',
+          credibilityBase: 63,
+          biasTh: 'ประกาศขุนนางคลังท่าเรือไห่เหมิน',
+          summaryTh: 'อ้างว่าภาวะเกลือขาดแคลนเกิดจากการลักลอบเดินเรือหนีภาษี จึงต้องเพิ่มด่านตรวจเรือประมงอิสระแถบอ่าวหลงวาน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกกระแสน้ำอุ่นปะทะลมมรสุมทักษิณ',
+          credibilityBase: 68,
+          biasTh: 'ปูมเดินเรือของสายนาวิกสมุทร',
+          summaryTh: 'สังเกตว่าทุกสามปีจะมีกระแสน้ำวนพัดทรายมาปิดร่องน้ำตื้นหน้าอ่าวไห่เหมิน ทำให้เรือบรรทุกเกลือท้องแบนแล่นผ่านไม่ได้'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ตารางน้ำขึ้นน้ำลงและปูมเรือเกลืออู่ต่อเรือหลงวาน',
+          credibilityBase: 93,
+          biasTh: 'พิสูจน์จากการเทียบสมุดปูมเรือทั้งสองท่ากับระดับสันดอนปากอ่าว',
+          summaryTh: 'ความตึงเครียดเกิดจากร่องน้ำตื้นปากอ่าวไห่เหมินตื้นเขินในช่วงลมมรสุมเปลี่ยนทิศ 12 วัน หากเปลี่ยนไปขนถ่ายผ่านท่าอู่ต่อเรือหลงวานและสำรองเกลือถนอมอาหารล่วงหน้า ทั้งสองท่าเรือจะค้าขายได้ต่อเนื่องโดยไม่ขาดแคลน'
+        }
+      }
+    },
+    {
+      id: 'FACT_10_ROADSIDE_PHYSICIAN_STELE',
+      storyId: 'STORY_10_DAMAGED_MEMORIAL_RESTORED_NAME',
+      titleTh: 'นามที่เลือนหายบนศิลาอนุสรณ์ริมทางสุวรรณโพธิ์',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'FOLK_CUSTOM',
+      polityId: 'POL_SUVARNABODHI',
+      anchorNodeIds: ['TOWN_SB_CIHANG_ALMS', 'CITY_SB_JINYA_SANGHA', 'TOWN_GJ_BAICAO_STILT'],
+      relatedPaths: ['SAGE_SUPPORT', 'BUDDHA_DHARMA', 'PESTILENCE_REMEDY'],
+      relatedFigures: [13],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'MEDICAL_MEMORIAL_BLESSING', healingBonus: 0.12, descTh: 'สืบทอดตำรับต้มยาสมุนไพรบรรเทาไข้ป่าและเชิดชูเกียรติหมอยาสามัญชน' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ศาลเซียนกระบี่นิรนามผู้ฟันภูผาเปิดทาง',
+          credibilityBase: 48,
+          biasTh: 'คำร่ำลือของนักเดินทางที่แวะจุดธูปริมทาง',
+          summaryTh: 'ชาวบ้านเข้าใจว่ารอยบากบนศิลาอนุสรณ์ที่แตกหักคือรอยกระบี่ของจอมยุทธ์โบราณ จึงนิยมนำสุราและอาวุธมาเซ่นไหว้ขอพรให้ชนะศึก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'หลักเขตแดนเก่าของสังฆารามสุวรรณโพธิ์',
+          credibilityBase: 58,
+          biasTh: 'บัญชีสำรวจสิ่งปลูกสร้างริมทางหลวง',
+          summaryTh: 'บันทึกไว้สั้นๆ ว่าเป็นเพียงหลักหินบอกระยะทางที่ชำรุดจากยุคสงครามแคว้นกลาง'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ร่องรอยอักขระสายหมอหลวงไป๋เฉ่า (#13)',
+          credibilityBase: 69,
+          biasTh: 'ข้อสังเกตของหมอยาที่อ่านพบชื่อสมุนไพรท้ายแผ่นหิน',
+          summaryTh: 'บรรทัดล่างสุดของศิลาที่จมอยู่ในโคลนมีอักษรย่อของสัดส่วนต้มยาแก้ไข้หมอกพิษ ไม่ใช่เคล็ดวิชากระบี่'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ทะเบียนโรงทานฉือหางและอนุสรณ์หมอยาเดินเท้า「เว่ยชิง」',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการลอกคราบตะไคร่บนศิลาเทียบกับสมุดมรณบัตรโรงทานฉือหาง',
+          summaryTh: 'รอยบากบนหินไม่ใช่รอยกระบี่ แต่เป็นร่องวางคานหาบหม้อยาของหมอยาสามัญชนนาม「เว่ยชิง」และคนส่งสารที่แบกหม้อยาสมุนไพรฝ่าพายุฝนไปช่วยชาวบ้านสามหมู่บ้านจนสิ้นใจ การคืนนามที่แท้จริงให้ศิลาช่วยฟื้นฟูตำรับยาต้มป้องกันไข้หมอกให้หอโอสถ'
+        }
+      }
+    },
+    {
+      id: 'FACT_11_FERRY_TRAVELER_TWICE_PAID_MEAL',
+      storyId: 'STORY_11_MEAL_PAID_TWICE',
+      titleTh: 'ธรรมเนียมฝากค่าข้าวคนเดินทางและมื้ออาหารที่ถูกจ่ายซ้ำ',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'FOLK_CUSTOM',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['TOWN_YH_LIUWAN_FERRY', 'TOWN_YH_QINGXI_FOOT'],
+      relatedPaths: ['CRAFT_CREATION', 'WANDERING_DAO', 'BOND_COMPANION'],
+      relatedFigures: [38],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'COMMUNAL_MEAL_WARMTH', moodBonus: 6, descTh: 'เสริมสร้างน้ำใจไมตรีในโรงครัวสำนักและลดความโดดเดี่ยวของศิษย์ต่างถิ่น' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือสายลับติดสินบนพ่อครัวหรือเทวดาเตาไฟให้พร',
+          credibilityBase: 45,
+          biasTh: 'คำถกเถียงระหว่างเวรยามผู้ระแวงกับพ่อครัวผู้ภูมิใจ',
+          summaryTh: 'เมื่อพบเบี้ยค่าอาหารวางซ้ำไว้ใต้หม้อแกงในโรงครัวถึงสองครั้ง ศิษย์เวรยามสงสัยว่าเป็นรหัสลับของสายสืบภายนอก ส่วนพ่อครัวคุยโวว่าฝีมือแกงร้อนของตนประทับใจยอดคนเร้นกาย'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกเงินเกินบัญชีเบิกจ่ายโรงครัว',
+          credibilityBase: 56,
+          biasTh: 'ระเบียบตรวจนับเบี้ยของหอคลัง',
+          summaryTh: 'สันนิษฐานว่าเสมียนโรงครัวนับเบี้ยสวัสดิการรายสัปดาห์ซ้ำซ้อน จึงให้นำขึ้นบัญชีเงินสำรองเบ็ดเตล็ด'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'การตอบแทนน้ำใจเงียบของศิษย์ร่วมสำนัก',
+          credibilityBase: 70,
+          biasTh: 'ความเข้าใจของศิษย์ที่เคยร่วมโต๊ะอาหาร',
+          summaryTh: 'เชื่อว่าเป็นศิษย์ที่เคยได้รับความช่วยเหลือเรื่องอาหารการกินในวันแรกเข้าสำนัก จึงนำเบี้ยมาวางคืนให้โรงครัวอย่างเงียบๆ'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ธรรมเนียม「ฝากชามอุ่นท่าข้ามฟากคุ้งหลิวเขียว」',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากพยานในโรงครัวและศิษย์ที่มีบ้านเกิดแถบท่าข้ามฟากคุ้งหลิวเขียว',
+          summaryTh: 'ชาวท่าข้ามฟากคุ้งหลิวเขียวมีธรรมเนียมว่า เมื่อคนเดินทางได้รับน้ำใจจากสหายแปลกหน้าในยามขัดสน เมื่อตั้งตัวได้จะแอบวางค่าอาหารสองเท่าไว้ใต้หม้อแกงเพื่อเลี้ยงคนหลงทางคนถัดไปโดยไม่เอ่ยชื่อ'
+        }
+      }
+    },
+    {
+      id: 'FACT_12_RED_RIDGE_TWIN_PASS_NAMES',
+      storyId: 'STORY_12_WRONG_RIDGE_BEAST_REPORT',
+      titleTh: 'ความสับสนของชื่อเรียก「สันเขาหินแดง」บนทางหลวงประจิม',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'GEOGRAPHY',
+      polityId: 'POL_XIRONG',
+      anchorNodeIds: ['CITY_XR_CHIYAN_CAPITAL', 'PASS_CY_HEIYAN_ASH_PASS', 'PASS_XR_XUEYU_PENAL_GATE'],
+      relatedPaths: ['WANDERING_DAO', 'BEAST_SOVEREIGN', 'STRATEGY_GOVERNANCE'],
+      relatedFigures: [57],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'WEST_ROUTE_DISAMBIGUATION', legNodes: ['CITY_XR_CHIYAN_CAPITAL', 'PASS_CY_HEIYAN_ASH_PASS'], travelBonus: 0.13, descTh: 'แยกแยะพิกัดด่านผาหินแดงซีหรงกับด่านช่องเถ้าดำฉื่อเยี่ยน ป้องกันคณะเดินทางอ้อมผิดสันเขา' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวด่วนอสูรหินถล่มปิดทาง「สันเขาแดง」',
+          credibilityBase: 46,
+          biasTh: 'คำบอกเล่าอย่างตื่นตระหนกของคนนำสารคาราวาน',
+          summaryTh: 'คนนำสารตะโกนแจ้งข่าวว่าฝูงอสูรและหินถล่มปิดทาง「สันเขาแดง」จนเดินทางไม่ได้ แต่คนท้องถิ่นเรียกทั้งผาหินแดงซีหรงและช่องเถ้าดำฉื่อเยี่ยนว่าสันเขาแดงเหมือนกัน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศปิดด่านชั่วคราวของกองทัพหน้าซีหรง',
+          credibilityBase: 60,
+          biasTh: 'บันทึกทหารด่านที่ระบุแต่ชื่อมณฑลกว้างๆ',
+          summaryTh: 'ระบุเพียงว่าเส้นทางรอยต่อซีหรง–ฉื่อเยี่ยนมีความเสี่ยงระดับสูงและแนะนำให้ขบวนสินค้าอ้อมลงใต้ผ่านโอเอซิสซาอวี่'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'วิธีสังเกตสีฝุ่นแร่บนล้อเกวียนคาราวาน',
+          credibilityBase: 71,
+          biasTh: 'เคล็ดวิชาแกะรอยของฝ่ายลาดตระเวนอสูร',
+          summaryTh: 'ชี้ว่าดินแดนซีหรงเป็นทรายเหล็กสีชาด ส่วนด่านช่องเถ้าดำฉื่อเยี่ยนเป็นเขม่ากำมะถันสีเทาอมแดง สามารถดูจากคราบล้อเกวียนของผู้ส่งข่าวได้'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'แผนที่จำแนกสองสันเขาและจุดอสูรปะทุจริง',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการตรวจคราบแร่กำมะถันของขบวนสินค้าและส่งหน่วยลาดตระเวนยืนยันพิกัด',
+          summaryTh: 'จุดที่เกิดหินถล่มจริงคือไหล่เขาทิศเหนือของด่านช่องเถ้าดำเฮยเหยียน (PASS_CY_HEIYAN_ASH_PASS) ไม่ใช่ทางหลวงเข้าสู่นครปราการผาหินแดงซีหรง การยืนยันพิกัดช่วยให้แผนที่ยุทธภพระบุตำแหน่งแม่นยำและไม่ต้องอ้อมเสียเวลาหลายวัน'
+        }
+      }
+    },
+    {
+      id: 'FACT_13_MERIDIAN_BELL_OMEN',
+      storyId: 'STORY_13_BOTTLENECK_BELL_ECHO',
+      titleTh: 'เสียงระฆังหลอนยามติดคอขวดและบันทึกธาตุไฟเข้าแทรก',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'BREAKTHROUGH',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['CITY_BM_HANYU_CAPITAL', 'CITY_BM_XUELIAN_SPRINGS'],
+      relatedPaths: ['XIAN', 'HEART_SOUL', 'SONIC_RESONANCE', 'BUDDHA_DHARMA'],
+      relatedFigures: [46, 47],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'BREAKTHROUGH_CALIBRATION', btStabilityBonus: 0.04, descTh: 'แยกแยะเสียงชีพจรตีกลับจากนิมิตทะลวงขั้น ลดความเสี่ยงธาตุไฟเข้าแทรกยามจิตมารสูง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ความเชื่อเรื่อง「ระฆังสวรรค์สามคราเรียกทะลวงขั้น」',
+          credibilityBase: 47,
+          biasTh: 'คำร่ำลือในหมู่ศิษย์ที่ติดคอขวดมานาน',
+          summaryTh: 'ผู้ฝึกตนที่ติดคอขวดเล่าต่อกันว่า หากนั่งสมาธิยามดึกแล้วได้ยินเสียงระฆังกังวานในหูสามครั้ง แปลว่าประตูสวรรค์เปิดรับ ต้องรีบฝืนเดินปราณทะลวงขั้นทันที'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกอาการปราณเหมันต์สะท้อนของราชสำนักเป่ยหมิง',
+          credibilityBase: 63,
+          biasTh: 'รายงานหมอหลวงประจำนครหลวงปราการหยกเหมันต์',
+          summaryTh: 'หมอหลวงเป่ยหมิงบันทึกว่าผู้ฝึกวิชาสายน้ำแข็งระดับสูงมักได้ยินเสียงกังวานคล้ายหยกกระทบกันเมื่อความดันปราณในจุดไป่ฮุ่ยพุ่งสูงเกินเกณฑ์'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกเตือนภัยของเจ้าสำนักรุ่นที่ 5 กู้เหยียนจือ',
+          credibilityBase: 72,
+          biasTh: 'สมุดบันทึกข้างแท่นจำศีลของบูรพาจารย์รุ่นที่ 5',
+          summaryTh: 'กู้เหยียนจือเขียนเตือนไว้ก่อนมรณภาพว่า ในคืนพายุหิมะเขาหลงเชื่อเสียงระฆังในโสตประสาทว่าเป็นนิมิตตื่นรู้ จึงฝืนเร่งปราณจนธาตุไฟเข้าแทรก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'หลักวินิจฉัย「เสียงสะท้อนชีพจรขมับก่อนจิตมารปะทุ」',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการเทียบสมุดบันทึกเจ้าสำนักรุ่นที่ 5 กับตำราแช่แข็งชีพจรน้ำพุหิมะอุ่นเสวี่ยเหลียน',
+          summaryTh: 'เสียงระฆังสามคราในหูไม่ใช่ลางมงคลให้ฝืนทะลวงขั้น แต่เป็นอาการปราณอัดแน่นที่จุดขมับเมื่อค่าจิตมารหรือความเหนื่อยล้าสูงเกินไป ผู้รู้หลักนี้จะชะลอการฝืนทะลวงขั้นขณะจิตมารสูงและปรับลมหายใจให้มั่นคงก่อนลงมือจริง'
+        }
+      }
+    },
+    {
+      id: 'FACT_14_CANGLAN_GRANARY_HALF_TALLY',
+      storyId: 'STORY_14_HALF_JADE_CLAN_TALLY',
+      titleTh: 'ป้ายหยกครึ่งซีกและบัญชีเผาคลังแสงแคว้นหมอกชางหลาน',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'DYNASTY',
+      polityId: 'POL_YOUMING',
+      anchorNodeIds: ['CITY_YM_HUNDENG_CAPITAL', 'TOWN_YM_SHIBEI_RUBBING', 'TOWN_YH_CUIZHU_TEA'],
+      relatedPaths: ['ANCESTRAL_RITUAL', 'NETHER_GRAVE', 'BOND_COMPANION'],
+      relatedFigures: [38],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'CLAN_KINSHIP_RECONCILIATION', trustBonus: 18, descTh: 'คลี่คลายความเข้าใจผิดข้ามสายตระกูลผู้อพยพแคว้นชางหลาน เสริมความสามัคคีในสำนัก' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'คำกล่าวหาบรรพชนสายใต้ว่าขโมยตราคลังเสบียงหนีทัพ',
+          credibilityBase: 46,
+          biasTh: 'ความขมขื่นของตระกูลสายเหนือที่ตกค้างในโยวหมิง',
+          summaryTh: 'ทายาทสายเหนือเชื่อว่าในคืนที่แคว้นชางหลานแตก บรรพชนสายใต้ได้หักป้ายหยกครึ่งซีกและขโมยกุญแจคลังเสบียงหนีลงมาปลูกชาที่หยุนเหอ ทิ้งให้พี่น้องอดอยาก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกการปราบกบฏคลังข้าวแห่งนครโคมวิญญาณโยวหมิง',
+          credibilityBase: 58,
+          biasTh: 'พงศาวดารฝ่ายผู้ชนะศึกยุคเจ็ดธง',
+          summaryTh: 'บันทึกว่านายคลังแคว้นชางหลานวางเพลิงเผายุ้งฉางหลวงก่อนหลบหนี ทำให้กองทัพผู้พิชิตยึดได้เพียงเถ้าถ่าน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'รอยบากคู่บนป้ายหยกอพยพของศิษย์สองสายตระกูล',
+          credibilityBase: 69,
+          biasTh: 'การสังเกตรอยสลักด้านในของป้ายหยกประจำตระกูล',
+          summaryTh: 'เมื่อนำป้ายหยกครึ่งซีกของสองสายตระกูลมาประกบกัน รอยบากด้านในกลับเป็นแผนผังห้องใต้ดินที่ไม่ใช่คลังข้าว แต่เป็นหอทะเบียนเกณฑ์ทหาร'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ศิลาจารึกสือเปยและบันทึกเผาบัญชีรายชื่อเยาวชนชางหลาน',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการประกบป้ายหยกสองซีกและเทียบแผ่นลอกลายศิลาตำบลสือเปย',
+          summaryTh: 'สิ่งที่ถูกเผาในคืนแคว้นชางหลานแตกไม่ใช่คลังข้าว แต่คือสมุดทะเบียนรายชื่อเยาวชนทั้งเจ็ดตำบล บรรพชนสายเหนือและสายใต้แบ่งป้ายหยกคนละซีก โดยสายใต้พาเด็กๆ หนีลงใต้ ส่วนสายเหนือยอมอยู่เผาบัญชีเกณฑ์ทหารเพื่อไม่ให้กองทัพผู้รุกรานตามล่าลูกหลานได้'
+        }
+      }
+    },
+    {
+      id: 'FACT_15_FROST_DEW_KILN_BANKING',
+      storyId: 'STORY_15_NIGHT_DEW_KILN_SHIFT',
+      titleTh: 'ธรรมเนียมกลบเถ้าเตาหลอมรับน้ำค้างกะดึกแห่งฉื่อเยี่ยน',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'CRAFT_LABOR',
+      polityId: 'POL_CHIYAN',
+      anchorNodeIds: ['CITY_CY_RONGLU_CAPITAL', 'TOWN_CY_LIUHUANG_SULFUR'],
+      relatedPaths: ['CRAFT_CREATION', 'RECLAMATION_DAO'],
+      relatedFigures: [14],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'WORKSHOP_KILN_CUSTOM', craftSafetyBonus: 0.15, slagSalvageBonus: 1, descTh: 'ป้องกันไอพิษเตาหลอมตีกลับยามดึกและเก็บกู้เขม่าแร่บริสุทธิ์จากการควบแน่นน้ำค้าง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'เสียงบ่นเรื่องกฎกลั่นแกล้งศิษย์กะดึกให้เฝ้าชามน้ำเย็น',
+          credibilityBase: 45,
+          biasTh: 'ความเข้าใจของศิษย์โรงหลอมและหอโอสถรุ่นเยาว์',
+          summaryTh: 'ศิษย์ฝึกหัดมักบ่นว่ากฎที่บังคับให้คนเข้าเวรกะสุดท้ายต้องกลบขี้เถ้าครึ่งปล่องและวางชามน้ำบ่อเย็นเฉียบไว้หน้าเตาเป็นเพียงการรับน้องที่ผู้อาวุโสคิดขึ้นเพื่อดูว่าศิษย์แอบหลับหรือไม่'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ข้อบังคับป้องกันอัคคีภัยสมาพันธ์ช่างฉื่อเยี่ยน',
+          credibilityBase: 63,
+          biasTh: 'ระเบียบความปลอดภัยของนครเตาหลอมอัคคี',
+          summaryTh: 'ระบุเพียงว่าเป็นกฎลดความร้อนสะสมของเตาหลอมหลวงในช่วงเปลี่ยนกะเช้ามืด'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'เคล็ดเลี้ยงไฟหยินหยางของสายปรมาจารย์โอวหยางเหยียน (#14)',
+          credibilityBase: 70,
+          biasTh: 'คำอธิบายเชิงปราณธาตุไฟและน้ำ',
+          summaryTh: 'อธิบายว่าการวางชามน้ำเย็นหน้าปล่องเถ้าช่วยดึงไอหยินยามรุ่งสางมาสะกดเปลวไฟคลั่งไม่ให้ปะทุทำลายตัวยาและเนื้อเหล็ก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'กลไกควบแน่นไอกำมะถันและเก็บกู้ผงแร่บริสุทธิ์กะน้ำค้าง',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการตรวจคราบผลึกในชามน้ำหน้าเตาหลอมและบันทึกช่างเหมืองหลิวหวง',
+          summaryTh: 'เมื่ออุณหภูมิภายนอกลดลงยามใกล้รุ่ง ก๊าซพิษกำมะถันในปล่องเตาจะจมตัวไหลย้อนกลับเข้าสู่ห้องหลอม การกลบเถ้าครึ่งปล่องและวางชามน้ำเย็นจะดักจับไอพิษให้ควบแน่นตกผลึกอยู่ในชามน้ำ ทั้งช่วยป้องกันช่างกะเช้าสูดไอพิษและได้ผงแร่บริสุทธิ์กลับมาใช้ใหม่'
+        }
+      }
+    },
+    {
+      id: 'FACT_16_TIGER_SEAL_CHIPPED_INKSTONE',
+      storyId: 'STORY_16_EXILED_PRINCE_INKSTONE',
+      titleTh: 'แท่นฝนหมึกตราพยัคฆ์บิ่นและบัญชีสำมะโนครัวชายแดนซีหรง',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'DYNASTY',
+      polityId: 'POL_XIRONG',
+      anchorNodeIds: ['CITY_XR_SHAYU_OASIS', 'PASS_XR_XUEYU_PENAL_GATE', 'CITY_XR_CHIYAN_CAPITAL'],
+      relatedPaths: ['STRATEGY_GOVERNANCE', 'MERCANTILE_DAO', 'OATH_BINDER'],
+      relatedFigures: [5, 56, 57, 60],
+      secretGate: false,
+      defaultAccount: 'COURT_CANON',
+      gameplayEffect: { kind: 'COURT_SCHOLAR_PATRONAGE', diplomacyBonus: 8, descTh: 'ได้รับความไว้วางใจจากเครือข่ายขุนนางสายพิทักษ์ราษฎรและเพิ่มเสถียรภาพการทูตชายแดน' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือขุนนางตกอับลักลอบขายตราพยัคฆ์จำลอง',
+          credibilityBase: 46,
+          biasTh: 'คำซุบซิบในตลาดโอเอซิสซาอวี่',
+          summaryTh: 'ร่ำลือว่าบัณฑิตตกอับที่พเนจรมาแถบชายแดนถูกปลดจากราชสำนักเพราะยักยอกเสบียงทัพ และพยายามนำแท่นฝนหมึกสลักลายพยัคฆ์บิ่นมาหลอกขายเป็นสมบัติยุคทัวป๋าเลี่ย (#5)'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'หมายถอดยศเสมียนด่านคุกโซ่โลหิตฐานขัดคำสั่งเกณฑ์พล',
+          credibilityBase: 64,
+          biasTh: 'ประกาศทางการของขุนศึกสายเหยี่ยวแห่งซีหรง',
+          summaryTh: 'ระบุว่าขุนนางผู้นี้ถูกถอดยศและเนรเทศเพราะจงใจทำสมุดสำมะโนครัวชายแดนสูญหาย ทำให้การระดมพลล่าช้า'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ร่องรอยตราประทับสายทัวป๋ากัง (#60) ผู้ถ่วงดุลอำนาจ',
+          credibilityBase: 71,
+          biasTh: 'การวิเคราะห์ของเจ้าหอข่าวกรองสำนัก',
+          summaryTh: 'สังเกตว่ารอยบิ่นบนแท่นฝนหมึกตรงกับตราประทับประจำตัวของผู้ตรวจการสายทัวป๋ากัง (#60) ที่คัดค้านการรีดไถเสบียงชาวบ้านโอเอซิส'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ต้นฉบับสำมะโนครัวจริงที่ซ่อนอยู่ในฐานแท่นฝนหมึกสองชั้น',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากการถอดสลักฐานแท่นฝนหมึกและตรวจสอบตัวเลขบ่อน้ำโอเอซิสซาอวี่',
+          summaryTh: 'ภายในฐานแท่นฝนหมึกซ่อนบัญชีสำมะโนครัวฉบับจริงที่พิสูจน์ว่าผู้ตรวจการท่านนี้ปฏิเสธที่จะปลอมตัวเลขจำนวนประชากรโอเอซิสเพื่อป้องกันไม่ให้ชาวบ้านถูกเกณฑ์ส่วยน้ำเกินกำลังจนบ่อน้ำแห้งขอด'
+        }
+      }
+    },
+    {
+      id: 'FACT_17_BITTER_WILLOW_MIASMA_WELL',
+      storyId: 'STORY_17_BITTER_WILLOW_PLAGUE_WELL',
+      titleTh: 'บ่อน้ำรากหลิวขมและบันทึกสกัดไข้หมอกพิษแดนทักษิณ',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'ECOLOGY',
+      polityId: 'POL_GUJIAO',
+      anchorNodeIds: ['CITY_GJ_WANGU_TOTEM', 'TOWN_GJ_BAICAO_STILT', 'PASS_GJ_QIZHANG_MIASMA'],
+      relatedPaths: ['VENOM_GU', 'PESTILENCE_REMEDY', 'SAGE_SUPPORT'],
+      relatedFigures: [13, 40],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'MIASMA_WELL_PURIFICATION', clinicBonus: 0.14, descTh: 'นำหลักการกรองพิษด้วยรากหลิวขมมาใช้ในสถานรักษาและลดความระแวงระหว่างชาวกู่เจียวกับสุวรรณโพธิ์' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือบ่อน้ำต้องสาปหนอนกู่รากดำ',
+          credibilityBase: 47,
+          biasTh: 'ความหวาดกลัวของนักเดินทางที่เห็นรากไม้สีดำชอนไชปากบ่อน้ำ',
+          summaryTh: 'ชาวบ้านและคนเดินทางเลี่ยงไม่กล้าตักน้ำจากบ่อหินเก่าที่มีรากหลิวสีคล้ำพันรอบปากบ่อ เพราะเชื่อว่าแม่มดกู่เจียววางพิษสาปให้น้ำมีรสฝาดขม'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'คำสั่งปิดบ่อน้ำชายแดนค่ายไผ่หมอกเจ็ดชั้น',
+          credibilityBase: 59,
+          biasTh: 'มาตรการกักกันโรคของด่านชายแดน',
+          summaryTh: 'สั่งปักป้ายห้ามใช้น้ำจากบ่อที่มีรากหลิวชอนไชโดยสันนิษฐานว่าเป็นต้นตอของไข้ป่าฤดูฝน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บันทึกพฤกษาดูดซับพิษของสายหมู่บ้านไป๋เฉ่า',
+          credibilityBase: 71,
+          biasTh: 'ความรู้สมุนไพรของหมอยาแดนทักษิณ',
+          summaryTh: 'ชี้ว่าต้นหลิวขมทักษิณจะแผ่รากลงสู่น้ำที่มีไอพิษหมอกสะสมเพื่อดูดซับโลหะหนักและพิษแมลงไว้ในเปลือกราก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'บันทึกปลูกหลิวขมล้อมบ่อน้ำของศิษย์สายหมอหลวงไป๋เฉ่า (#13)',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการตรวจคุณภาพน้ำและเทียบแผ่นไม้ไผ่บันทึกโรคระบาดเมื่อห้าสิบปีก่อน',
+          summaryTh: 'เมื่อครั้งเกิดไข้หมอกระบาดใหญ่ หมอยาจากหมู่บ้านไป๋เฉ่าและหมอผีกู่เจียวได้ร่วมมือกันปลูกต้นหลิวขมล้อมบ่อน้ำหลักเพื่อให้รากไม้กรองพิษจากตาน้ำใต้ดิน รสฝาดขมเล็กน้อยในน้ำคือตัวยาธรรมชาติที่ช่วยให้ชาวบ้านรอดพ้นจากโรคระบาด'
+        }
+      }
+    },
+    {
+      id: 'FACT_18_THREE_LANTERN_FOG_UNDERTOW',
+      storyId: 'STORY_18_FOG_LANTERN_FERRY_OATH',
+      titleTh: 'คำสัตย์สามตะเกียงและร่องน้ำดูดริมขอบทะเลหมอกทักษิณ',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'FOLK_CUSTOM',
+      polityId: null,
+      anchorNodeIds: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'CITY_SO_LONGWAN_SHIPYARD', 'TOWN_SO_OUYU_FISHER_ISLE'],
+      relatedPaths: ['TIDE_VOYAGER', 'WANDERING_DAO', 'VOID_SPACE'],
+      relatedFigures: [44],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'SEA_FOG_NAVIGATION', legNodes: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'CITY_SO_LONGWAN_SHIPYARD'], travelBonus: 0.14, descTh: 'เดินเรือเลียบขอบทะเลหมอกอย่างปลอดภัยด้วยวิธีหยั่งร่องน้ำสามตะเกียง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานโคมไฟวิญญาณสำเภาผีลากเรือลงก้นสมุทร',
+          credibilityBase: 48,
+          biasTh: 'ความเชื่อของชาวประมงเกาะโอวอวี๋',
+          summaryTh: 'คนเรือสาบานว่าจะไม่ออกเรือหลังยามสามหากเห็นแสงไฟสีเขียวลอยเรี่ยน้ำ เพราะเชื่อว่าเป็นโคมนำทางของสำเภาผีที่จะลากเรือคนเป็นหายเข้าไปในทะเลหมอกไร้ขอบเขต'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศห้ามเดินเรือยามวิกาลของป้อมประภาคารปากน้ำ',
+          credibilityBase: 61,
+          biasTh: 'คำสั่งควบคุมการลักลอบขนสินค้าทางทะเล',
+          summaryTh: 'อ้างว่าแสงไฟสีเขียวคือสัญญาณนัดหมายของโจรสลัดโขดหินหมอกเฮยเจียว จึงห้ามเรือประมงออกจากท่าหลังเที่ยงคืน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ปูมเชือกหยั่งน้ำของสันนิบาตเดินเรือสมุทรทักษิณ',
+          credibilityBase: 72,
+          biasTh: 'บันทึกของนายท้ายเรืออาวุโสอู่ต่อเรือหลงวาน',
+          summaryTh: 'ระบุว่าแสงสีเขียวเกิดจากสาหร่ายเรืองแสงก้นร่องน้ำลึกที่ถูกกระแสน้ำดูดพัดขึ้นมาเมื่อม่านหมอกภายนอกบีบตัว'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ความจริงของแนวร่องน้ำดูดขอบม่านกั้นภพและเศษไม้สลักจากโพ้นทะเลหมอก',
+          credibilityBase: 96,
+          biasTh: 'พิสูจน์จากการหยั่งร่องน้ำสามตะเกียงและเก็บกู้แผ่นไม้เรือโบราณที่ซัดติดโขดหินประภาคาร',
+          summaryTh: 'แสงสีเขียวคือสาหร่ายเรืองแสงที่ถูกกระแสน้ำวนริมขอบม่านกั้นภพพัดขึ้นมา การแขวนตะเกียงน้ำมันปลาสามดวงเรียงตามแนวดิ่งช่วยให้กะระยะห่างจากแนวร่องน้ำดูดได้แม่นยำ และเศษไม้เรือที่ลอยมาจากนอกม่านหมอกมีอักษรของจักรวรรดิภายนอกที่ยืนยันว่าแผ่นดินห้าภูมิภาคเป็นเพียงอนุทวีปที่ถูกผนึกไว้'
+        }
+      }
+    },
+    {
+      id: 'FACT_19_MUTE_ARMORER_TWIN_TEMPER',
+      storyId: 'STORY_19_SILENT_ANVIL_TEMPER_LINE',
+      titleTh: 'ลายน้ำประสานทั่งไร้เสียงของสองตระกูลช่างหลอมคู่พิพาท',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'CRAFT_LABOR',
+      polityId: 'POL_CHIYAN',
+      anchorNodeIds: ['CITY_CY_RONGLU_CAPITAL', 'TOWN_YX_TAMAHAGANE_SAND', 'CITY_YX_WUYACASTLE'],
+      relatedPaths: ['CRAFT_CREATION', 'SHADOW_SAMURAI', 'SWORD_DOMAIN'],
+      relatedFigures: [14, 41],
+      secretGate: false,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'TWIN_FORGE_TEMPER_SYNERGY', weaponQualityBonus: 0.12, descTh: 'ผสานเทคนิคชุบแข็งอัคคีฉื่อเยี่ยนและตีทบทรายเหล็กดำหยุนเซียว เพิ่มความทนทานและพลังศาสตรา' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข้อกล่าวหาขโมยคัมภีร์ตีดาบข้ามแผ่นดิน',
+          credibilityBase: 47,
+          biasTh: 'คำท้าดวลระหว่างช่างตีเหล็กฉื่อเยี่ยนกับช่างดาบหยุนเซียว',
+          summaryTh: 'ช่างหลอมแดนประจิมและช่างตีดาบผาเมฆาต่างกล่าวหาว่าอีกฝ่ายส่งสายลับมาขโมยเคล็ดวิชา「ลายน้ำประสานรอยร้าว」ของบรรพชนตนไปดัดแปลง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ข้อบังคับห้ามส่งออกแร่เหล็กดำและกำมะถันเพลิง',
+          credibilityBase: 60,
+          biasTh: 'นโยบายผูกขาดยุทธภัณฑ์ของทั้งสองแคว้น',
+          summaryTh: 'ทั้งสองแคว้นอ้างสิทธิ์ความเป็นต้นตำรับเพื่อสั่งห้ามค้าขายแลกเปลี่ยนแร่เหล็กข้ามภูมิภาค'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'รอยตอกกั่นดาบคู่ของสายโอวหยางเหยียน (#14) และเคนชิน (#41)',
+          credibilityBase: 71,
+          biasTh: 'การตรวจสอบกั่นศาสตราโบราณในคลังแสงสำนัก',
+          summaryTh: 'พบว่าใต้กั่นดาบโบราณของทั้งสองสายมีรอยตอกรูปค้อนไขว้ไร้ลิ้นระฆังแบบเดียวกัน'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'บันทึกของช่างเกราะใบ้แห่งกรมศาสตราหลวงเทียนกู่',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการถอดกั่นศาสตราโบราณทั้งสองสายมาเทียบและหลอมประสานทรายเหล็กดำกับไฟกำมะถัน',
+          summaryTh: 'ต้นตระกูลช่างทั้งสองแคว้นเคยเป็นศิษย์ร่วมเตาของช่างเกราะใบ้ผู้ช่วยงานโอวหยางเหยียน (#14) โดยศิษย์พี่นำเคล็ดไฟแรงไปตั้งรกรากที่ฉื่อเยี่ยน ส่วนศิษย์น้องนำเคล็ดตีทบเหล็กเย็นไปที่หาดทรายเหล็กดำหยุนเซียว เมื่อนำสองเคล็ดมาประสานกันจึงได้ลายน้ำประสานทั่งไร้เสียงที่สมบูรณ์แบบ'
+        }
+      }
+    },
+    {
+      id: 'FACT_20_BROKEN_BRIDGE_EPITHET_DISPUTE',
+      storyId: 'STORY_20_TWO_FACES_OF_ONE_EPITHET',
+      titleTh: 'สมญานามเดียว สองตำนานที่ขัดแย้งแห่งช่องลมประจิมซีเฟิง',
+      layer: 'PROVINCIAL_VEIL',
+      category: 'EPITHET_LEGEND',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_XIFENG_GORGE', 'CITY_YH_SHUANGJIANG'],
+      relatedPaths: ['SWORD_DOMAIN', 'FOLKLORE_RUMOR', 'ARENA_GLORY'],
+      relatedFigures: [6, 38],
+      secretGate: false,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'EPITHET_CHRONICLE_VERIFICATION', fameBonus: 10, descTh: 'บันทึกทั้งนามเสียงที่ผู้คนร่ำลือและข้อเท็จจริงจากพยานในเหตุการณ์สะพานขาดช่องลมซีเฟิง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'เพลงโรงเตี๊ยมเหนือ:「จอมมารดาบเดียวสังหารสามสิบโจรหน้าสะพาน」',
+          credibilityBase: 48,
+          biasTh: 'การแต่งเติมให้ดุดันน่าเกรงขามของนักเล่านิทานแดนเหนือ',
+          summaryTh: 'โรงเตี๊ยมสายเหนือขับขานว่าเจ้าของสมญานามสะบั้นสะพานซีเฟิงได้ลงมือสังหารโจรภูเขาสามสิบศพในดาบเดียวจนลำธารย้อมเป็นสีเลือด'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกคดีทำลายสะพานแขวนหลวงด่านช่องลมซีเฟิง',
+          credibilityBase: 59,
+          biasTh: 'สำนวนสอบสวนของด่านตรวจการที่มองแต่ความเสียหายของทรัพย์สิน',
+          summaryTh: 'บันทึกว่าจอมยุทธ์พเนจรใช้กำลังภายในฟันเชือกสะพานแขวนขาดทำให้ทางส่งส่วยหยุดชะงักไปสามวัน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'เรื่องเล่าท่าข้ามฟากใต้:「ผู้ฟันเชือกสะพานเปิดทางหนีให้ชาวบ้านโดยไม่เปื้อนเลือด」',
+          credibilityBase: 71,
+          biasTh: 'คำบอกเล่าของลูกหลานชาวบ้านที่รอดชีวิตในวันเกิดเหตุ',
+          summaryTh: 'ชาวบ้านฝั่งใต้ยืนยันว่าจอมยุทธ์ผู้นั้นไม่ได้ฆ่าใครเลยแม้แต่คนเดียว แต่ฟันเชือกสะพานแขวนหลังจากชาวบ้านข้ามพ้นหมดแล้ว เพื่อสกัดกองโจรไม่ให้ตามทัน'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'พงศาวดารสองด้านของสมญานาม「ดาบสะบั้นสะพานซีเฟิง」',
+          credibilityBase: 95,
+          biasTh: 'พิสูจน์จากการสอบทานพยานชาวบ้าน รอยดาบบนเสาหินสะพาน และคำให้การของอดีตหัวหน้าโจรที่กลับใจ',
+          summaryTh: 'จอมยุทธ์ฟันเชือกสะพานขาดในดาบเดียวโดยไม่ปลิดชีพผู้ใดเพื่อรักษาศีลไม่สังหาร แต่หัวหน้าโจรที่พ่ายแพ้เกิดความอับอายที่ไม่กล้ากระโดดข้ามเหว จึงปั้นเรื่องโกหกว่าลูกน้องตนถูกยอดฝีมือลึกลับสังหารไปสามสิบคนเพื่อรักษาหน้า จนเกิดเป็นสองตำนานที่ขัดแย้งกัน'
+        }
+      }
+    },
+    {
+      id: 'FACT_21_SU_QIN_820YR_YUNHE_TREATY',
+      storyId: null,
+      titleTh: 'สนธิสัญญาหยุนเหอ 820 ปี และกลไกถ่วงดุลเก้าแคว้นของซูฉิน (#42)',
+      layer: 'IMPERIAL_CHESSBOARD',
+      category: 'DYNASTY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_SHUANGJIANG', 'CITY_YH_OLD_DAREN_SQUARE'],
+      relatedPaths: ['STRATEGY_GOVERNANCE', 'MERCANTILE_DAO'],
+      relatedFigures: [42, 46, 52, 57],
+      secretGate: false,
+      defaultAccount: 'COURT_CANON',
+      gameplayEffect: { kind: 'DIPLOMACY_INSIGHT', diplomacyBonus: 5, descTh: 'เข้าใจกติกากันชนหยุนเหอและการทูตระหว่างสามมหาอำนาจ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานลิ้นสาริกาหยุดสามกองทัพของมหาเสนาบดีซูฉิน (#42)',
+          credibilityBase: 52,
+          biasTh: 'นิทานโรงน้ำชานครสองแควหยุนเหอ',
+          summaryTh: 'ชาวบ้านเล่าว่าซูฉิน (#42) ยืนพูดบนสะพานสองแควสามวันสามคืนจนกษัตริย์สามจักรวรรดิยอมวางอาวุธและยกหุบเขาหยุนเหอให้เป็นเขตปลอดทหาร'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'สนธิสัญญาเขตกันชนการค้าและห้ามเดินทัพหลวงผ่านหยุนเหอ',
+          credibilityBase: 72,
+          biasTh: 'เอกสารทางการของสภาเจ็ดวาณิชและสามมหาจักรวรรดิ',
+          summaryTh: 'สามมหาจักรวรรดิ (เป่ยหมิง ตงหวง ซีหรง) ลงนามรับรองความเป็นกลางของแคว้นอิสระหยุนเหอ เพื่อใช้เป็นตลาดกลางแลกเปลี่ยนเสบียงและศิลาวิญญาณโดยห้ามส่งกองทัพหลวงล่วงล้ำ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'กติกา 19 สำนักตัวแทนใต้เงาสนธิสัญญาหยุนเหอ',
+          credibilityBase: 76,
+          biasTh: 'บันทึกการเมืองยุทธภพของหอข่าวกรอง',
+          summaryTh: 'เพราะสนธิสัญญาห้ามกองทัพหลวงรบกันโดยตรงในเขตกันชน ทั้งเก้าแคว้นจึงหันมาหนุนหลังสำนักยุทธ์ทั้ง 19 แห่งให้ทำศึกชิงแหล่งทรัพยากรและบารมีแทนราชสำนัก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'เงื่อนไขลับใต้ศิลาสนธิสัญญาหยุนเหอเรื่องชีพจรปราณใต้หุบเขา',
+          credibilityBase: 94,
+          biasTh: 'พิสูจน์จากสำเนาสนธิสัญญาฉบับเต็มในหอจดหมายเหตุเมืองเก่าสิบสองคบเพลิง',
+          summaryTh: 'สาเหตุแท้จริงที่ซูฉิน (#42) โน้มน้าวสามจักรวรรดิได้สำเร็จ คือการชี้ให้เห็นว่าหากเกิดสงครามใหญ่เหนือหุบเขาหยุนเหอ แรงสั่นสะเทือนจะทำให้ผนึกประตูมิติหลวงใต้ดินปริแตกและดึงทัณฑ์ม่านฟ้าลงมาทำลายทุกแคว้นพร้อมกัน'
+        }
+      }
+    },
+    {
+      id: 'FACT_22_SIMA_QING_BROKEN_CURIO_HUNT',
+      storyId: null,
+      titleTh: 'ความลับการกว้านซื้อของเก่าชำรุดของคุณชายสามซือหม่าชิง (#52)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'DYNASTY',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_JIUKU_CAPITAL', 'CITY_DH_QINGLAN_DICE_CITY'],
+      relatedPaths: ['MERCANTILE_DAO', 'LORE_ARCHIVIST', 'STRATEGY_GOVERNANCE'],
+      relatedFigures: [4, 52, 53],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'CURIO_APPRAISAL_INSIGHT', tradeBonus: 0.08, descTh: 'รู้เท่าทันมูลค่าของวัตถุโบราณไร้ปราณที่รอดพ้นม่านกั้นภพ (STORY-SYNC-02)' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือคุณชายเสเพลคลั่งสะสมถ้วยชามร้าว',
+          credibilityBase: 50,
+          biasTh: 'เพลงล้อเลียนในโรงเตี๊ยมตงหวง',
+          summaryTh: 'ชาวเมืองหัวเราะเยาะว่าซือหม่าชิง (#52) และหอการค้าของว่านจินเหนียง (#53) ใช้เงินคลังไปกว้านซื้อถ้วยชามบิ่นและเศษพัดพังๆ ตามแผงของเก่าเพราะความเพี้ยน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'โครงการรวบรวมโบราณวัตถุยุคก่อตั้งราชวงศ์ซือหม่า',
+          credibilityBase: 64,
+          biasTh: 'คำชี้แจงของกรมคลังตงหวง',
+          summaryTh: 'อ้างว่าเป็นการรวบรวมเครื่องใช้โบราณเพื่อจัดแสดงในหอเกียรติยศราชธานีเก้าคลังสุริยัน'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'การแกะรอยอักขระผนึกลังส่วยของซือหม่าชุน (#4)',
+          credibilityBase: 76,
+          biasTh: 'บันทึกของปรมาจารย์ค่ายกลและอาลักษณ์',
+          summaryTh: 'สังเกตว่าของเก่าที่ซือหม่าชิงกว้านซื้อล้วนมีรอยตราประทับอักขระแบบเดียวกับสมุดคุมทะเบียนทาสเหมืองของปฐมเสนาบดีซือหม่าชุน (#4)'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'กฎการคัดกรองของม่านกั้นภพ: มีเพียงขยะไร้ปราณเซียนที่รอดลงมาได้ (STORY-SYNC-02)',
+          credibilityBase: 96,
+          biasTh: 'พิสูจน์จากการตรวจเศษภาชนะไร้ปราณที่ทนทานต่อแรงบดขยี้ของม่านฟ้า',
+          summaryTh: 'ซือหม่าชิง (#52) รู้ความลับจากบันทึกต้นตระกูลว่า ม่านกั้นภพจะบดขยี้ศาสตราที่มีปราณเซียนทุกชิ้นที่ร่วงลงมาจากโลกเบื้องบน มีเพียง「ของใช้สามัญที่ชำรุดและไร้ปราณ」เท่านั้นที่หลุดรอดลงมาได้โดยไม่ถูกทำลาย'
+        }
+      }
+    },
+    {
+      id: 'FACT_23_MINGYU_FROST_ROBE_AND_HEART_FREEZE',
+      storyId: null,
+      titleTh: 'อาการหัวใจน้ำแข็งของกู่เทียนเฉิน (#46) และเศษผ้าปูโต๊ะน้ำชาสวรรค์ (STORY-SYNC-01)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'MARTIAL_SCHISM',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['CITY_BM_HANYU_CAPITAL', 'CITY_BM_XUELIAN_SPRINGS'],
+      relatedPaths: ['XIAN', 'ICE_FROST', 'CRAFT_CREATION'],
+      relatedFigures: [2, 24, 46, 47],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'FROST_MERIDIAN_GUARD', frostResistBonus: 0.10, descTh: 'เข้าใจผลข้างเคียงของปราณหยกใสหมิงยวี่และวิธีถนอมเส้นชีพจรหัวใจ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ข่าวลือพายุหิมะวิปริตและการหาโอสถหยางรักษาจักรพรรดิเป่ยหมิง',
+          credibilityBase: 50,
+          biasTh: 'คำร่ำลือของพ่อค้าสมุนไพรแดนเหนือ',
+          summaryTh: 'ร่ำลือว่าจักรพรรดิกู่เทียนเฉิน (#46) ประชวรด้วยโรคไอเย็นย้อนกลับเข้าสู่หัวใจ จึงส่งทูตออกกว้านซื้อสมุนไพรธาตุหยางทั่วแผ่นดิน'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ประกาศการเข้าฌานหลอมกายาหยกเหมันต์ขั้นสูงสุด',
+          credibilityBase: 62,
+          biasTh: 'แถลงการณ์ราชสำนักเป่ยหมิง',
+          summaryTh: 'ราชสำนักประกาศว่าไอเย็นรอบตำหนักหลวงเกิดจากการที่องค์จักรพรรดิบรรลุเคล็ดปราณหยกใสหมิงยวี่ขั้นที่เก้า'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ปริศนาอาภรณ์ขนนกกระเรียนสวรรค์ที่ขาดหายไปครึ่งผืน',
+          credibilityBase: 75,
+          biasTh: 'บันทึกของยอดช่างทอและผู้ฝึกตนสายเหมันต์',
+          summaryTh: 'ระบุว่าเคล็ดปราณหมิงยวี่ของกู่หลิงเฟย (#2) ต้องฝึกควบคู่กับภูษาผนึกเหมันต์ที่ยายเมิ่ง (#24) ทอไว้ มิฉะนั้นปราณเย็นจะแช่แข็งชีพจรหัวใจผู้ฝึก'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ความจริงของผ้ารองถาดน้ำชาแช่เย็นจากเรือสำราญโลกเบื้องบน (STORY-SYNC-01)',
+          credibilityBase: 97,
+          biasTh: 'พิสูจน์จากบันทึกยายเมิ่ง (#24) และเส้นใยอาภรณ์ในซากอุทยานหลวง',
+          summaryTh: 'ภูษาวิเศษที่กู่หลิงเฟย (#2) สวมจำศีลแท้จริงคือเศษผ้ารองถาดน้ำชาแช่เย็นจากเรือสำราญสวรรค์ที่ยายเมิ่ง (#24) นำมาตัดเย็บ ส่วนกู่เทียนเฉิน (#46) ฝึกวิชาหมิงยวี่โดยไม่มีผ้าชั้นในคุ้มกาย หัวใจของเขาจึงค่อยๆ ถูกแช่แข็งทีละน้อย'
+        }
+      }
+    },
+    {
+      id: 'FACT_24_XINGCHENZI_TOY_ASTROLABE_GEAR',
+      storyId: null,
+      titleTh: 'จานจำลองกลุ่มดาวเฟืองบิ่นสองซี่ของซิงเฉินจื่อ (#16) และการหักเหของม่านฟ้า (STORY-SYNC-04)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'MARTIAL_SCHISM',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['CITY_BM_XINGYUN_CITADEL'],
+      relatedPaths: ['STAR_FATE', 'ARRAY_TALISMAN', 'CHRONO_FATE'],
+      relatedFigures: [16, 49],
+      secretGate: true,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'ASTRAL_REFRACTION_CALIBRATION', divinationBonus: 0.12, descTh: 'ชดเชยค่าความคลาดเคลื่อนของแสงดาวที่หักเหผ่านม่านกั้นภพ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานจานดาราสวรรค์ทำนายชะตาหมื่นปี',
+          credibilityBase: 48,
+          biasTh: 'คำเล่าลือในเมืองดาราพยากรณ์ซิงหยวน',
+          summaryTh: 'เชื่อว่านักพรตดาราซิงเฉินจื่อ (#16) ได้รับพระราชทานจานหมุนดวงดาวจากเทพแห่งโชคชะตาและซ่อนไว้ในหอดูดาวที่เวลาหยุดนิ่ง'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ปฏิทินดาราหลวงแห่งหอพยากรณ์เป่ยหมิง',
+          credibilityBase: 64,
+          biasTh: 'บันทึกโหรหลวง',
+          summaryTh: 'โหรหลวงใช้ตารางดาวของซิงเฉินจื่อในการคำนวณฤกษ์ยามศึก แต่พบว่าทุกๆ ร้อยปีตำแหน่งดาวเหนือจะคลาดเคลื่อนไปสององศาโดยไม่ทราบสาเหตุ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ภารกิจลับที่ซิงเฉินจื่อ (#16) มอบให้ซิงอวิ๋น (#49)',
+          credibilityBase: 76,
+          biasTh: 'บันทึกสายวิถีดาราชะตา',
+          summaryTh: 'ซิงเฉินจื่อค้นพบว่าท้องฟ้าที่คนโลกล่างมองเห็นเป็นภาพลวงที่ถูกม่านกั้นภพหักเห จึงฝากป้ายหยกดาราให้ซิงอวิ๋น (#49) สืบหาความจริง'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ลูกข่างจำลองกลุ่มดาวของเล่นเด็กจากตระกูลโหรโลกเบื้องบน (STORY-SYNC-04)',
+          credibilityBase: 97,
+          biasTh: 'พิสูจน์จากรอยเฟืองบิ่นสองซี่และการคำนวณมุมหักเหของม่านฟ้า',
+          summaryTh: 'จานสวรรค์ของซิงเฉินจื่อ (#16) แท้จริงคือของเล่นจำลองกลุ่มดาวสำหรับเด็กในตระกูลโหรสวรรค์ที่เฟืองบิ่นไปสองซี่แล้วถูกโยนทิ้งลงมา แต่เพียงของเล่นชิ้นนั้นก็ทำให้ซิงเฉินจื่อคำนวณพบว่าม่านฟ้ากำลังบิดเบือนแสงดาวและมีเงามืดเบื้องบนคอยเฝ้ามองโลกล่างอยู่'
+        }
+      }
+    },
+    {
+      id: 'FACT_25_KONG_MING_SHATTERED_DANTIAN_STRANDING',
+      storyId: null,
+      titleTh: 'กฎแรงดีดม่านฟ้าและสาเหตุที่ทูตตกสวรรค์ขงหมิง (#21) ติดค้างในโลกล่าง (STORY-SYNC-10)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'SECT_LINEAGE',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_XIFENG_GORGE', 'CITY_YH_BAILU_ACADEMY'],
+      relatedPaths: ['VOID_SPACE', 'HEART_SOUL', 'DIVINE_SUMMONER'],
+      relatedFigures: [19, 21, 28, 39],
+      secretGate: true,
+      defaultAccount: 'FOLK_ORAL',
+      gameplayEffect: { kind: 'SKY_CURTAIN_LAW_INSIGHT', tribulationResistBonus: 0.08, descTh: 'เข้าใจกฎแรงกดทับของม่านกั้นภพและการจำกัดตบะโลกล่าง' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'นิทานนักพรตขี้เมาผู้วางหมากหินริมผาเมฆา',
+          credibilityBase: 47,
+          biasTh: 'คำบอกเล่าของเสี่ยวเอ้อร์โรงเตี๊ยมด่านหน้า (BALLAD_06)',
+          summaryTh: 'เล่าว่ามีนักพรตชราชุดผ้าป่านขาดวิ่นชอบเอาเศษหยกสลักอักษรประหลาดมาจ่ายค่าสุราแล้วแหงนมองฟ้าถอนหายใจเหมือนคนกลับบ้านไม่ได้'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'บันทึกผู้ลี้ภัยปริศนายุคประตูมิติหลวงระเบิด',
+          credibilityBase: 60,
+          biasTh: 'แฟ้มลับสำนักตรวจการ',
+          summaryTh: 'สันนิษฐานว่าเป็นเพียงยอดฝีมือโบราณที่บาดเจ็บจากการระเบิดที่เทียนกู่และหลบซ่อนตัวตามแนวเขาหยุนเหอ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'บทเรียนม่านฟ้าตบสวนของเสิ่นเทียนจุน (#28) และหนึ่งกระบี่ของจิ้วเจี้ยนเซียน (#39)',
+          credibilityBase: 76,
+          biasTh: 'บันทึกเตือนภัยของสายอัญเชิญเทวะและวิถีกระบี่',
+          summaryTh: 'ระบุว่าม่านกั้นภพจะดีดหรือบดขยี้ผู้ที่มีตบะเกินเพดานขั้น 9 ทันที ดังที่เสิ่นเทียนจุน (#28) เคยถูกม่านฟ้าตบสวนเมื่อทำพิธีเรียกทวยเทพ'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ตันเถียนที่แหลกสลายของเบี้ยสงครามจากโลกเบื้องบน (STORY-SYNC-10)',
+          credibilityBase: 97,
+          biasTh: 'พิสูจน์จากบันทึกหมากล้อมของขงหมิง (#21) และผนึกของเฮ่อเหลียนม่อ (#19)',
+          summaryTh: 'ขงหมิง (#21) และแม่ทัพศัตรูเฮ่อเหลียนม่อ (#19) คือผู้มาจากโลกเบื้องบนที่ถูกแรงระเบิดประตูมิติหลวงบดขยี้ตันเถียนจนตบะร่วงหล่นต่ำกว่าเกณฑ์ขั้น 9 ม่านกั้นภพจึงมองว่าพวกเขาเป็นเพียงสิ่งมีชีวิตโลกล่างและไม่ดีดกลับขึ้นไป ทำให้ต้องติดค้างอยู่ในโลกเบื้องล่างชั่วนิรันดร์'
+        }
+      }
+    },
+    {
+      id: 'FACT_26_SUBCONTINENT_CRATER_BEYOND_FOG_SEA',
+      storyId: null,
+      titleTh: 'สัจธรรมอนุทวีปหลุมอุกกาบาต 1,000 × 1,000 ลี้ และมหาอาณาจักรพ้นทะเลหมอก (LORE_06B)',
+      layer: 'SHATTERED_SUBCONTINENT',
+      category: 'GEOGRAPHY',
+      polityId: null,
+      anchorNodeIds: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'PASS_SO_HEIJIAO_CORSAIR_REEF', 'PASS_BM_XUEFENG_WEST'],
+      relatedPaths: ['TIDE_VOYAGER', 'WANDERING_DAO', 'STAR_FATE'],
+      relatedFigures: [1, 16, 21],
+      secretGate: true,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'CONTINENTAL_HORIZON_AWARENESS', explorationBonus: 0.10, descTh: 'ตระหนักถึงขอบเขตที่แท้จริงของแผนที่ห้าภูมิภาคและม่านหมอกรอบอนุทวีป' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ความเชื่อว่าแผ่นดินเก้าแคว้นคือโลกมนุษย์ทั้งหมด',
+          credibilityBase: 50,
+          biasTh: 'โลกทัศน์สามัญของชาวบ้านและจอมยุทธ์ทั่วไป',
+          summaryTh: 'ผู้คนทั่วไปเชื่อว่าแผ่นดินห้าภูมิภาคกว้างพันลี้คูณพันลี้คือใต้หล้าทั้งหมด ส่วนนอกทะเลหมอกและเทือกเขาน้ำแข็งคือสุดขอบโลกที่ไร้สิ่งมีชีวิต'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'แผนที่ยุทธศาสตร์เก้าแคว้นฉบับราชสำนัก',
+          credibilityBase: 65,
+          biasTh: 'แผนที่ทางการของสามมหาจักรวรรดิ',
+          summaryTh: 'กำหนดให้แนวทะเลหมอกทักษิณและทุ่งน้ำแข็งเหนือเป็นเขตสิ้นสุดพระราชอาณาเขตและห้ามจัดตั้งกองเรือสำรวจออกนอกม่านหมอก'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ข้อสังเกตเรื่องแนวภูเขาวงแหวนรอบแผ่นดินห้าภูมิภาค',
+          credibilityBase: 76,
+          biasTh: 'การสำรวจภูมิลักษณ์ของนักพรตดาราและนักเดินเรือ',
+          summaryTh: 'สังเกตว่าเทือกเขาเหนือ ผาเมฆาตะวันออก ทะเลทรายตะวันตก และโขดหินทะเลใต้ ล้วนโค้งเข้าหากันเป็นรูปขอบหลุมวงกลมขนาดมหึมาโดยมีหุบเขาหยุนเหอเป็นจุดศูนย์กลาง'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'อนุทวีปหลุมระเบิดเทียนกู่ที่ถูกตัดขาดจากแผ่นดินใหญ่ภายนอก (LORE_06B)',
+          credibilityBase: 98,
+          biasTh: 'พิสูจน์จากการประกอบแผนที่ธรณีสัณฐานห้าภูมิภาคเข้ากับบันทึกม่านกั้นภพ',
+          summaryTh: 'แผ่นดิน 1,000 × 1,000 ลี้ทั้งหมดเป็นเพียง「หลุมระเบิดของประตูมิติหลวงเทียนกู่」ที่ถูกโดมม่านกั้นภพครอบไว้เหมือนกะลา ทะเลหมอกที่ล้อมรอบคือขอบม่านผนึก และในยุคก่อนม่านหมอกปิดผนึก ภายนอกเคยมีแผ่นดินใหญ่และหกมหาจักรวรรดิของโลกเบื้องล่างตั้งอยู่ ทว่าชะตากรรมปัจจุบันหลังผ่านไปหนึ่งแสนปียังคงเป็นปริศนาไร้ผู้พิสูจน์'
+        }
+      }
+    },
+    {
+      id: 'FACT_27_ANTEDILUVIAN_THREE_SOVEREIGN_EPOCHS',
+      storyId: null,
+      titleTh: 'สามยุคบรรพกาลก่อนเทียนกู่ที่ถูกกรมพิธีการลบออกจากประวัติศาสตร์ (LORE_06A)',
+      layer: 'ERASED_PREHISTORY',
+      category: 'SECT_LINEAGE',
+      polityId: null,
+      anchorNodeIds: ['TOWN_YM_SHIBEI_RUBBING', 'TOWN_BM_BAIMEI_OLD_FORT', 'CITY_GJ_WANGU_TOTEM'],
+      relatedPaths: ['LORE_ARCHIVIST', 'PRIMORDIAL_SHIFTER', 'STAR_FATE'],
+      relatedFigures: [1, 15, 25],
+      secretGate: true,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'ANTEDILUVIAN_SANCTUM_INSIGHT', sanctumBonus: 0.12, descTh: 'เข้าใจต้นกำเนิดของสี่มหาแดนลับและคัมภีร์บรรพกาลก่อนยุคเทียนกู่' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานว่าเทียนกู่คืออาณาจักรแรกของมนุษยชาติ',
+          credibilityBase: 48,
+          biasTh: 'ประวัติศาสตร์ฉบับท่องจำในสำนักศึกษา',
+          summaryTh: 'ตำราเรียนทุกแคว้นสอนตรงกันว่าก่อนการสถาปนามหาจักรวรรดิเทียนกู่ แผ่นดินนี้เป็นเพียงป่ารกร้างที่ไร้ซึ่งอารยธรรมและวิถีบำเพ็ญ'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'พงศาวดารปฐมกษัตริย์เทียนกู่ผู้ประทานอักษรและไฟปราณ',
+          credibilityBase: 64,
+          biasTh: 'โฆษณาชวนเชื่อของราชวงศ์กู่โบราณ',
+          summaryTh: 'เชิดชูว่าราชวงศ์เทียนกู่เป็นผู้คิดค้นมหาวิถีทั้งปวงและสร้างมหาแดนลับทั้งสี่ไว้เป็นคลังหลวง'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ร่องรอยอักขระก่อนยุคเทียนกู่ในหอจดหมายเหตุสี่มหาแดนลับ',
+          credibilityBase: 78,
+          biasTh: 'การค้นพบของคณะสำรวจมหาแดนลับโบราณ (SANCTUM_SOV_01..04)',
+          summaryTh: 'ชั้นหินใต้ฐานมหาแดนลับทั้งสี่มีอายุเก่าแก่กว่ายุคเทียนกู่นับหมื่นปี และใช้อักขระดาวหลอม-โลหิตอสูรที่ไม่ตรงกับอักษรหลวงเทียนกู่'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'สามยุคบรรพกาลที่ถูกลบ: ยุคเตาหลอมดารา ยุคพันธสัญญาอสูรบรรพกาล และยุคพฤกษาวิญญาณ (LORE_06A)',
+          credibilityBase: 98,
+          biasTh: 'พิสูจน์จากศิลาชั้นลึกสุดของสี่มหาแดนลับและบันทึกที่รอดจากการเผาตำราของกรมพิธีการเทียนกู่',
+          summaryTh: 'ก่อนยุคเทียนกู่เคยมีอารยธรรมรุ่งเรืองถึง 3 ยุค ได้แก่ ยุคเตาหลอมดาราบรรพกาล ยุคพันธสัญญาราชันอสูร และยุคพฤกษาวิญญาณโลกา ซึ่งผู้ก่อตั้งเทียนกู่ได้สั่งเผาทำลายบันทึกทั้งหมดเพื่อผูกขาดความชอบธรรมว่าตนเป็นจุดเริ่มต้นของมรรคา'
+        }
+      }
+    },
+    {
+      id: 'FACT_28_NAMELESS_FOUNDER_UPPER_WORLD_VIGIL',
+      storyId: null,
+      titleTh: 'ชาติกำเนิดที่แท้จริงของปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 (#45) และเหตุผลของตราหินเทาไร้ลักษณ์',
+      layer: 'ERASED_PREHISTORY',
+      category: 'SECT_LINEAGE',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_OLD_DAREN_SQUARE', 'PASS_YH_YUGUAN_RUIN_POST'],
+      relatedPaths: ['XIAN', 'VOID_SPACE', 'HEART_SOUL'],
+      relatedFigures: [21, 25, 45],
+      secretGate: true,
+      defaultAccount: 'SECT_ORTHODOX',
+      gameplayEffect: { kind: 'FOUNDER_ORIGIN_AWAKENING', regaliaInsightBonus: 2, descTh: 'ปลุกเสียงสะท้อนต้นกำเนิดของตราหินเทาไร้ลักษณ์โดยคงความลับไม่ให้รั่วไหลสู่สาธารณะ' },
+      accounts: {
+        FOLK_ORAL: {
+          id: 'FOLK_ORAL',
+          labelTh: 'ตำนานผู้เฒ่านิรนามผู้เร้นกายในหุบเขาเมฆาเร้น',
+          credibilityBase: 55,
+          biasTh: 'บันทึกเปิดเผยบนป้ายบรรพชนรุ่นที่ 1 (PATRIARCH_GEN_1)',
+          summaryTh: 'บันทึกสาธารณะของสำนักระบุเพียงว่า ปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 เป็นผู้เฒ่าพเนจรนิรนามที่เข้ามาปลูกกระท่อมดูแลสัตว์วิญญาณและทิ้งตราหินเทาไร้ลักษณ์ไว้ก่อนเดินหายเข้าทะเลหมอก'
+        },
+        COURT_CANON: {
+          id: 'COURT_CANON',
+          labelTh: 'ทะเบียนสำนักขนาดเล็กไร้สังกัดในหุบเขาสองแคว',
+          credibilityBase: 60,
+          biasTh: 'บันทึกของสภาเจ็ดวาณิชหยุนเหอ',
+          summaryTh: 'มองว่าสำนักของเราเป็นเพียงสำนักท้องถิ่นที่สืบทอดกันมาเจ็ดรุ่นโดยไม่ได้ข้องเกี่ยวกับราชสำนักหรือศึกประตูมิติโบราณ'
+        },
+        SECT_ORTHODOX: {
+          id: 'SECT_ORTHODOX',
+          labelTh: 'ความเชื่อมโยงระหว่างค่ายกลฐานสำนักกับซากประตูมิติหลวงใต้ก้นเหว',
+          credibilityBase: 78,
+          biasTh: 'ข้อสังเกตของเจ้าสำนักรุ่นที่ 6–7 เมื่อตราหินเทาไร้ลักษณ์ตื่นรู้',
+          summaryTh: 'ค่ายกลแปดยอดเขาของสำนักถูกวางทับจุดศูนย์ถ่วงของซากประตูมิติหลวงใต้ก้นเหวอย่างจงใจ เพื่อใช้ปราณธรรมชาติของสัตว์วิญญาณและผู้ฝึกตนหลากหลายวิถีช่วยกลบเกลื่อนรอยรั่วมิติ'
+        },
+        VERIFIED_CHRONICLE: {
+          id: 'VERIFIED_CHRONICLE',
+          labelTh: 'ผู้เฝ้ายามนิรนาม (#45) ผู้หลอมตราหินไร้ลักษณ์เพื่อซ่อนผู้สืบทอดจากสายตาสวรรค์ (LORE_05B)',
+          credibilityBase: 99,
+          biasTh: 'ความลับสูงสุดที่เปิดเผยเฉพาะเมื่อตราหินเทาไร้ลักษณ์และบันทึกบรรพชนครบสมบูรณ์',
+          summaryTh: 'ปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 (#45) คืออดีตผู้ตรวจการค่ายกลจากโลกเบื้องบนที่เลือกสละนามและผนึกตบะตนเองไว้ใต้หุบเขาเพื่อเฝ้ารอยร้าวประตูมิติหลวง เขาจงใจหลอม「ตราหินเทาไร้ลักษณ์」ให้ดูเหมือนก้อนหินสามัญไร้ปราณเซียนและไม่ผูกมัดกับวิถีใดวิถีหนึ่ง เพื่อไม่ให้ม่านกั้นภพและสายตาจากโลกเบื้องบนตรวจจับและลงทัณฑ์เจ้าสำนักรุ่นที่ 2 ถึงรุ่นที่ 7 ได้'
+        }
+      }
+    }
+  ]);
+
+  const FACT_BY_ID = Object.freeze(Object.fromEntries(CANON_FACTS.map(f => [f.id, f])));
+
+  // 20 Multi-Stage Playable Living Lore Story Chains (12 Adopted & Refined from Codex + 8 Original Gemini Chains)
+  const STORY_CHAINS = Object.freeze([
+    {
+      id: 'STORY_01_SHUANGJIANG_FLOOD_LEDGER',
+      titleTh: 'สมุดระดับน้ำท่วมและตำนานน้ำไหลย้อนแห่งซวงเจียง',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_ROUTE',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_01_SHUANGJIANG_BACKFLOW',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'],
+      summaryTh: 'เปรียบเทียบเพลงโรงเตี๊ยมเรื่องพญานาคราชทำให้น้ำสองแควไหลย้อน กับรอยสิ่ววัดระดับน้ำแล้งใต้สะพานศิลาสามแควและสมุดส่วยข้าวโบราณ',
+       stages: [
+        {
+          idx: 0,
+          id: 'SPARK_BACKFLOW_RUMOR',
+          titleTh: 'ได้ยินคำร่ำลือเรื่องน้ำสองแควไหลย้อนกลืนเรือสินค้า',
+          locationId: 'CITY_YH_SHUANGJIANG',
+          accountId: 'FOLK_ORAL',
+          descTh: 'คนแจวเรือที่นครสองแควหยุนเหอเล่าขานเรื่องกระแสน้ำไหลย้อนทุกปลายฤดูใบไม้ร่วง จนขบวนคาราวานลังเลที่จะข้ามน้ำ'
+        },
+        {
+          idx: 1,
+          id: 'CHECK_BRIDGE_CHISEL_AND_LEDGER',
+          titleTh: 'สำรวจรอยสิ่ววัดระดับน้ำใต้ตอม่อสะพานศิลาสามแควและสมุดส่วยข้าว',
+          locationId: 'PASS_YH_SANJIANG_BRIDGE',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'ตรวจสอบขีดหินโบราณยุคเหยียนหลิงใต้ตอม่อสะพานศิลาสามแควเทียบกับบันทึกปีที่หิมะเหนือละลายช้า'
+        },
+        {
+          idx: 2,
+          id: 'RESOLVE_HYDRO_CHRONICLE',
+          titleTh: 'สรุปวัฏจักรสันดอนหนุนน้ำและวางแนวทางเดินเรือของสำนัก',
+          locationId: 'CITY_YH_SHUANGJIANG',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกแนวทางนำความรู้เรื่องช่วงน้ำหนุน 9 วันไปใช้ปรับตารางคาราวานหรือบันทึกเข้าหอคัมภีร์'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'CAUTIOUS_CONVOY_TIMETABLE',
+          labelTh: 'ปรับตารางคาราวานและเรือข้ามฟากหลบช่วงน้ำหนุน 9 วัน',
+          match: n => E(n, 'personality.caution') >= 55 || ['quartermaster', 'mission', 'treasury'].includes(n.post),
+          consequenceTh: 'ฝ่ายยุทธปัจจัยกำหนดตารางเดินเรือหลบช่วงสันดอนหนุนน้ำ ลดเวลาเดินทางและความเสี่ยงบนเส้นทางซวงเจียง–สะพานศิลาสามแควถาวร',
+          effect: { routeBonusLeg: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'], routeMultiplier: 0.86, citySafetyDelta: 4 }
+        },
+        {
+          id: 'SCHOLAR_HYDRO_ARCHIVE',
+          labelTh: 'เรียบเรียง「พงศาวดารอุทกวิทยาสองแคว」ขึ้นทะเบียนหอคัมภีร์',
+          match: n => E(n, 'values.knowledgeCraft') >= 55 || ['scripture', 'master', 'deputy'].includes(n.post),
+          consequenceTh: 'บันทึกหลักฐานขีดวัดระดับน้ำยุคเหยียนหลิงเข้าหอจดหมายเหตุสำนัก เพิ่มความเข้าใจคัมภีร์และบารมีทางวิชาการ',
+          effect: { routeBonusLeg: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'], routeMultiplier: 0.90, sectFameDelta: 6, skillPractice: 'SCRIPTURE' }
+        },
+        {
+          id: 'FERRYMAN_MARKER_REPAIR',
+          labelTh: 'ตอกหมุดเตือนระดับน้ำร่วมกับสมาคมคนแจวเรือซวงเจียง',
+          match: () => true,
+          consequenceTh: 'ซ่อมแซมหลักวัดระดับน้ำริมตลิ่งร่วมกับชาวเรือซวงเจียง เพิ่มความรุ่งเรืองและความปลอดภัยของท่าเรือ',
+          effect: { routeBonusLeg: ['CITY_YH_SHUANGJIANG', 'PASS_YH_SANJIANG_BRIDGE'], routeMultiplier: 0.88, cityProsperityDelta: 5, citySafetyDelta: 3 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_02_BAILU_DUAL_ANNOTATED_MANUAL',
+      titleTh: 'คัมภีร์สองลายมือแห่งสำนักศึกษาไป๋ลู่',
+      group: 'CODEX_ADOPTED',
+      category: 'MARTIAL_SCHISM',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_02_BAILU_DUAL_COMMENTARY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_BAILU_ACADEMY', 'CITY_YH_OLD_DAREN_SQUARE'],
+      summaryTh: 'คัมภีร์ฝึกปราณเล่มเดียวกันมีรอยจดหมายเหตุริมกระดาษสองสี (หมึกชาดเร่งรัดปราณ กับ หมึกดำประคองชีพจร) ที่โต้เถียงกันเองทุกบท',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_MARGIN_DISPUTE',
+          titleTh: 'พบรอยอรรถาธิบายหมึกชาดและหมึกดำโต้เถียงกันในคัมภีร์',
+          locationId: 'CITY_YH_BAILU_ACADEMY',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'ศิษย์ที่อ่านคัมภีร์จากสายสำนักศึกษาไป๋ลู่พบคำสอนสองแนวทางที่ขัดแย้งกันในหน้าเดียว'
+        },
+        {
+          idx: 1,
+          id: 'COMPARE_HANDWRITING_AND_BREATH',
+          titleTh: 'เทียบน้ำหนักพู่กันและทดลองเดินปราณตามจังหวะทั้งสอง',
+          locationId: 'CITY_YH_OLD_DAREN_SQUARE',
+          accountId: 'COURT_CANON',
+          descTh: 'ตรวจสอบต้นฉบับในหอสมุดไป๋ลู่พบว่าหางอักษรทั้งสองสีมาจากข้อมือคนเดียวกันในต่างช่วงวัย'
+        },
+        {
+          idx: 2,
+          id: 'SYNTHESIZE_DUAL_ANNOTATION',
+          titleTh: 'ตัดสินใจแนวทางถ่ายทอดคัมภีร์สองลายมือในสำนัก',
+          locationId: 'CITY_YH_BAILU_ACADEMY',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกวิธีใช้ประโยชน์จากอรรถาธิบายหมึกชาดและหมึกดำตามจริตของผู้เรียน'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'HARMONIZED_COMMENTARY_EDITION',
+          labelTh: 'จัดทำฉบับประสาน「รุกด้วยหมึกชาด คุมด้วยหมึกดำ」ไว้ในหอคัมภีร์',
+          match: n => E(n, 'aptitudes.comprehension') >= 55 || ['scripture', 'master', 'deputy'].includes(n.post),
+          consequenceTh: 'หอคัมภีร์สำนักได้อรรถาธิบายประสานสองวัย ช่วยให้ศิษย์ศึกษาวิชาได้รวดเร็วและปลอดภัยขึ้น',
+          effect: { customId: 'CUSTOM_BAILU_HARMONIZED_STUDY', studySpeedMult: 1.08, skillPractice: 'SCRIPTURE', sectFameDelta: 5 }
+        },
+        {
+          id: 'CRIMSON_INK_BREAKTHROUGH_DRILL',
+          labelTh: 'ฝึกฝนเคล็ดบีบอัดปราณหมึกชาดเพื่อเร่งความชำนาญกระบวนท่า',
+          match: n => E(n, 'personality.ambition') >= 60 || E(n, 'personality.courage') >= 60,
+          consequenceTh: 'ศิษย์สายรุกนำเคล็ดหมึกชาดมาใช้ฝึกซ้อมเร่งความก้าวหน้าตบะและทักษะการรบ',
+          effect: { customId: 'CUSTOM_BAILU_CRIMSON_DRILL', cultGain: 28, skillPractice: 'SWORD' }
+        },
+        {
+          id: 'BLACK_INK_FOUNDATION_ORTHODOXY',
+          labelTh: 'ยึดแนวทางหมึกดำเป็นมาตรฐานสอนศิษย์ใหม่เพื่อป้องกันลมปราณตีกลับ',
+          match: () => true,
+          consequenceTh: 'วางรากฐานการเดินปราณตามแนวหมึกดำ ลดความตึงเครียดและจิตมารของศิษย์ในสำนัก',
+          effect: { customId: 'CUSTOM_BAILU_BLACK_FOUNDATION', heartDemonDelta: -10, skillPractice: 'SCRIPTURE' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_03_QINGLAN_SECOND_TOLL_STAMP',
+      titleTh: 'ตราประทับด่านภาษีซ้อนแห่งราชวงศ์ชิงหลานที่ล่มสลาย',
+      group: 'CODEX_ADOPTED',
+      category: 'DYNASTY_TRADE',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_03_QINGLAN_DOUBLE_TOLL_SEAL',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_QINGLAN_DICE_CITY', 'CITY_DH_ZHENYANG_RUIN_PREF'],
+      summaryTh: 'หีบสินค้าจากแดนตะวันออกมีตราครั่งทองเหลืองรูปคลื่นคู่ของราชวงศ์ชิงหลานที่ล่มสลายไปเมื่อเก้าสิบปีก่อนประทับซ้อนอยู่ใต้ตราลูกคิดทองคำตงหวง',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_DOUBLE_SEAL_CRATE',
+          titleTh: 'ตรวจพบตราครั่งรูปคลื่นคู่โบราณประทับซ้อนบนหีบสินค้า',
+          locationId: 'CITY_DH_QINGLAN_DICE_CITY',
+          accountId: 'FOLK_ORAL',
+          descTh: 'คนคุมคาราวานพบตราภาษีสองยุคซ้อนกันบนลังพัสดุจากเมืองสายน้ำครามชิงหลาน'
+        },
+        {
+          idx: 1,
+          id: 'INQUIRE_ZHENYANG_CUSTOMS_BROKER',
+          titleTh: 'สอบทานสมุดเทียบตราภาษีเก่าที่เมืองป้อมเจิ้นหยางเก่า',
+          locationId: 'CITY_DH_ZHENYANG_RUIN_PREF',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่านายหน้าตระกูลเก่าใช้ตราชิงหลานเป็นตั๋วรับรองสิทธิ์เบิกพัสดุคงค้างในคลังใต้ดินยุคเปลี่ยนผ่าน'
+        },
+        {
+          idx: 2,
+          id: 'SETTLE_QINGLAN_TALLY',
+          titleTh: 'จัดการสิทธิ์เบิกพัสดุคลังเก่าและรายงานศุลกากรตงหวง',
+          locationId: 'CITY_DH_QINGLAN_DICE_CITY',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกวิธีดำเนินการกับตั๋วตราคลื่นคู่ระหว่างการเบิกพัสดุคงค้างหรือการสร้างไมตรีทางการทูต'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'REDEEM_QINGLAN_CELLAR_SHIPMENT',
+          labelTh: 'ใช้ตั๋วตราคลื่นคู่เบิกพัสดุและศิลาวิญญาณคงค้างจากนายหน้าชิงหลาน',
+          match: n => E(n, 'values.wealthResource') >= 52 || ['treasury', 'marketmaster', 'quartermaster'].includes(n.post),
+          consequenceTh: 'เบิกศิลาวิญญาณและวัตถุดิบที่เก็บรักษาไว้ในคลังใต้ดินเมืองชิงหลานเข้าสู่คลังสำนักอย่างถูกต้องตามธรรมเนียมนายหน้า',
+          effect: { closedLoopStonesFromPool: 120, cityProsperityDelta: 4 }
+        },
+        {
+          id: 'REPORT_CUSTOMS_RECONCILIATION',
+          labelTh: 'ส่งมอบสำเนาสมุดเทียบตราให้ด่านศุลกากรตงหวงเพื่อปลดข้อหาค้าของเถื่อน',
+          match: n => E(n, 'personality.integrity') >= 58 || ['envoy', 'discipline', 'master'].includes(n.post),
+          consequenceTh: 'ด่านตรวจการตงหวงยกเลิกหมายอายัดขบวนสินค้าของพ่อค้าชิงหลาน เพิ่มความเชื่อถือทางการทูตและความปลอดภัยของเมือง',
+          effect: { citySafetyDelta: 6, cityProsperityDelta: 3, sectFameDelta: 6 }
+        },
+        {
+          id: 'ARCHIVE_FALLEN_REALM_SEAL',
+          labelTh: 'เก็บรักษาแม่พิมพ์ตราคลื่นคู่ไว้ในหอจดหมายเหตุราชวงศ์ที่ล่มสลาย',
+          match: () => true,
+          consequenceTh: 'บันทึกประวัติการเปลี่ยนผ่านแคว้นชิงหลาน–ตงหวงไว้เป็นตำราการค้าและประวัติศาสตร์ของสำนัก',
+          effect: { sectFameDelta: 5, skillPractice: 'SCRIPTURE' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_04_YUGUAN_TWO_VILLAGE_BOUNDARY',
+      titleTh: 'หลักศิลาสองชื่อแห่งด่านหยกเก่าอวี้กวาน',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_COMMUNITY',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_04_YUGUAN_REFUGEE_BOUNDARY',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_YUGUAN_RUIN_POST', 'TOWN_YH_LIUWAN_FERRY'],
+      summaryTh: 'สองหมู่บ้านผู้ลี้ภัยเก่าเรียกสันเขาเดียวกันคนละชื่อตามบันทึกต้นตระกูลยุคหงชี (#38) ขณะที่เสมียนด่านอ้างแผนที่ภาษีใหม่เข้ายึดบ่อน้ำ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_RIDGE_NAME_QUARREL',
+          titleTh: 'พบข้อพิพาทเรียกชื่อสันเขาและสิทธิ์ดูแลบ่อน้ำที่ด่านหยกเก่าอวี้กวาน',
+          locationId: 'PASS_YH_YUGUAN_RUIN_POST',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ชาวบ้านสองฝั่งเขาโต้เถียงกันเรื่องชื่อดั้งเดิมของสันเขาและสิทธิ์การใช้น้ำซับริมทาง'
+        },
+        {
+          idx: 1,
+          id: 'EXCAVATE_COURIER_MILESTONE_BASE',
+          titleTh: 'ขุดแต่งฐานหลักศิลาม้าเร็วและเทียบสมุดอพยพที่ท่าข้ามฟากคุ้งหลิวเขียว',
+          locationId: 'TOWN_YH_LIUWAN_FERRY',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบฐานหินยุคหงชี (#38) ที่สลักชื่อทั้งสองหมู่บ้านไว้คนละด้านของหลักศิลาเดียวกัน'
+        },
+        {
+          idx: 2,
+          id: 'RESTORE_DUAL_BOUNDARY_MARKER',
+          titleTh: 'ไกล่เกลี่ยข้อพิพาทและตั้งหลักศิลาสองชื่อขึ้นใหม่',
+          locationId: 'PASS_YH_YUGUAN_RUIN_POST',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ตัดสินใจวิธีจัดการหลักศิลาและระเบียบดูแลบ่อน้ำริมด่านอวี้กวาน'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'ERECT_TWIN_NAME_STELE',
+          labelTh: 'ยกหลักศิลาสองชื่อขึ้นตั้งใหม่และให้สองหมู่บ้านผลัดเวรดูแลบ่อน้ำตามคำสัตย์หงชี (#38)',
+          match: n => E(n, 'personality.empathy') >= 50 || E(n, 'personality.integrity') >= 55,
+          consequenceTh: 'สองหมู่บ้านยุติความบาดหมางและร่วมกันดูแลบ่อน้ำและคบเพลิงนำทางที่ด่านอวี้กวาน',
+          effect: { citySafetyDelta: 7, cityProsperityDelta: 4, sectFameDelta: 6 }
+        },
+        {
+          id: 'REGISTER_YUNHE_COURIER_WAYSTATION',
+          labelTh: 'ขึ้นทะเบียนหลักศิลาเป็นสถานีพักม้าเร็วร่วมกับสภาหยุนเหอ',
+          match: n => ['envoy', 'mission', 'quartermaster'].includes(n.post) || E(n, 'aptitudes.socialCommerce') >= 55,
+          consequenceTh: 'ด่านอวี้กวานและท่าข้ามฟากคุ้งหลิวเขียวกลายเป็นจุดพักคาราวานที่ปลอดภัยและรวดเร็วขึ้น',
+          effect: { routeBonusLeg: ['PASS_YH_YUGUAN_RUIN_POST', 'CITY_YH_OLD_DAREN_SQUARE'], routeMultiplier: 0.88, cityProsperityDelta: 5 }
+        },
+        {
+          id: 'RUBBING_FOR_SECT_STELE_HALL',
+          labelTh: 'คัดลอกลายสลักพลองหยกของหงชี (#38) กลับมาศึกษาที่หอคัมภีร์',
+          match: () => true,
+          consequenceTh: 'ได้ภาพลอกลายจารึกโบราณของราชันย์พเนจรหงชี (#38) กลับมาเพิ่มพูนความรู้ในสำนัก',
+          effect: { citySafetyDelta: 4, skillPractice: 'STAFF' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_05_BEAST_KEEPER_FORD_NOTEBOOK',
+      titleTh: 'สมุดบันทึกคนเลี้ยงอสูรริมแก่งน้ำตื้น',
+      group: 'CODEX_ADOPTED',
+      category: 'ECOLOGY_BEAST',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_05_FORD_BEAST_MOLTING_CYCLE',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['TOWN_BM_BINGHE_FUR_POST', 'TOWN_GJ_YaoZhai_HUNT'],
+      summaryTh: 'สมุดบันทึกหนังสัตว์ของคนเลี้ยงอสูรเฒ่าอธิบายพฤติกรรมรวมฝูงลอกคราบริมแก่งน้ำตื้น ซึ่งสวนทางกับข่าวลือเรื่องอสูรคลั่ง',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_FORD_BEAST_SCARE',
+          titleTh: 'รับทราบข่าวลืออสูรริมน้ำรวมฝูงขวางแก่งน้ำตื้น',
+          locationId: 'TOWN_BM_BINGHE_FUR_POST',
+          accountId: 'FOLK_ORAL',
+          descTh: 'พรานและคนเดินทางร่ำลือว่ามีฝูงอสูรดุร้ายยึดแก่งน้ำตื้นจนไม่มีใครกล้าข้าม'
+        },
+        {
+          idx: 1,
+          id: 'READ_KEEPER_FIELD_NOTES',
+          titleTh: 'ค้นพบสมุดบันทึกคนเลี้ยงอสูรและตรวจร่องรอยคราบเกล็ดริมตลิ่ง',
+          locationId: 'TOWN_GJ_YaoZhai_HUNT',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าฝูงอสูรเพียงขึ้นมาถูหินลอกคราบตามฤดูกาลและจะดุร้ายเฉพาะเมื่อมีคนเหยียบรังริมน้ำ'
+        },
+        {
+          idx: 2,
+          id: 'CHOOSE_FORD_ECOLOGY_POLICY',
+          titleTh: 'ตัดสินใจแนวทางปฏิบัติต่อฝูงอสูรช่วงลอกคราบริมแก่ง',
+          locationId: 'TOWN_BM_BINGHE_FUR_POST',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกแนวทางจัดการแก่งน้ำตื้นตามหน้าที่และปณิธานของศิษย์ผู้รับผิดชอบ'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'KEEPER_CONSERVATION_SALT_MARK',
+          labelTh: 'ปักหลักหินเกลือแร่ล่อฝูงอสูรให้อยู่ห่างทางข้ามและอนุรักษ์รัง',
+          match: n => ['beastmaster', 'healer'].includes(n.post) || E(n, 'personality.empathy') >= 58 || ['BEAST_SOVEREIGN', 'SPIRIT_HUSBANDRY'].includes(n.cult?.path),
+          consequenceTh: 'ฝูงอสูรย้ายไปลอกคราบที่คุ้งน้ำสงบหลังหลักเกลือแร่ ทางข้ามปลอดภัยและสัตว์คู่หูในสำนักมีความผูกพันเพิ่มขึ้น',
+          effect: { customId: 'CUSTOM_KEEPER_FORD_SANCTUARY', citySafetyDelta: 6, petBondBonus: 8 }
+        },
+        {
+          id: 'ALCHEMIST_MOLTED_SCALE_HARVEST',
+          labelTh: 'จัดเวรเก็บคราบเกล็ดที่ลอกทิ้งริมหินมาปรุงโอสถโดยไม่รบกวนฝูงอสูร',
+          match: n => ['alchemy', 'herbal'].includes(n.post) || E(n, 'interests.alchemy') >= 55,
+          consequenceTh: 'หอโอสถได้คราบเกล็ดอสูรที่สมบูรณ์มาใช้เป็นวัตถุดิบโดยไม่ต้องเสี่ยงปะทะกับฝูงอสูร',
+          effect: { customId: 'CUSTOM_MOLTED_SCALE_HARVEST', skillPractice: 'ALCHEMY', cityProsperityDelta: 4 }
+        },
+        {
+          id: 'CAUTIOUS_FORD_DETOUR_POSTS',
+          labelTh: 'ปักป้ายเตือนช่วงเวลาลอกคราบ 6 วันให้คาราวานใช้ทางเลี่ยงเนินสูง',
+          match: () => true,
+          consequenceTh: 'คนเดินทางและคาราวานเลี่ยงตลิ่งในช่วง 6 วันลอกคราบ ลดการสูญเสียบนเส้นทางแดนเหนือและแดนทักษิณ',
+          effect: { citySafetyDelta: 5, skillPractice: 'BEAST_TAMING' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_06_STOREROOM_FLOORBOARD_SHRINE',
+      titleTh: 'หิ้งบูชาช่างหลอมใต้พื้นไม้ห้องเก็บของเก่า',
+      group: 'CODEX_ADOPTED',
+      category: 'CRAFT_TRADITION',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_06_STOREROOM_ANVIL_TALISMAN',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['TOWN_YH_TIEKUANG_HOLLOW', 'CITY_CY_RONGLU_CAPITAL'],
+      summaryTh: 'ใต้แผ่นไม้พื้นห้องเก็บของเก่าในสำนักมีทั่งเหล็กจิ๋วและป้ายชื่อช่างหลอมซ่อนอยู่ เมื่อเทียบกับตราเหล็กที่ตำบลเตาเหล็กซากสำริดจึงพบตำรับชุบขี้เถ้าถนอมเกราะ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_FLOORBOARD_DISCOVERY',
+          titleTh: 'พบทั่งเหล็กจิ๋วและแผ่นไม้สลักตราช่างใต้พื้นห้องเก็บของเก่า',
+          locationId: 'TOWN_YH_TIEKUANG_HOLLOW',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ระหว่างจัดระเบียบห้องเก็บของในสำนัก ศิษย์พบหิ้งเหล็กขนาดเล็กซ่อนอยู่ใต้คานไม้พร้อมห่อขี้เถ้าสน'
+        },
+        {
+          idx: 1,
+          id: 'TRACE_MAKER_MARK_AT_TIEKUANG',
+          titleTh: 'นำตราช่างไปเทียบกับสมุดตระกูลช่างที่ตำบลเตาเหล็กซากสำริด',
+          locationId: 'TOWN_YH_TIEKUANG_HOLLOW',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าเป็นตราของหัวหน้าช่างหลอมสมัยเจ้าสำนักรุ่นที่ 4 ผู้คิดค้นวิธีชุบผิวชุดเกราะด้วยขี้เถ้าสมุนไพร'
+        },
+        {
+          idx: 2,
+          id: 'RESTORE_ASH_TEMPER_METHOD',
+          titleTh: 'ฟื้นฟูตำรับชุบขี้เถ้าถนอมเกราะและบูรณะหิ้งรำลึกช่างหลอม',
+          locationId: 'CITY_CY_RONGLU_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'นำวิธีชุบขี้เถ้าถนอมเกราะกลับมาใช้ในโรงหลอมสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'ADOPT_ASH_WARD_ARMOR_MAINTENANCE',
+          labelTh: 'บรรจุ「ตำรับชุบขี้เถ้าสนถนอมเกราะ」เป็นขั้นตอนมาตรฐานของโรงหลอมสำนัก',
+          match: n => ['forge', 'arraymaster', 'quartermaster'].includes(n.post) || E(n, 'aptitudes.crafting') >= 52,
+          consequenceTh: 'โรงหลอมสำนักนำวิธีชุบขี้เถ้าสนมาเคลือบชุดเกราะพื้นฐาน ช่วยเพิ่มความทนทานและพลังป้องกันให้ศิษย์ทั้งสำนัก',
+          effect: { customId: 'CUSTOM_STOREROOM_ASH_TEMPER', skillPractice: 'FORGING', cityProsperityDelta: 4 }
+        },
+        {
+          id: 'SHRINE_HONOR_ARTISAN_LINEAGE',
+          labelTh: 'ตั้งหิ้งรำลึกบูรพาจารย์ช่างหลอมไว้ข้างเตาหลอมหลักเพื่อสร้างขวัญกำลังใจฝ่ายผลิต',
+          match: () => true,
+          consequenceTh: 'ศิษย์สายช่างรู้สึกได้รับเกียรติและสืบทอดความประณีตในการดูแลรักษาอุปกรณ์ของสำนัก',
+          effect: { customId: 'CUSTOM_ARTISAN_SHRINE_HONOR', sectFameDelta: 5, skillPractice: 'FORGING' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_07_SEVENTH_GEN_EMPTY_CHAIR',
+      titleTh: 'เก้าอี้ว่างและกระบี่ไม้ท้อในโถงบรรพชนรุ่นที่เจ็ด',
+      group: 'CODEX_ADOPTED',
+      category: 'SECT_LINEAGE',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['CITY_YH_OLD_DAREN_SQUARE', 'TOWN_YH_QINGXI_FOOT'],
+      summaryTh: 'คลี่คลายข่าวลือเรื่องกระบี่ไม้ท้อและเก้าอี้ว่างในโถงบรรพชน โดยเชื่อมโยงบันทึกเจ้าสำนักรุ่นที่ 5–6 เข้ากับตราหินเทาไร้ลักษณ์ของเจ้าสำนักรุ่นที่ 7',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_EMPTY_CHAIR_RUMOR',
+          titleTh: 'ศิษย์รุ่นใหม่ตั้งคำถามเรื่องเก้าอี้ว่างและกระบี่ไม้ท้อข้างแท่นบรรพชน',
+          locationId: 'TOWN_YH_QINGXI_FOOT',
+          accountId: 'FOLK_ORAL',
+          descTh: 'เกิดคำร่ำลือในหมู่ศิษย์ว่าเหตุใดข้างแท่นป้ายบรรพชนรุ่นที่ 6 จึงมีเก้าอี้ว่างและกระบี่ไม้ท้อไร้คมแขวนอยู่'
+        },
+        {
+          idx: 1,
+          id: 'INSPECT_GEN5_GEN6_ARCHIVE_NOTES',
+          titleTh: 'ค้นคว้าสมุดบันทึกของเจ้าสำนักรุ่นที่ 5 กู้เหยียนจือ และรุ่นที่ 6 โม่ชางไห่',
+          locationId: 'CITY_YH_OLD_DAREN_SQUARE',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบบันทึกว่าตราประจำตำแหน่งแท้จริงคือตราหินเทาไร้ลักษณ์ ส่วนเก้าอี้ว่างและกระบี่ไม้ท้อเป็นอนุสรณ์ถึงศิษย์พี่ผู้สละชีพเฝ้าด่านหน้า'
+        },
+        {
+          idx: 2,
+          id: 'AFFIRM_GEN7_STEWARDSHIP_RITE',
+          titleTh: 'ประกอบพิธีรำลึกผู้พิทักษ์ด่านและยืนยันธรรมเนียมผู้สืบทอดรุ่นที่ 7',
+          locationId: 'CITY_YH_OLD_DAREN_SQUARE',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เจ้าสำนักและผู้อาวุโสประกาศความหมายที่แท้จริงของเก้าอี้ว่างและตราหินเทาไร้ลักษณ์ต่อศิษย์ทั้งสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'REGALIA_DAO_INSIGHT_RESONANCE',
+          labelTh: 'อัญเชิญตราหินเทาไร้ลักษณ์ขึ้นรับกระแสปณิธานบูรพาจารย์ทั้ง 6 รุ่น',
+          match: (n, W) => W && W.sect && (n.id === W.sect.masterId || n.post === 'disciples'),
+          consequenceTh: 'ตราหินเทาไร้ลักษณ์สั่นพ้องกับปณิธานบูรพาจารย์รุ่นที่ 1–6 เพิ่มแต้มตื่นรู้ DAO_INSIGHT และเสียงสะท้อนต้นกำเนิดของสำนัก',
+          effect: { regaliaVector: 'DAO_INSIGHT', regaliaAmount: 1, originEchoesDelta: 2, sectFameDelta: 8 }
+        },
+        {
+          id: 'GUARDIAN_CHAIR_MEMORIAL_ETCHING',
+          labelTh: 'สลักนามศิษย์พี่ผู้พิทักษ์ด่านไว้ที่พนักเก้าอี้ว่างและใช้กระบี่ไม้ท้อสอนวิชาพื้นฐานแก่ศิษย์ใหม่',
+          match: () => true,
+          consequenceTh: 'ศิษย์ทั้งสำนักเข้าใจรากเหง้าความเสียสละของรุ่นที่ 6 เพิ่มความภักดีและขวัญกำลังใจในการปกป้องสำนัก',
+          effect: { originEchoesDelta: 1, sectFameDelta: 6, skillPractice: 'SWORD' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_08_MISSING_BEND_TRAIL_SKETCH',
+      titleTh: 'ภาพร่างแผนที่รอยพับขาดของสมรภูมิเทียนกู่',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_RUIN',
+      layer: 'SHATTERED_SUBCONTINENT',
+      factId: 'FACT_08_TIANGU_MISSING_RIVER_BEND',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['PASS_BM_HANLONG_GATE', 'CITY_BM_XINGYUN_CITADEL', 'TOWN_BM_BAIMEI_OLD_FORT'],
+      summaryTh: 'ภาพร่างถ่านไม้แสดงจุดสังเกตสองแห่งของสมรภูมิเทียนกู่แต่ตรงกลางขาดหายไปตามรอยพับ ต้องคำนวณร่องน้ำโบราณที่เปลี่ยนทิศหลังประตูมิติระเบิด',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_CREASED_CHARCOAL_MAP',
+          titleTh: 'ได้ภาพร่างแผนที่ถ่านไม้ที่รอยพับตรงคุ้งน้ำขาดหายไป',
+          locationId: 'PASS_BM_HANLONG_GATE',
+          accountId: 'FOLK_ORAL',
+          descTh: 'พบแผ่นหนังแกะวาดแนวปราการของหลี่เจี้ยนซิน (#6) และเนินธนูของเย่ชิงชาง (#8) แต่ส่วนเชื่อมตรงกลางฉีกขาด'
+        },
+        {
+          idx: 1,
+          id: 'CALCULATE_OLD_RIVERBED_AT_XINGYUN',
+          titleTh: 'เทียบแผนที่ดาวเมืองซิงหยวนเพื่อหาแนวร่องน้ำแห้งก่อนแผ่นดินทรุด',
+          locationId: 'CITY_BM_XINGYUN_CITADEL',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'คำนวณพบว่าแม่น้ำโบราณเบี่ยงทิศไปทางเมืองเก่ากระบี่เหมยขาวหลังจากแรงระเบิดประตูมิติหลวง'
+        },
+        {
+          idx: 2,
+          id: 'SURVEY_BAIMEI_BATTLE_RIDGE',
+          titleTh: 'ลงพื้นที่สำรวจร่องน้ำแห้งหลังเมืองเก่ากระบี่เหมยขาว',
+          locationId: 'TOWN_BM_BAIMEI_OLD_FORT',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ตรวจสอบหลักศิลาสมรภูมิเทียนกู่และบันทึกผลลัพธ์ตามสภาพจริงของโบราณสถาน'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'INSCRIBE_LI_JIANXIN_DEFENSE_FORMATION',
+          labelTh: 'ลอกลายจารึกค่ายกลตั้งรับ 7 วัน 7 คืนของหลี่เจี้ยนซิน (#6) บนผาหิน',
+          match: n => E(n, 'values.martialPeak') >= 55 || ['martial', 'commander', 'vanguard'].includes(n.post),
+          consequenceTh: 'แม้ศาสตราเอกในตำนานจะมีผู้ถือครองตามกฎหนึ่งเดียวในโลกแล้ว แต่คณะสำรวจได้จารึกกระบวนท่าตั้งรับหน้าประตูเมืองเทียนกู่กลับมาเสริมทักษะการรบของสำนักอย่างสมบูรณ์',
+          effect: { routeBonusLeg: ['PASS_BM_HANLONG_GATE', 'TOWN_BM_BAIMEI_OLD_FORT'], routeMultiplier: 0.88, skillPractice: 'SWORD', sectFameDelta: 8 }
+        },
+        {
+          id: 'RECOVER_METEOR_ARROW_SLAG',
+          labelTh: 'เก็บกู้เศษหัวธนูเหล็กไหลของทัพเย่ชิงชาง (#8) จากชั้นดินร่องน้ำแห้ง',
+          match: () => true,
+          consequenceTh: 'เก็บกู้เศษโลหะสมรภูมิโบราณและบันทึกพิกัดร่องน้ำเทียนกู่ลงในแผนที่สำนักอย่างแม่นยำ',
+          effect: { closedLoopStonesFromPool: 90, skillPractice: 'FORGING', citySafetyDelta: 4 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_09_ONE_SALT_LINE_TWO_PORTS',
+      titleTh: 'สายเกลือหนึ่งเส้น สองท่าเรือพิพาท',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_TRADE',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_09_HAIMEN_NANZHU_SALT_CURRENT',
+      polityId: 'POL_DONGHUANG',
+      anchorNodeIds: ['CITY_DH_HAIMEN_PORT', 'CITY_SO_NANZHU_PEARL_ISLE', 'CITY_SO_LONGWAN_SHIPYARD'],
+      summaryTh: 'ท่าเรือไห่เหมินและเกาะไข่มุกหนานจูต่างกล่าวหาอีกฝ่ายว่ากักตุนเกลือทะเล แต่บันทึกน้ำขึ้นน้ำลงของอู่ต่อเรือหลงวานชี้ว่าเกิดจากสันดอนทรายหนุนช่วงมรสุมเปลี่ยนทิศ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_SALT_SHORTAGE_BLAME',
+          titleTh: 'รับรู้ข้อพิพาทเรื่องเกลือขาดแคลนระหว่างท่าเรือไห่เหมินกับเกาะหนานจู',
+          locationId: 'CITY_DH_HAIMEN_PORT',
+          accountId: 'FOLK_ORAL',
+          descTh: 'พ่อค้าเกลือสองท่าเรือต่างโทษกันไปมาจนราคาเสบียงริมฝั่งผันผวน'
+        },
+        {
+          idx: 1,
+          id: 'CHECK_LONGWAN_TIDE_AND_DRAFT_LOGS',
+          titleTh: 'ตรวจสอบสมุดกินน้ำลึกของเรือบรรทุกเกลือที่อู่ต่อเรืออ่าวหลงวาน',
+          locationId: 'CITY_SO_LONGWAN_SHIPYARD',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าเรือเกลือท้องแบนติดสันดอนปากอ่าวไห่เหมินเฉพาะช่วงมรสุมเปลี่ยนทิศ 12 วัน'
+        },
+        {
+          idx: 2,
+          id: 'ESTABLISH_MONSOON_SALT_RELAY',
+          titleTh: 'วางระบบขนถ่ายเกลือผ่านอ่าวหลงวานและสำรองเสบียงก่อนมรสุม',
+          locationId: 'CITY_SO_NANZHU_PEARL_ISLE',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'คลี่คลายความเข้าใจผิดของสองท่าเรือและปรับแผนเสบียงของสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'QUARTERMASTER_PRE_MONSOON_STOCK',
+          labelTh: 'จัดซื้อและสำรองเกลือถนอมเสบียงเข้าโรงครัวสำนักก่อนช่วงมรสุมเปลี่ยนทิศ',
+          match: n => ['provision', 'quartermaster', 'treasury'].includes(n.post) || E(n, 'personality.caution') >= 55,
+          consequenceTh: 'ฝ่ายเสบียงสำรองเกลือและอาหารแห้งล่วงหน้า พร้อมเปิดทางขนถ่ายผ่านอ่าวหลงวาน ทำให้ทั้งสองท่าเรือรุ่งเรืองขึ้น',
+          effect: { routeBonusLeg: ['CITY_DH_HAIMEN_PORT', 'CITY_SO_LONGWAN_SHIPYARD'], routeMultiplier: 0.87, cityProsperityDelta: 6, mealGrant: 6 }
+        },
+        {
+          id: 'ARBITRATE_TWO_PORT_FERRY_PACT',
+          labelTh: 'เป็นคนกลางจัดตารางเรือลำเลียงน้ำตื้นระหว่างไห่เหมิน–หลงวาน–หนานจู',
+          match: () => true,
+          consequenceTh: 'นายท่าทั้งสองฝั่งยอมรับตารางเดินเรือตามร่องน้ำมรสุม ลดความตึงเครียดชายฝั่งทักษิณ–บูรพา',
+          effect: { routeBonusLeg: ['CITY_SO_LONGWAN_SHIPYARD', 'CITY_SO_NANZHU_PEARL_ISLE'], routeMultiplier: 0.88, citySafetyDelta: 5, cityProsperityDelta: 5 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_10_DAMAGED_MEMORIAL_RESTORED_NAME',
+      titleTh: 'ชื่อที่เลือนหายบนศิลาอนุสรณ์ริมทาง',
+      group: 'CODEX_ADOPTED',
+      category: 'FOLK_MEMORIAL',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_10_ROADSIDE_PHYSICIAN_STELE',
+      polityId: 'POL_SUVARNABODHI',
+      anchorNodeIds: ['TOWN_SB_CIHANG_ALMS', 'CITY_SB_JINYA_SANGHA', 'TOWN_GJ_BAICAO_STILT'],
+      summaryTh: 'ศิลาอนุสรณ์แตกหักริมทางถูกชาวบ้านเข้าใจผิดว่าเป็นหลุมศพเซียนกระบี่ แต่เมื่อลอกตะไคร่และค้นทะเบียนโรงทานฉือหางกลับพบว่าเป็นอนุสรณ์ของหมอยาเดินเท้าผู้สละชีพ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_MISATTRIBUTED_SWORD_SHRINE',
+          titleTh: 'พบศิลาอนุสรณ์ริมทางที่ถูกเซ่นไหว้ในฐานะศาลเซียนกระบี่นิรนาม',
+          locationId: 'TOWN_SB_CIHANG_ALMS',
+          accountId: 'FOLK_ORAL',
+          descTh: 'นักเดินทางพากันวางจอกสุราหน้าหินแตกที่มีรอยบากลึกโดยเชื่อว่าเป็นรอยกระบี่โบราณ'
+        },
+        {
+          idx: 1,
+          id: 'RUB_MOSS_GROOVES_AND_CHECK_ALMS_ROLL',
+          titleTh: 'ลอกคราบตะไคร่อ่านอักษรย่อสมุนไพรและค้นสมุดโรงทานฉือหาง',
+          locationId: 'CITY_SB_JINYA_SANGHA',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบชื่อหมอยาสามัญชน「เว่ยชิง」และสูตรยาต้มแก้ไข้หมอกที่สลักอยู่โคนแผ่นหิน'
+        },
+        {
+          idx: 2,
+          id: 'RESTORE_PHYSICIAN_MEMORIAL_NAME',
+          titleTh: 'สลักชื่อหมอยาเว่ยชิงคืนสู่ศิลาและฟื้นฟูตำรับยาต้มริมทาง',
+          locationId: 'TOWN_SB_CIHANG_ALMS',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'คืนเกียรติยศที่แท้จริงให้ผู้วายชนม์และนำความรู้ทางการแพทย์กลับมาใช้'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'HEALER_ADOPT_WEIQING_DECOCTION',
+          labelTh: 'บูรณะป้ายชื่อหมอยาเว่ยชิงและนำตำรับน้ำต้มสมุนไพรไปใช้ในสถานรักษาสำนัก',
+          match: n => ['healer', 'alchemy', 'herbal'].includes(n.post) || E(n, 'personality.empathy') >= 55,
+          consequenceTh: 'หอโอสถและสถานรักษาได้แนวทางต้มยาสมุนไพรพื้นฐานช่วยฟื้นฟูอาการบาดเจ็บและความเหนื่อยล้าของศิษย์',
+          effect: { customId: 'CUSTOM_WEIQING_HERBAL_BROTH', skillPractice: 'MEDICINE', citySafetyDelta: 5, sectFameDelta: 6 }
+        },
+        {
+          id: 'WAYSIDE_HERB_TEA_PAVILION',
+          labelTh: 'ตั้งซุ้มหม้อน้ำชาสมุนไพรข้างศิลาอนุสรณ์เพื่อดูแลคนเดินทางตามเจตนารมณ์เดิม',
+          match: () => true,
+          consequenceTh: 'คนเดินทางแถบโรงทานฉือหางและหมู่บ้านไป๋เฉ่าได้รับน้ำชาสมุนไพรคุ้มกันไข้ป่า สร้างชื่อเสียงด้านเมตตาธรรมแก่สำนัก',
+          effect: { cityProsperityDelta: 5, citySafetyDelta: 4, sectFameDelta: 7 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_11_MEAL_PAID_TWICE',
+      titleTh: 'มื้ออาหารที่ถูกจ่ายซ้ำในโรงครัวสำนัก',
+      group: 'CODEX_ADOPTED',
+      category: 'SLICE_OF_LIFE',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_11_FERRY_TRAVELER_TWICE_PAID_MEAL',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['TOWN_YH_LIUWAN_FERRY', 'TOWN_YH_QINGXI_FOOT'],
+      summaryTh: 'เรื่องราวชีวิตประจำวันในโรงครัวสำนัก เมื่อมีผู้วางเบี้ยค่าอาหารซ้ำไว้ใต้หม้อแกงสองครั้ง จนเกิดความเข้าใจผิดระหว่างเวรยามผู้ระแวงกับพ่อครัวผู้ภูมิใจ ก่อนจะพบว่าเป็นธรรมเนียมฝากชามอุ่นของศิษย์จากท่าข้ามฟาก',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_EXTRA_TALLY_UNDER_POT',
+          titleTh: 'พบเบี้ยค่าอาหารวางซ้ำไว้ใต้หม้อแกงในโรงครัวสำนักเป็นครั้งที่สอง',
+          locationId: 'TOWN_YH_QINGXI_FOOT',
+          accountId: 'FOLK_ORAL',
+          descTh: 'พ่อครัวและเวรยามในโรงครัวถกเถียงกันว่าใครเป็นคนแอบวางเบี้ยค่าอาหารเกินไว้ใต้หม้อแกง'
+        },
+        {
+          idx: 1,
+          id: 'WITNESS_DAWN_KITCHEN_EXCHANGE',
+          titleTh: 'สังเกตเห็นศิษย์ต่างถิ่นแอบวางเบี้ยไว้ข้างเตาไฟยามเช้ามืด',
+          locationId: 'TOWN_YH_LIUWAN_FERRY',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'ศิษย์ที่เข้าครัวแต่เช้าพบว่าผู้วางเบี้ยคือศิษย์น้องจากท่าข้ามฟากคุ้งหลิวเขียวที่เคยได้รับน้ำใจจากศิษย์พี่ในวันแรกเข้าสำนัก'
+        },
+        {
+          idx: 2,
+          id: 'KEEP_WARM_BOWL_CUSTOM',
+          titleTh: 'เข้าใจธรรมเนียม「ฝากชามอุ่นท่าข้ามฟาก」และส่งต่อน้ำใจในโรงครัว',
+          locationId: 'TOWN_YH_LIUWAN_FERRY',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ผู้ที่อยู่ในเหตุการณ์เลือกวิธีรักษาธรรมเนียมน้ำใจเล็กๆ นี้ไว้ในโรงครัวสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'KITCHEN_WARM_BOWL_HOOK',
+          labelTh: 'แขวนป้ายไม้「ชามอุ่นฝากสหาย」ไว้หน้าเตาแกงเพื่อให้ศิษย์แบ่งปันมื้ออาหารแก่ผู้กลับจากเดินทางไกล',
+          match: n => ['provision', 'steward'].includes(n.post) || E(n, 'personality.empathy') >= 50,
+          consequenceTh: 'โรงครัวสำนักมีธรรมเนียมเก็บแกงอุ่นไว้ให้ศิษย์ที่เพิ่งกลับจากการเดินทางไกล ช่วยเพิ่มอารมณ์ดีและลดความโดดเดี่ยว',
+          effect: { customId: 'CUSTOM_FERRY_WARM_BOWL', moodDelta: 8, lonelinessDelta: -10, mealGrant: 3 }
+        },
+        {
+          id: 'QUIET_GRATITUDE_BOND',
+          labelTh: 'เก็บเรื่องนี้ไว้เป็นความลับที่รู้กันเฉพาะพยานในโรงครัวเพื่อไม่ให้ผู้ฝากเบี้ยเคอะเขิน',
+          match: () => true,
+          consequenceTh: 'พยานในโรงครัวยิ้มรับธรรมเนียมเงียบๆ นี้และกระชับความสัมพันธ์ฉันพี่น้องร่วมสำนักให้แน่นแฟ้นขึ้น',
+          effect: { moodDelta: 6, lonelinessDelta: -8 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_12_WRONG_RIDGE_BEAST_REPORT',
+      titleTh: 'รายงานอสูรปิดทางผิดสันเขา',
+      group: 'CODEX_ADOPTED',
+      category: 'GEOGRAPHY_RECON',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_12_RED_RIDGE_TWIN_PASS_NAMES',
+      polityId: 'POL_XIRONG',
+      anchorNodeIds: ['CITY_XR_CHIYAN_CAPITAL', 'PASS_CY_HEIYAN_ASH_PASS', 'PASS_XR_XUEYU_PENAL_GATE'],
+      summaryTh: 'รายงานด่วนแจ้งว่าฝูงอสูรและหินถล่มปิดทาง「สันเขาแดง」ซึ่งเป็นชื่อเรียกซ้ำกันของสองเส้นทางบนพรมแดนประจิม ต้องตรวจคราบแร่กำมะถันเพื่อระบุสันเขาที่แท้จริง',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_AMBIGUOUS_RED_RIDGE_ALERT',
+          titleTh: 'รับแจ้งข่าวด่วนเรื่องหินถล่มและอสูรปิดทาง「สันเขาแดง」โดยไม่ระบุพิกัดชัดเจน',
+          locationId: 'PASS_XR_XUEYU_PENAL_GATE',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ข่าวลือระบุเพียงชื่อเล่นท้องถิ่นว่าสันเขาแดงถูกปิด ทำให้ไม่แน่ชัดว่าเป็นทางไปซีหรงหรือฉื่อเยี่ยน'
+        },
+        {
+          idx: 1,
+          id: 'INSPECT_CARAVAN_SULFUR_DUST',
+          titleTh: 'ตรวจคราบเขม่ากำมะถันบนล้อเกวียนและสอบทานเส้นทางที่ด่านช่องเถ้าดำ',
+          locationId: 'PASS_CY_HEIYAN_ASH_PASS',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบคราบกำมะถันจากหมู่บ้านหลิวหวงบนเกวียนผู้ส่งข่าว ยืนยันว่าเหตุเกิดที่ด่านช่องเถ้าดำเฮยเหยียน'
+        },
+        {
+          idx: 2,
+          id: 'UPDATE_ATLAS_RIDGE_WARNING',
+          titleTh: 'ปรับปรุงพิกัดเตือนภัยบนแผนที่ยุทธภพและเปิดทางเลี่ยงที่ถูกต้อง',
+          locationId: 'CITY_XR_CHIYAN_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'บันทึกความแตกต่างของสองสันเขาลงในแผนที่เดินทัพและเคลียร์เส้นทางที่ถูกเข้าใจผิด'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'CLEAR_HEIYAN_ROCKSLIDE_PASS',
+          labelTh: 'ส่งหน่วยลาดตระเวนไปเคลียร์หินถล่มที่ด่านช่องเถ้าดำเฮยเหยียนและปักป้ายแยกชื่อสองสันเขา',
+          match: n => ['wildwarden', 'vanguard', 'commander', 'mission'].includes(n.post) || E(n, 'personality.courage') >= 55,
+          consequenceTh: 'เปิดทางด่านช่องเถ้าดำเฮยเหยียนและแก้ไขความสับสนบนแผนที่ประจิม ทำให้การเดินทางทั้งสายซีหรงและฉื่อเยี่ยนรวดเร็วขึ้น',
+          effect: { routeBonusLeg: ['CITY_CY_RONGLU_CAPITAL', 'PASS_CY_HEIYAN_ASH_PASS'], routeMultiplier: 0.86, citySafetyDelta: 6 }
+        },
+        {
+          id: 'VERIFY_XIRONG_HIGHWAY_OPEN',
+          labelTh: 'ยืนยันในสมุดแผนที่สำนักว่าทางหลวงสู่นครปราการผาหินแดงซีหรงยังคงเปิดโล่งปลอดภัย',
+          match: () => true,
+          consequenceTh: 'ขบวนเดินทางสายตะวันตกไม่ต้องเสียเวลาอ้อมทะเลทรายโดยใช่เหตุ และแผนที่สำนักระบุพิกัดสันเขาอย่างแม่นยำ',
+          effect: { routeBonusLeg: ['PASS_XR_XUEYU_PENAL_GATE', 'CITY_XR_CHIYAN_CAPITAL'], routeMultiplier: 0.88, citySafetyDelta: 4 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_13_BOTTLENECK_BELL_ECHO',
+      titleTh: 'เสียงระฆังหลอนยามติดคอขวดและบันทึกธาตุไฟเข้าแทรก',
+      group: 'GEMINI_ORIGINAL',
+      category: 'BREAKTHROUGH_LORE',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_13_MERIDIAN_BELL_OMEN',
+      polityId: 'POL_BEIMING',
+      anchorNodeIds: ['CITY_BM_HANYU_CAPITAL', 'CITY_BM_XUELIAN_SPRINGS'],
+      summaryTh: 'ศิษย์ที่ติดคอขวดร่ำลือว่าเสียงระฆังกังวานสามครั้งในหูยามดึกคือลางมงคลให้ฝืนทะลวงขั้นทันที แต่เมื่อเทียบสมุดบันทึกเจ้าสำนักรุ่นที่ 5 กับตำราแพทย์น้ำพุหิมะอุ่นเสวี่ยเหลียนจึงพบว่าเป็นสัญญาณเตือนชีพจรขมับตีกลับก่อนจิตมารปะทุ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_MIDNIGHT_BELL_SUPERSTITION',
+          titleTh: 'ศิษย์ที่ติดคอขวดเล่าขานเรื่องเสียงระฆังสวรรค์สามคราเรียกทะลวงขั้น',
+          locationId: 'CITY_BM_HANYU_CAPITAL',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ความเชื่อเรื่องเสียงระฆังในหูยามดึกแพร่สะพัดในหมู่ผู้ฝึกตนที่ใจร้อนอยากทะลวงคอขวด'
+        },
+        {
+          idx: 1,
+          id: 'CROSSCHECK_GEN5_DIARY_AND_XUELIAN_NOTES',
+          titleTh: 'เทียบสมุดบันทึกธาตุไฟเข้าแทรกของเจ้าสำนักรุ่นที่ 5 กับตำราแพทย์เมืองน้ำพุหิมะอุ่น',
+          locationId: 'CITY_BM_XUELIAN_SPRINGS',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าเสียงระฆังสามคราคืออาการปราณอัดแน่นที่จุดขมับเมื่อจิตมารสะสมเกินเกณฑ์'
+        },
+        {
+          idx: 2,
+          id: 'CODIFY_BOTTLENECK_PULSE_DIAGNOSIS',
+          titleTh: 'บัญญัติหลักตรวจชีพจรขมับก่อนปิดด่านทะลวงขั้นในสำนัก',
+          locationId: 'CITY_BM_XUELIAN_SPRINGS',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เผยแพร่ความจริงเรื่องเสียงสะท้อนชีพจรเพื่อให้ศิษย์ประเมินโอกาสทะลวงขั้นตามความเป็นจริง'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'TEACH_MERIDIAN_BELL_CAUTION',
+          labelTh: 'บรรจุ「หลักฟังเสียงชีพจรขมับสามครา」ในหอคัมภีร์เพื่อระงับการฝืนทะลวงขั้นยามจิตมารสูง',
+          match: n => ['scripture', 'healer', 'master', 'deputy'].includes(n.post) || E(n, 'personality.rationality') >= 55,
+          consequenceTh: 'ศิษย์ในสำนักแยกแยะอาการชีพจรตีกลับออกจากนิมิตลวงได้แม่นยำขึ้น ลดความสูญเสียจากการฝืนทะลวงขั้นและลดจิตมารสะสม',
+          effect: { customId: 'CUSTOM_MERIDIAN_BELL_DIAGNOSIS', heartDemonDelta: -12, skillPractice: 'MEDICINE', sectFameDelta: 6 }
+        },
+        {
+          id: 'XUELIAN_WARM_SPRING_BREATHING',
+          labelTh: 'นำเคล็ดผ่อนลมหายใจน้ำพุอุ่นเสวี่ยเหลียนมาใช้คลายความดันปราณก่อนเข้าด่าน',
+          match: () => true,
+          consequenceTh: 'ผู้ฝึกตนที่ติดคอขวดรู้จักผ่อนปราณคลายจุดขมับก่อนเข้าด่านทะลวงขั้น เพิ่มความมั่นคงทางอารมณ์',
+          effect: { customId: 'CUSTOM_WARM_SPRING_BREATH', heartDemonDelta: -8, cultGain: 20 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_14_HALF_JADE_CLAN_TALLY',
+      titleTh: 'ป้ายหยกครึ่งซีกของตระกูลพลัดถิ่นแคว้นชางหลาน',
+      group: 'GEMINI_ORIGINAL',
+      category: 'KINSHIP_CLAN',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_14_CANGLAN_GRANARY_HALF_TALLY',
+      polityId: 'POL_YOUMING',
+      anchorNodeIds: ['CITY_YM_HUNDENG_CAPITAL', 'TOWN_YM_SHIBEI_RUBBING', 'TOWN_YH_CUIZHU_TEA'],
+      summaryTh: 'ศิษย์และชาวบ้านสองสายตระกูลที่อพยพจากแคว้นหมอกชางหลานถือป้ายหยกครึ่งซีกที่ประกบกันได้พอดี แต่ต่างฝ่ายต่างจำประวัติศาสตร์คนละด้านเรื่องการเผาคลังในคืนเมืองแตก',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_MATCHING_JADE_HALVES',
+          titleTh: 'พบป้ายหยกครึ่งซีกสองชิ้นที่มีรอยหักตรงกันแต่เล่าเรื่องคืนเมืองแตกต่างกัน',
+          locationId: 'TOWN_YH_CUIZHU_TEA',
+          accountId: 'FOLK_ORAL',
+          descTh: 'สายตระกูลฝั่งใต้และสายตระกูลฝั่งเหนือต่างเข้าใจว่าอีกฝ่ายทอดทิ้งตระกูลในคืนที่แคว้นชางหลานล่มสลาย'
+        },
+        {
+          idx: 1,
+          id: 'COMPARE_SHIBEI_RUBBING_AND_NOTCHES',
+          titleTh: 'นำป้ายหยกสองซีกมาประกบและเทียบกับแผ่นลอกลายศิลาที่ตำบลสือเปย',
+          locationId: 'TOWN_YM_SHIBEI_RUBBING',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'รอยสลักด้านในป้ายหยกเมื่อประกบกันชี้ไปยังหอทะเบียนเกณฑ์ทหารของแคว้นชางหลาน ไม่ใช่คลังข้าว'
+        },
+        {
+          idx: 2,
+          id: 'RECONCILE_TWO_BRANCH_ANCESTORS',
+          titleTh: 'เปิดเผยความเสียสละของบรรพชนทั้งสองสายที่เผาบัญชีเกณฑ์ทหารช่วยลูกหลาน',
+          locationId: 'CITY_YM_HUNDENG_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ประสานรอยร้าวสองสายตระกูลและบันทึกเกียรติคุณลงในทำเนียบเครือญาติสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'SWORN_CLAN_REUNION_RITE',
+          labelTh: 'จัดพิธีเชื่อมป้ายหยกสองสายตระกูลในโถงบรรพชนและฟื้นฟูไมตรีพี่น้องร่วมรากเหง้า',
+          match: n => E(n, 'values.familyClan') >= 52 || E(n, 'personality.loyalty') >= 55,
+          consequenceTh: 'ทายาททั้งสองสายตระกูลคลายความแค้นนับร้อยปีและจับมือเป็นพี่น้องร่วมสาบาน เพิ่มความไว้วางใจและความอบอุ่นในสำนัก',
+          effect: { customId: 'CUSTOM_CANGLAN_JADE_REUNION', moodDelta: 10, lonelinessDelta: -12, sectFameDelta: 6 }
+        },
+        {
+          id: 'SHIBEI_GENEALOGY_ARCHIVE',
+          labelTh: 'ฝากสำเนาแผ่นลอกลายสายตระกูลชางหลานไว้ที่ตำบลศิลาจารึกสือเปยและหอทะเบียนสำนัก',
+          match: () => true,
+          consequenceTh: 'หอทะเบียนสำนักและตำบลสือเปยมีบันทึกสายตระกูลผู้อพยพที่ถูกต้อง ช่วยให้ผู้พลัดถิ่นสืบหารากเหง้าของตนได้',
+          effect: { cityProsperityDelta: 4, citySafetyDelta: 4, sectFameDelta: 5 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_15_NIGHT_DEW_KILN_SHIFT',
+      titleTh: 'ธรรมเนียมเฝ้าเตาไฟกะน้ำค้างแข็ง',
+      group: 'GEMINI_ORIGINAL',
+      category: 'CRAFT_LABOR',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_15_FROST_DEW_KILN_BANKING',
+      polityId: 'POL_CHIYAN',
+      anchorNodeIds: ['CITY_CY_RONGLU_CAPITAL', 'TOWN_CY_LIUHUANG_SULFUR'],
+      summaryTh: 'ศิษย์โรงหลอมและหอโอสถรุ่นใหม่มองว่าธรรมเนียมกลบเถ้าครึ่งปล่องและวางชามน้ำบ่อเย็นหน้าเตากะดึกเป็นภาระไร้สาระ จนกระทั่งได้เทียบกับภูมิปัญญาเตาหลอมกำมะถันแห่งฉื่อเยี่ยน',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_NIGHT_SHIFT_GRUMBLING',
+          titleTh: 'ศิษย์เวรเตาหลอมกะดึกตั้งข้อกังขาเรื่องกฎวางชามน้ำเย็นและกลบเถ้าครึ่งปล่อง',
+          locationId: 'TOWN_CY_LIUHUANG_SULFUR',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ศิษย์ฝึกหัดคิดจะยกเลิกธรรมเนียมวางชามน้ำหน้าเตาเพราะคิดว่าเป็นเพียงกฎรับน้องโบราณ'
+        },
+        {
+          idx: 1,
+          id: 'OBSERVE_DAWN_SULFUR_CONDENSATION',
+          titleTh: 'ตรวจพบผลึกเขม่าแร่และไอกำมะถันที่ควบแน่นอยู่ในชามน้ำยามน้ำค้างลง',
+          locationId: 'CITY_CY_RONGLU_CAPITAL',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'ช่างอาวุโสแห่งนครเตาหลอมอัคคีฉื่อเยี่ยนชี้ให้เห็นว่าชามน้ำเย็นช่วยดักก๊าซพิษไม่ให้ไหลย้อนเข้าปอดช่างกะเช้า'
+        },
+        {
+          idx: 2,
+          id: 'STANDARDIZE_FROST_DEW_SALVAGE',
+          titleTh: 'ยกระดับธรรมเนียมกลบเถ้ารับน้ำค้างเป็นเคล็ดความปลอดภัยและเก็บกู้ผงแร่ของสำนัก',
+          locationId: 'CITY_CY_RONGLU_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ศิษย์สายช่างเข้าใจเหตุผลที่แท้จริงและนำผงแร่ควบแน่นในชามน้ำกลับมาใช้ประโยชน์'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'KILN_DEW_MINERAL_RECLAMATION',
+          labelTh: 'เก็บกู้ผงแร่และเขม่าสมุนไพรที่ควบแน่นในชามน้ำค้างมาใช้เป็นวัตถุดิบเสริมของโรงหลอมและหอโอสถ',
+          match: n => ['forge', 'alchemy'].includes(n.post) || E(n, 'values.knowledgeCraft') >= 52,
+          consequenceTh: 'โรงงานสำนักทั้งปลอดภัยจากไอพิษตีกลับและได้ผงแร่ควบแน่นกลับมาใช้ประโยชน์ในระบบเศรษฐกิจหมุนเวียน',
+          effect: { customId: 'CUSTOM_FROST_DEW_KILN_SALVAGE', skillPractice: 'FORGING', cityProsperityDelta: 5 }
+        },
+        {
+          id: 'SAFE_MORNING_SHIFT_PROTOCOL',
+          labelTh: 'กำหนดให้การตรวจชามน้ำหน้าเตาเป็นสัญญาณเปิดงานที่ปลอดภัยของช่างกะเช้าทุกคน',
+          match: () => true,
+          consequenceTh: 'ลดความเหนื่อยล้าและอุบัติเหตุจากไอความร้อนในโรงหลอมและหอโอสถอย่างยั่งยืน',
+          effect: { customId: 'CUSTOM_SAFE_KILN_SHIFT', skillPractice: 'ALCHEMY', moodDelta: 5 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_16_EXILED_PRINCE_INKSTONE',
+      titleTh: 'แท่นฝนหมึกตราพยัคฆ์บิ่นของขุนนางตกอับ',
+      group: 'GEMINI_ORIGINAL',
+      category: 'COURT_AMBITION',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_16_TIGER_SEAL_CHIPPED_INKSTONE',
+      polityId: 'POL_XIRONG',
+      anchorNodeIds: ['CITY_XR_SHAYU_OASIS', 'PASS_XR_XUEYU_PENAL_GATE', 'CITY_XR_CHIYAN_CAPITAL'],
+      summaryTh: 'บัณฑิตขุนนางตกอับจากแดนประจิมพกแท่นฝนหมึกหินทรายแดงที่มีรอยตราพยัคฆ์บิ่น ถูกทางการกล่าวหาว่าทำบัญชีทหารหาย แต่ภายในฐานแท่นฝนหมึกกลับซ่อนสำมะโนครัวจริงที่ปกป้องชาวบ้านโอเอซิส',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_DISGRACED_SCHOLAR_RUMOR',
+          titleTh: 'พบขุนนางตกอับพร้อมแท่นฝนหมึกตราพยัคฆ์บิ่นที่เมืองการค้าโอเอซิสซาอวี่',
+          locationId: 'CITY_XR_SHAYU_OASIS',
+          accountId: 'COURT_CANON',
+          descTh: 'มีเสียงลือว่าขุนนางผู้นี้ถูกถอดยศจากด่านคุกโซ่โลหิตเพราะทุจริตและทำบัญชีเกณฑ์พลสูญหาย'
+        },
+        {
+          idx: 1,
+          id: 'UNLOCK_DOUBLE_BOTTOM_INKSTONE',
+          titleTh: 'พบรอยสลักสายทัวป๋ากัง (#60) และช่องลับใต้แท่นฝนหมึกหินทรายแดง',
+          locationId: 'PASS_XR_XUEYU_PENAL_GATE',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'เปิดฐานแท่นฝนหมึกพบสำมะโนครัวบ่อน้ำฉบับจริงที่ขุนนางผู้นี้ซ่อนไว้เพื่อไม่ให้ชาวโอเอซิสถูกขูดรีดส่วยน้ำเกินจริง'
+        },
+        {
+          idx: 2,
+          id: 'DECIDE_CENSUS_LEDGER_FATE',
+          titleTh: 'ตัดสินใจแนวทางจัดการสำมะโนครัวโอเอซิสและชะตาของขุนนางผู้ซื่อสัตย์',
+          locationId: 'CITY_XR_CHIYAN_CAPITAL',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกแนวทางระหว่างการคุ้มครองปราชญ์ผู้ซื่อตรงหรือการส่งหลักฐานให้ผู้ตรวจการราชสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'SHELTER_SCHOLAR_TREATISE_IN_SECT',
+          labelTh: 'เชิญบัณฑิตมาเป็นที่ปรึกษาตำราปกครองในหอคัมภีร์และเก็บรักษาสำมะโนครัวคุ้มครองชาวโอเอซิส',
+          match: n => E(n, 'personality.integrity') >= 55 || E(n, 'values.knowledgeCraft') >= 55 || ['scripture', 'master', 'deputy'].includes(n.post),
+          consequenceTh: 'สำนักได้ตำราบริหารยุทธปัจจัยชายแดนและสร้างสายสัมพันธ์อันดีกับชาวเมืองโอเอซิสซาอวี่',
+          effect: { customId: 'CUSTOM_OASIS_CENSUS_WISDOM', cityProsperityDelta: 6, citySafetyDelta: 5, sectFameDelta: 7, skillPractice: 'SCRIPTURE' }
+        },
+        {
+          id: 'DELIVER_PROOF_TO_XIRONG_CENSOR',
+          labelTh: 'ส่งสำเนาหลักฐานให้ผู้ตรวจการสายทัวป๋ากัง (#60) เพื่อคืนยศแก่ขุนนางผู้ซื่อสัตย์ในราชสำนักซีหรง',
+          match: () => true,
+          consequenceTh: 'ขุนนางผู้ซื่อตรงได้รับการคืนเกียรติในราชสำนักซีหรง ช่วยเพิ่มเสถียรภาพและไมตรีทางการทูตต่อสำนัก',
+          effect: { citySafetyDelta: 7, closedLoopStonesFromPool: 100, sectFameDelta: 6 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_17_BITTER_WILLOW_PLAGUE_WELL',
+      titleTh: 'บ่อน้ำหลิวขมและบันทึกโรคระบาดฤดูฝน',
+      group: 'GEMINI_ORIGINAL',
+      category: 'EPIDEMIC_RECOVERY',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_17_BITTER_WILLOW_MIASMA_WELL',
+      polityId: 'POL_GUJIAO',
+      anchorNodeIds: ['CITY_GJ_WANGU_TOTEM', 'TOWN_GJ_BAICAO_STILT', 'PASS_GJ_QIZHANG_MIASMA'],
+      summaryTh: 'ชาวบ้านและคนเดินทางหวาดกลัวบ่อน้ำที่มีรากหลิวสีดำชอนไชโดยคิดว่าเป็นคำสาปหนอนกู่ แต่บันทึกไม้ไผ่ของหมู่บ้านหมอสมุนไพรไป๋เฉ่าพิสูจน์ว่าเป็นการปลูกหลิวขมเพื่อกรองพิษไข้หมอก',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_CURSED_WELL_PANIC',
+          titleTh: 'พบความตื่นตระหนกเรื่องบ่อน้ำรากหลิวขมถูกกล่าวหาว่าเป็นบ่อพิษกู่เจียว',
+          locationId: 'PASS_GJ_QIZHANG_MIASMA',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ขบวนเดินทางไม่กล้าดื่มน้ำจากบ่อหินริมทางและกล่าวโทษชาวกู่เจียวว่าวางยาพิษในตาน้ำ'
+        },
+        {
+          idx: 1,
+          id: 'TEST_WILLOW_BARK_AT_BAICAO_STILT',
+          titleTh: 'ตรวจฤทธิ์เปลือกรากหลิวขมและค้นบันทึกโรคระบาดที่หมู่บ้านหมอสมุนไพรไป๋เฉ่า',
+          locationId: 'TOWN_GJ_BAICAO_STILT',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าเปลือกรากหลิวขมมีฤทธิ์ดูดซับพิษหมอกและสกัดเชื้อไข้ป่าในน้ำใต้ดิน'
+        },
+        {
+          idx: 2,
+          id: 'PROPAGATE_BITTER_WILLOW_FILTRATION',
+          titleTh: 'ประกาศความจริงเรื่องบ่อน้ำกรองพิษและนำกิ่งหลิวขมมาปลูกริมร่องน้ำสถานรักษา',
+          locationId: 'CITY_GJ_WANGU_TOTEM',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'คลี่คลายความหวาดระแวงที่ด่านหมอกเจ็ดชั้นและยกระดับการป้องกันโรคในสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'PLANT_BITTER_WILLOW_AT_SECT_SPRING',
+          labelTh: 'นำกิ่งพันธุ์หลิวขมทักษิณมาปลูกรอบร่องน้ำหอโอสถและสถานรักษาของสำนัก',
+          match: n => ['healer', 'herbal', 'alchemy'].includes(n.post) || E(n, 'personality.empathy') >= 52,
+          consequenceTh: 'น้ำในสถานรักษาสำนักมีฤทธิ์ต้านพิษหมอกอ่อนๆ ช่วยให้ผู้บาดเจ็บและผู้ติดพิษฟื้นตัวเร็วขึ้น',
+          effect: { customId: 'CUSTOM_BITTER_WILLOW_SPRING', skillPractice: 'MEDICINE', citySafetyDelta: 5, sectFameDelta: 6 }
+        },
+        {
+          id: 'CLEAN_AND_MARK_MIASMA_WELLS',
+          labelTh: 'ทำความสะอาดปากบ่อและติดป้ายอธิบายคุณประโยชน์ของรากหลิวขมตลอดแนวทางกู่เจียว–สุวรรณโพธิ์',
+          match: () => true,
+          consequenceTh: 'คนเดินทางและชาวบ้านทั้งสองแคว้นกลับมาใช้น้ำบ่อได้อย่างมั่นใจ ลดความตึงเครียดบริเวณชายแดนทักษิณ',
+          effect: { routeBonusLeg: ['PASS_GJ_QIZHANG_MIASMA', 'TOWN_GJ_BAICAO_STILT'], routeMultiplier: 0.88, citySafetyDelta: 6, cityProsperityDelta: 4 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_18_FOG_LANTERN_FERRY_OATH',
+      titleTh: 'ตะเกียงน้ำมันปลาและคำสัตย์คนแจวเรือข้ามหมอก',
+      group: 'GEMINI_ORIGINAL',
+      category: 'VESSEL_FERRY_LORE',
+      layer: 'SHATTERED_SUBCONTINENT',
+      factId: 'FACT_18_THREE_LANTERN_FOG_UNDERTOW',
+      polityId: null,
+      anchorNodeIds: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'CITY_SO_LONGWAN_SHIPYARD', 'TOWN_SO_OUYU_FISHER_ISLE'],
+      summaryTh: 'ชาวประมงเกาะโอวอวี๋ไม่กล้าออกเรือเมื่อเห็นแสงสีเขียวลอยเรี่ยน้ำเพราะกลัวสำเภาผี แต่ปูมเชือกหยั่งน้ำของอู่ต่อเรือหลงวานชี้ว่าเป็นสาหร่ายเรืองแสงจากร่องน้ำดูดริมขอบม่านกั้นภพ',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_GREEN_FOG_LIGHT_TABOO',
+          titleTh: 'รับรู้ข้อห้ามออกเรือยามเห็นแสงไฟสีเขียวลอยเรี่ยน้ำที่เกาะประมงโอวอวี๋',
+          locationId: 'TOWN_SO_OUYU_FISHER_ISLE',
+          accountId: 'FOLK_ORAL',
+          descTh: 'คนเรือเล่าขานเรื่องโคมไฟสำเภาผีที่ลากเรือหายเข้าไปในทะเลหมอกทักษิณ'
+        },
+        {
+          idx: 1,
+          id: 'STUDY_THREE_LANTERN_KNOT_LOG',
+          titleTh: 'ค้นคว้าสมุดปมเชือกหยั่งร่องน้ำสามตะเกียงที่อู่ต่อเรืออ่าวหลงวาน',
+          locationId: 'CITY_SO_LONGWAN_SHIPYARD',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบวิธีแขวนตะเกียงน้ำมันปลาสามดวงเพื่อวัดความลึกและหลบแนวร่องน้ำดูดที่พัดสาหร่ายเรืองแสงขึ้นมา'
+        },
+        {
+          idx: 2,
+          id: 'SOUND_OUTER_FOG_RECOVER_DRIFTWOOD',
+          titleTh: 'ทดลองหยั่งร่องน้ำหน้าป้อมประภาคารและเก็บกู้แผ่นไม้เรือจากโพ้นทะเลหมอก',
+          locationId: 'PASS_SO_DENGTAI_LIGHTHOUSE',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'ยืนยันความปลอดภัยของวิธีเดินเรือสามตะเกียงและพบร่องรอยอักษรจากแผ่นดินใหญ่นอกม่านหมอก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'ADOPT_THREE_LANTERN_FERRY_CODE',
+          labelTh: 'ถ่ายทอด「วิธีหยั่งร่องน้ำสามตะเกียง」ให้กองเรือข้ามฟากและคณะสำรวจทางน้ำของสำนัก',
+          match: n => ['mission', 'quartermaster', 'wildwarden'].includes(n.post) || ['TIDE_VOYAGER', 'WANDERING_DAO'].includes(n.cult?.path),
+          consequenceTh: 'การเดินเรือแถบปากน้ำมังกรหลับและอ่าวหลงวานปลอดภัยจากกระแสน้ำดูดริมทะเลหมอกและเดินทางได้รวดเร็วขึ้น',
+          effect: { routeBonusLeg: ['PASS_SO_DENGTAI_LIGHTHOUSE', 'CITY_SO_LONGWAN_SHIPYARD'], routeMultiplier: 0.85, citySafetyDelta: 6, cityProsperityDelta: 4 }
+        },
+        {
+          id: 'DECODE_BEYOND_FOG_DRIFTWOOD',
+          labelTh: 'นำแผ่นไม้สักสลักอักษรจากโพ้นทะเลหมอกกลับมาเก็บรักษาในหอจดหมายเหตุความลับม่านกั้นภพ',
+          match: () => true,
+          consequenceTh: 'หอคัมภีร์ได้หลักฐานชิ้นสำคัญที่ยืนยันว่าพ้นทะเลหมอกทักษิณออกไปยังมีอาณาจักรอื่นตั้งอยู่',
+          effect: { customId: 'CUSTOM_OUTER_FOG_DRIFTWOOD_PROOF', sectFameDelta: 8, skillPractice: 'SCRIPTURE' }
+        }
+      ]
+    },
+    {
+      id: 'STORY_19_SILENT_ANVIL_TEMPER_LINE',
+      titleTh: 'ลายน้ำประสานรอยร้าวของตระกูลช่างไร้เสียง',
+      group: 'GEMINI_ORIGINAL',
+      category: 'RELIC_MAKER_LINEAGE',
+      layer: 'IMPERIAL_CHESSBOARD',
+      factId: 'FACT_19_MUTE_ARMORER_TWIN_TEMPER',
+      polityId: 'POL_CHIYAN',
+      anchorNodeIds: ['CITY_CY_RONGLU_CAPITAL', 'TOWN_YX_TAMAHAGANE_SAND', 'CITY_YX_WUYACASTLE'],
+      summaryTh: 'ช่างหลอมอัคคีฉื่อเยี่ยนและช่างตีดาบทรายเหล็กดำหยุนเซียวต่างกล่าวหาว่าอีกฝ่ายขโมยเคล็ด「ลายน้ำประสานรอยร้าว」แต่เมื่อถอดกั่นศาสตราโบราณมาเทียบกลับพบตราค้อนไขว้ของช่างเกราะใบ้คนเดียวกัน',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_RIVAL_SMITH_ACCUSATION',
+          titleTh: 'รับรู้ข้อพิพาทเรื่องผู้คิดค้นลายน้ำประสานรอยร้าวระหว่างช่างฉื่อเยี่ยนกับช่างหยุนเซียว',
+          locationId: 'CITY_CY_RONGLU_CAPITAL',
+          accountId: 'FOLK_ORAL',
+          descTh: 'ช่างหลอมสองภูมิภาคโต้เถียงกันเรื่องสิทธิ์ความเป็นเจ้าของเคล็ดวิชาซ่อมรอยร้าวศาสตราโบราณ'
+        },
+        {
+          idx: 1,
+          id: 'INSPECT_TANG_MARKS_AT_TAMAHAGANE',
+          titleTh: 'ตรวจสอบรอยตอกรูปค้อนไขว้ไร้ลิ้นระฆังใต้กั่นดาบโบราณที่หมู่บ้านหาดทรายเหล็กดำ',
+          locationId: 'TOWN_YX_TAMAHAGANE_SAND',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบว่าต้นตระกูลช่างทั้งสองฝั่งเคยเป็นศิษย์พี่ศิษย์น้องร่วมเตาของช่างเกราะใบ้แห่งยุคเทียนกู่'
+        },
+        {
+          idx: 2,
+          id: 'REUNITE_FIRE_AND_WAVE_TEMPER',
+          titleTh: 'ผสานเคล็ดชุบไฟแรงฉื่อเยี่ยนเข้ากับเคล็ดตีทบเหล็กเย็นหยุนเซียวในโรงหลอมสำนัก',
+          locationId: 'CITY_YX_WUYACASTLE',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'คืนความสมบูรณ์ให้เคล็ดลายน้ำประสานทั่งไร้เสียงและยุติความบาดหมางของสองสายช่าง'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'MASTER_SILENT_ANVIL_SUTURE',
+          labelTh: 'บรรจุ「เคล็ดประสานทั่งไร้เสียงสองสายช่าง」ในโรงหลอมสำนักเพื่อยกระดับการบำรุงรักษาศาสตรา',
+          match: n => ['forge', 'arraymaster'].includes(n.post) || E(n, 'aptitudes.crafting') >= 55,
+          consequenceTh: 'ช่างหลอมของสำนักเชี่ยวชาญการประสานรอยร้าวและดูแลรักษาศาสตราทั้งสายหนักและสายคมเฉียบ',
+          effect: { customId: 'CUSTOM_SILENT_ANVIL_SUTURE', skillPractice: 'FORGING', cityProsperityDelta: 6, sectFameDelta: 7 }
+        },
+        {
+          id: 'BROKER_IRON_SULFUR_CRAFT_EXCHANGE',
+          labelTh: 'ประสานการแลกเปลี่ยนทรายเหล็กดำหยุนเซียวกับถ่านกำมะถันฉื่อเยี่ยนผ่านตลาดกลาง',
+          match: () => true,
+          consequenceTh: 'เปิดช่องทางแลกเปลี่ยนวัตถุดิบตีเหล็กระหว่างสองภูมิภาคและสร้างรายได้หมุนเวียนแก่สำนัก',
+          effect: { closedLoopStonesFromPool: 110, cityProsperityDelta: 5 }
+        }
+      ]
+    },
+    {
+      id: 'STORY_20_TWO_FACES_OF_ONE_EPITHET',
+      titleTh: 'สมญานามเดียว สองตำนานที่ขัดแย้ง',
+      group: 'GEMINI_ORIGINAL',
+      category: 'EPITHET_DISPUTE',
+      layer: 'PROVINCIAL_VEIL',
+      factId: 'FACT_20_BROKEN_BRIDGE_EPITHET_DISPUTE',
+      polityId: 'POL_YUNHE',
+      anchorNodeIds: ['PASS_YH_XIFENG_GORGE', 'CITY_YH_SHUANGJIANG'],
+      summaryTh: 'สมญานาม「ดาบสะบั้นสะพานซีเฟิง」ถูกขับขานในโรงเตี๊ยมเหนือว่าเป็นจอมมารผู้สังหารโจรสามสิบศพ แต่ชาวบ้านฝั่งใต้ยืนยันว่าเป็นจอมยุทธ์ผู้ฟันเชือกสะพานช่วยชาวบ้านหนีโดยไม่ฆ่าผู้ใดเลย',
+      stages: [
+        {
+          idx: 0,
+          id: 'SPARK_CONTRADICTORY_BALLADS',
+          titleTh: 'ได้ยินเพลงโรงเตี๊ยมสองสำนวนที่เล่าวีรกรรมของสมญานามเดียวกันตรงข้ามกันอย่างสิ้นเชิง',
+          locationId: 'CITY_YH_SHUANGJIANG',
+          accountId: 'FOLK_ORAL',
+          descTh: 'สำนวนเหนือเล่าว่าเป็นจอมยุทธ์อำมหิตผู้ฆ่าล้างสามสิบศพ ส่วนสำนวนใต้เล่าว่าเป็นผู้ถือศีลไม่สังหาร'
+        },
+        {
+          idx: 1,
+          id: 'EXAMINE_XIFENG_BRIDGE_PILLAR_AND_WITNESS',
+          titleTh: 'ตรวจรอยดาบบนเสาหินด่านช่องลมประจิมซีเฟิงและสอบถามพยานที่อยู่ในเหตุการณ์',
+          locationId: 'PASS_YH_XIFENG_GORGE',
+          accountId: 'SECT_ORTHODOX',
+          descTh: 'พบรอยดาบตัดเชือกสะพานเพียงรอยเดียว และได้พบอดีตโจรภูเขาที่สารภาพว่าหัวหน้าตนกุเรื่องสามสิบศพขึ้นเพื่อกลบเกลื่อนความขลาด'
+        },
+        {
+          idx: 2,
+          id: 'RECORD_DUAL_FACET_EPITHET_CHRONICLE',
+          titleTh: 'บันทึกทั้งนามเสียงที่น่าเกรงขามและคุณธรรมที่แท้จริงลงในทำเนียบสมญานามยุทธภพ',
+          locationId: 'CITY_YH_SHUANGJIANG',
+          accountId: 'VERIFIED_CHRONICLE',
+          descTh: 'เลือกวิธีบันทึกประวัติสมญานามในหอจดหมายเหตุสำนัก'
+        }
+      ],
+      resolutions: [
+        {
+          id: 'CHRONICLE_TRUTH_AND_DETERRENCE',
+          labelTh: 'บันทึกความจริงทั้งสองด้านไว้ในทำเนียบสมญานาม:「นามข่มขวัญโจร คุณธรรมคุ้มครองชาวบ้าน」',
+          match: n => ['scripture', 'spymaster', 'envoy'].includes(n.post) || E(n, 'aptitudes.comprehension') >= 52,
+          consequenceTh: 'ทำเนียบสมญานามของสำนักบันทึกทั้งที่มาของข่าวลือและข้อเท็จจริงจากพยาน ช่วยเพิ่มความน่าเชื่อถือของพงศาวดารสำนัก',
+          effect: { customId: 'CUSTOM_DUAL_EPITHET_VERIFICATION', sectFameDelta: 8, citySafetyDelta: 5, skillPractice: 'SCRIPTURE' }
+        },
+        {
+          id: 'BALLAD_CORRECTION_AT_SHUANGJIANG',
+          labelTh: 'ถ่ายทอดบทเพลงฉบับจริงให้วณิพกนครสองแควหยุนเหอขับขานเชิดชูคุณธรรมไม่สังหาร',
+          match: () => true,
+          consequenceTh: 'เรื่องราวจอมยุทธ์ตัดสะพานโดยไม่เปื้อนเลือดกลายเป็นบทเพลงสอนใจในนครสองแควหยุนเหอ',
+          effect: { sectFameDelta: 7, moodDelta: 6, cityProsperityDelta: 4 }
+        }
+      ]
+    }
+  ]);
+
+  const STORY_BY_ID = Object.freeze(Object.fromEntries(STORY_CHAINS.map(s => [s.id, s])));
+
+  // Ordinary Slice-of-Life & Lore-Driven Emergent Event Templates
+  const EMERGENT_LORE_EVENTS = Object.freeze([
+    {
+      id: 'EMERGENT_01_FERRY_TIDE_DEBATE',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_01_SHUANGJIANG_BACKFLOW',
+      storyId: 'STORY_01_SHUANGJIANG_FLOOD_LEDGER',
+      nodeId: 'CITY_YH_SHUANGJIANG',
+      titleTh: 'คนแจวเรือซวงเจียงถกเถียงเรื่องขีดระดับน้ำใต้ตอม่อสะพานเก่า',
+      storyTh: 'ริมท่าเทียบเรือนครสองแควหยุนเหอ คนแจวเรือเฒ่ากับเสมียนท่าเรือชี้ให้ศิษย์ที่เดินทางผ่านมาดูรอยสิ่วโบราณใต้ตอม่อหินซึ่งโผล่พ้นน้ำขึ้นมาในยามน้ำลด พร้อมถกเถียงกันว่าปีนี้กระแสน้ำหนุนจะมาเร็วกว่ากำหนดหรือไม่',
+      originCauseTh: 'ระดับน้ำสองแควลดต่ำลงจนเผยให้เห็นขีดวัดระดับน้ำยุคเหยียนหลิง',
+      consequenceTh: 'ผู้ที่อยู่ในเหตุการณ์ได้รับรู้ข้อมูลเรื่องระดับน้ำสองแควจากสถานที่จริง'
+    },
+    {
+      id: 'EMERGENT_02_SCRIPTURE_MARGIN_NOTE',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_02_BAILU_DUAL_COMMENTARY',
+      storyId: 'STORY_02_BAILU_DUAL_ANNOTATED_MANUAL',
+      nodeId: 'CITY_YH_BAILU_ACADEMY',
+      titleTh: 'ศิษย์หอคัมภีร์พบหมายเหตุสองสีในสำเนาตำราจากไป๋ลู่',
+      storyTh: 'ระหว่างคัดลอกคัมภีร์ที่ชำรุดในหอคัมภีร์ ศิษย์พบกระดาษคั่นหน้าจากเมืองบัณฑิตกวางขาวไป๋ลู่ที่มีรอยพู่กันหมึกชาดและหมึกดำเขียนโต้ตอบกันเรื่องวิธีโคจรลมปราณผ่านจุดชีพจรลัด',
+      originCauseTh: 'การตรวจชำระและคัดลอกคัมภีร์ประจำสัปดาห์ในหอคัมภีร์',
+      consequenceTh: 'จุดประกายการถกเถียงและเปรียบเทียบแนวทางฝึกฝนระหว่างสายรุกและสายมั่นคง'
+    },
+    {
+      id: 'EMERGENT_03_QINGLAN_WAX_STAMP_PARCEL',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_03_QINGLAN_DOUBLE_TOLL_SEAL',
+      storyId: 'STORY_03_QINGLAN_SECOND_TOLL_STAMP',
+      nodeId: 'CITY_DH_QINGLAN_DICE_CITY',
+      titleTh: 'หีบพัสดุจากแดนบูรพามีตราครั่งคลื่นคู่ของราชวงศ์ชิงหลานติดมาด้วย',
+      storyTh: 'ขณะตรวจรับหีบสมุนไพรแห้งและใบชาจากขบวนค้าขายตะวันออก ผู้ดูแลคลังสังเกตเห็นตราครั่งทองเหลืองรูปคลื่นคู่ของแคว้นชิงหลานที่ล่มสลายไปเมื่อเก้าสิบปีก่อนประทับซ้อนอยู่ใต้ตราด่านภาษีตงหวง',
+      originCauseTh: 'การหมุนเวียนสินค้าระหว่างคลังเก่าริมแม่น้ำชิงหลานกับตลาดหยุนเหอ',
+      consequenceTh: 'เปิดเบาะแสเรื่องเครือข่ายตั๋วแลกเงินและคลังพัสดุยุคเปลี่ยนผ่านแคว้นชิงหลาน'
+    },
+    {
+      id: 'EMERGENT_04_KITCHEN_TWICE_PAID_SOUP',
+      kind: 'SLICE_OF_LIFE',
+      factId: 'FACT_11_FERRY_TRAVELER_TWICE_PAID_MEAL',
+      storyId: 'STORY_11_MEAL_PAID_TWICE',
+      nodeId: 'TOWN_YH_LIUWAN_FERRY',
+      titleTh: 'เบี้ยค่าอาหารปริศนาวางซ้ำใต้หม้อแกงร้อนในโรงครัวสำนัก',
+      storyTh: 'หลังมื้อค่ำในโรงครัวสำนัก พ่อครัวพบเบี้ยค่าอาหารถูกวางซ้อนไว้ใต้ถาดหม้อแกงเป็นครั้งที่สองของสัปดาห์ ศิษย์ที่นั่งร่วมโต๊ะต่างอมยิ้มและคาดเดากันไปต่างๆ นานาว่าเป็นฝีมือของผู้ใด',
+      originCauseTh: 'ศิษย์จากลุ่มน้ำหยุนเหอปฏิบัติตามธรรมเนียมฝากชามอุ่นตอบแทนน้ำใจสหายอย่างเงียบๆ',
+      consequenceTh: 'บรรยากาศในโรงครัวอบอุ่นขึ้นและพยานในโรงครัวได้เรียนรู้ธรรมเนียมคนเดินทางริมท่าข้ามฟาก'
+    },
+    {
+      id: 'EMERGENT_05_NIGHT_KILN_WATER_BOWL',
+      kind: 'SLICE_OF_LIFE',
+      factId: 'FACT_15_FROST_DEW_KILN_BANKING',
+      storyId: 'STORY_15_NIGHT_DEW_KILN_SHIFT',
+      nodeId: 'CITY_CY_RONGLU_CAPITAL',
+      titleTh: 'คราบผลึกแร่ในชามน้ำบ่อหน้าเตาหลอมกะน้ำค้างแข็ง',
+      storyTh: 'ยามเช้ามืดที่น้ำค้างลงจัด ศิษย์เวรโรงหลอมที่เข้ามาเปิดเตาพบว่าในชามน้ำเย็นที่วางทิ้งไว้หน้าปล่องเถ้าเมื่อคืนมีคราบผงแร่ละเอียดลอยจับอยู่เต็มผิวน้ำ ส่วนอากาศในห้องหลอมกลับปลอดโปร่งไร้กลิ่นกำมะถันฉุน',
+      originCauseTh: 'อุณหภูมิรุ่งสางลดต่ำทำให้ไอกำมะถันและผงแร่ควบแน่นลงในชามน้ำเย็นหน้าเตา',
+      consequenceTh: 'ศิษย์สายช่างเริ่มเข้าใจเหตุผลที่แท้จริงของธรรมเนียมกลบเถ้ารับน้ำค้าง'
+    },
+    {
+      id: 'EMERGENT_06_ANCESTRAL_WOODEN_SWORD_DUSTING',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR',
+      storyId: 'STORY_07_SEVENTH_GEN_EMPTY_CHAIR',
+      nodeId: 'CITY_YH_OLD_DAREN_SQUARE',
+      titleTh: 'ศิษย์เวรทำความสะอาดโถงบรรพชนพบรอยสลักใต้ด้ามกระบี่ไม้ท้อข้างเก้าอี้ว่าง',
+      storyTh: 'ขณะปัดฝุ่นโถงป้ายวิญญาณบูรพาจารย์รุ่นที่ 1–6 ศิษย์เวรสังเกตเห็นว่าใต้ด้ามกระบี่ไม้ท้อไร้คมที่แขวนอยู่ข้างเก้าอี้ว่างมีอักษรย่อของเจ้าสำนักรุ่นที่ 6 โม่ชางไห่ สลักคำว่า「ระลึกถึงศิษย์พี่ผู้เฝ้าประตูเขา」คู่กับบันทึกกล่าวถึงตราหินเทาไร้ลักษณ์',
+      originCauseTh: 'การดูแลทำความสะอาดและสักการะป้ายบรรพชนประจำเดือน',
+      consequenceTh: 'ช่วยไขข้อข้องใจของศิษย์รุ่นใหม่เรื่องความแตกต่างระหว่างกระบี่ไม้ท้อที่ระลึกกับตราหินเทาไร้ลักษณ์ประจำตำแหน่งเจ้าสำนักรุ่นที่ 7'
+    },
+    {
+      id: 'EMERGENT_07_BOTTLENECK_MIDNIGHT_CHIME',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_13_MERIDIAN_BELL_OMEN',
+      storyId: 'STORY_13_BOTTLENECK_BELL_ECHO',
+      nodeId: 'CITY_BM_XUELIAN_SPRINGS',
+      titleTh: 'การสนทนาเรื่องเสียงระฆังในหูยามติดคอขวดที่ลานฝึกสมาธิ',
+      storyTh: 'หลังเสร็จสิ้นการนั่งสมาธิรอบค่ำ ศิษย์ที่กำลังติดคอขวดเล่าให้สหายฟังว่าตนได้ยินเสียงกังวานคล้ายระฆังสามครั้งในโสตประสาท ผู้อาวุโสที่เดินผ่านมาได้ยินจึงเตือนให้นึกถึงบันทึกของเจ้าสำนักรุ่นที่ 5 กู้เหยียนจือ',
+      originCauseTh: 'ความดันปราณสะสมที่จุดขมับของผู้ฝึกตนที่ติดคอขวด',
+      consequenceTh: 'เกิดการแลกเปลี่ยนความรู้เรื่องการแยกแยะสัญญาณเตือนชีพจรตีกลับออกจากนิมิตทะลวงขั้น'
+    },
+    {
+      id: 'EMERGENT_08_EPITHET_TAVERN_VERSIONS',
+      kind: 'SLICE_AND_LORE',
+      factId: 'FACT_20_BROKEN_BRIDGE_EPITHET_DISPUTE',
+      storyId: 'STORY_20_TWO_FACES_OF_ONE_EPITHET',
+      nodeId: 'PASS_YH_XIFENG_GORGE',
+      titleTh: 'ผู้มาเยือนสองคนเล่าตำนาน「ดาบสะบั้นสะพานซีเฟิง」ไม่ตรงกัน',
+      storyTh: 'ที่ศาลาพักร้อนหน้าสำนัก คนเดินม้าจากแดนเหนือและพ่อค้าใบชาจากแดนใต้ต่างเล่าที่มาของสมญานามดาบสะบั้นสะพานซีเฟิงไปคนละขั้ว คนหนึ่งว่าฆ่าโจรสามสิบศพ อีกคนว่าฟันเชือกสะพานช่วยชาวบ้านโดยไม่ฆ่าใครเลย',
+      originCauseTh: 'การแพร่กระจายของข่าวลือและเพลงโรงเตี๊ยมจากสองภูมิภาคที่มาบรรจบกันที่หยุนเหอ',
+      consequenceTh: 'ศิษย์ที่ได้ยินบันทึกทั้งสองกระแสไว้รอการพิสูจน์ที่ด่านช่องลมประจิมซีเฟิง'
+    }
+  ]);
+
+  X.LIVING_LORE = Object.freeze({
+    VERSION: '3.1.0-living-lore',
+    EPISTEMIC_LAYERS,
+    FALLEN_DYNASTIES_ARCHIVE,
+    CANON_FACTS,
+    FACT_BY_ID,
+    STORY_CHAINS,
+    STORY_BY_ID,
+    EMERGENT_LORE_EVENTS
+  });
+
+  // Ensure world & sect Living Lore runtime state
+  X.initLivingLore = W => {
+    if (!W || !W.world) return null;
+    if (!W.world.livingLore || typeof W.world.livingLore !== 'object') {
+      W.world.livingLore = {
+        version: '3.1.0-living-lore',
+        facts: {},
+        stories: {},
+        routeModifiers: {},
+        adoptedCustoms: {},
+        epithetDisputes: {},
+        recentEvents: [],
+        eventSeq: 0,
+        lastTickDay: -1,
+        lastEmergentDay: -3
+      };
+    }
+    const ll = W.world.livingLore;
+    if (!ll.facts || typeof ll.facts !== 'object') ll.facts = {};
+    if (!ll.stories || typeof ll.stories !== 'object') ll.stories = {};
+    if (!ll.routeModifiers || typeof ll.routeModifiers !== 'object') ll.routeModifiers = {};
+    if (!ll.adoptedCustoms || typeof ll.adoptedCustoms !== 'object') ll.adoptedCustoms = {};
+    if (!ll.epithetDisputes || typeof ll.epithetDisputes !== 'object') ll.epithetDisputes = {};
+    if (!Array.isArray(ll.recentEvents)) ll.recentEvents = [];
+
+    if (W.sect) {
+      if (!Array.isArray(W.sect.loreArchive)) W.sect.loreArchive = [];
+    }
+
+    // Ensure all 28 Canon Facts have a state record in ll.facts
+    for (const f of CANON_FACTS) {
+      if (!ll.facts[f.id]) {
+        ll.facts[f.id] = {
+          factId: f.id,
+          discovered: false,
+          firstDiscoveredDay: null,
+          firstDiscovererId: null,
+          knownAccounts: [],
+          evidenceLineages: [],
+          status: 'undiscovered',
+          archivedInSect: false,
+          lastUpdatedDay: W.day || 0
+        };
+      }
+    }
+
+    // Ensure all 20 Story Chains have a state record in ll.stories
+    for (const s of STORY_CHAINS) {
+      if (!ll.stories[s.id]) {
+        ll.stories[s.id] = {
+          storyId: s.id,
+          factId: s.factId,
+          stageIdx: 0,
+          status: 'dormant', // 'dormant' | 'active' | 'contested' | 'resolved'
+          sparkedDay: null,
+          resolvedDay: null,
+          resolutionId: null,
+          resolutionLabelTh: null,
+          resolutionConsequenceTh: null,
+          leadNpcIds: [],
+          witnessIds: [],
+          evidenceLineages: [],
+          history: []
+        };
+      }
+    }
+
+    // Seed initial lore for existing NPCs if not yet seeded
+    if (Array.isArray(W.npcs)) {
+      for (const n of W.npcs) {
+        if (n && !n.dead && (!n.ext || !n.ext.lore)) {
+          X.seedNpcInitialLore(W, n);
+        }
+      }
+    }
+    return ll;
+  };
+
+  // Seed an NPC with 2-3 organic hometown / polity / path beliefs at creation or recruitment
+  X.seedNpcInitialLore = (W, npc) => {
+    if (!W || !npc || npc.dead || !getCOG() || !getCOG().learnLoreFact) return;
+    getCOG().ensureLoreState(npc);
+    const homeId = npc.ext && npc.ext.world && npc.ext.world.hometownNodeId;
+    const polityId = npc.ext && npc.ext.world && npc.ext.world.birthPolityId;
+    const pathId = npc.cult && npc.cult.path;
+
+    // 1. Find a non-secret fact anchored at or near the NPC's hometown or polity
+    const homeFacts = CANON_FACTS.filter(f => !f.secretGate && (
+      (homeId && Array.isArray(f.anchorNodeIds) && f.anchorNodeIds.includes(homeId)) ||
+      (polityId && f.polityId === polityId)
+    ));
+    if (homeFacts.length) {
+      const idx = Math.abs((npc.h && npc.h.genome) || 1) % homeFacts.length;
+      const f = homeFacts[idx];
+      const acc = (polityId === f.polityId && E(npc, 'personality.discipline') >= 62) ? 'COURT_CANON' : 'FOLK_ORAL';
+      getCOG().learnLoreFact(W, npc, f.id, {
+        accountId: acc,
+        originEventId: 'hometown:' + (homeId || polityId || 'yunhe') + ':' + f.id + ':' + acc,
+        sourceKind: 'hometown',
+        storyId: f.storyId
+      });
+    }
+
+    // 2. Seed sect generational lore (FACT_07) or Yunhe treaty lore (FACT_21) for sect members
+    if (npc.id === (W.sect && W.sect.masterId) || (npc.rank || 0) >= 3) {
+      getCOG().learnLoreFact(W, npc, 'FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR', {
+        accountId: 'SECT_ORTHODOX',
+        originEventId: 'sect:ancestral_hall:FACT_07:SECT_ORTHODOX',
+        sourceKind: 'ancestral_plaque',
+        storyId: 'STORY_07_SEVENTH_GEN_EMPTY_CHAIR'
+      });
+      getCOG().learnLoreFact(W, npc, 'FACT_21_SU_QIN_820YR_YUNHE_TREATY', {
+        accountId: 'SECT_ORTHODOX',
+        originEventId: 'sect:archive:FACT_21:SECT_ORTHODOX',
+        sourceKind: 'library_stele'
+      });
+    } else {
+      // Junior disciples start with the folk/campus rumor about the wooden sword & empty chair or a path-linked fact
+      const pathFacts = CANON_FACTS.filter(f => !f.secretGate && pathId && Array.isArray(f.relatedPaths) && f.relatedPaths.includes(pathId));
+      const f2 = pathFacts[0] || FACT_BY_ID.FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR;
+      if (f2) {
+        getCOG().learnLoreFact(W, npc, f2.id, {
+          accountId: 'FOLK_ORAL',
+          originEventId: 'campus:rumor:' + f2.id + ':FOLK_ORAL',
+          sourceKind: 'conversation',
+          storyId: f2.storyId
+        });
+      }
+    }
+  };
+
+  function routeLegKey(a, b) {
+    return a < b ? (a + '<>' + b) : (b + '<>' + a);
+  }
+
+  function applyStoryResolutionEffects(W, npc, storyDef, storyState, branch) {
+    if (!W || !storyDef || !branch) return;
+    const ll = X.initLivingLore(W);
+    const eff = branch.effect || {};
+    const state = W.world && W.world.continent;
+
+    if (Array.isArray(eff.routeBonusLeg) && eff.routeBonusLeg.length === 2) {
+      const k = routeLegKey(eff.routeBonusLeg[0], eff.routeBonusLeg[1]);
+      ll.routeModifiers[k] = {
+        legKey: k,
+        from: eff.routeBonusLeg[0],
+        to: eff.routeBonusLeg[1],
+        multiplier: clamp(Number(eff.routeMultiplier) || 0.88, 0.72, 1.25),
+        storyId: storyDef.id,
+        labelTh: branch.labelTh,
+        sinceDay: W.day || 0
+      };
+    }
+
+    if (state && state.cities) {
+      for (const nodeId of (storyDef.anchorNodeIds || [])) {
+        const cStats = state.cities[nodeId];
+        if (!cStats) continue;
+        if (eff.citySafetyDelta) cStats.safety = clamp(cStats.safety + eff.citySafetyDelta, 20, 98);
+        if (eff.cityProsperityDelta) cStats.prosperity = clamp(cStats.prosperity + eff.cityProsperityDelta, 20, 98);
+      }
+    }
+
+    if (eff.customId) {
+      ll.adoptedCustoms[eff.customId] = {
+        id: eff.customId,
+        storyId: storyDef.id,
+        labelTh: branch.labelTh,
+        consequenceTh: branch.consequenceTh,
+        adoptedByNpcId: npc ? npc.id : null,
+        adoptedDay: W.day || 0
+      };
+      if (npc && getCOG() && getCOG().ensureLoreState) {
+        const nLore = getCOG().ensureLoreState(npc);
+        if (nLore && !nLore.adoptedCustoms.includes(eff.customId)) {
+          nLore.adoptedCustoms.push(eff.customId);
+        }
+      }
+    }
+
+    if (eff.closedLoopStonesFromPool && getECO() && typeof getECO().ReceiveExternalStones === 'function') {
+      const poolAvail = (W.world && W.world.resourcePool && W.world.resourcePool.stones) || 0;
+      const amt = Math.min(poolAvail, Math.max(0, Math.round(eff.closedLoopStonesFromPool)));
+      if (amt > 0) {
+        getECO().ReceiveExternalStones(W, amt, 'living_lore:' + storyDef.id);
+      }
+    }
+
+    if (eff.mealGrant && W.sect && W.sect.stock) {
+      W.sect.stock.meal = (W.sect.stock.meal || 0) + Math.max(1, Math.round(eff.mealGrant));
+    }
+
+    if (eff.sectFameDelta && W.sect) {
+      W.sect.fame = Math.max(0, (W.sect.fame || 0) + eff.sectFameDelta);
+    }
+
+    if (eff.originEchoesDelta && W.sect) {
+      W.sect.originEchoes = (W.sect.originEchoes || 0) + eff.originEchoesDelta;
+    }
+
+    if (eff.regaliaVector && getSECT() && getSECT().PATRIARCH_REGALIA && getSECT().PATRIARCH_REGALIA.advanceAwakening) {
+      const master = (W.byId && W.sect && W.byId[W.sect.masterId]) || npc;
+      getSECT().PATRIARCH_REGALIA.advanceAwakening(W, master, eff.regaliaVector, eff.regaliaAmount || 1);
+    }
+
+    if (npc && !npc.dead) {
+      if (eff.skillPractice && HC.practice) {
+        HC.practice(npc, eff.skillPractice, 0.45, 1.15);
+      }
+      if (eff.cultGain && npc.cult && getCULT() && getCULT().gain) {
+        getCULT().gain(npc, eff.cultGain, W, 'living_lore_insight');
+      }
+      if (eff.heartDemonDelta && npc.h && npc.h.state) {
+        npc.h.state.heartDemon = clamp((npc.h.state.heartDemon || 0) + eff.heartDemonDelta, 0, 100);
+      }
+      if (eff.moodDelta || eff.lonelinessDelta) {
+        HC.feel(npc, { mood: eff.moodDelta || 0, loneliness: eff.lonelinessDelta || 0 });
+      }
+      if (eff.petBondBonus && Array.isArray(npc.pets)) {
+        npc.pets.forEach(p => {
+          if (p) p.bond = clamp((p.bond || 50) + eff.petBondBonus, 0, 100);
+        });
+      }
+    }
+  }
+
+  // Advance or resolve a multi-stage Living Lore story chain through real NPC action
+  X.advanceLivingLoreStory = (W, npc, storyId, opts) => {
+    opts = opts || {};
+    if (!W || !W.world || !storyId) return { ok: false, reason: 'invalid-args' };
+    const ll = X.initLivingLore(W);
+    const storyDef = STORY_BY_ID[storyId];
+    if (!storyDef) return { ok: false, reason: 'unknown-story' };
+    const st = ll.stories[storyId];
+    if (!st) return { ok: false, reason: 'missing-story-state' };
+    if (st.status === 'resolved' && !opts.allowReplay) {
+      return { ok: false, reason: 'already-resolved', story: st };
+    }
+
+    const actor = npc || (W.byId && W.sect && W.byId[W.sect.masterId]) || (W.npcs && W.npcs[0]);
+    if (!actor || actor.dead) return { ok: false, reason: 'no-living-actor' };
+
+    const curIdx = st.status === 'dormant' ? 0 : clamp((st.stageIdx || 0) + 1, 0, storyDef.stages.length - 1);
+    const stageDef = storyDef.stages[curIdx] || storyDef.stages[storyDef.stages.length - 1];
+    const locNode = (stageDef && stageDef.locationId && X.SETTLEMENTS && X.SETTLEMENTS[stageDef.locationId])
+      || (storyDef.anchorNodeIds && storyDef.anchorNodeIds[0] && X.SETTLEMENTS && X.SETTLEMENTS[storyDef.anchorNodeIds[0]])
+      || null;
+    const locSnap = locNode ? { nodeId: locNode.id, nameTh: locNode.nameTh, x: locNode.x, y: locNode.y, macroRegion: locNode.macroRegion } : null;
+
+    const originEventId = opts.originEventId || ('story:' + storyId + ':stage:' + curIdx + ':day:' + (W.day || 0) + ':' + (locNode ? locNode.id : 'sect'));
+    if (!st.evidenceLineages.includes(originEventId)) {
+      st.evidenceLineages.push(originEventId);
+    }
+    if (!st.leadNpcIds.includes(actor.id)) st.leadNpcIds.push(actor.id);
+    const witnessIds = Array.isArray(opts.witnessIds) && opts.witnessIds.length ? opts.witnessIds : [actor.id];
+    for (const wid of witnessIds) {
+      if (wid && !st.witnessIds.includes(wid) && st.witnessIds.length < 12) st.witnessIds.push(wid);
+    }
+
+    st.stageIdx = curIdx;
+    if (st.sparkedDay == null) st.sparkedDay = W.day || 0;
+
+    // Teach the linked lore fact at this stage's epistemic account to all witnesses
+    const learnAccount = (curIdx >= storyDef.stages.length - 1)
+      ? 'VERIFIED_CHRONICLE'
+      : (stageDef && stageDef.accountId) || 'FOLK_ORAL';
+    const isPhysical = curIdx >= 1 || ['city_ledger', 'library_stele', 'item_inscription', 'ancestral_plaque', 'expedition_witness'].includes(opts.sourceKind);
+
+    for (const wid of witnessIds) {
+      const wNpc = W.byId && W.byId[wid];
+      if (wNpc && !wNpc.dead && getCOG() && getCOG().learnLoreFact) {
+        getCOG().learnLoreFact(W, wNpc, storyDef.factId, {
+          accountId: learnAccount,
+          originEventId,
+          sourceKind: opts.sourceKind || (curIdx === 0 ? 'city_visit' : curIdx === 1 ? 'city_ledger' : 'expedition_witness'),
+          storyId: storyDef.id,
+          physicalProof: isPhysical
+        });
+      }
+    }
+
+    if (curIdx < storyDef.stages.length - 1) {
+      st.status = curIdx === 0 ? 'active' : 'contested';
+      const histText = HC.fullName(actor) + ' ' + stageDef.titleTh + (locNode ? (' ณ ' + locNode.nameTh) : '');
+      st.history.push({ day: W.day || 0, t: W.t || 0, stageIdx: curIdx, actorId: actor.id, locationId: locNode ? locNode.id : null, textTh: histText });
+      if (st.history.length > 10) st.history.shift();
+
+      if (getAI() && getAI().mem) {
+        getAI().mem(W, actor, stageDef.titleTh + ' (' + storyDef.titleTh + ')', 0.65);
+      }
+
+      if (X.recordChronicle && !opts.silentChronicle) {
+        X.recordChronicle(W, {
+          eventKey: 'living_lore:' + storyId + ':s' + curIdx + ':' + (W.day || 0),
+          category: 'LEGEND',
+          reportFormat: curIdx === 0 ? 'TAVERN_BALLAD' : 'PIGEON_DISPATCH',
+          isRumor: curIdx === 0,
+          unverified: curIdx < 2,
+          epistemicStatus: curIdx === 0 ? 'RUMOR' : 'CONTESTED',
+          icon: curIdx === 0 ? '📜' : '🔍',
+          titleTh: '【เบาะแสตำนานมีชีวิต】' + storyDef.titleTh + ' · ' + stageDef.titleTh,
+          storyTh: HC.fullName(actor) + ' ' + stageDef.descTh,
+          originCauseTh: 'การสืบค้นและเปรียบเทียบคำบอกเล่าในโลกยุทธภพ (' + storyDef.titleTh + ')',
+          consequenceTh: curIdx === 0 ? 'ยังเป็นคำบอกเล่าขั้นต้น รอการสอบทานหลักฐานสายที่สอง' : 'พบหลักฐานสองกระแสที่ต้องตัดสินใจสรุปผล',
+          macroRegion: (locNode && locNode.macroRegion) || 'CENTRAL_HEARTLAND',
+          location: locSnap,
+          npcIds: witnessIds,
+          storyThreadId: 'lore:' + storyDef.id,
+          quiet: true
+        });
+      }
+
+      return { ok: true, resolved: false, stageIdx: curIdx, status: st.status, story: st };
+    }
+
+    // Final stage (Stage 2): select personality/role-matched resolution branch!
+    const branches = storyDef.resolutions || [];
+    const chosenBranch = (opts.resolutionId && branches.find(b => b.id === opts.resolutionId))
+      || branches.find(b => typeof b.match === 'function' && b.match(actor, W))
+      || branches[branches.length - 1];
+
+    st.status = 'resolved';
+    st.resolvedDay = W.day || 0;
+    st.resolutionId = chosenBranch ? chosenBranch.id : 'DEFAULT_RESOLUTION';
+    st.resolutionLabelTh = chosenBranch ? chosenBranch.labelTh : 'สรุปบันทึกเข้าหอคัมภีร์';
+    st.resolutionConsequenceTh = chosenBranch ? chosenBranch.consequenceTh : 'บันทึกความจริงลงในพงศาวดารสำนัก';
+
+    const resHistText = HC.fullName(actor) + ' คลี่คลาย「' + storyDef.titleTh + '」: ' + st.resolutionLabelTh;
+    st.history.push({ day: W.day || 0, t: W.t || 0, stageIdx: curIdx, actorId: actor.id, locationId: locNode ? locNode.id : null, textTh: resHistText, resolved: true });
+    if (st.history.length > 10) st.history.shift();
+
+    // Remove from activeLeads of witnesses once resolved
+    for (const wid of st.witnessIds) {
+      const wNpc = W.byId && W.byId[wid];
+      const wLore = wNpc && getCOG() && getCOG().peekLoreState ? getCOG().peekLoreState(wNpc) : null;
+      if (wLore && Array.isArray(wLore.activeLeads)) {
+        wLore.activeLeads = wLore.activeLeads.filter(id => id !== storyId);
+      }
+    }
+
+    applyStoryResolutionEffects(W, actor, storyDef, st, chosenBranch);
+
+    // Compile the verified fact to the Sect Lore Archive
+    X.compileLoreToSectArchive(W, actor, storyDef.factId, { storyId: storyDef.id, quiet: true });
+
+    if (getAI() && getAI().mem) {
+      getAI().mem(W, actor, 'พิสูจน์ความจริงเรื่อง「' + storyDef.titleTh + '」และตัดสินใจ: ' + st.resolutionLabelTh, 0.85);
+    }
+
+    if (X.recordChronicle && !opts.silentChronicle) {
+      X.recordChronicle(W, {
+        eventKey: 'living_lore:' + storyId + ':resolved:' + (W.day || 0),
+        category: 'LEGEND',
+        reportFormat: 'ANCESTRAL_INSCRIPTION',
+        isRumor: false,
+        unverified: false,
+        epistemicStatus: 'VERIFIED',
+        isMilestone: true,
+        icon: '🏛️',
+        titleTh: '【คลี่คลายตำนานมีชีวิต】' + storyDef.titleTh + ' — ' + st.resolutionLabelTh,
+        storyTh: HC.fullName(actor) + ' สอบทานหลักฐานจนพิสูจน์ความจริงของ「' + storyDef.titleTh + '」และดำเนินการ: ' + st.resolutionLabelTh,
+        originCauseTh: storyDef.summaryTh,
+        consequenceTh: st.resolutionConsequenceTh,
+        macroRegion: (locNode && locNode.macroRegion) || 'CENTRAL_HEARTLAND',
+        location: locSnap,
+        npcIds: witnessIds,
+        storyThreadId: 'lore:' + storyDef.id,
+        quiet: false
+      });
+    }
+
+    return {
+      ok: true,
+      resolved: true,
+      stageIdx: curIdx,
+      status: st.status,
+      resolutionId: st.resolutionId,
+      resolutionLabelTh: st.resolutionLabelTh,
+      consequenceTh: st.resolutionConsequenceTh,
+      story: st
+    };
+  };
+
+  // Compile a verified lore fact into the Sect Archive (`W.sect.loreArchive`)
+  X.compileLoreToSectArchive = (W, npc, factId, opts) => {
+    opts = opts || {};
+    if (!W || !W.sect || !factId) return { ok: false, reason: 'invalid-args' };
+    const ll = X.initLivingLore(W);
+    const factDef = FACT_BY_ID[factId];
+    if (!factDef) return { ok: false, reason: 'unknown-fact' };
+
+    if (!Array.isArray(W.sect.loreArchive)) W.sect.loreArchive = [];
+    const already = W.sect.loreArchive.includes(factId);
+    if (!already) {
+      W.sect.loreArchive.push(factId);
+    }
+    if (ll.facts[factId]) {
+      ll.facts[factId].discovered = true;
+      ll.facts[factId].archivedInSect = true;
+      ll.facts[factId].status = 'verified';
+      if (!ll.facts[factId].knownAccounts.includes('VERIFIED_CHRONICLE')) {
+        ll.facts[factId].knownAccounts.push('VERIFIED_CHRONICLE');
+      }
+    }
+
+    // Share with key sect officers (Scripture Elder, Spymaster, Sect Master)
+    const officers = [
+      getSECT() && getSECT().holder ? getSECT().holder(W, 'scripture') : null,
+      getSECT() && getSECT().holder ? getSECT().holder(W, 'spymaster') : null,
+      W.byId && W.sect.masterId ? W.byId[W.sect.masterId] : null
+    ].filter(Boolean);
+
+    const originEventId = 'archive_compile:' + factId + ':' + (npc ? npc.id : 'sect');
+    officers.forEach(off => {
+      if (!off.dead && getCOG() && getCOG().learnLoreFact) {
+        getCOG().learnLoreFact(W, off, factId, {
+          accountId: 'VERIFIED_CHRONICLE',
+          originEventId,
+          sourceKind: 'library_stele',
+          fromId: npc ? npc.id : null,
+          fromNameTh: npc ? HC.fullName(npc) : 'หอคัมภีร์',
+          physicalProof: true
+        });
+      }
+    });
+
+    if (npc && !npc.dead && HC.practice) {
+      HC.practice(npc, 'SCRIPTURE', 0.30, 1.1);
+    }
+    return { ok: true, factId, newlyArchived: !already };
+  };
+
+  // Triggered whenever an NPC party arrives at a settlement on a city_visit
+  X.onCityVisitLore = (W, ex, members) => {
+    if (!W || !ex || !Array.isArray(members) || !members.length) return null;
+    const ll = X.initLivingLore(W);
+    const cityId = ex.targetNodeId || ex.region;
+    const city = X.SETTLEMENTS && X.SETTLEMENTS[cityId];
+    if (!city) return null;
+
+    const leader = members[0];
+    const witnessIds = members.map(m => m.id);
+
+    // 1. Check if any story chain is anchored at this city and not yet resolved
+    const anchoredStories = STORY_CHAINS.filter(s => Array.isArray(s.anchorNodeIds) && s.anchorNodeIds.includes(city.id));
+    for (const sDef of anchoredStories) {
+      const st = ll.stories[sDef.id];
+      if (!st || st.status === 'resolved') continue;
+      // Check if any member has this story as an active lead or if it's dormant
+      const hasLead = members.some(m => {
+        const ml = getCOG() && getCOG().peekLoreState ? getCOG().peekLoreState(m) : null;
+        return ml && Array.isArray(ml.activeLeads) && ml.activeLeads.includes(sDef.id);
+      });
+      if (hasLead || st.status === 'dormant' || st.status === 'active' || st.status === 'contested') {
+        return X.advanceLivingLoreStory(W, leader, sDef.id, {
+          witnessIds,
+          sourceKind: st.status === 'dormant' ? 'city_visit' : 'city_ledger',
+          originEventId: 'city_visit:' + city.id + ':' + sDef.id + ':stage:' + (st.stageIdx || 0)
+        });
+      }
+    }
+
+    // 2. Otherwise, learn a local lore fact anchored at this settlement or polity
+    const localFacts = CANON_FACTS.filter(f =>
+      !f.secretGate && (
+        (Array.isArray(f.anchorNodeIds) && f.anchorNodeIds.includes(city.id)) ||
+        (city.polityId && f.polityId === city.polityId)
+      )
+    );
+    if (localFacts.length) {
+      const f = localFacts[((W.day || 0) + city.order) % localFacts.length];
+      const isAcademyOrCapital = city.specialty === 'academy' || city.tier >= 4;
+      const acc = isAcademyOrCapital ? 'COURT_CANON' : 'FOLK_ORAL';
+      const originEventId = 'visit_stele:' + city.id + ':' + f.id + ':' + acc;
+      for (const m of members) {
+        if (getCOG() && getCOG().learnLoreFact) {
+          getCOG().learnLoreFact(W, m, f.id, {
+            accountId: acc,
+            originEventId,
+            sourceKind: isAcademyOrCapital ? 'city_ledger' : 'city_visit',
+            storyId: f.storyId,
+            physicalProof: isAcademyOrCapital
+          });
+        }
+      }
+      return { ok: true, learnedFactId: f.id, accountId: acc, cityId: city.id };
+    }
+    return null;
+  };
+
+  // Daily/Periodic Living Lore Simulation Tick (emergent slice-of-life & lore events from world activity)
+  X.tickLivingLore = W => {
+    if (!W || !W.world || !W.sect) return;
+    const ll = X.initLivingLore(W);
+    const day = W.day || 0;
+    if (day <= ll.lastTickDay) return;
+    ll.lastTickDay = day;
+
+    const livingNpcs = (W.npcs || []).filter(n => n && !n.dead && !n.exiled);
+    if (!livingNpcs.length) return;
+
+    // 1. Check for natural emergent lore / slice-of-life spark every 4 days based on real sect/world activity
+    if (day >= (ll.lastEmergentDay || 0) + 4) {
+      const candidateTemplates = EMERGENT_LORE_EVENTS.filter(ev => {
+        const st = ev.storyId ? ll.stories[ev.storyId] : null;
+        return !st || st.status !== 'resolved';
+      });
+      if (candidateTemplates.length) {
+        const tpl = candidateTemplates[(day + (ll.eventSeq || 0)) % candidateTemplates.length];
+        // Pick real witnesses currently doing matching activities or residing in sect
+        const homeNpcs = livingNpcs.filter(n => !n.away);
+        const witnesses = (homeNpcs.length ? homeNpcs : livingNpcs).slice(0, 2);
+        const lead = witnesses[0];
+        if (lead) {
+          ll.lastEmergentDay = day;
+          ll.eventSeq = (ll.eventSeq || 0) + 1;
+          const originEventId = 'emergent:' + tpl.id + ':day:' + day;
+          for (const wNpc of witnesses) {
+            if (getCOG() && getCOG().learnLoreFact) {
+              getCOG().learnLoreFact(W, wNpc, tpl.factId, {
+                accountId: 'FOLK_ORAL',
+                originEventId,
+                sourceKind: tpl.kind === 'SLICE_OF_LIFE' ? 'workshop_practice' : 'visitor_rumor',
+                storyId: tpl.storyId
+              });
+            }
+          }
+          if (tpl.storyId && ll.stories[tpl.storyId] && ll.stories[tpl.storyId].status === 'dormant') {
+            X.advanceLivingLoreStory(W, lead, tpl.storyId, {
+              witnessIds: witnesses.map(x => x.id),
+              originEventId,
+              sourceKind: 'visitor_rumor',
+              silentChronicle: true
+            });
+          }
+          const locNode = tpl.nodeId && X.SETTLEMENTS ? X.SETTLEMENTS[tpl.nodeId] : null;
+          const locSnap = locNode ? { nodeId: locNode.id, nameTh: locNode.nameTh, x: locNode.x, y: locNode.y, macroRegion: locNode.macroRegion } : null;
+          const evRec = {
+            id: 'll_ev_' + ll.eventSeq,
+            day,
+            templateId: tpl.id,
+            factId: tpl.factId,
+            storyId: tpl.storyId,
+            titleTh: tpl.titleTh,
+            storyTh: tpl.storyTh,
+            witnessIds: witnesses.map(x => x.id),
+            location: locSnap
+          };
+          ll.recentEvents.push(evRec);
+          if (ll.recentEvents.length > 18) ll.recentEvents.shift();
+
+          if (X.recordChronicle) {
+            X.recordChronicle(W, {
+              eventKey: 'living_lore_emergent:' + tpl.id + ':' + day,
+              category: tpl.kind === 'SLICE_OF_LIFE' ? 'INTERNAL' : 'LEGEND',
+              reportFormat: 'TAVERN_BALLAD',
+              isRumor: tpl.kind !== 'SLICE_OF_LIFE',
+              unverified: true,
+              icon: tpl.kind === 'SLICE_OF_LIFE' ? '🍵' : '📜',
+              titleTh: tpl.titleTh,
+              storyTh: tpl.storyTh,
+              originCauseTh: tpl.originCauseTh,
+              consequenceTh: tpl.consequenceTh,
+              macroRegion: (locNode && locNode.macroRegion) || 'CENTRAL_HEARTLAND',
+              location: locSnap,
+              npcIds: witnesses.map(x => x.id),
+              storyThreadId: tpl.storyId ? ('lore:' + tpl.storyId) : ('fact:' + tpl.factId),
+              quiet: true
+            });
+          }
+        }
+      }
+    }
+
+    // 2. Unlock Layer 3 / Layer 4 deep truths organically when sufficient Layer 2 / Sanctum / Regalia milestones exist
+    const reg = W.sect.patriarchRegalia;
+    const master = W.byId && W.sect.masterId ? W.byId[W.sect.masterId] : null;
+    if (master && !master.dead && reg && (reg.awakeningStage >= 2 || (W.sect.originEchoes || 0) >= 2)) {
+      const f28 = ll.facts.FACT_28_NAMELESS_FOUNDER_UPPER_WORLD_VIGIL;
+      if (f28 && !f28.discovered) {
+        getCOG().learnLoreFact(W, master, 'FACT_28_NAMELESS_FOUNDER_UPPER_WORLD_VIGIL', {
+          accountId: reg.awakeningStage >= 3 ? 'VERIFIED_CHRONICLE' : 'SECT_ORTHODOX',
+          originEventId: 'regalia_resonance:stage:' + reg.awakeningStage,
+          sourceKind: 'ancestral_plaque',
+          physicalProof: reg.awakeningStage >= 3
+        });
+      }
+    }
+  };
+
+  // Pure Read-Only Views for UI (0 RNG, 0 State Mutation!)
+  X.getLivingLorePlayerView = (W, opts) => {
+    opts = opts || {};
+    const ll = W && W.world && W.world.livingLore;
+    const archiveIds = (W && W.sect && Array.isArray(W.sect.loreArchive)) ? W.sect.loreArchive : [];
+
+    const layers = Object.values(EPISTEMIC_LAYERS).map(layer => {
+      const layerFacts = CANON_FACTS.filter(f => f.layer === layer.id).map(f => {
+        const wf = ll && ll.facts && ll.facts[f.id];
+        const discovered = !!(opts.debugRevealAll || (wf && wf.discovered) || archiveIds.includes(f.id));
+        const veiled = !!(f.secretGate && !discovered);
+        const status = wf ? wf.status : 'undiscovered';
+        const knownAccIds = (wf && Array.isArray(wf.knownAccounts) && wf.knownAccounts.length)
+          ? wf.knownAccounts
+          : (discovered ? [f.defaultAccount || 'FOLK_ORAL'] : []);
+        const visibleAccounts = veiled
+          ? []
+          : knownAccIds.map(aid => f.accounts[aid]).filter(Boolean);
+        return {
+          id: f.id,
+          titleTh: veiled ? '🔒 ความลับที่ยังไม่มีศิษย์ค้นพบ (' + layer.shortTh + ')' : f.titleTh,
+          layer: f.layer,
+          category: f.category,
+          polityId: f.polityId,
+          anchorNodeIds: veiled ? [] : (f.anchorNodeIds || []).slice(),
+          discovered,
+          veiled,
+          status,
+          archivedInSect: archiveIds.includes(f.id),
+          knownAccounts: visibleAccounts,
+          evidenceLineageCount: wf && Array.isArray(wf.evidenceLineages) ? wf.evidenceLineages.length : 0,
+          storyId: f.storyId || null
+        };
+      });
+      return {
+        id: layer.id,
+        order: layer.order,
+        nameTh: layer.nameTh,
+        shortTh: layer.shortTh,
+        descTh: layer.descTh,
+        secretGate: layer.secretGate,
+        discoveredCount: layerFacts.filter(f => f.discovered).length,
+        totalCount: layerFacts.length,
+        facts: layerFacts
+      };
+    });
+
+    const stories = STORY_CHAINS.map(s => {
+      const st = (ll && ll.stories && ll.stories[s.id]) || { stageIdx: 0, status: 'dormant', witnessIds: [], history: [] };
+      const wf = ll && ll.facts && ll.facts[s.factId];
+      const factDef = FACT_BY_ID[s.factId];
+      const veiled = !!(factDef && factDef.secretGate && st.status === 'dormant' && !(wf && wf.discovered) && !opts.debugRevealAll);
+      const curStage = s.stages[clamp(st.stageIdx || 0, 0, s.stages.length - 1)];
+      const locNode = (curStage && curStage.locationId && X.SETTLEMENTS && X.SETTLEMENTS[curStage.locationId])
+        || (s.anchorNodeIds && s.anchorNodeIds[0] && X.SETTLEMENTS && X.SETTLEMENTS[s.anchorNodeIds[0]])
+        || null;
+      return {
+        id: s.id,
+        titleTh: veiled ? '🔒 เรื่องราวเร้นลับที่รอผู้ค้นพบ' : s.titleTh,
+        group: s.group,
+        category: s.category,
+        layer: s.layer,
+        factId: s.factId,
+        polityId: s.polityId,
+        anchorNodeIds: veiled ? [] : s.anchorNodeIds.slice(),
+        locationNode: veiled ? null : locNode,
+        summaryTh: veiled ? 'ยังไม่มีศิษย์หรือสายข่าวในสำนักไปพบเบาะแสของเรื่องราวนี้' : s.summaryTh,
+        status: st.status || 'dormant',
+        stageIdx: st.stageIdx || 0,
+        totalStages: s.stages.length,
+        currentStageTitleTh: veiled ? 'รอการค้นพบ' : (curStage ? curStage.titleTh : ''),
+        currentStageDescTh: veiled ? '' : (curStage ? curStage.descTh : ''),
+        resolutionId: st.resolutionId || null,
+        resolutionLabelTh: st.resolutionLabelTh || null,
+        resolutionConsequenceTh: st.resolutionConsequenceTh || null,
+        witnessNamesTh: (st.witnessIds || []).map(id => (W && W.byId && W.byId[id] && HC.fullName(W.byId[id])) || null).filter(Boolean),
+        history: (st.history || []).slice(-4)
+      };
+    });
+
+    return {
+      version: '3.1.0-living-lore',
+      layers,
+      stories,
+      fallenDynasties: Object.values(FALLEN_DYNASTIES_ARCHIVE),
+      archivedCount: archiveIds.length,
+      activeStoriesCount: stories.filter(s => s.status === 'active' || s.status === 'contested').length,
+      resolvedStoriesCount: stories.filter(s => s.status === 'resolved').length,
+      adoptedCustoms: ll ? Object.values(ll.adoptedCustoms || {}) : [],
+      routeModifiers: ll ? Object.values(ll.routeModifiers || {}) : [],
+      recentEvents: ll ? (ll.recentEvents || []).slice(-6).reverse() : []
+    };
+  };
+
+  // Pure Read-Only Settlement Lore View for Atlas Popup & City Details (0 RNG, 0 State Mutation)
+  X.getSettlementLoreView = (W, nodeId) => {
+    if (!nodeId) return null;
+    const ll = W && W.world && W.world.livingLore;
+    const archiveIds = (W && W.sect && Array.isArray(W.sect.loreArchive)) ? W.sect.loreArchive : [];
+
+    const fallen = Object.values(FALLEN_DYNASTIES_ARCHIVE).filter(d => Array.isArray(d.anchorNodeIds) && d.anchorNodeIds.includes(nodeId));
+    const facts = CANON_FACTS.filter(f => Array.isArray(f.anchorNodeIds) && f.anchorNodeIds.includes(nodeId)).map(f => {
+      const wf = ll && ll.facts && ll.facts[f.id];
+      const discovered = !!((wf && wf.discovered) || archiveIds.includes(f.id));
+      if (f.secretGate && !discovered) return null;
+      const topAccId = (wf && wf.status === 'verified')
+        ? 'VERIFIED_CHRONICLE'
+        : ((wf && Array.isArray(wf.knownAccounts) && wf.knownAccounts[wf.knownAccounts.length - 1]) || f.defaultAccount || 'FOLK_ORAL');
+      const acc = f.accounts[topAccId] || f.accounts.FOLK_ORAL;
+      return {
+        id: f.id,
+        titleTh: f.titleTh,
+        status: (wf && wf.status) || 'rumor',
+        accountLabelTh: acc ? acc.labelTh : '',
+        summaryTh: acc ? acc.summaryTh : ''
+      };
+    }).filter(Boolean);
+
+    const stories = STORY_CHAINS.filter(s => Array.isArray(s.anchorNodeIds) && s.anchorNodeIds.includes(nodeId)).map(s => {
+      const st = (ll && ll.stories && ll.stories[s.id]) || { status: 'dormant', stageIdx: 0 };
+      const factDef = FACT_BY_ID[s.factId];
+      const wf = ll && ll.facts && ll.facts[s.factId];
+      if (factDef && factDef.secretGate && st.status === 'dormant' && !(wf && wf.discovered)) return null;
+      return {
+        id: s.id,
+        titleTh: s.titleTh,
+        status: st.status || 'dormant',
+        stageIdx: st.stageIdx || 0,
+        totalStages: s.stages.length,
+        resolutionLabelTh: st.resolutionLabelTh || null
+      };
+    }).filter(Boolean);
+
+    return { nodeId, fallenDynasties: fallen, facts, stories };
+  };
+
+  // Pure Read-Only Polity Lore View for UI.rPolities (0 RNG, 0 State Mutation)
+  X.getPolityLoreView = (W, polityId) => {
+    if (!polityId) return null;
+    const ll = W && W.world && W.world.livingLore;
+    const archiveIds = (W && W.sect && Array.isArray(W.sect.loreArchive)) ? W.sect.loreArchive : [];
+
+    const fallen = Object.values(FALLEN_DYNASTIES_ARCHIVE).filter(d => Array.isArray(d.successorPolityIds) && d.successorPolityIds.includes(polityId));
+    const facts = CANON_FACTS.filter(f => f.polityId === polityId).map(f => {
+      const wf = ll && ll.facts && ll.facts[f.id];
+      const discovered = !!((wf && wf.discovered) || archiveIds.includes(f.id));
+      if (f.secretGate && !discovered) return null;
+      const topAccId = (wf && wf.status === 'verified')
+        ? 'VERIFIED_CHRONICLE'
+        : ((wf && Array.isArray(wf.knownAccounts) && wf.knownAccounts[wf.knownAccounts.length - 1]) || f.defaultAccount || 'FOLK_ORAL');
+      const acc = f.accounts[topAccId] || f.accounts.FOLK_ORAL;
+      return {
+        id: f.id,
+        titleTh: f.titleTh,
+        status: (wf && wf.status) || 'rumor',
+        accountLabelTh: acc ? acc.labelTh : '',
+        summaryTh: acc ? acc.summaryTh : ''
+      };
+    }).filter(Boolean);
+
+    const stories = STORY_CHAINS.filter(s => s.polityId === polityId).map(s => {
+      const st = (ll && ll.stories && ll.stories[s.id]) || { status: 'dormant', stageIdx: 0 };
+      const factDef = FACT_BY_ID[s.factId];
+      const wf = ll && ll.facts && ll.facts[s.factId];
+      if (factDef && factDef.secretGate && st.status === 'dormant' && !(wf && wf.discovered)) return null;
+      return {
+        id: s.id,
+        titleTh: s.titleTh,
+        status: st.status || 'dormant',
+        stageIdx: st.stageIdx || 0,
+        totalStages: s.stages.length,
+        resolutionLabelTh: st.resolutionLabelTh || null
+      };
+    }).filter(Boolean);
+
+    return { polityId, fallenDynasties: fallen, facts, stories };
+  };
+
+  // Hook X.initContinent so every initialized continent also initializes Living Lore
+  const _origInitContinentLore = X.initContinent;
+  X.initContinent = W => {
+    const res = _origInitContinentLore ? _origInitContinentLore(W) : undefined;
+    X.initLivingLore(W);
+    return res;
+  };
+
+  // Hook X.tickContinentalCourts to also tick Living Lore
+  const _origTickCourtsLore = X.tickContinentalCourts;
+  X.tickContinentalCourts = W => {
+    const res = _origTickCourtsLore ? _origTickCourtsLore(W) : undefined;
+    X.tickLivingLore(W);
+    return res;
+  };
+
+  // Route lore modifiers are folded directly inside Dijkstra in X.planContinentalRoute.
+
+  // Hook X.cityVisitDrive so NPCs carrying active lore leads at reachable settlements gain extra curiosity motivation
+  const _origCityVisitDriveLore = X.cityVisitDrive;
+  X.cityVisitDrive = (W, npc) => {
+    const base = _origCityVisitDriveLore ? _origCityVisitDriveLore(W, npc) : 0;
+    if (!base || !npc) return base;
+    const nLore = getCOG() && getCOG().peekLoreState ? getCOG().peekLoreState(npc) : null;
+    if (nLore && Array.isArray(nLore.activeLeads) && nLore.activeLeads.length > 0) {
+      const boost = Math.min(0.35, nLore.activeLeads.length * 0.12 * (E(npc, 'personality.curiosity') / 60));
+      return clamp(base + boost, 0.1, 1.95);
+    }
+    return base;
+  };
+
+
+  /* ============================================================================
+   * JS2 v3.4.0: 40 External World Random Events & Living Lore Cross-Links
+   * (10 Categories · 100% Autonomous NPC Resolution · Zero-RNG Daily Spawn)
+   * ============================================================================ */
+  function detHash340(str) {
+    let h = 2166136261 >>> 0;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+
+  const EXT_EVENT_CATEGORIES = Object.freeze({
+    ANCIENT_WAR_RUINS: { id: 'ANCIENT_WAR_RUINS', nameTh: 'มรดกมหาสงครามโบราณและซากเทียนกู่', order: 1 },
+    THREE_EMPIRES_POLITICS: { id: 'THREE_EMPIRES_POLITICS', nameTh: 'การเมืองและศึกตัวแทน 3 มหาอำนาจ', order: 2 },
+    CELESTIAL_ANOMALIES: { id: 'CELESTIAL_ANOMALIES', nameTh: 'ปรากฏการณ์ฟ้าดินวิปริตและรอยแยกม่านภพ', order: 3 },
+    WANDERING_JIANGHU_TRADE: { id: 'WANDERING_JIANGHU_TRADE', nameTh: 'ยุทธภพพเนจร การค้า ตลาดมืด และโรงเตี๊ยม', order: 4 },
+    BEAST_ECOLOGY_KINGS: { id: 'BEAST_ECOLOGY_KINGS', nameTh: 'นิเวศวิทยาสัตว์อสูรและราชันอสูร', order: 5 },
+    HIDDEN_DESTINY_LEGENDS: { id: 'HIDDEN_DESTINY_LEGENDS', nameTh: 'วาสนาลับและบุคคลในตำนานชุดแรก', order: 6 },
+    ANCIENT_GENERALS_ENEMIES: { id: 'ANCIENT_GENERALS_ENEMIES', nameTh: 'ปฐมบรรพชน ขุนพลโบราณ และตัวแปรจากอาณาจักรศัตรู', order: 7 },
+    HERMIT_ARTISAN_MASTERS: { id: 'HERMIT_ARTISAN_MASTERS', nameTh: 'ยอดปราชญ์สายอาชีพและปรมาจารย์เร้นกายยุคโบราณ', order: 8 },
+    CHAOS_ERA_HEROES: { id: 'CHAOS_ERA_HEROES', nameTh: 'มหาราชาผู้โศกเศร้าและยอดคนแห่งยุคกลียุคหมื่นราชวงศ์', order: 9 },
+    MODERN_EMPIRES_GATEKEEPER: { id: 'MODERN_EMPIRES_GATEKEEPER', nameTh: 'ตัวละครเอกยุคปัจจุบันของ 3 มหาอำนาจและปริศนาใต้สำนัก', order: 10 }
+  });
+
+  // Compact structured specification for all 40 events:
+  // [no, id, cat, nameTh, figureTh, impact, days, prefPaths, rewardMatId, loreFactIdx, relicLinkId, storySync]
+  const RAW_40_EVENTS = [
+    [1, 'EXT_EVT_01_BLACK_CAVALRY', 'ANCIENT_WAR_RUINS', 'สุสานทหารม้าเกราะดำผุดกลางพายุทราย', 'แม่ทัพหานพัวจวิน (#11)', 'REGIONAL', 15, ['STRATEGY_GOVERNANCE', 'BUDDHA_DHARMA', 'ANCESTRAL_RITUAL', 'NETHER_GRAVE'], 'MAT_ORE_METEOR_IRON_5', 0, 'LEG_ACC_TAICHI_HEAVEN_SEAL', 'STORY-SYNC-05'],
+    [2, 'EXT_EVT_02_CURSED_GOLD_VAULT', 'ANCIENT_WAR_RUINS', 'คลังทองคำต้องสาปของเสนาบดีฝ่ายขวาถล่ม', 'ราชันย์คลังมืด เหยียนกวง (#26)', 'REGIONAL', 14, ['MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'BUDDHA_DHARMA'], 'MAT_ORE_QUICKSAND_SPIRIT_GOLD_4', 1, 'EQ_V320_TEMP_ABACUS_T6', null],
+    [3, 'EXT_EVT_03_ENEMY_SKY_ARK', 'ANCIENT_WAR_RUINS', 'ซากสำเภาเวหาจากอาณาจักรศัตรูตกลงกลางหุบเขา', 'ขุนพลนาวาเวหาโบราณ', 'CONTINENTAL', 16, ['MECH_PUPPET', 'CRAFT_CREATION', 'TIDE_VOYAGER', 'ARRAY_TALISMAN'], 'MAT_FORM_SKY_LEVITATION_CORE_5', 2, 'EQ_V320_SHOES_T5', null],
+    [4, 'EXT_EVT_04_BEIMING_PURGE', 'THREE_EMPIRES_POLITICS', 'พระราชโองการกวาดล้างมารแห่งเป่ยหมิง', 'ราชสำนักเป่ยหมิง (#46)', 'CONTINENTAL', 18, ['XIAN', 'BUDDHA_DHARMA', 'DEMON', 'STRATEGY_GOVERNANCE'], 'MAT_HERB_SNOW_LOTUS_5', 3, 'EQ_V320_SHOES_T7', 'STORY-SYNC-01'],
+    [5, 'EXT_EVT_05_DONGHUANG_EMBARGO', 'THREE_EMPIRES_POLITICS', 'สงครามภาษีและการประมูลลับแห่งตงหวง', 'ตระกูลซือหม่า (#51/#52)', 'CONTINENTAL', 16, ['MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'LORE_ARCHIVIST'], 'MAT_ORE_DIVINE_GOLD_6', 4, 'EQ_V320_SET_ARCH_BRUSH', 'STORY-SYNC-02'],
+    [6, 'EXT_EVT_06_XIRONG_GAUNTLET', 'THREE_EMPIRES_POLITICS', 'เทียบเชิญประลองยุทธ์เลือดแห่งซีหรง', 'ตระกูลแม่ทัพทัวป๋า (#56/#60)', 'CONTINENTAL', 15, ['ARENA_GLORY', 'BODY', 'SHADOW_SAMURAI'], 'MAT_BP_TIGER_BLOOD_6', 5, 'EQ_V320_CURSED_SPEAR_T6', 'STORY-SYNC-05'],
+    [7, 'EXT_EVT_07_WORLD_BARRIER_RIFT', 'CELESTIAL_ANOMALIES', 'รอยแยกม่านกั้นภพปริแตก — เศษเสี้ยวทัณฑ์สวรรค์', 'ผู้เหินหาวนิรนามโลกเบื้องบน', 'MYTHIC', 12, ['VOID_SPACE', 'ASTRO_DIVINATION', 'ARRAY_TALISMAN'], 'MAT_ORE_PRIMORDIAL_CRYSTAL_7', 6, 'EQ_V320_LORE_SWORD_T7', 'STORY-SYNC-12'],
+    [8, 'EXT_EVT_08_BLOOD_MOON_DEMONS', 'CELESTIAL_ANOMALIES', 'คืนจันทร์สีเลือดและคลื่นจิตมารระบาด', 'คลื่นจิตมารยุคมืด', 'REGIONAL', 10, ['BUDDHA_DHARMA', 'HEART_SOUL', 'DEMON', 'OCCULT_MAGE'], 'MAT_FORM_BLOOD_FIEND_CRYSTAL_4', 7, 'EQ_V320_CURSED_RING_T4', 'STORY-SYNC-07'],
+    [9, 'EXT_EVT_09_PRIMORDIAL_SPRING', 'CELESTIAL_ANOMALIES', 'น้ำพุวิญญาณบรรพกาลปะทุกลางรอยเลื่อนแผ่นดิน', 'ชีพจรมังกรโบราณ', 'REGIONAL', 14, ['DRAGON_VEIN_GEOMANCY', 'SPIRIT_HUSBANDRY', 'TIDE_VOYAGER'], 'MAT_HERB_DRAGON_GRASS_4', 8, 'EQ_V320_UPKEEP_STAFF_T5', null],
+    [10, 'EXT_EVT_10_NAMELESS_INN_TEA', 'WANDERING_JIANGHU_TRADE', 'ชุมนุมโต๊ะน้ำชาที่โรงเตี๊ยมไร้ชื่อ — แผนที่คลังสมบัติทั้งเก้า', 'เถ้าแก่เฉียน (#22)', 'REGIONAL', 14, ['WANDERING_DAO', 'MERCANTILE_DAO', 'LORE_ARCHIVIST'], 'MAT_ORE_STAR_COPPER_3', 9, 'LEG_WPN_CAISHEN_GOLDEN_ABACUS', 'STORY-SYNC-03'],
+    [11, 'EXT_EVT_11_GHOST_SHIP_MIST', 'WANDERING_JIANGHU_TRADE', 'เรือสำเภาผีของนายหญิงหลานอินเทียบท่าคืนหมอกทมิฬ', 'นายหญิงหลานอิน', 'REGIONAL', 12, ['TIDE_VOYAGER', 'FORTUNE_GAMBLER', 'NINPO_SHADOW'], 'MAT_WHIP_KARMIC_RED_SILK_5', 10, 'EQ_V320_SET_TWIN_ROBE', null],
+    [12, 'EXT_EVT_12_REFUGEE_AMBUSH', 'WANDERING_JIANGHU_TRADE', 'ขบวนนักโทษประหารและผู้ลี้ภัยถูกโจรภูเขาซุ่มโจมตี', 'กองกำลังเร่ร่อนชายแดน', 'MINOR', 10, ['BODY', 'ARENA_GLORY', 'SAGE_SUPPORT', 'STRATEGY_GOVERNANCE'], 'MAT_ORE_COLD_STEEL_2', 11, 'EQ_V320_HEAVY_T2', null],
+    [13, 'EXT_EVT_13_PHOENIX_EGG_VOLCANO', 'BEAST_ECOLOGY_KINGS', 'ไข่อมตะของราชันหงส์เพลิงกำลังจะฟักกลางปล่องภูเขาไฟ', 'ราชันหงส์เพลิงบรรพกาล', 'CONTINENTAL', 14, ['BEAST_SOVEREIGN', 'SPIRIT_HUSBANDRY', 'PRIMORDIAL_SHIFTER'], 'MAT_ZITHER_PHOENIX_HEARTWOOD_5', 12, 'EQ_V320_TAL_CHG_T6_PHOENIX', null],
+    [14, 'EXT_EVT_14_BLOOD_WOLF_ALPHA', 'BEAST_ECOLOGY_KINGS', 'จ่าฝูงหมาป่าพันธะโลหิตบาดเจ็บหนีตายมาพึ่งเขตสำนัก', 'จ่าฝูงหมาป่าพันธะโลหิต', 'MINOR', 10, ['BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'SPIRIT_HUSBANDRY'], 'MAT_BP_WOLF_FANG_1', 13, 'EQ_V320_CLAW_T1', null],
+    [15, 'EXT_EVT_15_ANCIENT_TREE_SPIRIT', 'BEAST_ECOLOGY_KINGS', 'ภูตต้นไม้โบราณพันปีถูกหนอนปรสิตกลืนกินราก', 'ภูตพฤกษาพันปี', 'REGIONAL', 12, ['SPIRIT_HUSBANDRY', 'VENOM_GU', 'SAGE_SUPPORT'], 'MAT_HERB_JADE_LOTUS_2', 14, 'EQ_V320_ROBE_T2', null],
+    [16, 'EXT_EVT_16_BLIND_ZITHER_SAGE', 'HIDDEN_DESTINY_LEGENDS', 'เสียงพิณไร้สายในคืนเดือนมืด — บททดสอบของคีตเซียนตาบอด', 'คีตเซียนตาบอด', 'REGIONAL', 12, ['SONIC_HARMONY', 'HEART_SOUL', 'LORE_ARCHIVIST'], 'MAT_FORM_SOUL_WOOD_PILLAR_4', 15, 'EQ_V320_GS_ZITHER_T4', null],
+    [17, 'EXT_EVT_17_OLD_MAN_WOOD_SWORD', 'HIDDEN_DESTINY_LEGENDS', 'ชายชราพเนจรผู้ไร้ชื่อขอแลกกระบี่ไม้กับอาหารหนึ่งมื้อ', 'ยอดฝีมือเร้นกายนิรนาม', 'MINOR', 10, ['WANDERING_DAO', 'XIAN', 'SHADOW_SAMURAI'], 'MAT_HERB_DEW_GRASS_1', 16, 'EQ_V320_GS_SWORD_T3', null],
+    [18, 'EXT_EVT_18_BETRAYED_GENERAL_PRISON', 'HIDDEN_DESTINY_LEGENDS', 'รอยแยกคุกมืดใต้ดิน — เสียงโซ่ตรวนของขุนพลผู้ถูกตราหน้าว่าทรยศ', 'ขุนพลผู้ถูกจองจำ', 'REGIONAL', 14, ['STRATEGY_GOVERNANCE', 'ANCESTRAL_RITUAL', 'KARMA_SAMSARA'], 'MAT_ORE_MITHRIL_JADE_4', 17, 'EQ_V320_SET_PATINA_ARMOR', null],
+    [19, 'EXT_EVT_19_TUOBA_PHANTOM_SPEAR', 'ANCIENT_GENERALS_ENEMIES', 'เสียงทวนในพายุทรายสีเลือด — เงาร่างของแม่ทัพใหญ่ทัวป๋าเลี่ย', 'แม่ทัพใหญ่ทัวป๋าเลี่ย (#5)', 'CONTINENTAL', 15, ['ARENA_GLORY', 'BODY', 'STRATEGY_GOVERNANCE'], 'MAT_ORE_METEOR_IRON_5', 18, 'EQ_V320_GS_SPEAR_T3', 'STORY-SYNC-05'],
+    [20, 'EXT_EVT_20_MURONG_BLOOD_LOTUS', 'ANCIENT_GENERALS_ENEMIES', 'ดอกบัวโลหิตนิรันดร์บานกลางบึงมรณะ — การตื่นขึ้นของมู่หรงเสวี่ย', 'แม่ทัพหญิงมู่หรงเสวี่ย (#7)', 'MYTHIC', 15, ['ANCESTRAL_RITUAL', 'DEMON', 'KARMA_SAMSARA'], 'MAT_HERB_BLOOD_GINSENG_3', 19, 'EQ_V320_CURSED_ROBE_T5', 'STORY-SYNC-08'],
+    [21, 'EXT_EVT_21_TWIN_ASSASSINS', 'ANCIENT_GENERALS_ENEMIES', 'เงาคู่ในคืนไร้จันทร์ — บททดสอบของฝาแฝดมือสังหารหลวง', 'ฝาแฝดมือสังหารหลวง', 'REGIONAL', 12, ['NINPO_SHADOW', 'SHADOW_SAMURAI', 'VOID_SPACE'], 'MAT_BP_SCORPION_STING_4', 20, 'EQ_V320_GS_NEEDLE_T4', null],
+    [22, 'EXT_EVT_22_STANDING_TITAN_LEIZHEN', 'ANCIENT_GENERALS_ENEMIES', 'ยักษ์ศิลาค้ำถ้ำลืมตาตื่น — บททดสอบหมัดเหล็กของจ้าวพยัคฆ์เหลยเจิ้น', 'จ้าวพยัคฆ์เหลยเจิ้น', 'CONTINENTAL', 14, ['BODY', 'GRAVITY_DAO', 'ARENA_GLORY'], 'MAT_BP_EARTH_CORE_4', 21, 'EQ_V320_FIST_T5', null],
+    [23, 'EXT_EVT_23_STRANDED_ENEMY_GENERAL', 'ANCIENT_GENERALS_ENEMIES', 'ห้องจำศีลใต้หุบเขาไฟ — ขุนพลอาณาจักรศัตรูที่หนีกลับไม่ทัน', 'ขุนพลต่างภพจำศีล', 'CONTINENTAL', 14, ['STRATEGY_GOVERNANCE', 'LORE_ARCHIVIST', 'BODY'], 'MAT_FORM_EARTH_FLAME_CORE_4', 22, 'EQ_V320_CORE_CHG_T4_FLAME', null],
+    [24, 'EXT_EVT_24_ICE_COFFIN_ENVOY', 'ANCIENT_GENERALS_ENEMIES', 'โลงหยกน้ำแข็งของทูตสาวจากอีกฟากฟ้า', 'ทูตหญิงต่างภพในโลงหยก', 'CONTINENTAL', 14, ['TIDE_VOYAGER', 'SAGE_SUPPORT', 'LORE_ARCHIVIST'], 'MAT_BP_BEAR_HEART_4', 23, 'EQ_V320_TEMP_FAN_T4', null],
+    [25, 'EXT_EVT_25_FALLEN_UPPER_ENVOY', 'ANCIENT_GENERALS_ENEMIES', 'ทูตสวรรค์ปีกหักกลางหุบเขา — คำเตือนจากโลกเบื้องบน', 'ทูตตกสวรรค์ ขงหมิง (#21)', 'MYTHIC', 16, ['DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'LORE_ARCHIVIST'], 'MAT_TR_HEAVEN_EDICT_SILK', 24, 'EQ_V320_LORE_RING_T7', 'STORY-SYNC-10'],
+    [26, 'EXT_EVT_26_MAD_APOTHECARY', 'HERMIT_ARTISAN_MASTERS', 'คนบ้าในบึงหมอกพิษ — โอสถหนึ่งเม็ดหรือพิษล้างบาง', 'ปรมาจารย์โอสถคลั่ง', 'REGIONAL', 12, ['VENOM_GU', 'SPIRIT_HUSBANDRY', 'CRAFT_CREATION'], 'MAT_HERB_VENOM_VINE_3', 25, 'EQ_V320_AUX_T2_ALCH', null],
+    [27, 'EXT_EVT_27_MAGMA_BLACKSMITH', 'HERMIT_ARTISAN_MASTERS', 'วิญญาณช่างหลอมในหัวใจเปลวเพลิง — ตีเหล็กหนึ่งหมื่นค้อน', 'โอวหยางเหยียน (#14)', 'CONTINENTAL', 14, ['CRAFT_CREATION', 'BODY', 'ARENA_GLORY'], 'MAT_TR_WORLD_FORGE_SHARD', 26, 'EQ_V320_SET_PATINA_BLADE', 'STORY-SYNC-12'],
+    [28, 'EXT_EVT_28_GONGSHU_PUPPET_VAULT', 'HERMIT_ARTISAN_MASTERS', 'ห้องนิรภัยหุ่นเชิดหยกขาว — ปริศนากลไกของกงซูจี', 'กงซูจี ปราชญ์กลไก', 'REGIONAL', 14, ['MECH_PUPPET', 'CRAFT_CREATION', 'ARRAY_TALISMAN'], 'MAT_FORM_EARTH_ARRAY_CORE_4', 27, 'EQ_V320_CORE_CHG_T4_LIGHT', null],
+    [29, 'EXT_EVT_29_FROZEN_STAR_TOWER', 'HERMIT_ARTISAN_MASTERS', 'หอคอยดูดาวที่เวลาหยุดนิ่ง — คำพยากรณ์สุดท้ายของซิงเฉินจื่อ', 'ซิงเฉินจื่อ (#16)', 'MYTHIC', 15, ['ASTRO_DIVINATION', 'CHRONO_EPOCH', 'LORE_ARCHIVIST'], 'MAT_TR_ASTRAL_DEW', 23, 'LEG_WPN_HETU_LUOSHU_ASTROLABE', 'STORY-SYNC-04'],
+    [30, 'EXT_EVT_30_SWEEPING_MONK', 'HERMIT_ARTISAN_MASTERS', 'หลวงจีนชรากวาดใบไม้กลางวัดร้าง — คมดาบที่ซ่อนในไม้กวาด', 'หลวงจีนชราวัดร้าง', 'REGIONAL', 12, ['BUDDHA_DHARMA', 'HEART_SOUL', 'WANDERING_DAO'], 'MAT_FORM_FAITH_INCENSE_PEARL_4', 12, 'EQ_V320_ROSARY_T5', null],
+    [31, 'EXT_EVT_31_GRANNY_MENG_HUT', 'HERMIT_ARTISAN_MASTERS', 'กระท่อมปะชุนเสื้อผ้าริมบึง — เส้นไหมสวรรค์ของแม่เฒ่ายายเมิ่ง', 'แม่เฒ่ายายเมิ่ง (#24)', 'CONTINENTAL', 14, ['CRAFT_CREATION', 'SAGE_SUPPORT', 'TIDE_VOYAGER'], 'MAT_WHIP_KARMIC_RED_SILK_5', 22, 'LEG_ARM_CELESTIAL_CRANE_ROBE', 'STORY-SYNC-01'],
+    [32, 'EXT_EVT_32_HUNDRED_DAY_EMPEROR', 'CHAOS_ERA_HEROES', 'บัลลังก์หินกลางทุ่งร้าง — เจตนารมณ์ของจักรพรรดิร้อยวัน หลินเทียน', 'จักรพรรดิร้อยวัน หลินเทียน', 'CONTINENTAL', 14, ['STRATEGY_GOVERNANCE', 'ANCESTRAL_RITUAL', 'INK_LITERATI'], 'MAT_BRUSH_DRAGON_WHISKER_JADE_5', 20, 'EQ_V320_GS_BRUSH_T6', null],
+    [33, 'EXT_EVT_33_SEVEN_BANNER_WAGER', 'CHAOS_ERA_HEROES', 'ขุนพลขี้เมาผู้แบกธงขาดเจ็ดผืน — การเดิมพันครั้งที่แปดของเกาเซิ่ง', 'ขุนพลเกาเซิ่ง', 'REGIONAL', 12, ['FORTUNE_GAMBLER', 'ARENA_GLORY', 'STRATEGY_GOVERNANCE'], 'MAT_BP_HEAVEN_CORE_5', 13, 'EQ_V320_GS_ABACUS_T4', null],
+    [34, 'EXT_EVT_34_GAMBLER_PRINCE_DICE', 'CHAOS_ERA_HEROES', 'บ่อนพนันชะตาขององค์ชายไร้บ้าน — ทอยเต๋าแลกสมบัติตำนาน', 'องค์ชายพเนจรนักเดิมพัน', 'REGIONAL', 12, ['FORTUNE_GAMBLER', 'MERCANTILE_DAO', 'WANDERING_DAO'], 'MAT_ORE_DIVINE_GOLD_6', 21, 'EQ_V320_SET_TWIN_RING', null],
+    [35, 'EXT_EVT_35_DRUNKEN_SWORD_IMMORTAL', 'CHAOS_ERA_HEROES', 'น้ำเต้าสุราบนยอดไผ่ — ท้าดวลร่ำสุรากับเซียนกระบี่ขี้เมา', 'จิ้วเจี้ยนเซียน (#39)', 'MYTHIC', 14, ['XIAN', 'WANDERING_DAO', 'ARENA_GLORY'], 'MAT_HERB_IMMORTAL_PEACH_6', 6, 'EQ_V320_TEMP_SWORD_T4', 'STORY-SYNC-09'],
+    [36, 'EXT_EVT_36_KENSHIN_CLOUD_CLIFF', 'CHAOS_ERA_HEROES', 'คมดาบไร้ปราณบนผาเมฆา — บททดสอบจิตว่างเปล่าของซามูไรเคนชิน', 'ซามูไรเคนชิน (#41)', 'CONTINENTAL', 14, ['SHADOW_SAMURAI', 'ARENA_GLORY', 'HEART_SOUL'], 'MAT_ORE_METEOR_IRON_5', 19, 'EQ_V320_TAL_CHG_T5_CHARGE', 'STORY-SYNC-11'],
+    [37, 'EXT_EVT_37_CROWN_PRINCESS_MARKET', 'MODERN_EMPIRES_GATEKEEPER', 'เทพธิดาเก้าเหมันต์ปลอมตัวเดินตลาด — องค์หญิงรัชทายาทเป่ยหมิง', 'กู่ชิงเสวี่ย (#47)', 'CONTINENTAL', 14, ['XIAN', 'STRATEGY_GOVERNANCE', 'MERCANTILE_DAO'], 'MAT_HERB_SNOW_LOTUS_5', 22, 'LEG_ACC_DRAGON_PHOENIX_BANGLE', 'STORY-SYNC-06'],
+    [38, 'EXT_EVT_38_XINGYUN_OBSERVATION', 'MODERN_EMPIRES_GATEKEEPER', 'นักพรตพเนจรดูดาวหน้าประตูสำนัก — เจ้าหอดูดาวซิงอวิ๋น', 'ซิงอวิ๋น (#49)', 'CONTINENTAL', 14, ['ASTRO_DIVINATION', 'LORE_ARCHIVIST', 'ARRAY_TALISMAN'], 'MAT_ORE_THUNDER_JADE_4', 23, 'EQ_V320_GS_ASTROLABE_T4', 'STORY-SYNC-04'],
+    [39, 'EXT_EVT_39_CENSOR_WARRANT', 'MODERN_EMPIRES_GATEKEEPER', 'หมายจับตุลาการหน้าเหล็ก — เหยียนหลัวแห่งตงหวงตามล่าถึงพรมแดน', 'เหยียนหลัว ตุลาการตงหวง', 'CONTINENTAL', 14, ['STRATEGY_GOVERNANCE', 'KARMA_SAMSARA', 'ARENA_GLORY'], 'MAT_BP_TIGER_BONE_6', 15, 'EQ_V320_LORE_ARMOR_T7', 'STORY-SYNC-02'],
+    [40, 'EXT_EVT_40_FACELESS_GATEKEEPER', 'MODERN_EMPIRES_GATEKEEPER', 'เสียงเรียกจากใต้ฐานประตูมิติ — การตื่นขึ้นของผู้เฝ้าประตูไร้หน้า', 'ผู้เฝ้าประตูไร้หน้าแห่งเทียนกู่', 'MYTHIC', 18, ['ANCESTRAL_RITUAL', 'LORE_ARCHIVIST', 'VOID_SPACE', 'ARRAY_TALISMAN'], 'MAT_TR_VOID_MATRIX_CORE', 27, 'EQ_V320_LORE_SWORD_T7', 'STORY-SYNC-12']
+  ];
+
+  const EXT_EVENT_CATALOG = Object.freeze(RAW_40_EVENTS.map(row => {
+    const [no, id, category, nameTh, loreFigureTh, impact, durationDays, preferredPaths, rewardMatId, loreFactIdx, relicLinkId, storySync] = row;
+    return Object.freeze({
+      no, id, category,
+      categoryNameTh: EXT_EVENT_CATEGORIES[category].nameTh,
+      nameTh, loreFigureTh, impact, durationDays,
+      preferredPaths: Object.freeze(preferredPaths.slice()),
+      rewardMatId, loreFactIdx, relicLinkId, storySync,
+      outcomes: Object.freeze([
+        { key: 'HONORABLE', labelTh: 'เจรจา/คลี่คลายด้วยปัญญาและเกียรติ', repDelta: 24, cultExp: 85, matQty: 2, stones: 60 },
+        { key: 'RIGHTEOUS', labelTh: 'ประกอบพิธีชำระ/ช่วยเหลือด้วยคุณธรรม', repDelta: 32, cultExp: 70, matQty: 1, stones: 35 },
+        { key: 'AMBITIOUS', labelTh: 'ช่วงชิงผลประโยชน์และแก่นพลังต้องห้าม', repDelta: -12, cultExp: 110, matQty: 3, stones: 95, heartDemon: 6 },
+        { key: 'PRAGMATIC', labelTh: 'สังเกตการณ์เก็บกวาดและถอยอย่างปลอดภัย', repDelta: 6, cultExp: 45, matQty: 1, stones: 25 }
+      ])
+    });
+  }));
+
+  const EXT_EVENT_BY_ID = Object.freeze(Object.fromEntries(EXT_EVENT_CATALOG.map(e => [e.id, e])));
+
+  X.EXTERNAL_WORLD_EVENTS = {
+    VERSION: '3.4.0-world-events',
+    CATEGORIES: EXT_EVENT_CATEGORIES,
+    CATALOG: EXT_EVENT_CATALOG,
+    BY_ID: EXT_EVENT_BY_ID,
+
+    ensureWorldState(W) {
+      if (!W) return null;
+      W.world = W.world || {};
+      if (!W.world.externalWorldEvents || typeof W.world.externalWorldEvents !== 'object') {
+        W.world.externalWorldEvents = { active: [], resolvedReceipts: {}, history: [], lastSpawnDay: -7 };
+      }
+      const st = W.world.externalWorldEvents;
+      if (!Array.isArray(st.active)) st.active = [];
+      if (!st.resolvedReceipts || typeof st.resolvedReceipts !== 'object') st.resolvedReceipts = {};
+      if (!Array.isArray(st.history)) st.history = [];
+      return st;
+    },
+
+    spawnDeterministicEvent(W, opts) {
+      opts = opts || {};
+      const st = X.EXTERNAL_WORLD_EVENTS.ensureWorldState(W);
+      if (!st) return null;
+      const day = W.day || 0;
+      if (!opts.force && st.active.length >= 3) return null;
+      if (!opts.force && day - (st.lastSpawnDay || -7) < 7) return null;
+
+      let chosen = opts.eventId ? EXT_EVENT_BY_ID[opts.eventId] : null;
+      if (!chosen) {
+        const activeIds = new Set(st.active.map(a => a && a.id));
+        const pool = EXT_EVENT_CATALOG.filter(ev => !activeIds.has(ev.id) && !(st.resolvedReceipts[ev.id] && (day - st.resolvedReceipts[ev.id].day) < 45));
+        if (!pool.length) return null;
+        const idx = detHash340((W.seed || 'seed') + ':ext_evt:' + day + ':' + st.history.length) % pool.length;
+        chosen = pool[idx];
+      }
+      const instance = {
+        uid: 'wevt_' + chosen.no + '_' + day,
+        id: chosen.id,
+        no: chosen.no,
+        category: chosen.category,
+        nameTh: chosen.nameTh,
+        loreFigureTh: chosen.loreFigureTh,
+        impact: chosen.impact,
+        spawnedDay: day,
+        expiresDay: day + chosen.durationDays,
+        relicLinkId: chosen.relicLinkId || null,
+        storySync: chosen.storySync || null
+      };
+      st.active.push(instance);
+      st.lastSpawnDay = day;
+      if (W.log && !opts.quiet) {
+        W.log('world', '🌍 อีเวนต์โลกภายนอก [' + chosen.categoryNameTh + ']:「' + chosen.nameTh + '」(' + chosen.loreFigureTh + ')', []);
+      }
+      return instance;
+    },
+
+    chooseAutonomousOutcome(W, npc, ev) {
+      if (!ev) return null;
+      const E = g.HC && g.HC.eff;
+      const mor = (npc && E) ? E(npc, 'values.morality') : 50;
+      const amb = (npc && E) ? E(npc, 'personality.ambition') : 50;
+      const caut = (npc && E) ? E(npc, 'personality.caution') : 50;
+      const cour = (npc && E) ? E(npc, 'personality.courage') : 50;
+      const path = npc && npc.cult && npc.cult.path;
+      const doctrine = (W && W.sect && W.sect.doctrine) || 'BALANCED';
+      const isPref = path && ev.preferredPaths.includes(path);
+      // STORY-SYNC-10 guard on Event 25: DIVINE_* only (exclude mortal GOD path)
+      const isDarkOrAmb = (amb >= 68 && mor < 48) || ['DEMON', 'VOID_HERETIC_PACT', 'NETHER_GRAVE', 'OCCULT_MAGE'].includes(path) || doctrine === 'RUTHLESS';
+      if (ev.no === 25 && ['DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER'].includes(path)) {
+        return ev.outcomes[2]; // AMBITIOUS divine mandate strike
+      }
+      if (isPref && (cour >= 55 || mor >= 55)) return ev.outcomes[0]; // HONORABLE
+      if (mor >= 65 || doctrine === 'RIGHTEOUS' || ['BUDDHA_DHARMA', 'SAGE_SUPPORT', 'ANCESTRAL_RITUAL', 'SPIRIT_HUSBANDRY'].includes(path)) return ev.outcomes[1]; // RIGHTEOUS
+      if (isDarkOrAmb) return ev.outcomes[2]; // AMBITIOUS
+      if (caut >= 62) return ev.outcomes[3]; // PRAGMATIC
+      return isPref ? ev.outcomes[0] : ev.outcomes[3];
+    },
+
+    resolveEventAutonomously(W, npc, eventOrId, opts) {
+      opts = opts || {};
+      const st = X.EXTERNAL_WORLD_EVENTS.ensureWorldState(W);
+      if (!st || !npc || npc.dead || npc.away || npc.exiled || npc.sealed || (npc.jail > (W.t || 0))) return { ok: false, reason: 'invalid-actor' };
+      const evId = typeof eventOrId === 'string' ? eventOrId : (eventOrId && eventOrId.id);
+      const ev = EXT_EVENT_BY_ID[evId];
+      if (!ev) return { ok: false, reason: 'unknown-event' };
+      const day = W.day || 0;
+      const prev = st.resolvedReceipts[ev.id];
+      if (!opts.force && prev && (day - prev.day) < 45) {
+        return { ok: false, reason: 'already-resolved-recently' };
+      }
+
+      const outcome = X.EXTERNAL_WORLD_EVENTS.chooseAutonomousOutcome(W, npc, ev);
+      // Closed-loop transfer from canonical W.world.resourcePool.stones (never conjure stones)
+      let stonesPaid = outcome.stones || 0;
+      if (W.sect && stonesPaid > 0) {
+        const pool = W.world && W.world.resourcePool;
+        if (pool && Number.isFinite(pool.stones)) {
+          stonesPaid = Math.min(stonesPaid, Math.max(0, Math.floor(pool.stones)));
+          pool.stones -= stonesPaid;
+        } else {
+          stonesPaid = 0;
+        }
+        if (stonesPaid > 0) W.sect.stones = (W.sect.stones || 0) + stonesPaid;
+      }
+      if (outcome.repDelta && typeof W.fame === 'function') {
+        W.fame(outcome.repDelta);
+      }
+      if (npc.cult && g.CULT && g.CULT.gain && outcome.cultExp > 0) {
+        g.CULT.gain(npc, outcome.cultExp, W, 'external_world_event');
+      }
+      if (outcome.heartDemon && npc.h && npc.h.state) {
+        npc.h.state.heartDemon = Math.min(100, (npc.h.state.heartDemon || 0) + outcome.heartDemon);
+      }
+      let matAwarded = null;
+      if (ev.rewardMatId && g.ECO && g.ECO.matById && g.ECO.matById[ev.rewardMatId] && g.ECO.add) {
+        g.ECO.add(W, ev.rewardMatId, outcome.matQty || 1);
+        matAwarded = ev.rewardMatId;
+      }
+      // Cross-link to canonical v3.1.0 Living Lore facts[id]
+      let loreFactId = null;
+      if (X.LIVING_LORE && Array.isArray(X.LIVING_LORE.CANON_FACTS) && X.LIVING_LORE.CANON_FACTS.length) {
+        const cf = X.LIVING_LORE.CANON_FACTS[ev.loreFactIdx % X.LIVING_LORE.CANON_FACTS.length];
+        if (cf && cf.id) {
+          if (typeof X.LIVING_LORE.ensureWorldState === 'function') X.LIVING_LORE.ensureWorldState(W);
+          if (g.COG && typeof g.COG.learnLoreFact === 'function') {
+            g.COG.learnLoreFact(W, npc, cf.id, {
+              accountId: 'FOLK_ORAL',
+              originEventId: 'ext_evt:' + ev.id + ':' + day,
+              sourceKind: 'external_event',
+              storyId: cf.storyId || null
+            });
+          } else {
+            W.world.livingLore = W.world.livingLore || {};
+            W.world.livingLore.facts = W.world.livingLore.facts || {};
+            const wf = W.world.livingLore.facts[cf.id] || (W.world.livingLore.facts[cf.id] = { id: cf.id, discovered: false, archivedInSect: false, status: 'undiscovered', knownAccounts: [] });
+            wf.discovered = true;
+            if (wf.status === 'undiscovered' || wf.status === 'rumored') wf.status = 'rumor';
+            if (!Array.isArray(wf.knownAccounts)) wf.knownAccounts = [];
+            if (!wf.knownAccounts.includes('FOLK_ORAL')) wf.knownAccounts.push('FOLK_ORAL');
+            wf.firstDiscoveredDay = wf.firstDiscoveredDay != null ? wf.firstDiscoveredDay : day;
+          }
+          W.world.livingLore.discoveredFacts = W.world.livingLore.discoveredFacts || {};
+          W.world.livingLore.discoveredFacts[cf.id] = { day, sourceEventId: ev.id, actorId: npc.id };
+          loreFactId = cf.id;
+        }
+      }
+
+      st.active = st.active.filter(a => a && a.id !== ev.id);
+      const actorName = (npc.h && npc.h.name) ? (npc.h.name.full || ((npc.h.name.family || npc.h.name.surname || '') + (npc.h.name.given || ''))) : npc.id;
+      const entry = {
+        id: ev.id,
+        no: ev.no,
+        nameTh: ev.nameTh,
+        category: ev.category,
+        day,
+        actorId: npc.id,
+        actorNameTh: actorName,
+        outcomeKey: outcome.key,
+        outcomeLabelTh: outcome.labelTh,
+        stonesPaid,
+        matAwarded,
+        loreFactId,
+        relicLinkId: ev.relicLinkId || null
+      };
+      st.resolvedReceipts[ev.id] = { day, outcomeKey: outcome.key, actorId: npc.id };
+      st.history.push(entry);
+      if (st.history.length > 60) st.history.shift();
+      if (W.log && !opts.quiet) {
+        W.log('chronicle', '🌍 ' + actorName + ' คลี่คลายอีเวนต์「' + ev.nameTh + '」(' + outcome.labelTh + ')', [npc.id]);
+      }
+      return { ok: true, entry };
+    },
+
+    tickDaily(W) {
+      const st = X.EXTERNAL_WORLD_EVENTS.ensureWorldState(W);
+      if (!st) return null;
+      const day = W.day || 0;
+      st.active = st.active.filter(a => a && day <= (a.expiresDay || day));
+      X.EXTERNAL_WORLD_EVENTS.spawnDeterministicEvent(W, { quiet: false });
+      if (st.active.length > 0 && Array.isArray(W.npcs)) {
+        const targetEvt = st.active.find(a => a && (day - (a.spawnedDay || 0)) >= 3);
+        if (targetEvt) {
+          const evDef = EXT_EVENT_BY_ID[targetEvt.id];
+          const busyActs = new Set(['fight', 'breakthrough', 'seclusion', 'sleep', 'heal']);
+          const candidates = W.npcs.filter(n => n && !n.dead && !n.foe && !n.away && !n.exiled && !n.sealed && !(n.jail > (W.t || 0)) && n.cult && (n.cult.stage || 1) >= 2 && (!n.act || !busyActs.has(n.act.id)) && (!n.h || !n.h.state || (n.h.state.energy ?? 100) >= 25));
+          if (candidates.length > 0) {
+            const scored = candidates.map(n => {
+              const prefBonus = (evDef && evDef.preferredPaths.includes(n.cult.path)) ? 100 : 0;
+              const repeatPenalty = (st.lastActorId && st.lastActorId === n.id) ? -60 : 0;
+              const stageBonus = Math.min(30, (n.cult.stage || 1) * 4);
+              const tie = detHash340((W.seed || 'seed') + ':' + targetEvt.id + ':' + day + ':' + n.id) % 19;
+              return { n, score: prefBonus + repeatPenalty + stageBonus + tie };
+            }).sort((a, b) => b.score - a.score);
+            const chosenNpc = scored[0].n;
+            const res = X.EXTERNAL_WORLD_EVENTS.resolveEventAutonomously(W, chosenNpc, targetEvt.id, { quiet: false });
+            if (res && res.ok) {
+              st.lastActorId = chosenNpc.id;
+              if (chosenNpc.h && chosenNpc.h.state) {
+                chosenNpc.h.state.energy = Math.max(10, (chosenNpc.h.state.energy || 60) - 18);
+                chosenNpc.h.state.satiety = Math.max(10, (chosenNpc.h.state.satiety || 60) - 10);
+              }
+            }
+          }
+        }
+      }
+      return st;
+    },
+
+    peekSummary(W) {
+      const st = W && W.world && W.world.externalWorldEvents;
+      if (!st) return { activeCount: 0, resolvedCount: 0, activeNamesTh: [], recentTh: '' };
+      const activeNamesTh = (st.active || []).map(a => a.nameTh);
+      const last = (st.history && st.history.length) ? st.history[st.history.length - 1] : null;
+      return {
+        activeCount: activeNamesTh.length,
+        resolvedCount: Object.keys(st.resolvedReceipts || {}).length,
+        activeNamesTh,
+        recentTh: last ? (last.actorNameTh + ': ' + last.nameTh + ' (' + last.outcomeLabelTh + ')') : ''
+      };
+    }
+  };
+
+  /* ============================================================================
+   * JS2 v3.6.0a — Phase 1: Living Jianghu Sects (EXPED.LIVING_SECTS)
+   * 100% NPC-driven rise, fall, succession, schism, collapse, and rebirth.
+   * Pure deterministic detHash360 (ZERO W.rng consumption).
+   * ============================================================================ */
+  function detHash360(str) {
+    let h = 2166136261 >>> 0;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function detUnit360(key) {
+    return (detHash360(key) % 10000) / 10000;
+  }
+
+  const LS_SURNAMES = ['หลิน', 'เย่', 'กู้', 'มู่หรง', 'ซ่างกวน', 'โอวหยาง', 'เซียว', 'จ้าว', 'เฟิง', 'หลง', 'หนานกง', 'เป่ยถัง', 'สวี', 'เจียง', 'หวงฝู่', 'ตงฟาง', 'ชิว', 'ซือหม่า', 'หลิง', 'เหอ'];
+  const LS_GIVEN = ['อวิ๋น', 'เทียน', 'ชิง', 'เหยียน', 'เจี้ยน', 'หาน', 'หลิง', 'เฟิง', 'เยว่', 'ซาน', 'เสวี่ย', 'อวี้', 'หมิง', 'หยาง', 'อวิ๋นซี', 'จื่อหาน', 'ชางหลาน', 'อู๋จี๋', 'เสวียน', 'เจ๋อ'];
+  const LS_PATHS = ['XIAN', 'BODY', 'DEMON', 'HEART_SOUL', 'ARRAY_TALISMAN', 'CRAFT_CREATION', 'BEAST_SOVEREIGN', 'STRATEGY_GOVERNANCE', 'SHADOW_SAMURAI', 'BUDDHA_DHARMA', 'ASTRO_DIVINATION', 'SONIC_HARMONY', 'TIDE_VOYAGER', 'LORE_ARCHIVIST', 'ARENA_GLORY'];
+  const LS_REBORN_PREFIX = ['สำนัก', 'หอ', 'ศาลา', 'ตระกูล', 'นิกาย', 'คฤหาสน์'];
+  const LS_REBORN_CORE = ['เมฆาคราม', 'ดาราพิสุทธิ์', 'เพลิงสุริยัน', 'เหมันต์นิรันดร์', 'กระบี่ไร้เงา', 'วายุทมิฬ', 'หยกสวรรค์', 'มังกรเร้นเมฆ', 'จันทราโลหิต', 'โพธิ์ทอง', 'ศิลาบรรพกาล', 'สายฟ้าคราม'];
+  const LS_TRAJECTORY_TH = Object.freeze({
+    HEGEMON: 'จ้าวยุทธภพ',
+    RISING: 'กำลังผงาด',
+    STEADY: 'มั่นคง',
+    DECLINING: 'เสื่อมถอย',
+    CRISIS: 'วิกฤตสืบทอด',
+    COLLAPSED: 'ล่มสลาย',
+    REBORN: 'ก่อตั้งใหม่'
+  });
+
+  function lsMakeNpc(seedKey, role, baseStage, pathHint, dayNow) {
+    const h1 = detHash360(seedKey + ':nm1');
+    const h2 = detHash360(seedKey + ':nm2');
+    const nameTh = LS_SURNAMES[h1 % LS_SURNAMES.length] + LS_GIVEN[h2 % LS_GIVEN.length];
+    const pathId = pathHint || LS_PATHS[detHash360(seedKey + ':path') % LS_PATHS.length];
+    const stage = clamp(Math.round(baseStage), 1, 9);
+    const talent = clamp(36 + Math.round(detUnit360(seedKey + ':tal') * 62), 32, 98);
+    const ambition = clamp(24 + Math.round(detUnit360(seedKey + ':amb') * 72), 20, 96);
+    const integrity = clamp(22 + Math.round(detUnit360(seedKey + ':int') * 74), 20, 96);
+    const wisdom = clamp(28 + Math.round(detUnit360(seedKey + ':wis') * 68), 25, 96);
+    const martial = clamp(30 + Math.round(detUnit360(seedKey + ':mar') * 66), 25, 96);
+    const lifespanMax = 65 + stage * 24 + Math.round(talent * 0.25);
+    const baseAge = role === 'LEADER' ? Math.round(lifespanMax * (0.38 + detUnit360(seedKey + ':age') * 0.58))
+      : role === 'ELDER' ? Math.round(lifespanMax * (0.42 + detUnit360(seedKey + ':age') * 0.52))
+      : (15 + Math.round(detUnit360(seedKey + ':age') * 12));
+    return {
+      id: 'ls_' + (detHash360(seedKey + ':id').toString(36)),
+      nameTh,
+      role,
+      path: pathId,
+      stage,
+      prog: Math.round(detUnit360(seedKey + ':prog') * 55),
+      ageYears: Math.min(lifespanMax - 2, baseAge),
+      lifespanMax,
+      talent,
+      ambition,
+      integrity,
+      wisdom,
+      martial,
+      wounds: 0,
+      bornDay: (dayNow || 0) - Math.round(baseAge * 360)
+    };
+  }
+
+  function lsRecomputeSectMetrics(s) {
+    if (!s || !s.livingRoster) return;
+    const r = s.livingRoster;
+    if (r.collapsed) {
+      s.power = 0.20;
+      s.influence = Math.max(5, Math.round((s.influence || 20) * 0.5));
+      s.tierLevel = 1;
+      r.trajectory = 'COLLAPSED';
+      r.trajectoryTh = LS_TRAJECTORY_TH.COLLAPSED;
+      return;
+    }
+    const ldr = r.leader;
+    const elders = Array.isArray(r.elders) ? r.elders : [];
+    const prodigies = Array.isArray(r.prodigies) ? r.prodigies : [];
+    const ldrScore = ldr ? (ldr.stage * 22 + ldr.martial * 0.45 + ldr.wisdom * 0.30 + (ldr.integrity - 50) * 0.22 - (ldr.wounds || 0) * 0.6) : 12;
+    const elderScore = elders.reduce((sum, e) => sum + (e ? (e.stage * 11 + e.martial * 0.22 + e.wisdom * 0.18) : 0), 0);
+    const prodScore = prodigies.reduce((sum, p) => sum + (p ? (p.stage * 9 + (p.talent >= 80 ? 18 : 6)) : 0), 0);
+    const moraleFactor = clamp(0.65 + (r.morale || 60) / 140, 0.55, 1.35);
+    const treasuryFactor = clamp(0.75 + (r.treasury || 55) / 180, 0.70, 1.30);
+    const rawScore = Math.max(20, (ldrScore + elderScore * 0.55 + prodScore * 0.45 + (r.wins || 0) * 6 - (r.losses || 0) * 5) * moraleFactor * treasuryFactor);
+    r.powerScore = Math.round(rawScore * 10) / 10;
+    const prevPower = Number.isFinite(s.power) ? s.power : 1.0;
+    const nextPower = Math.round(clamp(rawScore / 205, 0.25, 6.00) * 100) / 100;
+    s.power = nextPower;
+    s.influence = clamp(Math.round(rawScore * 0.45), 15, 500);
+    s.tierLevel = nextPower >= 2.35 ? 6 : nextPower >= 1.85 ? 5 : nextPower >= 1.45 ? 4 : nextPower >= 1.08 ? 3 : nextPower >= 0.72 ? 2 : 1;
+    const tierKeyByLv = { 1: 'SMALL', 2: 'STANDARD', 3: 'LARGE', 4: 'LEADING', 5: 'HEGEMON', 6: 'SACRED_LAND' };
+    const tDef = X.SECT_TIER_DEFS && X.SECT_TIER_DEFS[tierKeyByLv[s.tierLevel]];
+    if (tDef) {
+      s.sectTier = tDef.id;
+      s.tierNameTh = tDef.nameTh;
+      s.tierBadgeTh = tDef.badgeTh;
+    }
+    if (ldr) s.leaderNameTh = ldr.nameTh;
+    r.peakPower = Math.max(r.peakPower || nextPower, nextPower);
+    const delta = nextPower - prevPower;
+    r.momentum = Math.round(((r.momentum || 0) * 0.65 + delta * 100) * 10) / 10;
+    if (r.rebornUntilDay && r.rebornUntilDay > (r.lastTickDay || 0)) {
+      r.trajectory = 'REBORN';
+    } else if (r.inCrisis) {
+      r.trajectory = 'CRISIS';
+    } else if (r.momentum >= 3.5 || (prodigies.some(p => p && p.talent >= 86 && p.stage >= 4) && delta >= 0)) {
+      r.trajectory = 'RISING';
+    } else if (r.momentum <= -3.5 || (r.morale || 60) < 38 || !ldr) {
+      r.trajectory = 'DECLINING';
+    } else {
+      r.trajectory = 'STEADY';
+    }
+    r.trajectoryTh = LS_TRAJECTORY_TH[r.trajectory] || LS_TRAJECTORY_TH.STEADY;
+  }
+
+  X.LIVING_SECTS = {
+    VERSION: '3.6.0a-living-sects',
+    TRAJECTORY_TH: LS_TRAJECTORY_TH,
+
+    ensureWorldState(W) {
+      if (!W || !W.world) return null;
+      if (typeof X.ensureWorldTopology === 'function') X.ensureWorldTopology(W);
+      if (!W.world.livingSects || typeof W.world.livingSects !== 'object') {
+        W.world.livingSects = {
+          lastMonthTick: -1,
+          hegemonSectId: null,
+          hegemonNameTh: '',
+          hegemonChanges: 0,
+          events: [],
+          fallenHistory: [],
+          rebornCount: 0,
+          schismCount: 0
+        };
+      }
+      const ls = W.world.livingSects;
+      if (!Array.isArray(ls.events)) ls.events = [];
+      if (!Array.isArray(ls.fallenHistory)) ls.fallenHistory = [];
+      if (Array.isArray(W.world.sects) && Array.isArray(W.world.allSects)) {
+        for (let si = 0; si < W.world.sects.length; si++) {
+          const ws = W.world.sects[si];
+          if (!ws) continue;
+          const ai = W.world.allSects.findIndex(x => x && (x.id === ws.id || (ws.canonicalId && x.canonicalId === ws.canonicalId)));
+          if (ai >= 0 && W.world.allSects[ai] !== ws) {
+            W.world.sects[si] = W.world.allSects[ai];
+          }
+        }
+      }
+      const orgs = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      const seed = String(W.seed || 'seed');
+      const dayNow = W.day || 0;
+      for (let i = 0; i < orgs.length; i++) {
+        const s = orgs[i];
+        if (!s || s.livingRoster) continue;
+        const baseTier = clamp(s.tierLevel || Math.round((s.power || 1) * 2.5), 1, 6);
+        const pathHint = s.majorPath || LS_PATHS[detHash360(seed + ':sp:' + (s.id || i)) % LS_PATHS.length];
+        const leaderStage = clamp(baseTier + 1 + (detHash360(seed + ':lstg:' + (s.id || i)) % 2), 2, 7);
+        const leader = lsMakeNpc(seed + ':ldr:' + (s.id || i), 'LEADER', leaderStage, pathHint, dayNow);
+        if (s.leaderNameTh) leader.nameTh = s.leaderNameTh;
+        const elders = [
+          lsMakeNpc(seed + ':eld0:' + (s.id || i), 'ELDER', Math.max(1, leaderStage - 1), pathHint, dayNow),
+          lsMakeNpc(seed + ':eld1:' + (s.id || i), 'ELDER', Math.max(1, leaderStage - 2), pathHint, dayNow)
+        ];
+        const prodigies = [
+          lsMakeNpc(seed + ':prd0:' + (s.id || i), 'PRODIGY', Math.max(1, Math.min(4, baseTier - 1)), pathHint, dayNow)
+        ];
+        s.livingRoster = {
+          leader,
+          elders,
+          prodigies,
+          morale: clamp(52 + Math.round(detUnit360(seed + ':mor:' + (s.id || i)) * 28), 35, 85),
+          treasury: clamp(48 + baseTier * 6 + Math.round(detUnit360(seed + ':trs:' + (s.id || i)) * 18), 35, 90),
+          dynastyGen: 1,
+          wins: 0,
+          losses: 0,
+          collapsed: false,
+          collapsedDay: null,
+          rebornUntilDay: 0,
+          inCrisis: false,
+          momentum: 0,
+          peakPower: s.power || 1,
+          lastTickDay: dayNow,
+          trajectory: 'STEADY',
+          trajectoryTh: LS_TRAJECTORY_TH.STEADY
+        };
+        lsRecomputeSectMetrics(s);
+      }
+      return ls;
+    },
+
+    recordEvent(W, textTh, kind, sectId) {
+      const ls = W && W.world && W.world.livingSects;
+      if (!ls || !textTh) return;
+      ls.events.push({ day: W.day || 0, kind: kind || 'sect', sectId: sectId || null, textTh });
+      if (ls.events.length > 50) ls.events.shift();
+      if (W.log) W.log('world', textTh, []);
+    },
+
+    tickMonthly(W, opts) {
+      opts = opts || {};
+      const day = (W && W.day) || 0;
+      if (!opts.force && day < 30) return (W && W.world && W.world.livingSects) || null;
+      const ls = X.LIVING_SECTS.ensureWorldState(W);
+      if (!ls) return null;
+      const monthIdx = Math.floor(day / 30);
+      if (!opts.force && monthIdx <= ls.lastMonthTick) return ls;
+      ls.lastMonthTick = monthIdx;
+      const seed = String(W.seed || 'seed');
+      const orgs = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+
+      // 1. Per-sect NPC lifecycle: age, cultivate, breakthrough, die, succeed, prodigy, collapse/rebirth
+      for (let i = 0; i < orgs.length; i++) {
+        const s = orgs[i];
+        if (!s || !s.livingRoster) continue;
+        const r = s.livingRoster;
+        r.lastTickDay = day;
+        const sk = seed + ':m' + monthIdx + ':' + (s.id || i);
+
+        // Handle collapsed sect -> organic rebirth after 60-120 days
+        if (r.collapsed) {
+          const waitDays = 60 + (detHash360(sk + ':rebwait') % 61);
+          if (r.collapsedDay != null && (day - r.collapsedDay) >= waitDays && detUnit360(sk + ':reb') < 0.35) {
+            const pfx = LS_REBORN_PREFIX[detHash360(sk + ':rpfx') % LS_REBORN_PREFIX.length];
+            const core = LS_REBORN_CORE[detHash360(sk + ':rcore') % LS_REBORN_CORE.length];
+            const newName = pfx + core;
+            const newPath = LS_PATHS[detHash360(sk + ':rpath') % LS_PATHS.length];
+            const founderStage = 3 + (detHash360(sk + ':rfstg') % 3);
+            const founder = lsMakeNpc(sk + ':rfounder', 'LEADER', founderStage, newPath, day);
+            founder.talent = clamp(founder.talent + 14, 60, 98);
+            s.nameTh = newName;
+            s.majorPath = newPath;
+            s.style = ['เป็นธรรม', 'ทะนง', 'ใฝ่สงบ', 'ก้าวร้าว', 'โลภ'][detHash360(sk + ':rstyle') % 5];
+            r.collapsed = false;
+            r.collapsedDay = null;
+            r.inCrisis = false;
+            r.rebornUntilDay = day + 90;
+            r.dynastyGen = (r.dynastyGen || 1) + 1;
+            r.leader = founder;
+            r.elders = [lsMakeNpc(sk + ':reld', 'ELDER', Math.max(2, founderStage - 1), newPath, day)];
+            r.prodigies = [lsMakeNpc(sk + ':rprd', 'PRODIGY', 2, newPath, day)];
+            r.prodigies[0].talent = clamp(r.prodigies[0].talent + 12, 68, 98);
+            r.morale = 74;
+            r.treasury = 52;
+            r.momentum = 8;
+            ls.rebornCount = (ls.rebornCount || 0) + 1;
+            lsRecomputeSectMetrics(s);
+            X.LIVING_SECTS.recordEvent(W, '🌱 สำนักใหม่「' + newName + '」ถือกำเนิดในยุทธภพ นำโดย ' + founder.nameTh + ' (ขั้น ' + founder.stage + ')', 'rebirth', s.id);
+          }
+          continue;
+        }
+
+        const allMembers = [];
+        if (r.leader) allMembers.push(r.leader);
+        for (const e of (r.elders || [])) if (e) allMembers.push(e);
+        for (const p of (r.prodigies || [])) if (p) allMembers.push(p);
+
+        // Age, heal wounds, cultivate, breakthrough
+        for (let mi = 0; mi < allMembers.length; mi++) {
+          const m = allMembers[mi];
+          m.ageYears = Math.round((m.ageYears + 1 / 12) * 100) / 100;
+          if (m.wounds > 0) m.wounds = Math.max(0, m.wounds - 4);
+          const stageDiv = 1 + Math.max(0, m.stage - 1) * 0.75;
+          const gain = ((1.4 + m.talent * 0.048 + m.wisdom * 0.022) / stageDiv) * (0.75 + (r.treasury || 55) / 180) * (m.role === 'PRODIGY' ? 1.55 : 1.0);
+          m.prog = (m.prog || 0) + gain;
+          if (m.prog >= 100 && m.stage < 9) {
+            const btChance = clamp(0.40 + (m.talent + m.wisdom) / 310 - m.stage * 0.062, 0.04, 0.78);
+            const roll = detUnit360(sk + ':bt:' + m.id + ':' + m.stage + ':' + Math.floor(m.ageYears));
+            if (roll < btChance) {
+              m.stage++;
+              m.prog = 5;
+              m.lifespanMax += 18;
+              m.martial = Math.min(99, m.martial + 3);
+              if (m.stage >= 6) {
+                r.morale = clamp((r.morale || 60) + 7, 10, 100);
+                X.LIVING_SECTS.recordEvent(W, '⚡ ' + m.nameTh + ' แห่ง「' + s.nameTh + '」ทะลวงสู่ขั้น ' + m.stage + ' สะท้านยุทธภพ!', 'breakthrough', s.id);
+              }
+            } else {
+              m.prog = 35;
+              m.wounds = Math.min(45, (m.wounds || 0) + (m.stage >= 6 ? 18 : 10));
+            }
+          }
+        }
+
+        // Treasury & morale drift driven by LIVING leader's integrity, wisdom, and ambition
+        if (r.leader) {
+          const bloatDrag = (r.elders.length * 0.45) + (r.leader.stage * 0.22);
+          const govDelta = (r.leader.wisdom - 55) * 0.08 + (r.leader.integrity - 52) * 0.09 - bloatDrag;
+          r.treasury = clamp((r.treasury || 55) + govDelta, 10, 100);
+          r.morale = clamp((r.morale || 60) + (r.leader.integrity - 50) * 0.08 - (r.leader.wounds > 20 ? 2.5 : 0) - (r.treasury < 30 ? 1.5 : 0), 8, 100);
+          // Corrupt / tyrannical leader can trigger decay & internal resentment
+          if (r.leader.integrity < 34 && detUnit360(sk + ':corrupt') < 0.16) {
+            r.morale = clamp(r.morale - 11, 8, 100);
+            r.treasury = clamp(r.treasury - 8, 12, 100);
+            r.inCrisis = true;
+          }
+        }
+
+        // Natural deaths (old age or severe wounds)
+        const isDeadNpc = (m, tag) => {
+          if (!m) return true;
+          if (m.ageYears >= m.lifespanMax) return true;
+          if (m.ageYears >= m.lifespanMax * 0.86 && detUnit360(sk + ':old:' + tag) < 0.09) return true;
+          if (m.ageYears >= m.lifespanMax - 6 && detUnit360(sk + ':old2:' + tag) < 0.25) return true;
+          if ((m.wounds || 0) >= 30 && detUnit360(sk + ':wnd:' + tag) < 0.24) return true;
+          return false;
+        };
+
+        r.elders = (r.elders || []).filter((e, idx) => !isDeadNpc(e, 'e' + idx));
+        r.prodigies = (r.prodigies || []).filter((p, idx) => !isDeadNpc(p, 'p' + idx));
+
+        // Promote matured high-stage prodigies to elders
+        for (let pi = r.prodigies.length - 1; pi >= 0; pi--) {
+          const pr = r.prodigies[pi];
+          if (pr.ageYears >= 32 || pr.stage >= 5) {
+            pr.role = 'ELDER';
+            r.elders.push(pr);
+            r.prodigies.splice(pi, 1);
+          }
+        }
+
+        // Leader death -> organic succession or succession crisis / schism
+        if (!r.leader || isDeadNpc(r.leader, 'ldr')) {
+          const oldLdr = r.leader;
+          const oldStage = oldLdr ? oldLdr.stage : 3;
+          const pool = r.elders.concat(r.prodigies);
+          if (pool.length > 0) {
+            pool.sort((a, b) => (b.stage * 18 + b.martial * 0.4 + b.ambition * 0.35 + b.wisdom * 0.25) - (a.stage * 18 + a.martial * 0.4 + a.ambition * 0.35 + a.wisdom * 0.25));
+            const heir = pool[0];
+            r.elders = r.elders.filter(x => x.id !== heir.id);
+            r.prodigies = r.prodigies.filter(x => x.id !== heir.id);
+            heir.role = 'LEADER';
+            r.leader = heir;
+            r.dynastyGen = (r.dynastyGen || 1) + 1;
+            const stageDrop = oldStage - heir.stage;
+            if (stageDrop >= 2 || (pool.length >= 2 && pool[1].ambition >= 72 && detUnit360(sk + ':schism') < 0.45)) {
+              r.inCrisis = true;
+              r.morale = clamp(r.morale - 18, 8, 100);
+              r.treasury = clamp(r.treasury - 12, 10, 100);
+              ls.schismCount = (ls.schismCount || 0) + 1;
+              X.LIVING_SECTS.recordEvent(W, '⚖️ วิกฤตสืบทอดใน「' + s.nameTh + '」หลัง ' + (oldLdr ? oldLdr.nameTh : 'ประมุขเดิม') + ' สิ้นชีพ — ' + heir.nameTh + ' (ขั้น ' + heir.stage + ') ขึ้นครองตำแหน่งท่ามกลางความแตกแยก!', 'schism', s.id);
+            } else {
+              r.inCrisis = false;
+              X.LIVING_SECTS.recordEvent(W, '🏯 ' + heir.nameTh + ' (ขั้น ' + heir.stage + ') สืบทอดตำแหน่งเจ้าสำนัก「' + s.nameTh + '」รุ่นที่ ' + r.dynastyGen, 'succession', s.id);
+            }
+          } else {
+            r.leader = null;
+            r.inCrisis = true;
+            r.morale = clamp(r.morale - 25, 5, 100);
+          }
+        } else if (r.inCrisis && r.morale >= 55 && r.leader.integrity >= 45) {
+          r.inCrisis = false;
+        }
+
+        // Organic Prodigy Emergence (gives small/underdog sects real chance to skyrocket!)
+        const prodChance = (s.tierLevel <= 3 ? 0.14 : 0.08) + ((r.morale || 50) > 65 ? 0.04 : 0);
+        if (r.prodigies.length < 3 && detUnit360(sk + ':newprod') < prodChance) {
+          const isMiracle = detUnit360(sk + ':miracle') < 0.24;
+          const np = lsMakeNpc(sk + ':prd_' + r.prodigies.length, 'PRODIGY', isMiracle ? 3 : 2, s.majorPath, day);
+          if (isMiracle) {
+            np.talent = clamp(86 + (detHash360(sk + ':mtal') % 13), 86, 98);
+            np.martial = Math.max(np.martial, 78);
+            r.morale = clamp((r.morale || 60) + 10, 10, 100);
+            X.LIVING_SECTS.recordEvent(W, '🌟 อัจฉริยะฟ้าประทาน「' + np.nameTh + '」(พรสวรรค์ ' + np.talent + ') ปรากฏกายใน「' + s.nameTh + '」!', 'prodigy', s.id);
+          }
+          r.prodigies.push(np);
+        }
+
+        // Ensure at least 1 elder if sect is healthy
+        if (r.elders.length < 2 && r.leader && r.morale >= 45 && detUnit360(sk + ':receld') < 0.18) {
+          r.elders.push(lsMakeNpc(sk + ':eld_rec', 'ELDER', Math.max(1, r.leader.stage - 2), s.majorPath, day));
+        }
+
+        lsRecomputeSectMetrics(s);
+
+        // Collapse condition when living roster & morale crumble
+        if ((!r.leader && r.elders.length === 0) || (s.power <= 0.42 && r.morale <= 22 && detUnit360(sk + ':col') < 0.35)) {
+          r.collapsed = true;
+          r.collapsedDay = day;
+          ls.fallenHistory.push({ id: s.id, nameTh: s.nameTh, day, dynastyGen: r.dynastyGen || 1, peakPower: r.peakPower || s.power });
+          if (ls.fallenHistory.length > 30) ls.fallenHistory.shift();
+          lsRecomputeSectMetrics(s);
+          X.LIVING_SECTS.recordEvent(W, '💀「' + s.nameTh + '」เสื่อมถอยจนล่มสลาย ปิดตำนานรุ่นที่ ' + (r.dynastyGen || 1), 'collapse', s.id);
+        }
+      }
+
+      // 2. Autonomous Inter-Sect Clash (power driven by living NPCs, never fixed!)
+      const activeOrgs = orgs.filter(s => s && s.livingRoster && !s.livingRoster.collapsed && s.livingRoster.leader);
+      if (activeOrgs.length >= 2 && detUnit360(seed + ':clash_trig:' + monthIdx) < 0.42) {
+        const aggPool = activeOrgs.filter(s => s.style === 'ก้าวร้าว' || s.livingRoster.leader.ambition >= 62);
+        const atk = (aggPool.length ? aggPool : activeOrgs)[detHash360(seed + ':clash_a:' + monthIdx) % (aggPool.length ? aggPool.length : activeOrgs.length)];
+        const defPool = activeOrgs.filter(s => s.id !== atk.id);
+        const def = defPool[detHash360(seed + ':clash_b:' + monthIdx) % defPool.length];
+        if (atk && def) {
+          const scoreSide = (s, tag) => {
+            const r = s.livingRoster;
+            const topElder = (r.elders || []).slice().sort((a, b) => b.stage - a.stage)[0];
+            const luck = 0.85 + detUnit360(seed + ':clash_luck:' + monthIdx + ':' + tag) * 0.30;
+            return (r.leader.stage * 24 + r.leader.martial * 0.65 + (topElder ? topElder.stage * 10 : 0) - (r.leader.wounds || 0) * 0.8) * luck;
+          };
+          const sA = scoreSide(atk, 'a'), sB = scoreSide(def, 'b');
+          const win = sA >= sB ? atk : def;
+          const lose = sA >= sB ? def : atk;
+          win.livingRoster.wins = (win.livingRoster.wins || 0) + 1;
+          win.livingRoster.morale = clamp(win.livingRoster.morale + 10, 10, 100);
+          win.livingRoster.treasury = clamp(win.livingRoster.treasury + 9, 10, 100);
+          lose.livingRoster.losses = (lose.livingRoster.losses || 0) + 1;
+          lose.livingRoster.morale = clamp(lose.livingRoster.morale - 14, 5, 100);
+          lose.livingRoster.treasury = clamp(lose.livingRoster.treasury - 10, 8, 100);
+          if (lose.livingRoster.leader) lose.livingRoster.leader.wounds = Math.min(40, (lose.livingRoster.leader.wounds || 0) + 14);
+          lsRecomputeSectMetrics(win);
+          lsRecomputeSectMetrics(lose);
+          X.LIVING_SECTS.recordEvent(W, '⚔️ ศึกชิงความเป็นใหญ่:「' + win.nameTh + '」(' + win.livingRoster.leader.nameTh + ') เอาชนะ「' + lose.nameTh + '」เขย่าสมดุลยุทธภพ!', 'clash', win.id);
+        }
+      }
+
+      // 3. Dynamic Hegemon Crown (highest current living power — can change hands anytime!)
+      const ranked = activeOrgs.slice().sort((a, b) => ((b.livingRoster.powerScore || 0) - (a.livingRoster.powerScore || 0)) || (b.power - a.power));
+      if (ranked.length > 0) {
+        const top = ranked[0];
+        top.livingRoster.trajectory = 'HEGEMON';
+        top.livingRoster.trajectoryTh = LS_TRAJECTORY_TH.HEGEMON;
+        if (ls.hegemonSectId && ls.hegemonSectId !== top.id) {
+          ls.hegemonChanges = (ls.hegemonChanges || 0) + 1;
+          X.LIVING_SECTS.recordEvent(W, '👑 ผลัดแผ่นดินจ้าวยุทธภพ!「' + top.nameTh + '」นำโดย ' + top.livingRoster.leader.nameTh + ' (ขั้น ' + top.livingRoster.leader.stage + ') ผงาดขึ้นครองอันดับ 1 แทนที่「' + (ls.hegemonNameTh || 'จ้าวเดิม') + '」!', 'hegemon', top.id);
+        }
+        ls.hegemonSectId = top.id;
+        ls.hegemonNameTh = top.nameTh;
+      }
+      return ls;
+    },
+
+    peekSummary(W) {
+      const ls = W && W.world && W.world.livingSects;
+      const orgs = (W && W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W && W.world && W.world.sects) || []);
+      const rising = orgs.filter(s => s && s.livingRoster && !s.livingRoster.collapsed && (s.livingRoster.trajectory === 'RISING' || s.livingRoster.trajectory === 'REBORN')).map(s => s.nameTh);
+      const declining = orgs.filter(s => s && s.livingRoster && (s.livingRoster.trajectory === 'DECLINING' || s.livingRoster.trajectory === 'CRISIS')).map(s => s.nameTh);
+      const collapsed = orgs.filter(s => s && s.livingRoster && s.livingRoster.collapsed).map(s => s.nameTh);
+      const heg = ls && ls.hegemonSectId ? orgs.find(s => s && s.id === ls.hegemonSectId) : null;
+      const lastEvt = ls && ls.events && ls.events.length ? ls.events[ls.events.length - 1] : null;
+      return {
+        hegemonNameTh: heg ? heg.nameTh : ((ls && ls.hegemonNameTh) || ''),
+        hegemonLeaderTh: (heg && heg.livingRoster && heg.livingRoster.leader) ? (heg.livingRoster.leader.nameTh + ' ขั้น ' + heg.livingRoster.leader.stage) : '',
+        hegemonChanges: (ls && ls.hegemonChanges) || 0,
+        risingNamesTh: rising.slice(0, 4),
+        decliningNamesTh: declining.slice(0, 4),
+        collapsedCount: collapsed.length,
+        rebornCount: (ls && ls.rebornCount) || 0,
+        recentTh: lastEvt ? lastEvt.textTh : ''
+      };
+    }
+  };
+
+  /* ============================================================================
+   * JS2 v3.6.0b — Phase 2: Living Continental Polities (EXPED.LIVING_POLITIES)
+   * 100% NPC-driven rise, fall, golden ages, dynastic coups, border city conquests,
+   * and bidirectional Sect <-> Polity influence. Zero W.rng consumption.
+   * ============================================================================ */
+  const LP_ERA_TH = Object.freeze({
+    IMPERIAL_HEGEMON: 'มหาอำนาจอันดับ 1',
+    GOLDEN_AGE: 'ยุคทองรุ่งเรือง',
+    STABLE: 'มั่นคง',
+    DECLINING: 'เสื่อมถอย',
+    TURMOIL: 'ยุคกลียุค'
+  });
+
+  function lpPolities() {
+    return Object.values(X.POLITY_DEFS || {});
+  }
+
+  function lpSettlements() {
+    return Object.values(X.SETTLEMENTS || {});
+  }
+
+  function lpBorderKey(a, b) {
+    return a < b ? (a + ':' + b) : (b + ':' + a);
+  }
+
+  function lpFigTrait(fig, pathStr) {
+    if (!fig || !fig.h) return 50;
+    const parts = String(pathStr).split('.');
+    let cur = fig.h;
+    for (const k of parts) {
+      if (!cur || typeof cur !== 'object') return 50;
+      cur = cur[k];
+    }
+    if (Number.isFinite(cur)) return cur;
+    const inn = fig.h.innate;
+    if (inn && typeof inn === 'object') {
+      let ic = inn;
+      for (const k of parts) {
+        if (!ic || typeof ic !== 'object') return 50;
+        ic = ic[k];
+      }
+      if (Number.isFinite(ic)) return ic;
+    }
+    return 50;
+  }
+
+  function lpFigFullName(fig) {
+    if (fig && fig.h && fig.h.name) {
+      return fig.h.name.full || ((fig.h.name.family || fig.h.name.sur || '') + (fig.h.name.given || '')) || 'ผู้นำใหม่';
+    }
+    return 'ผู้นำใหม่';
+  }
+
+  function lpCapitalCityId(polity) {
+    if (!polity) return null;
+    const all = lpSettlements();
+    const byOrder = all.find(s => s && s.order === polity.capital);
+    if (byOrder) return byOrder.id;
+    const byTier = all.find(s => s && s.polityId === polity.id && s.tier === 4);
+    return byTier ? byTier.id : null;
+  }
+
+  function lpCourtTrait(state, seats, role, path, fallback) {
+    const matching = seats.filter(s => s && s.role === role && s.holderId && state.figures[s.holderId]);
+    if (!matching.length) return fallback;
+    let sum = 0;
+    for (const s of matching) sum += lpFigTrait(state.figures[s.holderId], path);
+    return sum / matching.length;
+  }
+
+  function lpEnsureCityOwners(state) {
+    if (!state.cityOwners || typeof state.cityOwners !== 'object') {
+      state.cityOwners = {};
+    }
+    for (const city of lpSettlements()) {
+      if (!state.cityOwners[city.id]) state.cityOwners[city.id] = city.polityId;
+    }
+    return state.cityOwners;
+  }
+
+  function lpRecomputePolity(W, state, p, sectBonusMap) {
+    const court = state.courts[p.id];
+    if (!court || !court.livingPolity) return;
+    const lp = court.livingPolity;
+    const seats = Object.values(court.seats || {});
+    const owners = lpEnsureCityOwners(state);
+    const ownedCities = lpSettlements().filter(c => owners[c.id] === p.id);
+    const cityCount = Math.max(1, ownedCities.length);
+
+    const avgSafety = ownedCities.reduce((s, c) => s + ((state.cities[c.id] && state.cities[c.id].safety) || 55), 0) / cityCount;
+    const avgProsp = ownedCities.reduce((s, c) => s + ((state.cities[c.id] && state.cities[c.id].prosperity) || 50), 0) / cityCount;
+
+    const rulerLead = lpCourtTrait(state, seats, 'ruler', 'social.leadership', 38);
+    const rulerInt = lpCourtTrait(state, seats, 'ruler', 'personality.integrity', 42);
+    const minRat = lpCourtTrait(state, seats, 'minister', 'personality.rationality', 45);
+    const revCom = lpCourtTrait(state, seats, 'revenue', 'aptitudes.socialCommerce', 45);
+    const marCour = lpCourtTrait(state, seats, 'marshal', 'personality.courage', 45);
+    const cenInt = lpCourtTrait(state, seats, 'censor', 'personality.integrity', 45);
+
+    const sectBonus = (sectBonusMap && sectBonusMap[p.macroRegion]) || 0;
+    lp.sectSupportBonus = Math.round(sectBonus * 10) / 10;
+
+    // NPC-driven power score (NOT locked to initial city.tier!)
+    const courtQuality = rulerLead * 0.42 + minRat * 0.25 + revCom * 0.22 + marCour * 0.30 + cenInt * 0.18 + (rulerInt - 50) * 0.20;
+    const rawScore = Math.max(25,
+      courtQuality * 1.35 +
+      lp.military * 0.85 +
+      lp.treasury * 0.70 +
+      lp.legitimacy * 0.55 +
+      cityCount * 11 +
+      (avgProsp + avgSafety) * 0.40 +
+      sectBonus * 1.4 +
+      (lp.warsWon || 0) * 8 -
+      (lp.warsLost || 0) * 7
+    );
+    const prevPower = Number.isFinite(lp.power) ? lp.power : 1.0;
+    lp.powerScore = Math.round(rawScore * 10) / 10;
+    lp.power = Math.round(clamp(rawScore / 155, 0.30, 6.00) * 100) / 100;
+    lp.cityCount = cityCount;
+    lp.momentum = Math.round(((lp.momentum || 0) * 0.65 + (lp.power - prevPower) * 100) * 10) / 10;
+
+    if (lp.legitimacy < 32 || court.stability < 36) {
+      lp.era = 'TURMOIL';
+    } else if (lp.momentum <= -3.0 || lp.legitimacy < 46 || lp.treasury < 32) {
+      lp.era = 'DECLINING';
+    } else if ((lp.treasury >= 68 && lp.legitimacy >= 64 && lp.military >= 60) || lp.momentum >= 3.5) {
+      lp.era = 'GOLDEN_AGE';
+    } else {
+      lp.era = 'STABLE';
+    }
+    lp.eraTh = LP_ERA_TH[lp.era] || LP_ERA_TH.STABLE;
+  }
+
+  X.LIVING_POLITIES = {
+    VERSION: '3.6.0c-living-world-audit',
+    ERA_TH: LP_ERA_TH,
+
+    ownerOf(W, cityId) {
+      const st = W && W.world && W.world.continent;
+      if (st && st.cityOwners && st.cityOwners[cityId]) return st.cityOwners[cityId];
+      const def = X.SETTLEMENTS && X.SETTLEMENTS[cityId];
+      return def ? def.polityId : null;
+    },
+
+    ensureWorldState(W) {
+      if (!W || !W.world) return null;
+      if (!W.world.continent && typeof X.initContinent === 'function') X.initContinent(W);
+      const state = W.world.continent;
+      if (!state) return null;
+      lpEnsureCityOwners(state);
+      if (!W.world.livingPolities || typeof W.world.livingPolities !== 'object') {
+        W.world.livingPolities = {
+          lastMonthTick: -1,
+          hegemonPolityId: null,
+          hegemonNameTh: '',
+          hegemonChanges: 0,
+          coupsCount: 0,
+          borderShiftsCount: 0,
+          events: []
+        };
+      }
+      const root = W.world.livingPolities;
+      if (!Array.isArray(root.events)) root.events = [];
+      const seed = String(W.seed || 'seed');
+      const allPols = lpPolities();
+      const allCities = lpSettlements();
+      for (const p of allPols) {
+        const court = state.courts[p.id];
+        if (!court || court.livingPolity) continue;
+        const pk = seed + ':lp_init:' + p.id;
+        court.livingPolity = {
+          dynastyGen: 1,
+          lastCoupDay: -9999,
+          military: clamp(46 + Math.round(detUnit360(pk + ':mil') * 32), 35, 82),
+          treasury: clamp(46 + Math.round(detUnit360(pk + ':trs') * 30), 35, 82),
+          legitimacy: clamp(54 + Math.round(detUnit360(pk + ':leg') * 28), 40, 86),
+          powerScore: 155,
+          power: 1.0,
+          cityCount: allCities.filter(c => state.cityOwners[c.id] === p.id).length,
+          momentum: 0,
+          warsWon: 0,
+          warsLost: 0,
+          citiesGained: 0,
+          citiesLost: 0,
+          sectSupportBonus: 0,
+          era: 'STABLE',
+          eraTh: LP_ERA_TH.STABLE
+        };
+        lpRecomputePolity(W, state, p, null);
+        court.livingPolity.momentum = 0;
+        if (court.livingPolity.era === 'GOLDEN_AGE' && !(court.livingPolity.treasury >= 68 && court.livingPolity.legitimacy >= 64 && court.livingPolity.military >= 60)) {
+          court.livingPolity.era = 'STABLE';
+          court.livingPolity.eraTh = LP_ERA_TH.STABLE;
+        }
+      }
+      return root;
+    },
+
+    recordEvent(W, textTh, kind, polityId) {
+      const root = W && W.world && W.world.livingPolities;
+      if (!root || !textTh) return;
+      root.events.push({ day: W.day || 0, kind: kind || 'polity', polityId: polityId || null, textTh });
+      if (root.events.length > 50) root.events.shift();
+      if (W.log) W.log('world', textTh, [], polityId ? { storyThreadId: 'court:' + polityId } : undefined);
+    },
+
+    tickMonthly(W, opts) {
+      opts = opts || {};
+      const day = (W && W.day) || 0;
+      if (!opts.force && day < 30) return (W && W.world && W.world.livingPolities) || null;
+      const root = X.LIVING_POLITIES.ensureWorldState(W);
+      const state = W && W.world && W.world.continent;
+      if (!root || !state) return null;
+      const monthIdx = Math.floor(day / 30);
+      if (!opts.force && monthIdx <= root.lastMonthTick) return root;
+      root.lastMonthTick = monthIdx;
+      const seed = String(W.seed || 'seed');
+      const owners = lpEnsureCityOwners(state);
+      const allPols = lpPolities();
+      const allCities = lpSettlements();
+
+      // 0. Compute Sect -> Polity regional support map from EXPED.LIVING_SECTS
+      const sectBonusMap = {};
+      const allSects = (Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
+      for (const s of allSects) {
+        if (!s || !s.macroRegion || !s.livingRoster) continue;
+        const tr = s.livingRoster.trajectory;
+        const delta = tr === 'HEGEMON' ? 9 : tr === 'RISING' || tr === 'REBORN' ? 4 : tr === 'COLLAPSED' ? -5 : tr === 'CRISIS' || tr === 'DECLINING' ? -2 : 1;
+        sectBonusMap[s.macroRegion] = clamp((sectBonusMap[s.macroRegion] || 0) + delta, -12, 18);
+      }
+
+      // 1. Per-polity NPC-driven drift, imperial overextension drag, and dynastic coups/rebellions
+      for (const p of allPols) {
+        const court = state.courts[p.id];
+        if (!court || !court.livingPolity) continue;
+        const lp = court.livingPolity;
+        const seats = Object.values(court.seats || {});
+        const pk = seed + ':lp:m' + monthIdx + ':' + p.id;
+        const ownedCities = allCities.filter(c => owners[c.id] === p.id);
+        const cityCount = Math.max(1, ownedCities.length);
+
+        const rulerSeat = seats.find(s => s.role === 'ruler');
+        const ruler = rulerSeat && state.figures[rulerSeat.holderId];
+        const rulerLead = ruler ? lpFigTrait(ruler, 'social.leadership') : 35;
+        const rulerInt = ruler ? lpFigTrait(ruler, 'personality.integrity') : 38;
+        const minRat = lpCourtTrait(state, seats, 'minister', 'personality.rationality', 45);
+        const revCom = lpCourtTrait(state, seats, 'revenue', 'aptitudes.socialCommerce', 45);
+        const marCour = lpCourtTrait(state, seats, 'marshal', 'personality.courage', 45);
+        const cenInt = lpCourtTrait(state, seats, 'censor', 'personality.integrity', 45);
+
+        // Calibrated overextension drag: large empires face real administrative strain without perpetual coup storms
+        const overext = Math.min(2.4, Math.max(0, cityCount - 7) * 0.22);
+        const treasDelta = (revCom - 50) * 0.10 + (minRat - 50) * 0.06 + (court.policy === 'market' ? 1.2 : 0) - overext + (detUnit360(pk + ':td') - 0.5) * 2.8;
+        const milDelta = (marCour - 50) * 0.11 + (rulerLead - 50) * 0.06 + (court.policy === 'guard' ? 1.4 : 0) + (lp.treasury < 30 ? -1.6 : 0) + (detUnit360(pk + ':md') - 0.5) * 2.8;
+        const legDelta = (rulerInt - 50) * 0.11 + (cenInt - 50) * 0.08 + (rulerLead - 50) * 0.05 - overext * 0.65 + (lp.treasury < 26 ? -1.8 : 0) - (ruler ? 0 : 3.0);
+
+        lp.treasury = clamp(Math.round((lp.treasury + treasDelta) * 10) / 10, 10, 100);
+        lp.military = clamp(Math.round((lp.military + milDelta) * 10) / 10, 10, 100);
+        lp.legitimacy = clamp(Math.round((lp.legitimacy + legDelta) * 10) / 10, 8, 100);
+
+        // Sync city safety/prosperity slightly with living polity era (unlocked from rigid mean-reversion!)
+        const eraCityShift = lp.era === 'GOLDEN_AGE' || lp.era === 'IMPERIAL_HEGEMON' ? 1.4 : lp.era === 'TURMOIL' ? -2.2 : lp.era === 'DECLINING' ? -0.9 : 0;
+        if (eraCityShift !== 0) {
+          for (const city of ownedCities) {
+            const cs = state.cities[city.id];
+            if (cs) {
+              cs.prosperity = clamp(cs.prosperity + eraCityShift, 12, 98);
+              cs.safety = clamp(cs.safety + eraCityShift * 0.8, 12, 98);
+            }
+          }
+          court.stability = Math.round(ownedCities.reduce((v, c) => v + (((state.cities[c.id] && state.cities[c.id].safety) || 50) + ((state.cities[c.id] && state.cities[c.id].prosperity) || 50)) / 2, 0) / cityCount);
+        }
+
+        // Polity -> Local Sects feedback loop
+        for (const s of allSects) {
+          if (!s || s.macroRegion !== p.macroRegion || !s.livingRoster || s.livingRoster.collapsed) continue;
+          if (lp.era === 'GOLDEN_AGE' || lp.era === 'IMPERIAL_HEGEMON') {
+            s.livingRoster.treasury = clamp((s.livingRoster.treasury || 55) + 1.0, 10, 100);
+          } else if (lp.era === 'TURMOIL') {
+            s.livingRoster.treasury = clamp((s.livingRoster.treasury || 55) - 1.4, 10, 100);
+            s.livingRoster.morale = clamp((s.livingRoster.morale || 55) - 1.0, 8, 100);
+          }
+        }
+
+        // Dynastic Coup / Rebellion when legitimacy collapses (with 2-year cooldown & clean ruler handover)
+        const coupReady = (day - (Number.isFinite(lp.lastCoupDay) ? lp.lastCoupDay : -9999)) >= 720;
+        if (coupReady && lp.legitimacy <= 22 && detUnit360(pk + ':coup') < 0.16) {
+          lp.dynastyGen = (lp.dynastyGen || 1) + 1;
+          lp.lastCoupDay = day;
+          lp.legitimacy = 64;
+          lp.military = clamp(lp.military - 8, 18, 100);
+          lp.treasury = clamp(lp.treasury - 7, 18, 100);
+          root.coupsCount = (root.coupsCount || 0) + 1;
+          let newRulerName = 'ผู้นำคณะปฏิรูป';
+          if (rulerSeat && Array.isArray(court.reserveIds) && court.reserveIds.length > 0) {
+            const oldHolderId = rulerSeat.holderId;
+            const pickIdx = detHash360(pk + ':newr') % court.reserveIds.length;
+            const newId = court.reserveIds.splice(pickIdx, 1)[0];
+            if (state.figures[newId]) {
+              rulerSeat.holderId = newId;
+              state.figures[newId].officeSince = day;
+              state.figures[newId].residenceId = rulerSeat.stationId;
+              newRulerName = lpFigFullName(state.figures[newId]);
+              if (oldHolderId && oldHolderId !== newId && state.figures[oldHolderId]) {
+                delete state.figures[oldHolderId];
+              }
+            }
+          }
+          if (X.POLITICAL_LIVES && X.POLITICAL_LIVES.syncFromLivingPolityCoup) {
+            X.POLITICAL_LIVES.syncFromLivingPolityCoup(W, p.id, newRulerName, lp.dynastyGen);
+          }
+          X.LIVING_POLITIES.recordEvent(W, '🔥 ผลัดแผ่นดินใน「' + p.nameTh + '」! ราชสำนักเดิมเสื่อมศรัทธา ' + newRulerName + ' ก่อการยึดอำนาจสถาปนาราชวงศ์รุ่นที่ ' + lp.dynastyGen + '!', 'coup', p.id);
+        }
+
+        lpRecomputePolity(W, state, p, sectBonusMap);
+      }
+
+      // 2. Border Wars & Dynamic Border City Conquests (calibrated cadence, city cooldown, anti-snowball & ancestral reclamation)
+      if (!state.cityLastShiftDay || typeof state.cityLastShiftDay !== 'object') state.cityLastShiftDay = {};
+      if (detUnit360(seed + ':lp_war_trig:' + monthIdx) < 0.18) {
+        const capByPolity = {};
+        for (const p of allPols) capByPolity[p.id] = lpCapitalCityId(p);
+        const borderLinks = [];
+        const seenPairs = new Set();
+        for (let i = 0; i < allCities.length; i++) {
+          const cA = allCities[i];
+          const oA = owners[cA.id];
+          if (!oA || !state.courts[oA] || !state.courts[oA].livingPolity) continue;
+          let bestDist = Infinity;
+          let bestTarget = null;
+          for (let j = 0; j < allCities.length; j++) {
+            if (i === j) continue;
+            const cB = allCities[j];
+            const oB = owners[cB.id];
+            if (!oB || oB === oA || !state.courts[oB] || !state.courts[oB].livingPolity) continue;
+            if (cB.id === capByPolity[oB]) continue; // Protect capitals from total annexation
+            if (day - (state.cityLastShiftDay[cB.id] || -9999) < 540) continue; // 1.5-year city conquest cooldown
+            const dist = Math.hypot((cA.x || 0) - (cB.x || 0), (cA.y || 0) - (cB.y || 0));
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestTarget = cB;
+            }
+          }
+          if (bestTarget && bestDist <= 220) {
+            const pairKey = oA + '>' + bestTarget.id;
+            if (!seenPairs.has(pairKey)) {
+              seenPairs.add(pairKey);
+              borderLinks.push({ atkId: oA, defId: owners[bestTarget.id], targetCity: bestTarget });
+            }
+          }
+        }
+        if (borderLinks.length > 0) {
+          borderLinks.sort((x, y) => {
+            const relX = (state.relations && state.relations[lpBorderKey(x.atkId, x.defId)]) || 0;
+            const relY = (state.relations && state.relations[lpBorderKey(y.atkId, y.defId)]) || 0;
+            const reclaimX = x.targetCity.polityId === x.atkId ? 14 : 0;
+            const reclaimY = y.targetCity.polityId === y.atkId ? 14 : 0;
+            const cAtkX = state.courts[x.atkId].livingPolity.cityCount || 4, cDefX = state.courts[x.defId].livingPolity.cityCount || 4;
+            const cAtkY = state.courts[y.atkId].livingPolity.cityCount || 4, cDefY = state.courts[y.defId].livingPolity.cityCount || 4;
+            const advX = (state.courts[x.atkId].livingPolity.military - state.courts[x.defId].livingPolity.military) - relX * 0.3 + reclaimX - Math.max(0, cAtkX - 9) * 5.0 + Math.max(0, cDefX - 11) * 4.0;
+            const advY = (state.courts[y.atkId].livingPolity.military - state.courts[y.defId].livingPolity.military) - relY * 0.3 + reclaimY - Math.max(0, cAtkY - 9) * 5.0 + Math.max(0, cDefY - 11) * 4.0;
+            return advY - advX;
+          });
+          const pick = borderLinks[detHash360(seed + ':lp_war_pick:' + monthIdx) % Math.min(4, borderLinks.length)];
+          const pAtk = allPols.find(x => x.id === pick.atkId);
+          const pDef = allPols.find(x => x.id === pick.defId);
+          const lpA = state.courts[pick.atkId].livingPolity;
+          const lpD = state.courts[pick.defId].livingPolity;
+          const atkCities = lpA.cityCount || 4;
+          const defCities = lpD.cityCount || 4;
+          const overstretchAtk = Math.max(0, atkCities - 8) * 5.5;
+          const overstretchDef = Math.max(0, defCities - 10) * 4.5;
+          const homelandDef = defCities <= 3 ? 14 : 0;
+          const reclaimBonus = pick.targetCity.polityId === pick.atkId ? 10 : 0;
+          const luckA = 0.85 + detUnit360(seed + ':lp_wa:' + monthIdx) * 0.30;
+          const luckD = 0.85 + detUnit360(seed + ':lp_wd:' + monthIdx) * 0.30;
+          const strA = Math.max(10, lpA.military * 1.15 + lpA.power * 20 + (lpA.sectSupportBonus || 0) * 1.2 + reclaimBonus - overstretchAtk) * luckA;
+          const strD = Math.max(10, lpD.military * 1.10 + lpD.power * 19 + (lpD.sectSupportBonus || 0) * 1.2 + 8 + homelandDef - overstretchDef) * luckD;
+          if (strA > strD) {
+            owners[pick.targetCity.id] = pick.atkId;
+            state.cityLastShiftDay[pick.targetCity.id] = day;
+            // Migrate governor/marshal court seats for the conquered city from defId to atkId
+            const defCourt = state.courts && state.courts[pick.defId];
+            const atkCourt = state.courts && state.courts[pick.atkId];
+            if (defCourt && atkCourt && defCourt.seats && atkCourt.seats) {
+              for (const [sk, seat] of Object.entries(defCourt.seats)) {
+                if (seat && seat.stationId === pick.targetCity.id && (seat.role === 'marshal' || seat.role === 'governor')) {
+                  delete defCourt.seats[sk];
+                  const newKey = pick.atkId + ':' + seat.role + ':' + pick.targetCity.id;
+                  const newHolderId = (Array.isArray(atkCourt.reserveIds) && atkCourt.reserveIds.length) ? atkCourt.reserveIds.shift() : seat.holderId;
+                  atkCourt.seats[newKey] = { id: newKey, role: seat.role, nameTh: seat.nameTh, stationId: pick.targetCity.id, holderId: newHolderId || null };
+                }
+              }
+            }
+            if (X.POLITICAL_LIVES && X.POLITICAL_LIVES.syncCityOwnerShift) {
+              X.POLITICAL_LIVES.syncCityOwnerShift(W, pick.targetCity.id, pick.atkId);
+            }
+            lpA.warsWon = (lpA.warsWon || 0) + 1;
+            lpA.citiesGained = (lpA.citiesGained || 0) + 1;
+            lpA.legitimacy = clamp(lpA.legitimacy + 7, 10, 100);
+            lpA.treasury = clamp(lpA.treasury + 6, 10, 100);
+            lpD.warsLost = (lpD.warsLost || 0) + 1;
+            lpD.citiesLost = (lpD.citiesLost || 0) + 1;
+            lpD.legitimacy = clamp(lpD.legitimacy - 10, 8, 100);
+            lpD.military = clamp(lpD.military - 8, 10, 100);
+            root.borderShiftsCount = (root.borderShiftsCount || 0) + 1;
+            const rk = lpBorderKey(pick.atkId, pick.defId);
+            if (state.relations) state.relations[rk] = clamp((state.relations[rk] || 0) - 18, -95, 95);
+            lpRecomputePolity(W, state, pAtk, sectBonusMap);
+            lpRecomputePolity(W, state, pDef, sectBonusMap);
+            X.LIVING_POLITIES.recordEvent(W, '⚔️ ศึกชายแดน:「' + pAtk.nameTh + '」กรีฑาทัพยึด「' + pick.targetCity.nameTh + '」จาก「' + pDef.nameTh + '」สำเร็จ!', 'border_war', pick.atkId);
+          } else {
+            lpD.warsWon = (lpD.warsWon || 0) + 1;
+            lpD.legitimacy = clamp(lpD.legitimacy + 5, 10, 100);
+            lpA.warsLost = (lpA.warsLost || 0) + 1;
+            lpA.military = clamp(lpA.military - 7, 10, 100);
+            lpRecomputePolity(W, state, pAtk, sectBonusMap);
+            lpRecomputePolity(W, state, pDef, sectBonusMap);
+          }
+        }
+      }
+
+      // 3. Dynamic Imperial Hegemon (highest living powerScore across all 9 polities — never fixed!)
+      const ranked = allPols.slice().sort((a, b) => {
+        const sA = (state.courts[a.id] && state.courts[a.id].livingPolity && state.courts[a.id].livingPolity.powerScore) || 0;
+        const sB = (state.courts[b.id] && state.courts[b.id].livingPolity && state.courts[b.id].livingPolity.powerScore) || 0;
+        return sB - sA;
+      });
+      if (ranked.length > 0) {
+        const top = ranked[0];
+        const topLp = state.courts[top.id] && state.courts[top.id].livingPolity;
+        if (topLp) {
+          topLp.era = 'IMPERIAL_HEGEMON';
+          topLp.eraTh = LP_ERA_TH.IMPERIAL_HEGEMON;
+          if (root.hegemonPolityId && root.hegemonPolityId !== top.id) {
+            root.hegemonChanges = (root.hegemonChanges || 0) + 1;
+            X.LIVING_POLITIES.recordEvent(W, '👑 ผลัดขั้วมหาอำนาจทวีป!「' + top.nameTh + '」ผงาดขึ้นเป็นอาณาจักรอันดับ 1 แทนที่「' + (root.hegemonNameTh || 'มหาอำนาจเดิม') + '」!', 'hegemon', top.id);
+          }
+          root.hegemonPolityId = top.id;
+          root.hegemonNameTh = top.nameTh;
+        }
+      }
+      return root;
+    },
+
+    peekSummary(W) {
+      const root = W && W.world && W.world.livingPolities;
+      const state = W && W.world && W.world.continent;
+      if (!root || !state) return { hegemonNameTh: '', hegemonChanges: 0, goldenNamesTh: [], turmoilNamesTh: [], coupsCount: 0, borderShiftsCount: 0, recentTh: '' };
+      const golden = [], turmoil = [];
+      for (const p of lpPolities()) {
+        const lp = state.courts[p.id] && state.courts[p.id].livingPolity;
+        if (!lp) continue;
+        if (lp.era === 'GOLDEN_AGE') golden.push(p.nameTh);
+        else if (lp.era === 'TURMOIL' || lp.era === 'DECLINING') turmoil.push(p.nameTh);
+      }
+      const last = root.events && root.events.length ? root.events[root.events.length - 1] : null;
+      return {
+        hegemonNameTh: root.hegemonNameTh || '',
+        hegemonChanges: root.hegemonChanges || 0,
+        goldenNamesTh: golden.slice(0, 3),
+        turmoilNamesTh: turmoil.slice(0, 3),
+        coupsCount: root.coupsCount || 0,
+        borderShiftsCount: root.borderShiftsCount || 0,
+        recentTh: last ? last.textTh : ''
+      };
+    }
+  };
+
+
+  /* === JS2_V380_MASTER_LORE_COMPENDIUM === */
+  X.LORE_COMPENDIUM = Object.freeze({"VERSION":"3.9.5-witnesses-and-12shards","EPIGRAPH_TH":"“ผู้คนในยุคนี้ต่างเรียกผืนแผ่นดินตั้งแต่เทือกเขาหิมะอุดรจรดทะเลสาบมังกรหลับว่า ‘มหาทวีป’... โดยหารู้ไม่ว่า เมื่อหนึ่งแสนปีก่อน แผ่นดินทั้งหมดที่เราเหยียบยืนอยู่นี้ แท้จริงแล้วเป็นเพียงเศษเสี้ยวของ ‘หนึ่งมหาจักรวรรดิ’ ที่พ่ายแพ้ในมหาสงครามจนแตกสลายลงกลางทะเลหมอกเท่านั้น”","ERAS":[{"id":"ERA_0_ANTEDILUVIAN","order":0,"codeTh":"ยุคที่ 0","nameTh":"ปฐมกาลก่อนเทียนกู่ที่ถูกลบเลือน (Antediluvian Epochs & Beyond the Fog Sea)","spanTh":"มหายุคก่อนประวัติศาสตร์ · ก่อนการสถาปนาเทียนกู่ (ถูกลบจากตำราหลวง)","icon":"🌑","color":"#9b87f5","quoteTh":"“ตำราเรียนทุกแคว้นสอนตรงกันว่าก่อนเทียนกู่มีเพียงป่ารกร้าง... ทว่าเสาศิลาที่จมใต้รากเขาและซากกระดูกยักษ์ในทะเลทรายกลับเล่าเรื่องที่เก่าแก่กว่านั้นนับหมื่นปี”","chapters":[{"titleTh":"สามยุคบรรพกาลที่ถูกกรมพิธีการลบชื่อ (LORE_06A)","bodyTh":"ก่อนการสถาปนามหาจักรวรรดิเทียนกู่ ผืนแผ่นดินนี้เคยผ่านอารยธรรมโบราณมาแล้วถึงสามยุค — ยุคอสูรศิลาและมังกรฟ้าที่สัตว์เทพเดินดิน, ยุคผู้สลักอักษรปฐมภูมิที่จารึกค่ายกลลงบนสันเขาและชีพจรมังกร, และยุคสมาพันธ์นครศิลาที่ล่มสลายลงก่อนราชวงศ์กู่โบราณจะรวบรวมแผ่นดิน กรมพิธีการของสามมหาอำนาจรุ่นหลังจงใจตัดตอนประวัติศาสตร์ส่วนนี้ออก เพื่อให้ราชวงศ์ของตนดูเหมือนเป็นจุดเริ่มต้นแห่งอารยธรรมทั้งหมด"},{"titleTh":"ภาพลวงตาแห่งอนุทวีปหลุมอุกกาบาต 1,000 × 1,000 ลี้ (LORE_06B)","bodyTh":"สิ่งที่ชาวโลกเบื้องล่างเรียกว่า \"มหาทวีป\" แท้จริงเป็นเพียงอนุทวีปขนาดราว 1,000 × 1,000 ลี้ ที่ถูกล้อมรอบด้วยทะเลหมอกพิษและกระแสปราณปั่นป่วนอันเกิดจากแรงระเบิดในมหาสงคราม พ้นขอบทะเลหมอกออกไปยังมีมหาจักรวรรดิและทวีปอื่นอีกถึง 6 ฟากฟ้าที่ยังคงดำรงอยู่โดยแยกขาดจากแผ่นดินนี้"}],"isPrehistory":true,"startYear":null,"endYear":-10000},{"id":"ERA_1_TIANGU_WAR","order":1,"codeTh":"ยุคที่ 1","nameTh":"มหาจักรวรรดิเทียนกู่ มหาสงครามข้ามทะเลหมอก และคืนประตูมิติแตก","spanTh":"มหายุคก่อนประวัติศาสตร์ → ยุคที่ 0 ปีที่ 0 (คืนประตูมิติหลวงแตก)","icon":"👑","color":"#f59e0b","quoteTh":"“เมื่อประตูมิติหลวงถูกจุดชนวนระเบิดด้วยพระชนม์ชีพของจักรพรรดิองค์สุดท้าย แผ่นดินก็ฉีกขาด ทัพศัตรูพินาศครึ่งกอง และอาณาจักรเดียวที่เคยรุ่งเรืองที่สุดก็แตกสลายเป็นเถ้าถ่าน”","chapters":[{"titleTh":"มหาจักรวรรดิเทียนกู่ (天古皇朝) — แผ่นดินที่เป็นหนึ่งเดียว","bodyTh":"ผืนแผ่นดินทั้งหมดในแผนที่ปัจจุบันครั้งหนึ่งเคยปกครองโดยมหาอาณาจักรเพียงหนึ่งเดียวคือ \"มหาจักรวรรดิเทียนกู่\" ภายใต้ราชวงศ์กู่โบราณ มีศูนย์กลาง ณ นครหลวงเทียนกู่ ค้ำจุนด้วยสามเสาหลัก (เชื้อพระวงศ์สกุลกู่, ทำเนียบมหาเสนาบดีสกุลซือหม่า, กองทัพแม่ทัพใหญ่สกุลทัวป๋า) พร้อมกรมคลังมืด กรมกลไก หอโอสถหลวง และหอดูดาวหลวงที่รุ่งเรืองถึงขีดสุด"},{"titleTh":"มหาสงครามกับอาณาจักรศัตรูพ้นทะเลหมอก และศึกกำแพงหลวง 7 วัน 7 คืน","bodyTh":"มหาสงครามอุบัติขึ้นระหว่างเทียนกู่กับมหาจักรวรรดิผู้รุกรานจากอีกฟากหนึ่งของโลก กองทัพนาวาฟ้าและค่ายกลตัดชีพจรของศัตรูบดขยี้แนวป้องกันจนล่วงเข้าสู่นครหลวง เหล่าวีรชนแห่งยุคต่างสละชีพตรึงสมรภูมิ — ขุนพลเกาทัณฑ์ เย่ฉิงชาง (#8) สละดวงตายิงนาวาธงศัตรูร่วงหล่น, แม่ทัพหญิงมู่หรงเสวี่ย (#7) เผาชีพสังเวยบัวโลหิต, จ้าวพยัคฆ์เหลยเจิ้น (#9) ตายทั้งยืนค้ำถ้ำ, และหัวหน้าองครักษ์ หลี่เจี้ยนซิน (#6) ถือกระบี่เหล็กนิลยืนขวางประตูเมืองหลวง 7 วัน 7 คืน เพื่อเปิดทางให้เชื้อพระวงศ์ ขุนนาง และราษฎรหนีรอด"},{"titleTh":"คืนประตูมิติหลวงแตก — พ่ายแพ้แต่ไม่ยอมจำนน","bodyTh":"ในวันสุดท้ายที่เมืองหลวงไม่อาจต้านทานได้ จักรพรรดิองค์สุดท้าย กู่เซวียนหยวน (#1) ทรงตัดสินพระทัยระเบิด \"ประตูมิติหลวง\" พร้อมพระชนม์ชีพ แรงระเบิดฉีกผืนแผ่นดินจนเกิดทะเลหมอกตัดขาดเส้นทางกับอาณาจักรผู้ชนะอย่างสิ้นเชิง ทิ้งไว้เพียงซากปรักหักพัง ดินแดนเศษเสี้ยวมิติ 12 แห่ง (Rift-Shard Worlds) และแดนลับที่กระจายอยู่ทั่วแผ่นดินจนถึงปัจจุบัน"}],"isPrehistory":true,"startYear":-10000,"endYear":0},{"id":"ERA_2_POST_TIANGU_CHAOS","order":2,"codeTh":"ยุคที่ 2","nameTh":"กลียุคแรกเริ่ม แปดก๊กหลังสงคราม และวัฏจักรหมื่นราชวงศ์","spanTh":"ยุคที่ 1 ปีที่ 1 – ยุคที่ 50 ปีที่ 1000 (กลียุค 8 ก๊ก & วัฏจักรหมื่นราชวงศ์)","icon":"🔥","color":"#ef4444","quoteTh":"“วันที่บัลลังก์เทียนกู่พังทลาย แผ่นดินไม่ได้มีเพียงสามมหาอำนาจตั้งแต่วันแรก... ขุนนาง ขันที ราชครู และขุนศึกทุกสายต่างฉวยมรดกหลวงไปตั้งตนเป็นราชันย์ ก่อนจะห้ำหั่นกันจนเลือดนองแผ่นดิน”","chapters":[{"titleTh":"แปดก๊กแรกเริ่มหลังวันล่มสลาย (LORE_05A)","bodyTh":"ทันทีที่ศูนย์กลางอำนาจเทียนกู่ดับสูญ ขั้วอำนาจที่รอดชีวิตต่างตั้งอาณาจักรของตนขึ้นพร้อมกัน — นอกจาก 3 เสาหลัก (เชื้อพระวงศ์เป่ยหมิง, มหาเสนาบดีตงหวง, แม่ทัพใหญ่ซีหรง) ยังมีอีก 5 อาณาจักรใหญ่จากหน่วยงานเก่า คือ อาณาจักรคลังมืดจินเยี่ยนของเสนาบดีฝ่ายขวา เหยียนกวง (#26), นครทมิฬจิ่วอิ๋งของมหาขันทีเก้าเงา เฉาเจิ้งฉุน (#27), เทวรัฐเสินจีของมหาปุโรหิต เสิ่นเทียนจุน (#28), ทัพโลหิตจิ่วจวินของอ๋องกบฏ ทัวป๋าเซียว (#29), และนครกลไกม่อจี๋ (#30) กับอาณาจักรหมื่นอสูรโซ่วหวง (#31)"},{"titleTh":"จุดจบของก๊กผู้ทะเยอทะยาน และวัฏจักรเกิด-ดับนับหมื่นราชวงศ์","bodyTh":"อาณาจักรที่ขาดรากฐานต่างพินาศลงทีละแห่งด้วยความโลภและคำสาปของตนเอง — คลังมืดถูกถล่มฝังใต้กองทองคำ, นครขันทีถูกเป่ยหมิงและซีหรงล้อมเผา, เทวรัฐราชครูถูกแรงสะท้อนม่านฟ้าถล่มจมดิน, ทัพกบฏเก้าทัพถูกซีหรงบดขยี้, และนครกลไก-อสูรดับลงเมื่อศิลาปราณหมดและฝูงอสูรคลุ้มคลั่ง จากนั้นแผ่นดินเข้าสู่สงครามคัดกรองนับหมื่นราชวงศ์ จนเหลือเพียง 3 มหาอำนาจที่ไม่เคยล่มสลายเลยตั้งแต่วันแรก"}],"isPrehistory":false,"startYear":1,"endYear":50000},{"id":"ERA_3_MIDDLE_EPOCHS","order":3,"codeTh":"ยุคที่ 3","nameTh":"ยุคกลางเจ็ดธงศึกและสิบสองอาณาจักรล่มสลาย","spanTh":"ยุคที่ 51 – ยุคที่ 100 ปีที่ 180 (เจ็ดธงศึก ยุคที่ 99 ปีที่ 251 · 12 อาณาจักรยุคกลาง)","icon":"⚔️","color":"#d97706","quoteTh":"“ขุนพลเกาเซิ่งแบกธงศึกที่ขาดวิ่นทั้งเจ็ดผืนไว้บนหลัง เป็นพยานว่าแม้วีรชนจะเก่งกล้าเพียงใด ก็ไม่อาจต้านทานกระดานหมากของสามมหาอำนาจได้”","chapters":[{"titleTh":"โศกนาฏกรรมเจ็ดธงศึกและจักรพรรดิร้อยวัน (LORE_05B)","bodyTh":"ในยุคกลาง แผ่นดินตอนกลางและชายขอบเคยมีวีรบุรุษสามัญชนและแคว้นอิสระพยายามรวมแผ่นดินหลายครั้ง เช่น \"จักรพรรดิร้อยวัน หลินเทียน\" (#32) ที่เกือบตั้งราชวงศ์ใหม่สำเร็จจน 3 มหาอำนาจแอบจับมือส่งยอดฝีมือมารุมสังหารในวันที่ครองราชย์ครบ 100 วัน, \"พันธมิตรเจ็ดธงศึกต้าเซี่ย\" ที่ทิ้งตำนานของขุนพลเกาเซิ่ง (#34), และ \"ราชินีเถ้าถ่าน ฉู่เยียน\" (#33) ผู้เดินเก็บป้ายวิญญาณของแคว้นที่ถูกลบชื่อ"},{"titleTh":"สิบสองอาณาจักรยุคกลางที่รุ่งเรืองแล้วดับสูญ","bodyTh":"ตลอดหลายร้อยปีของยุคกลาง เกิดอาณาจักรเฉพาะทางที่งดงามและแปลกประหลาดขึ้นมากมายถึง 12 แห่ง เช่น แคว้นสัตย์กิเลนฉีหลิน, ราชสำนักคีตยุทธ์หลิงอิน, ปราการเต่าดำเสวียนอู่, สาธารณรัฐต้าเหรินที่ยกเลิกชนชั้น, สหพันธ์โอเอซิสซาโจว, นครโอสถซิ่งหลิน, นครหยกพันพุทธะเฉียนฝอ และแคว้นหมอกชางหลาน — ทุกแห่งล้วนทิ้งร่องรอยไว้ในตำรา ศาสตรา และเส้นทางค้าขายยุคปัจจุบัน"}],"isPrehistory":false,"startYear":50001,"endYear":99180},{"id":"ERA_4_THREE_EMPIRES_BALANCE","order":4,"codeTh":"ยุคที่ 4","nameTh":"มหาดุลยภาพสามเสาหลัก สนธิสัญญาหยุนเหอ และหกแคว้นที่เพิ่งล่มสลาย","spanTh":"ยุคที่ 100 ปีที่ 181 – 1000 (สนธิสัญญาหยุนเหอ ยุค 100 ปี 181 · 6 แคว้นล่มสลาย ยุค 100 ปี 821–911)","icon":"⚖️","color":"#38bdf8","quoteTh":"“เมื่อสองมหาอำนาจทุ่มกำลังห้ำหั่นกัน มหาอำนาจที่สามจะตลบหลังกลืนกินทั้งคู่ — กฎเหล็กสามเส้านี้เองที่บังคับให้สงครามหลวงเปลี่ยนรูปเป็นสงครามตัวแทนของ 19 สำนักยุทธภพ”","chapters":[{"titleTh":"ภาวะยันกันสามเส้าและสนธิสัญญาหยุนเหอ 820 ปี (LORE_03A)","bodyTh":"หลังจากเป่ยหมิง ตงหวง และซีหรงพิสูจน์แล้วว่าไม่อาจกลืนกินอีกสองฝ่ายได้ ยอดนักการทูต ซูฉิน (#42) จึงผลักดัน \"สนธิสัญญาหยุนเหอ\" เมื่อราว 820 ปีก่อน กำหนดให้หุบเขาหยุนเหอใจกลางแผ่นดิน (ที่ตั้งซากประตูมิติโบราณ) เป็น \"แคว้นอิสระปลอดทัพหลวง\" เพื่อใช้เป็นตลาดกลางและเขตกันชน ขณะเดียวกัน 3 มหาอำนาจหันมาทำสงครามตัวแทนผ่านการอุปถัมภ์ 19 สำนักยุทธภพ และปล่อยให้ 5 อาณาจักรขนาดกลาง (โยวหมิง, หยุนเซียว, ฉื่อเยี่ยน, สุวรรณโพธิ์, กู่เจียว) เติบโตเป็นรัฐกันชนรอบนอก"},{"titleTh":"หกแคว้นที่เพิ่งล่มสลายก่อนยุคปัจจุบัน (180 ปีก่อน → ปีที่ 0 · LORE_05C)","bodyTh":"แม้จะมีดุลยภาพใหญ่ แต่ในศตวรรษล่าสุดยังมีแคว้นภูมิภาคถึง 6 แห่งที่เพิ่งถูกกลืนกินหรือพังทลายลง — ได้แก่ แคว้นปราการเจิ้นหยาง (~110 ปีก่อน), ราชวงศ์ชิงหลานไป๋ยวี่ (~90 ปีก่อน), แคว้นเหมันต์ไป๋เหมย, สันนิบาตไข่มุกหนานจู (~180 ปีก่อน), นครเหล็กฉื่อซาน, และป้อมด่านอวี้กวาน ทิ้งทายาทพลัดถิ่น ตราภาษีซ้อน และความแค้นที่ยังคงคุกรุ่นในยุคปัจจุบัน"}],"isPrehistory":false,"startYear":99181,"endYear":100000},{"id":"ERA_5_PRESENT_CONVERGENCE","order":5,"codeTh":"ยุคที่ 5","nameTh":"ปัจจุบันกาล ทายาทรุ่นที่ 7 และรอยร้าวประตูมิติ","spanTh":"ยุคที่ 101 ปีที่ 1 เป็นต้นไป (วันเริ่มเกม · ปีสำนักที่ 1)","icon":"✨","color":"#34d399","quoteTh":"“สำนักเล็ก ๆ ในหุบเขาอิสระหยุนเหอถือครองเพียงตราหินเทาไร้ลักษณ์และกระบี่ไม้ท้อธรรมดา... โดยไม่มีใครรู้ว่าปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 แท้จริงคือผู้เฝ้ามองจากฟากพ้นม่านฟ้า”","chapters":[{"titleTh":"ความลับของสำนักผู้เล่น: ปรมาจารย์รุ่นที่ 1 (#45) และเจ้าสำนักรุ่นที่ 7","bodyTh":"สำนักของเราถือกำเนิดในแคว้นอิสระหยุนเหอและสืบทอดมาจนถึงรุ่นที่ 7 โดยไม่ผูกขาดวิถี อาวุธ หรือธาตุใด ๆ มรดกชิ้นสำคัญคือ \"ตราหินเทาไร้ลักษณ์\" และ \"กระบี่ไม้ท้อ\" เบื้องหลังความเรียบง่ายนี้ซ่อนความลับว่า ปรมาจารย์ผู้ก่อตั้งรุ่นที่ 1 (#45) เป็นผู้ตื่นรู้จากโลกเบื้องบนที่เลือกเฝ้ามองรอยร้าวประตูมิติใต้หุบเขาอย่างเงียบงัน"},{"titleTh":"คลื่นใต้น้ำแห่งสามมหาอำนาจและการตื่นขึ้นของมรดกเก่า","bodyTh":"ในยุคปัจจุบัน เป่ยหมิงภายใต้จักรพรรดิเหมันต์ กู่เทียนเฉิน (#46) และองค์หญิง กู่ชิงเสวี่ย (#47) กำลังเผชิญคำสาปสายเลือด, ตงหวงภายใต้ ซือหม่าอี้เซวียน (#51) มีคุณชายสาม ซือหม่าชิง (#52) ที่ตื่นรู้ความทรงจำโบราณ, และซีหรงภายใต้ จอมทัพ ทัวป๋าเจิ้นเทียน (#56) กำลังสะสมทัพรอวันรวมแผ่นดิน ขณะที่ 12 วิถีตำนานและเหนือตำนานเริ่มถูกค้นพบอีกครั้งทั่วทุกภูมิภาค"}],"isPrehistory":false,"startYear":100001,"endYear":null}],"EMPIRES_AND_REALMS":[{"id":"EMP_BEIMING","group":"ETERNAL_3","groupTh":"👑 3 มหาอำนาจผู้ไม่เคยล่มสลาย","eraId":"ERA_1_TIANGU_WAR","status":"ACTIVE","nameTh":"มหาอาณาจักรเป่ยหมิง (Beiming Eternal Empire)","founderTh":"องค์หญิงกู่หลิงเฟย (#2) — สายเลือดเชื้อพระวงศ์เทียนกู่","summaryTh":"ถอยร่นขึ้นสู่เทือกเขาหิมะและพระราชวังฤดูหนาวทางเหนือในวันที่เทียนกู่แตก ใช้ความชอบธรรมของสายเลือดจักรพรรดิและค่ายกลดาราป้องกันปราการน้ำแข็งจนไม่มีผู้ใดตีแตกได้มานับแสนปี"},{"id":"EMP_DONGHUANG","group":"ETERNAL_3","groupTh":"👑 3 มหาอำนาจผู้ไม่เคยล่มสลาย","eraId":"ERA_1_TIANGU_WAR","status":"ACTIVE","nameTh":"มหาอาณาจักรตงหวง (Donghuang Golden Dynasty)","founderTh":"อัครมหาเสนาบดี ซือหม่าชุน (#4) — ตระกูลมหาเสนาบดีฝ่ายบุ๋น","summaryTh":"นำขุนนาง ปราชญ์ ช่างฝีมือ ระบบกฎหมาย และคลังเสบียงอพยพสู่ที่ราบลุ่มตะวันออก ใช้สงครามเศรษฐกิจ การค้า และหอคัมภีร์หลวงกลืนกินก๊กคู่แข่งจนยืนหยัดเป็นศูนย์กลางความมั่งคั่งของแผ่นดิน"},{"id":"EMP_XIRONG","group":"ETERNAL_3","groupTh":"👑 3 มหาอำนาจผู้ไม่เคยล่มสลาย","eraId":"ERA_1_TIANGU_WAR","status":"ACTIVE","nameTh":"มหาอาณาจักรซีหรง (Xirong Iron-Blood Empire)","founderTh":"แม่ทัพใหญ่ ทัวป๋าเลี่ย (#5) — ตระกูลแม่ทัพใหญ่กองทัพหน้า","summaryTh":"รวบรวมทหารผ่านศึก ตราพยัคฆ์สั่งทัพ และคลังแสงถอยสู่ปราการทะเลทรายและหุบเขาหินแดงทางตะวันตก บดขยี้ก๊กขุนศึกกบฏทั้งหมดจนกลายเป็นรัฐทหารที่แข็งแกร่งและดุดันที่สุด"},{"id":"OUTER_EMP_JINYANG_SPLINTERS","group":"OUTER_6","groupTh":"🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)","eraId":"ERA_0_ANTEDILUVIAN","status":"BEYOND_FOG","nameTh":"มหาจักรวรรดิจินหยางเศษสุริยัน (Jinyang Sun-Splinter Empire)","founderTh":"พ้นขอบทะเลหมอกตะวันออก-ใต้","summaryTh":"จักรวรรดิสุริยันโบราณที่แยกขาดจากแผ่นดินเทียนกู่นับแต่วันประตูมิติระเบิด มีตำนานเกี่ยวกับเศษสุริยันและกองเรือเวหาที่เคยปะทะกับแนวป้องกันของเทียนกู่"},{"id":"OUTER_EMP_QINGMU_WORLD_TREES","group":"OUTER_6","groupTh":"🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)","eraId":"ERA_0_ANTEDILUVIAN","status":"BEYOND_FOG","nameTh":"อาณาจักรพฤกษาโลกชิงมู่ (Qingmu World-Tree Realm)","founderTh":"พ้นขอบทะเลหมอกทักษิณ","summaryTh":"อารยธรรมแห่งมหาพฤกษาพันปีและรากวิญญาณข้ามสมุทร เป็นต้นธารของเมล็ดพันธุ์ศักดิ์สิทธิ์และเศษไม้ทิพย์ที่ลอยมาเกยฝั่งทะเลใต้เป็นครั้งคราว"},{"id":"OUTER_EMP_XINGLUO_SKY_ARCHIPELAGO","group":"OUTER_6","groupTh":"🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)","eraId":"ERA_0_ANTEDILUVIAN","status":"BEYOND_FOG","nameTh":"หมู่เกาะเวหาซิงหลัว (Xingluo Sky Archipelago)","founderTh":"พ้นขอบฟ้าดาราจักร","summaryTh":"ดินแดนเกาะลอยฟ้าและหอคอยดาราที่เชี่ยวชาญค่ายกลข่ายฟ้าและนาวาเวหา เชื่อมโยงกับเศษกลไกและจานดาราที่ตกค้างในแดนลับ"},{"id":"OUTER_EMP_TIEMING_UNDERDARK","group":"OUTER_6","groupTh":"🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)","eraId":"ERA_0_ANTEDILUVIAN","status":"BEYOND_FOG","nameTh":"จักรวรรดิใต้พิภพเถี่ยหมิง (Tieming Underdark Empire)","founderTh":"พ้นกำแพงน้ำแข็งอุดรและโพรงพิภพ","summaryTh":"อารยธรรมใต้ชั้นหินและธารลาวาลึกใต้กำแพงน้ำแข็ง เชี่ยวชาญการหลอมโลหะทมิฬและเส้นทางเหมืองโบราณ"},{"id":"OUTER_EMP_YUANHUANG_TITAN_STEPPE","group":"OUTER_6","groupTh":"🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)","eraId":"ERA_0_ANTEDILUVIAN","status":"BEYOND_FOG","nameTh":"ทุ่งยักษ์บรรพกาลหยวนหวง (Yuanhuang Titan Steppe)","founderTh":"พ้นทุ่งร้างประจิม","summaryTh":"ทุ่งราบกว้างใหญ่ที่ผู้ฝึกตนเน้นกายามือเปล่าและการหลอมสายเลือดอสูรยักษ์บรรพกาล ไม่พึ่งพาศาสตราวิเศษ"},{"id":"OUTER_EMP_BLEACHED_SILENCE","group":"OUTER_6","groupTh":"🌊 6 มหาจักรวรรดิพ้นทะเลหมอก (LORE_06B)","eraId":"ERA_0_ANTEDILUVIAN","status":"BEYOND_FOG","nameTh":"ดินแดนความเงียบสีขาว (The Bleached Silence)","founderTh":"เขตต้องห้ามสุดขอบทะเลหมอก","summaryTh":"ซากมหาอารยธรรมที่ถูกฟอกสีจนขาวโพลนไร้เสียงและไร้ปราณ เป็นปริศนาที่แม้แต่นักเดินเรือผู้กล้าที่สุดก็ไม่กล้าเข้าใกล้"},{"id":"DYN_ERA1_JINYAN_VAULT","group":"FIRST_WAVE_FALLEN","groupTh":"🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)","eraId":"ERA_2_POST_TIANGU_CHAOS","status":"FALLEN","nameTh":"อาณาจักรคลังมืดจินเยี่ยน (Jinyan Dark-Vault Kingdom)","founderTh":"ราชันย์คลังมืด เหยียนกวง (#26 · เสนาบดีฝ่ายขวา)","summaryTh":"ยึดคลังทองคำและเหมืองรอบซากเมืองหลวงเก่า แต่โลภขุดคุ้ยใต้พระราชวังจนปลุกค่ายกลพิษและถูกตงหวงถล่มอุโมงค์ปิดตายฝังทั้งเป็น"},{"id":"DYN_ERA1_JIUYING_SHADOW","group":"FIRST_WAVE_FALLEN","groupTh":"🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)","eraId":"ERA_2_POST_TIANGU_CHAOS","status":"FALLEN","nameTh":"นครทมิฬจิ่วอิ๋ง (Jiuying Shadow Eunuch State)","founderTh":"มหาขันทีเก้าเงา เฉาเจิ้งฉุน (#27)","summaryTh":"ขโมยคัมภีร์หยินต้องห้ามและเครือข่ายสายลับไปตั้งอาณาจักรมืด คอยลอบสังหารยุยงทุกฝ่าย จนเป่ยหมิงและซีหรงจับมือกันล้อมเผาจนสิ้นซาก"},{"id":"DYN_ERA1_SHENJI_THEOCRACY","group":"FIRST_WAVE_FALLEN","groupTh":"🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)","eraId":"ERA_2_POST_TIANGU_CHAOS","status":"FALLEN","nameTh":"เทวรัฐเสินจี (Shenji High Theocracy)","founderTh":"มหาปุโรหิต เสิ่นเทียนจุน (#28 · ตระกูลราชครู)","summaryTh":"เกณฑ์ผู้คนนับแสนทำพิธีสังเวยเพื่ออัญเชิญพลังจากโลกเบื้องบน แต่เกิดแรงสะท้อนม่านฟ้าถล่มเมืองหลวงจมลงกลายเป็นแดนลับต้องห้าม"},{"id":"DYN_ERA1_JIUJUN_BLOOD_HORDE","group":"FIRST_WAVE_FALLEN","groupTh":"🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)","eraId":"ERA_2_POST_TIANGU_CHAOS","status":"FALLEN","nameTh":"ทัพโลหิตจิ่วจวิน / อ๋องเก้าทัพ (Jiujun Blood Horde)","founderTh":"อ๋องคลั่งปราบอุดร ทัวป๋าเซียว (#29)","summaryTh":"กลุ่มรองแม่ทัพกบฏที่แยกตัวจากสกุลทัวป๋า แต่ขาดวินัยและฆ่าฟันกันเองจนถูกทัพหลักซีหรงเข้าบดขยี้และตัดศีรษะผู้นำหน้าด่านหินแดง"},{"id":"DYN_ERA1_MOJI_AUTOMATON","group":"FIRST_WAVE_FALLEN","groupTh":"🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)","eraId":"ERA_2_POST_TIANGU_CHAOS","status":"FALLEN","nameTh":"นครจักรกลม่อจี๋ (Automaton Empire of Mo Ji)","founderTh":"จักรพรรดิกลไก ม่อจี๋ (#30 · กรมช่างกลไก)","summaryTh":"ดัดแปลงกองทัพและชาวเมืองเป็นหุ่นกลไก เมื่อถูกปิดล้อมจนศิลาปราณหมดลง อาณาจักรทั้งเมืองจึงหยุดนิ่งกลายเป็นหอศิลากลไกใต้ดิน"},{"id":"DYN_ERA1_SHOUHUANG_BEAST","group":"FIRST_WAVE_FALLEN","groupTh":"🏚️ ก๊กแรกเริ่มหลังเทียนกู่ที่ล่มสลาย (ยุคที่ 2)","eraId":"ERA_2_POST_TIANGU_CHAOS","status":"FALLEN","nameTh":"อาณาจักรหมื่นอสูรโซ่วหวง (Shouhuang Beast-Tyrant Realm)","founderTh":"พญาอสูรคลั่ง โซ่วหวง (#31 · กรมฝึกอสูรสงคราม)","summaryTh":"ใช้ตราโลหิตบังคับฝูงอสูรเป็นทาสสงคราม จนในคืนจันทร์สีเลือดฝูงอสูรคลุ้มคลั่งก่อกบฏย้อนกลับมาขย้ำทำลายอาณาจักรจนพินาศ"},{"id":"DYN_MID_QILIN_OATH","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"แคว้นสัตย์กิเลนฉีหลิน (Qilin Oath Kingdom)","founderTh":"สายอัศวินผู้ถือทวนมังกรหักสัตย์","summaryTh":"แคว้นขุนศึกผู้ยึดถือคำสัตย์สาบานและเกราะกิเลนเงา ล่มสลายหลังพันธมิตรหักหลังกลางศึกชิงด่านชายแดน"},{"id":"DYN_MID_LINGYIN_COURT","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"ราชสำนักคีตยุทธ์หลิงอิน (Lingyin Harmonic Court)","founderTh":"สภาจอมพิณและบัณฑิตอักษรปราชญ์","summaryTh":"อาณาจักรแห่งดนตรีและอักษรศิลป์ที่ปกครองด้วยวิถีคีตยุทธ์และอักษรปราชญ์ ก่อนถูกกลืนกินในสงครามรวมแคว้นตะวันออก"},{"id":"DYN_MID_XUANWU_BASTION","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"ปราการเต่าดำเสวียนอู่ (Xuanwu Tortoise Bastion)","founderTh":"ขุนพลเกราะเต่าอมตะ","summaryTh":"นครป้อมปราการที่ไม่เคยแตกจากการบุกตรงหน้า แต่ล่มสลายเพราะเสบียงขาดและรอยร้าวจากแผ่นดินไหวใหญ่"},{"id":"DYN_MID_HANMEI_DUCHY","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"แคว้นเหมยเหมันต์หานเหมย (Hanmei Frost Duchy)","founderTh":"ตระกูลขุนนางสายเหมันต์แดนเหนือ","summaryTh":"แคว้นเล็กบนเทือกเขาหิมะที่เชี่ยวชาญวิถีวารีน้ำแข็ง ก่อนถูกผนวกกลับเข้าสู่วงโคจรของมหาอาณาจักรเป่ยหมิง"},{"id":"DYN_MID_DAREN_COMMONWEALTH","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"สาธารณรัฐต้าเหริน (Daren Commonwealth)","founderTh":"สภาสามัญชนผู้ล้มล้างชนชั้น","summaryTh":"ความพยายามครั้งประวัติศาสตร์ในการสร้างรัฐไร้กษัตริย์และยกเลิกอภิสิทธิ์ตระกูลเซียน ก่อนถูกแทรกแซงจนแตกสลาย เหลือชื่อไว้ที่จัตุรัสต้าเหรินเก่าในหยุนเหอ"},{"id":"DYN_MID_CANGZHOU_LEAGUE","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"สันนิบาตชางโจว (Cangzhou River League)","founderTh":"สมาพันธ์เมืองท่าลุ่มน้ำ","summaryTh":"พันธมิตรเมืองท่าและกองเรือแม่น้ำที่รุ่งเรืองจากการคุมด่านน้ำ ก่อนล่มสลายในสงครามภาษีแม่น้ำ"},{"id":"DYN_MID_SHAZHOU_OASIS","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"สมาพันธ์โอเอซิสซาโจว (Shazhou Oasis Confederacy)","founderTh":"กองคาราวานวาณิชย์ทะเลทราย","summaryTh":"เครือข่ายเมืองโอเอซิสกลางทะเลทรายตะวันตกที่รุ่งเรืองด้วยวิถีวาณิชย์ ก่อนถูกกองทัพซีหรงผนวกเส้นทางคาราวาน"},{"id":"DYN_MID_XINGLIN_APOTHECARY","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"นครโอสถซิ่งหลิน (Xinglin Apothecary State)","founderTh":"ผู้สืบทอดเข็มเจ็ดดาราและหอโอสถ","summaryTh":"นครแห่งหมอและนักปรุงโอสถที่เป็นกลางในศึกใหญ่ ก่อนถูกปล้นทำลายในช่วงโรคระบาดและกลียุคแย่งชิงยา"},{"id":"DYN_MID_QIANFO_JADE","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"อาณาจักรหยกพันพุทธะเฉียนฝอ (Qianfo Jade Realm)","founderTh":"สายพุทธธรรมและช่างแกะสลักศิลา","summaryTh":"ดินแดนอารามหยกและศิลาจารึกโบราณ รากฐานทางจิตวิญญาณที่ส่งอิทธิพลต่อสหพันธรัฐสุวรรณโพธิ์ในยุคหลัง"},{"id":"DYN_MID_WANHUA_MATRIARCHY","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"ราชรัฐหมื่นบุปผาว่านฮวา (Wanhua Matriarchy)","founderTh":"สภาสตรีจ้าวสมุนไพรและพิษบุปผา","summaryTh":"อาณาจักรที่ปกครองโดยสตรีผู้เชี่ยวชาญสมุนไพรและพิษกู่ ก่อนแตกแยกเป็นตระกูลย่อยในแดนใต้"},{"id":"DYN_MID_FENGLEI_NOMADS","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"ชนเผ่าพายุอสนีเฟิงเหลย (Fenglei Storm Nomads)","founderTh":"ผู้ถือพัดขนนกวายุอสนี","summaryTh":"กองทัพเร่ร่อนผู้บัญชาลมฝนและสายฟ้า เคยท้าทายชายแดนมหาอำนาจก่อนสลายตัวไปหลังภัยแล้งเจ็ดปี"},{"id":"DYN_MID_DAXIA_SEVEN_BANNERS","group":"MIDDLE_12","groupTh":"⚔️ 12 อาณาจักรยุคกลางที่ล่มสลาย (ยุคที่ 3 · LORE_05B)","eraId":"ERA_3_MIDDLE_EPOCHS","status":"FALLEN","nameTh":"พันธมิตรเจ็ดธงศึกต้าเซี่ย (Seven Banners of Daxia)","founderTh":"เจ็ดขุนพลพันธมิตรและขุนพลเกาเซิ่ง (#34)","summaryTh":"พันธมิตรเจ็ดแคว้นที่พยายามคานอำนาจสามมหาจักรวรรดิเมื่อ ~750 ปีก่อน แต่แตกสลายทีละธงจนเหลือเพียงตำนานธงขาดเจ็ดผืน"},{"id":"DYN_RECENT_ZHENYANG_HEGEMONY","group":"RECENT_6","groupTh":"⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","status":"RECENTLY_FALLEN","nameTh":"แคว้นปราการเจิ้นหยาง (Zhenyang Hegemony)","founderTh":"ตระกูลขุนศึกปฏิรูปที่ดิน (~110 ปีก่อน)","summaryTh":"เคยเติบโตเร็วเกินไปจากการปฏิรูปกฎหมายที่ดินและพิชัยยุทธ์ จนถูกสามมหาอำนาจและสำนักตัวแทนรุมบดขยี้ ทิ้งซากเมืองเจิ้นหยางและทายาทลี้ภัยไว้ในปัจจุบัน"},{"id":"DYN_RECENT_QINGLAN_BAIYU","group":"RECENT_6","groupTh":"⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","status":"RECENTLY_FALLEN","nameTh":"ราชวงศ์ชิงหลานไป๋ยวี่ (Qinglan Baiyu Dynasty)","founderTh":"ราชวงศ์สายน้ำคราม (~90 ปีก่อน)","summaryTh":"เพิ่งถูกตงหวงผนวกเข้าเป็นหัวเมืองเมื่อ 90 ปีก่อน ตราคลื่นคู่และธรรมเนียมด่านภาษีซ้อนยังคงหลงเหลืออยู่ในเส้นทางค้าขายตะวันออก"},{"id":"DYN_RECENT_BAIMEI_FROST","group":"RECENT_6","groupTh":"⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","status":"RECENTLY_FALLEN","nameTh":"ป้อมเหมันต์ไป๋เหมย (Baimei Frost Principality)","founderTh":"สายขุนนางปราการหิมะ","summaryTh":"แคว้นชายแดนเหมันต์ที่พ่ายศึกฤดูหนาวและถูกเป่ยหมิงลดฐานะเป็นเพียงป้อมเก่าไป๋เหมย"},{"id":"DYN_RECENT_NANZHU_PEARL","group":"RECENT_6","groupTh":"⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","status":"RECENTLY_FALLEN","nameTh":"สันนิบาตไข่มุกหนานจู (Nanzhu Pearl League)","founderTh":"สภานายเรือสมุทรทักษิณ (~180 ปีก่อน)","summaryTh":"กองเรือพาณิชย์และนักสำรวจทะเลหมอกที่ล่มสลายหลังเผชิญมรสุมยักษ์และแรงสั่นสะเทือนจากราชันมังกรสมุทร"},{"id":"DYN_RECENT_CHISHAN_IRON","group":"RECENT_6","groupTh":"⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","status":"RECENTLY_FALLEN","nameTh":"นครเหล็กฉื่อซาน (Chishan Iron Principality)","founderTh":"สมาพันธ์ช่างหลอมเหล็กแดง","summaryTh":"นครเหมืองแร่และโรงหลอมตะวันตกที่แตกสลายจากสงครามแย่งชิงแร่เหล็กไหล ก่อนช่างฝีมือจะอพยพไปรวมตัวที่นครรัฐฉื่อเยี่ยน"},{"id":"DYN_RECENT_YUGUAN_CITADEL","group":"RECENT_6","groupTh":"⏳ 6 แคว้นที่เพิ่งล่มสลายก่อนปัจจุบัน (~90–180 ปีก่อน · LORE_05C)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","status":"RECENTLY_FALLEN","nameTh":"ปราการด่านหยกอวี้กวาน (Yuguan Citadel)","founderTh":"ผู้พิทักษ์ด่านหยกชายแดนกลาง","summaryTh":"ปราการเก่าแก่ที่เคยคั่นกลางเส้นทางเข้าสู่หยุนเหอ ปัจจุบันเหลือเพียงด่านซากโบราณอวี้กวานและหลักศิลาสองชื่อของผู้อพยพ"}],"COSMOLOGY":{"titleTh":"จักรวาลสองชั้น ม่านกั้นภพ และความจริงอันโหดร้ายของการเหินหาว","pillars":[{"icon":"🌌","titleTh":"โครงสร้างจักรวาลสองชั้นและม่านกั้นภพ (The World Barrier)","bodyTh":"โลกแบ่งออกเป็น \"โลกเบื้องล่าง\" ที่มีปราณเบาบางและเพดานตบะจำกัด กับ \"โลกเบื้องบน\" ที่ปราณหนาแน่นและกฎสวรรค์เข้มข้น ระหว่างสองภพมี \"ม่านกั้นภพ\" คอยแยกขาดและป้องกันไม่ให้ผู้ทรงพลังจากเบื้องบนลงมาแทรกแซงโลกเบื้องล่างได้ตามอำเภอใจ — ผู้ที่ตบะเกินเกณฑ์จะถูกแรงดีดม่านฟ้าขับไล่ ยกเว้นผู้ที่บาดเจ็บจนตบะร่วงต่ำกว่าเพดาน (เช่น ทูตตกสวรรค์ขงหมิง #21)"},{"icon":"⚡","titleTh":"กฎแห่งการเหินหาว (The Law of Ascension)","bodyTh":"ผู้ฝึกตนในโลกเบื้องล่างที่ไต่เต้าจนถึงจุดสูงสุดของวิถีจะเผชิญ \"ด่านทัณฑ์สวรรค์\" เพื่อทะลวงม่านกั้นภพขึ้นสู่โลกเบื้องบน การเหินหาวมิใช่เพียงการเพิ่มพลัง แต่คือการสลัดคราบข้อจำกัดของโลกเบื้องล่างโดยทิ้งมรดก เคล็ดวิชา หรือร่องรอยไว้ให้ศิษย์รุ่นหลังสืบทอด"},{"icon":"⚖️","titleTh":"ความจริงอันโหดร้าย: ชาวสวรรค์โดยกำเนิด vs ชนชั้นต่ำผู้เหินหาว","bodyTh":"สิ่งที่ผู้ฝึกตนในโลกเบื้องล่างไม่เคยล่วงรู้คือ ยอดคนระดับตำนานที่ถูกก้มกราบในโลกเบื้องล่าง เมื่อทะลวงม่านฟ้าขึ้นไปแล้ว กลับมีฐานะไม่ต่างจากชนชั้นต่ำไร้หัวนอนปลายเท้าในสายตาของชาวสวรรค์โดยกำเนิด — และแผ่นฝึกหายใจหรือปมเชือกคลังสินค้าชั้นผู้น้อยที่ถูกคัดทิ้งจากโลกเบื้องบน เมื่อหล่นลงมาโลกเบื้องล่างกลับกลายเป็นต้นกำเนิดของวิถีระดับตำนาน (เช่น วิถีชีพจรประคองสหาย และวิถีผู้ถือกุญแจผนึก)"}]},"BEAST_KINGS":[{"id":"THUNDER_DRAGON_KING","altId":"","nameTh":"ราชันมังกรสายฟ้าประกาศิต (`DRAGON`)","descTh":"ทายาทของมังกรพิทักษ์ราชบัลลังก์อาณาจักรเก่า อาศัยอยู่ท่ามกลางเมฆทัณฑ์สวรรค์เหนือยอดเขาหิมะทางเหนือ คอยกลืนกินสายฟ้าเป็นอาหารและปกครอง \"ราชสำนักพายุ (`Storm Court`)\""},{"id":"INFERNO_PHOENIX_KING","altId":"REBIRTH_PHOENIX","nameTh":"ราชันหงส์เพลิงอมตะนิรันดร์กาล (`AVIAN`)","descTh":"พญาวิหคเพลิงอมตะที่อาศัยอยู่ในปล่องภูเขาไฟยักษ์ ทุกครั้งที่บาดเจ็บถึงตายในสงคราม ร่างจะลุกไหม้กลายเป็น \"ไข่อมตะเกิดใหม่ (`Rebirth Egg`)\" แม้ความทรงจำเดิมจะเลือนหายไปหลังฟัก แต่ยีนสายเลือดบรรพกาลจะยิ่งแข็งแกร่งขึ้นทุกครั้งที่ผ่านความตาย"},{"id":"ABYSSAL_LEVIATHAN_KING","altId":"VOID_LEVIATHAN","nameTh":"ราชันมังกรสมุทรสุญญากาศ (`LEVIATHAN`)","descTh":"อสูรสมุทรบรรพกาลขนาดมหึมาที่หลับใหลอยู่ใต้น้ำลึกทางใต้ ครึ่งตัวอยู่ในโลกเบื้องล่างและอีกครึ่งตัวแทรกซึมอยู่ในช่องว่างระหว่างม่านกั้นภพ (`Void Phase`) แผ่แรงกดดันมิติมหาศาล (`Void Pressure`)"},{"id":"STONE_TITAN_KING","altId":"FOSSIL_TITAN","nameTh":"ราชันยักษ์ศิลาดึกดำบรรพ์ (`TITAN`)","descTh":"ซากโครงกระดูกยักษ์บรรพกาลที่เคยร่วมรบในมหาสงครามเมื่อหนึ่งแสนปีก่อนและล้มตายลงในทะเลทรายตะวันตก เมื่อถูกปลุกขึ้นและกลืนกินแร่ธาตุหรือเลือดเนื้อ เกราะกระดูกและเนื้อหนังจะฟื้นคืนชีพกลับมาเป็นยักษ์ทลายขุนเขาอีกครั้ง"},{"id":"SHADOW_SERPENT_KING","altId":"TWIN_SERPENT","nameTh":"ราชันอสรพิษแฝดเก้ายมโลก (`REPTILE`)","descTh":"อสรพิษสองหัวสองร่างที่ถือกำเนิดจากไอพิษและโลหิตของยอดฝีมือที่ล้มตายในมหาสงครามโบราณ ตัวหนึ่งเป็นเกล็ดหยินสีดำ อีกตัวเป็นเกล็ดหยางสีชาด เชื่อมโยงชีวิตเข้าด้วยกัน"},{"id":"CELESTIAL_QILIN_KING","altId":"TIME_TURTLE","nameTh":"ราชันกิเลนดาราและพญาเต่ากาลเวลา (`MYTHICAL` / `TURTLE`)","descTh":"สัตว์เทพผู้ทรงภูมิปัญญาที่มีอายุขัยยาวนานที่สุดและเป็นพยานรู้เห็นการล่มสลายของอาณาจักรเมื่อหนึ่งแสนปีก่อน สามารถแผ่สนามพลังชะลอกระแสเวลารอบตัว (`Time Slow`)"}],"ECO_BEASTS":[{"nameTh":"หมาป่าพันธะโลหิต (`BOND_WOLF`)","descTh":"สัตว์คู่ใจของเหล่านักรบที่เติบโตและวิวัฒนาการถึง 5 ขั้นตามระดับความผูกพัน (`Bond Level`) และประสบการณ์รบเคียงข้างเจ้านาย"},{"nameTh":"อาณานิคมแมลงวิญญาณ (`COLONY_SWARM`) และหนอนปรสิต (`PARASITE_WORM`)","descTh":"สิ่งมีชีวิตที่รวมฝูงกันเป็นอาณานิคม หรือแฝงตัวเข้าสู่จุดชีพจรของร่างเจ้าบ้านเพื่อดูดซับปราณและกระตุ้นพลังแฝง"},{"nameTh":"สัตว์มายาเลียนแบบ (`MIMIC_BEAST`)","descTh":"สัตว์อสูรลึกลับตามซากโบราณสถานที่ใช้ดวงตาวิญญาณจดจำและจำลองรูปร่าง ท่วงท่า และปราณของสิ่งที่มันเคยพบเห็น"},{"nameTh":"ภูตต้นไม้โบราณพันปี (`ANCIENT_TREE_SPIRIT`)","descTh":"ต้นไม้ศักดิ์สิทธิ์ที่มีดวงจิตวิญญาณ แผ่ขยาย \"เครือข่ายรากวิญญาณใต้ดิน (`Root Network`)\" เพื่อปกป้องพื้นที่และเยียวยาพันธมิตร"}],"LEGENDARY_ARSENAL":[{"titleTh":"1.1 มรดกประจำ \"สายเชื้อพระวงศ์อาณาจักรเก่า\" (มหาอาณาจักรเป่ยหมิง)","items":["ผู้ถือครอง/ที่มา: กระบี่ประจำพระองค์ของ องค์จักรพรรดิองค์สุดท้าย กู่เซวียนหยวน (#1) ที่ใช้ชี้ฟ้าท้าทายศัตรูในศึกสุดท้ายก่อนที่พระองค์จะสูญหายไปพร้อมการระเบิดประตูมิติหลวง กระบี่เล่มจริงกระเด็นไปตกอยู่ในเทือกเขาหิมะแดนเหนือ ขณะที่ จักรพรรดิเหมันต์ กู่เทียนเฉิน (#46) จักรพรรดิเป่ยหมิงองค์ปัจจุบันถือครองกระบี่อิงฟ้าจำลองและกำลังตามหากระบี่เล่มจริง","ผู้ถือครอง/ที่มา: ฉลองพระองค์ไหมเมฆาของ องค์หญิงกู่หลิงเฟย (#2) ปฐมบรรพชนผู้ก่อตั้งมหาอาณาจักรเป่ยหมิง ปัจจุบันนางยังคงสวมอาภรณ์ชุดนี้นั่งหลับตาจำศีลอยู่ในผลึกน้ำแข็งพันปีส่วนลึกสุดของตำหนักน้ำแข็งต้องห้าม","ผู้ถือครอง/ที่มา: กำไลหยกสัญลักษณ์แห่งสายเลือดรัชทายาทราชวงศ์เก่าเทียนกู่ ตกทอดมาในราชสกุลเป่ยหมิงเพื่อใช้ยืนยันสิทธิ์ของผู้สืบทอดบัลลังก์น้ำแข็ง","ผู้ถือครอง/ที่มา: มหาคัมภีร์เดินปราณราชันย์ของ กู่เซวียนหยวน (#1) ที่สืบทอดเฉพาะในหมู่จักรพรรดิแห่งเป่ยหมิง แผ่บารมีกดขี่ผู้ที่คิดกบฏต่อสายเลือดราชวงศ์เก่า","ผู้ถือครอง/ที่มา: วิชาลับประจำราชสกุลเก่าที่ใช้ยิงปราณกระบี่ไร้รูปออกจากปลายนิ้ว ปัจจุบัน องค์หญิงรัชทายาท กู่ชิงเสวี่ย (#47) คือผู้ที่ฝึกฝนคัมภีร์นี้ได้สมบูรณ์แบบที่สุดในรอบหมื่นปี","ผู้ถือครอง/ที่มา: เคล็ดวิชาบ่มเพาะภายในสูงสุดของ องค์หญิงกู่หลิงเฟย (#2) ที่ช่วยให้ปราณในกายไม่รั่วไหลและแช่แข็งอายุขัยคงความเยาว์วัยชั่วนิรันดร์ แต่ในทายาทรุ่นหลังอย่าง กู่เทียนเฉิน (#46) ที่ฝึกไม่ถึงขั้นสูงสุด กลับเกิดผลข้างเคียงเป็นอาการปราณเหมันต์กัดกินหัวใจ"]},{"titleTh":"1.2 มรดกประจำ \"ตระกูลมหาเสนาบดีอาณาจักรเก่า\" (มหาอาณาจักรตงหวง)","items":["ผู้ถือครอง/ที่มา: พู่กันคู่กายของ อัครมหาเสนาบดี ซือหม่าชุน (#4) ผู้ใช้ร่างกฎหมายแผ่นดินและบันทึกวันสิ้นภพของอาณาจักรเก่า ก่อนจะแยกความทรงจำของตนออกเป็น 9 ม้วนคัมภีร์ลับ ปัจจุบันพู่กันด้ามนี้ถูกเก็บรักษาไว้เป็นสมบัติสูงสุดของตระกูลซือหม่าแห่งตงหวง","ผู้ถือครอง/ที่มา: ลูกคิดทองคำบริหารคลังหลวงและเสบียงทัพของตระกูลมหาเสนาบดีและ เถ้าแก่เฉียน (#22 อดีตเจ้าคลังหลวง) ที่ใช้คำนวณภาษี เสบียง และรหัสคลังสมบัติลับทั้ง 9 แห่ง","ผู้ถือครอง/ที่มา: มีดสั้นพระราชทานประจำตำแหน่งผู้ตรวจการแผ่นดินแห่งตระกูลมหาเสนาบดี ปัจจุบันอยู่ในมือของ หัวหน้าผู้ตรวจการแผ่นดิน เหยียนหลัว (#54) ตุลาการหน้าเหล็กแห่งตงหวงที่ใช้ซัดปลิดชีพผู้ละเมิดกฎหมายบ้านเมืองโดยไม่เคยพลาดเป้า","ผู้ถือครอง/ที่มา: ผังค่ายกลพิชัยยุทธ์ที่ ซือหม่าชุน (#4) ใช้วางผังเมืองหลวงและส่งต่อให้ มหาปราชญ์หอคัมภีร์ ขงเหวิน (#55) ใช้วางระบบป้องกันหอคัมภีร์หลวงของตงหวงในปัจจุบัน","ผู้ถือครอง/ที่มา: ศาสตร์การใช้อักษรราชโองการสะกดผู้ละเมิดกฎและการบริหารดวงชะตาแผ่นดินที่สืบทอดในสายเลือดของ ซือหม่าอี้เซวียน (#51) และทายาทผู้ตื่นรู้ความทรงจำแสนปีอย่าง คุณชายสาม ซือหม่าชิง (#52)"]},{"titleTh":"1.3 มรดกประจำ \"ตระกูลแม่ทัพใหญ่อาณาจักรเก่า\" (มหาอาณาจักรซีหรง)","items":["ผู้ถือครอง/ที่มา: ทวนศึกคู่กายของ แม่ทัพใหญ่ทัวป๋าเลี่ย (#5) ที่ใช้สังหารแม่ทัพของอาณาจักรศัตรูไปถึง 9 คนในมหาสงครามเมื่อหนึ่งแสนปีก่อน ก่อนที่เขาจะถือทวนเล่มนี้เดินหายเข้าไปในพายุทะเลทรายหินแดง","ผู้ถือครอง/ที่มา: ตราหยกพยัคฆ์บัญชาการทัพหลวงที่จักรพรรดิอาณาจักรเก่ามอบให้ตระกูลแม่ทัพใหญ่ ปัจจุบันมี ปรมาจารย์ทวนเฒ่า ทัวป๋ากัง (#60) นั่งขัดสมาธิเฝ้าอยู่บนยอดผาหินแดงเพื่อควบคุมไม่ให้ จอมทัพใหญ่ ทัวป๋าเจิ้นเทียน (#56) นำตราพยัคฆ์ไปสั่งเปิดสงครามล้างภพก่อนเวลาอันควร","ผู้ถือครอง/ที่มา: คันธนูเหล็กดาวตกของ ขุนพลเกาทัณฑ์ เย่ฉิงชาง (#8) มือธนูตาเดียวผู้สละดวงตาซ้ายหลอมเป็นลูกศรยิงเรือรบกลางเวหาของอาณาจักรศัตรูจนร่วงลงมาทั้งลำ ปัจจุบันดวงวิญญาณของเขายังสถิตอยู่ในคันธนูเล่มนี้ในก้นเหวลึก","ผู้ถือครอง/ที่มา: ศาสตราและคัมภีร์หลอมกายาของ จ้าวพยัคฆ์ เหลยเจิ้น (#9) ขุนพลหมัดเหล็กผู้ยืนรับคมดาบและหอกนับหมื่นเล่มจนตายทั้งยืนค้ำเพดานถ้ำโบราณสถาน","ผู้ถือครอง/ที่มา: วิชาฝ่ามือจอมทัพและเคล็ดวิชาปราณโลหิตที่เกิดจากการรบพุ่งท่ามกลางทะเลเลือดของกองทัพตระกูลทัวป๋าแห่งซีหรง"]},{"titleTh":"1.4 ศาสตราและวิชาในตำนานที่ผูกกับ \"วีรบุรุษและยอดปราชญ์ยุคสงครามอาณาจักรโบราณ\" (ภาคที่ 5)","items":["ผู้ถือครอง/ที่มา: ศาสตราและวิชาที่บรรลุโดย หลี่เจี้ยนซิน (#6) อดีตหัวหน้าองครักษ์เสื้อแพรผู้ยืนขวางประตูเมืองหลวงเพียงลำพัง 7 วัน 7 คืนในวันสิ้นอาณาจักร เพื่อทำลายช่องโหว่ของทุกสรรพวิชาของอาณาจักรศัตรู","ผู้ถือครอง/ที่มา: วิชาต้องห้ามที่ แม่ทัพหญิงมู่หรงเสวี่ย (#7) ใช้เผาผลาญพลังชีวิตตนเองเป็นดอกบัวโลหิตเพื่อทำลายทัพหน้าของศัตรู จนดวงจิตของนางหลอมรวมเข้ากับเมล็ดบัวโบราณในแดนลับ","ผู้ถือครอง/ที่มา: วิชาตัวเบาเร้นเงาสูงสุดของ คู่แฝดเงาโลหิต อู๋หมิง & อู๋ซิน (#10) หัวหน้าหน่วยลอบสังหารหลวงที่ลอบเข้าค่ายศัตรูในคืนสุดท้ายของสงคราม","ผู้ถือครอง/ที่มา: พิณวิเศษและบทเพลงอำลาอาณาจักรของ ฉินอู๋เซียง (#12) จอมพิณตาบอดผู้ควักดวงตาตนเองและดีดพิณสะกดทัพศัตรูจนสายพิณขาดสะบั้นกลางสมรภูมิ","ผู้ถือครอง/ที่มา: มหาคัมภีร์โอสถของ ปรมาจารย์โอสถไป๋เฉ่า (#13) หมอหลวงผู้เปลี่ยนร่างกายตนเองเป็นเตาหลอมเพื่อสูดดมหมอกพิษของอาณาจักรศัตรูทั้งสมรภูมิเข้าไปขังไว้ในตันเถียนของตนคนเดียว","ผู้ถือครอง/ที่มา: สิ่งประดิษฐ์กลไกอาคมชิ้นเอกของ กงซูจี (#15) สตรีอัจฉริยะเจ้ากรมกลไกแห่งอาณาจักรเก่าผู้ย้ายดวงจิตตนเองไปสถิตในหุ่นเชิดหยกขาว","ผู้ถือครอง/ที่มา: เครื่องคำนวณดาราจักรของ โหราจารย์หลวง ซิงเฉินจื่อ (#16) ผู้มองเห็นคำทำนายความพ่ายแพ้ของอาณาจักรล่วงหน้า 10 ปีแต่ถูกขังลืมไว้บนหอคอยดูดาวที่เวลาหยุดนิ่ง และสืบทอดศาสตร์ต่อมาถึง ซิงอวิ๋น (#49)","ผู้ถือครอง/ที่มา: ศาสตราที่ เฒ่าเข็มทิศ ซูเหยียน (#17) อดีตกัปตันกองเรือสำเภาเหินเวหาแห่งอาณาจักรเก่าใช้ผนึกวิญญาณของตนไว้หลังกลับมาจากลาดตระเวนสุดขอบม่านหมอก","ผู้ถือครอง/ที่มา: วิชาต้องห้ามของ ตงฟางเย่ (#18) อดีตรองแม่ทัพผู้ยอมรับตราบาปว่าเป็นคนทรยศและถูกขังในคุกมืดใต้ดินมานับแสนปี เพื่อทำลายค่ายกลสังเวยชีวิตทหารนับล้าน","ผู้ถือครอง/ที่มา: มหาคัมภีร์ที่ ไต้ซืออู๋เฉิน (#23) อดีตขุนพลเพชฌฆาตล้านศพใช้ฝึกฝนหลังหักดาบออกบวชเป็นหลวงจีนชรากวาดลานวัดเพื่อสะกดจิตสังหารในกาย","ผู้ถือครอง/ที่มา: ศาสตราคู่กายของ แม่เฒ่าหมื่นไหม ยายเมิ่ง (#24) อดีตหัวหน้ากองภูษาหลวงแห่งวังหลังเทียนกู่ที่ปัจจุบันเร้นกายเป็นหญิงชราปะชุนเสื้อผ้าริมบึงน้ำ"]},{"titleTh":"1.5 ศาสตราและวิชาในตำนานที่ผูกกับ \"ยอดคนและราชาผู้ล่มสลายในยุคกลียุคหลังสงคราม\" (ภาคที่ 6)","items":["ผู้ถือครอง/ที่มา: มหาคัมภีร์วิญญาณที่ มหาขันทีเก้าเงา เฉาเจิ้งฉุน (#27) ขโมยจากวังหลังไปตั้งอาณาจักรทมิฬไร้เงาในยุคกลียุค และใช้แยกวิญญาณสิงอยู่ในเศษกระจกโบราณเก้าเสี่ยง","ผู้ถือครอง/ที่มา: วัตถุนอกรีตที่เกิดจากการทำพิธีสังเวยผิดพลาดของ มหาปุโรหิตสังเวยฟ้า เสิ่นเทียนจุน (#28) ผู้ก่อตั้งอาณาจักรเทวราชครูที่ถูกแรงสะท้อนม่านฟ้าถล่มจนสติแตก","ผู้ถือครอง/ที่มา: ของวิเศษประจำตัว องค์ชายนักพนัน ไป๋อวี้ (#35) รัชทายาทผู้ยอมแกล้งแพ้พนันยกแผ่นดินให้ตงหวงเพื่อแลกกับชีวิตของราษฎรทั้งอาณาจักร","ผู้ถือครอง/ที่มา: หลอมขึ้นโดย มารดาบจันทร์เสี้ยว เย่กูหาน (#37) เด็กกำพร้าทุ่งสังหารผู้รวบรวมเศษใบดาบหักจากศพทหารหมื่นนายมาหลอมใต้แสงจันทร์เพื่อใช้ล่าขุนนางผู้ก่อสงคราม","ผู้ถือครอง/ที่มา: ศาสตราคู่กายของ ประมุขพรรคไม้เท้าหยก หงชี (#38) ผู้นำกลุ่มผู้ลี้ภัยสงครามนับล้านคนในยุคกลียุค","ผู้ถือครอง/ที่มา: สุดยอดวิชากระบี่ของ เซียนสุราหมื่นไห จิ้วเจี้ยนเซียน (#39) ผู้เคยบุกเดี่ยวท้าดวลยอดฝีมือสูงสุดของทั้ง 3 มหาอำนาจก่อนจะเร้นกายเมามายเพราะล่วงรู้ความลับของโลก","ผู้ถือครอง/ที่มา: ศาสตราอาคมของ จอมขมังเวทบึงทมิฬ ปู่เจ้าสมิงพราย (#40) ผู้ปลุกผีทหารไร้ญาติและควายธนูตั้งเป็นปราการกันชนในป่าดงดิบ","ผู้ถือครอง/ที่มา: ดาบคู่กายของ ซามูไรไร้ปราณ เคนชินแห่งผาเมฆา (#41) ชายตันเถียนพิการผู้ฝึกฟันดาบวันละแสนครั้งจนตัดกระแสปราณของเซียนขาดสะบั้น","ผู้ถือครอง/ที่มา: วิชาตัวเบาของ จอมโจรพันหน้า เต้าจื่อ (#43) ผู้ลอบเข้าไปขโมยคัดลอกคัมภีร์จากคลังหลวงของทั้ง 3 มหาอำนาจออกมาโปรยซ่อนไว้ตามแดนลับทั่วแผ่นดิน","อาวุธและอุปกรณ์ในตำนานที่ยังว่างอยู่ (รอผูกเนื้อเรื่องใหม่):","`LEG_WPN_TULONG_SABER` (ดาบพิชิตมังกรเพลิงราชันย์), `LEG_WPN_OATHBREAKER_DRAGON_LANCE` (ทวนมังกรสายฟ้าทลายสัตย์), อาวุธตำนานตระกูล `ROSARY` (ประคำพระธาตุโพธิญาณ), `CLAW` (กรงเล็บราชันอสูร), `NEEDLE` (เข็มเงินเจ็ดดารา), `FAN` (พัดขนนกเทวพายุ)","`LEG_ARM_SHADOW_KIRIN_CUIRASS` (เกราะเกล็ดกิเลนเงาอเวจี), `LEG_ARM_IMMORTAL_TORTOISE_PLATE` (เกราะกระดองเต่าดำเสวียนอู่), `LEG_ACC_SAMSARA_KARMA_RING` (แหวนหยกสังสารวัฏ), `LEG_ACC_BODHI_STARLIGHT_BEADS` (สร้อยประคำเมล็ดโพธิ์แสงดารา)","ชุดศาสตราเทวตำนานประจำวิถี `REL_V230_<PATH>` และ `REL_V250_<PATH>` ส่วนที่เหลืออีก 32 ชิ้น","คัมภีร์วิชาในตำนานที่ยังว่างอยู่ (รอผูกเนื้อเรื่องใหม่):","`LEG_COMBAT_SAMSARA_PUPPET_THREADS` (ด้ายชะตาสังสารวัฏ), `LEG_COMBAT_JADE_NIRVANA_HARMONY` (มุทราหยกนิพพาน), `LEG_AUX_QIANKUN_SHIFT` (เคล็ดเคลื่อนย้ายจักรวาล), `LEG_AUX_LINGXI_ONE_FINGER` (ดัชนีประสานใจ), `LEG_LIGHT_KUNPENG_ASTRAL_WINGS` (ปีกดาราคุนเผิง), `LEG_FORB_SAMSARA_KARMA_REVERSAL` (มหาวัฏจักรฝืนกลับตาลปัตรเวรกรรม), `LEG_PASS_NINE_YANG_MERIDIAN` (ชีพจรเก้าเอี้ยง), `LEG_PASS_DUGU_SWORD_HEART` (ดวงจิตกระบี่ไร้พ่าย), `LEG_MANTRA_TAIXUAN_SCRIPTURE` (คัมภีร์ไท่เสวียน), `LEG_MANTRA_EIGHT_DESOLATIONS_GOD` (เทวสูตรแปดพิภพ), `LEG_MANTRA_TEN_THOUSAND_GU_MONARCH` (คัมภีร์ราชันหมื่นพิษกู่), `LEG_MANTRA_LITTLE_LI_HEART_BLADE` (คัมภีร์มีดบินรวมใจไร้พลาด)","ชุดมหาคัมภีร์ประจำวิถี `LEG_V230_<PATH>` (31 บท) และ `LEG_V250_<PATH>` (6 บทสำหรับวิถีใหม่)"]}],"FIGURES_60":[{"num":1,"id":"LORE_FIG_01","titleTh":"\"กู่เซวียนหยวน (Gu Xuanyuan)\" — องค์จักรพรรดิองค์สุดท้ายผู้สูญหาย","groupTh":"👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"พระราชาองค์สุดท้ายของมหาอาณาจักรเทียนกู่ ผู้ถือครอง `LEG_WPN_YITIAN_SWORD` และฝึกฝน `LEG_MANTRA_SOVEREIGN_HEAVEN_EDICT` สละชีพไปพร้อมกับการระเบิดประตูมิติหลวงในวันสุดท้ายของสงคราม ทว่าไม่เคยมีผู้ใดพบพระศพ เสี้ยววิญญาณหรือร่างจริงอาจติดอยู่ในช่องว่างระหว่างประตูมิติหรือจำศีลอยู่ในโลงหยกใต้ดินลึก"},{"num":2,"id":"LORE_FIG_02","titleTh":"\"องค์หญิงกู่หลิงเฟย (Princess Gu Lingfei)\" — ปฐมบรรพชนสายเชื้อพระวงศ์ (เป่ยหมิง)","groupTh":"👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"พระธิดาองค์โตของจักรพรรดิองค์สุดท้าย ผู้นำสายเลือดราชวงศ์หนีขึ้นเหนือไปก่อตั้ง มหาอาณาจักรเป่ยหมิง ผู้ฝึก `LEG_PASS_MINGYU_IMMORTAL_QI` และสวม `LEG_ARM_CELESTIAL_CRANE_ROBE` ปัจจุบันยังคงจำศีลอยู่ในผลึกน้ำแข็งพันปีส่วนลึกสุดของตำหนักน้ำแข็งต้องห้าม รอวันชำระแค้นกับอาณาจักรศัตรู"},{"num":3,"id":"LORE_FIG_03","titleTh":"\"องค์ชายเก้า กู่เย่ (Ninth Prince Gu Ye)\" — องค์ชายนอกคอกผู้สละราชสกุล","groupTh":"👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"พระอนุชาผู้ทิ้งนามสกุลเชื้อพระวงศ์และแฝงตัวอยู่ในหมู่สามัญชนเพื่อเฝ้าดูการเกิดและล่มสลายของอาณาจักรน้อยใหญ่นับหมื่นครั้ง ใช้วิชาลอกคราบเปลี่ยนโฉมหน้าทุกหนึ่งพันปี และรู้ที่ซ่อนมรดกเชื้อพระวงศ์ดีที่สุด"},{"num":4,"id":"LORE_FIG_04","titleTh":"\"ซือหม่าชุน (Sima Chun)\" — อัครมหาเสนาบดีผู้ถือพู่กันพิพากษา (ตงหวง)","groupTh":"👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"ผู้นำตระกูลมหาเสนาบดีฝ่ายบุ๋น ผู้ถือครอง `LEG_WPN_CHUNQIU_JUDGMENT_BRUSH` และก่อตั้ง มหาอาณาจักรตงหวง ก่อนสิ้นใจได้แยกความทรงจำไว้ใน 9 ม้วนคัมภีร์ลับและวางค่ายกลกลับชาติมาเกิดไว้ในสายเลือดตระกูลมหาเสนาบดี"},{"num":5,"id":"LORE_FIG_05","titleTh":"\"แม่ทัพใหญ่ทัวป๋าเลี่ย (General Tuoba Lie)\" — จอมทัพทวนโลหิตผู้ไม่ยอมคุกเข่า (ซีหรง)","groupTh":"👑 กลุ่มที่ 1: ผู้นำสูงสุดและปฐมบรรพชนแห่ง 3 มหาอำนาจ (5 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"ผู้นำตระกูลแม่ทัพใหญ่ผู้ถือ `LEG_WPN_OVERLORD_SPEAR` และ `LEG_ACC_TAICHI_HEAVEN_SEAL` ผู้ก่อตั้ง มหาอาณาจักรซีหรง หลังจบสงครามได้เดินหายเข้าไปในพายุทะเลทรายหินแดง กลายเป็นเงาร่างขุนพลโบราณที่ยังคงรบกับภาพหลอนของสงครามในคืนพายุทรายสีเลือด"},{"num":6,"id":"LORE_FIG_06","titleTh":"\"หลี่เจี้ยนซิน (Li Jianxin)\" — วีรบุรุษผู้ปิดประตูเมืองหลวงเพียงลำพัง","groupTh":"⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"อดีตหัวหน้าองครักษ์เสื้อแพรที่ถือ `LEG_WPN_XUANTIE_HEAVY_SWORD` ยืนขวางหน้าประตูเมืองหลวง 7 วัน 7 คืน ในวินาทีสุดท้ายได้บรรลุ `LEG_COMBAT_DUGU_NINE_SWORDS` และจำศีลวิญญาณในร่างศิลาใต้ซากกำแพงเมือง ปัจจุบันตื่นขึ้นมาในฐานะชายชราพเนจรผู้สูญเสียความทรงจำบางส่วน"},{"num":7,"id":"LORE_FIG_07","titleTh":"\"แม่ทัพหญิงมู่หรงเสวี่ย (General Murong Xue)\" — ขุนพลหญิงผู้สังเวยบัวโลหิต","groupTh":"⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"แม่ทัพหญิงผู้ร่ายวิชาต้องห้าม `LEG_FORB_BLOOD_LOTUS_SACRIFICE` เผาผลาญชีวิตตนเองเพื่อทำลายทัพหน้าศัตรู ดวงจิตและปราณบัวโลหิตหลอมรวมเข้ากับเมล็ดบัวโบราณในแดนลับ รอวันควบแน่นกายเนื้อขึ้นมาใหม่"},{"num":8,"id":"LORE_FIG_08","titleTh":"\"ขุนพลเกาทัณฑ์ เย่ฉิงชาง (General Ye Qingcang)\" — มือธนูตาเดียวผู้ยิงตะวันทมิฬ","groupTh":"⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"ผู้บัญชาการกองเกาทัณฑ์หลวงผู้ถือครอง `LEG_WPN_CONDOR_METEOR_BOW` สละดวงตาซ้ายหลอมเป็นลูกศรยิงเรือรบเวหาของศัตรูจนแขนทั้งสองข้างกลายเป็นหินศิลา ดวงวิญญาณยังคงสถิตอยู่ในคันธนูและซากศิลา"},{"num":9,"id":"LORE_FIG_09","titleTh":"\"จ้าวพยัคฆ์ เหลยเจิ้น (Lei Zhen)\" — ขุนพลหมัดเหล็กผู้แบกภูเขาถล่มค่ายศัตรู","groupTh":"⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"ขุนพลกองหน้าผู้สวม `LEG_WPN_WRATHFUL_TIGER_GAUNTLETS` และฝึก `LEG_MANTRA_DRAGON_ELEPHANT_PRAJNA` ยืนรับคมดาบและหอกนับหมื่นเล่มจนตายทั้งยืนค้ำเพดานถ้ำโบราณสถาน เลือดเนื้อไม่เน่าเปื่อยและดวงจิตพร้อมลืมตาทดสอบผู้ฝึกวิถีกายารุ่นหลัง"},{"num":10,"id":"LORE_FIG_10","titleTh":"\"คู่แฝดเงาโลหิต อู๋หมิง & อู๋ซิน (Wu Ming & Wu Xin)\" — มือสังหารหลวงผู้ลอบเข้าค่ายศัตรู","groupTh":"⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"สองพี่น้องฝาแฝดหัวหน้าหน่วยลอบสังหารผู้ฝึก `LEG_LIGHT_MOON_BAT_SHADOW` ที่หลอมรวมวิญญาณซ่อนอยู่ในเงาของมีดสั้นโบราณ"},{"num":11,"id":"LORE_FIG_11","titleTh":"\"แม่ทัพทหารม้าเกราะดำ หานพัวจวิน (General Han Pojun)\" — ผู้นำกองทัพผีดิบผู้ไม่รู้ว่าสงครามจบแล้ว","groupTh":"⚔️ กลุ่มที่ 2: อดีตวีรบุรุษและขุนพลในตำนานที่ทุกคนคิดว่าตายในสงคราม (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"แม่ทัพผู้คุมทหารม้าเกราะดำสามหมื่นนายที่ถูกค่ายกลมิติขังไว้ในหุบเขาหมอกมรณะ กลายเป็นกองทัพวิญญาณเกราะโบราณที่ยังคงลาดตระเวนและคิดว่าสงครามยังไม่จบ"},{"num":12,"id":"LORE_FIG_12","titleTh":"\"ฉินอู๋เซียง (Qin Wuxiang)\" — จอมพิณตาบอดผู้บรรเลงเพลงอำลาอาณาจักร","groupTh":"🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"นักดนตรีเอกผู้ถือครอง `LEG_WPN_JIUXIAO_PHOENIX_ZITHER` และบรรเลง `LEG_COMBAT_NINE_HEAVENS_GUANG_LING` จนสิ้นใจ ดวงจิตแห่งเสียงพิณยังคงปรากฏตัวในคืนเดือนมืดตามซากโบราณสถาน"},{"num":13,"id":"LORE_FIG_13","titleTh":"\"ปรมาจารย์โอสถไป๋เฉ่า (Grandmaster Baicao)\" — หมอหลวงผู้กลืนพิษทั้งสมรภูมิ","groupTh":"🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"เจ้ากรมโอสถหลวงผู้ฝึก `LEG_MANTRA_SHENNONG_MYRIAD_CRUCIBLE` สูดหมอกพิษของอาณาจักรศัตรูเข้าตันเถียนตนเองจนกลายเป็นคนบ้าครึ่งเซียนครึ่งอสูรพิษในบึงหมอก"},{"num":14,"id":"LORE_FIG_14","titleTh":"\"ปรมาจารย์เตาหลอม โอวหยางเหยียน (Master Blacksmith Ouyang Yan)\" — ช่างตีศาสตราหลวงผู้หลอมตัวเองเข้ากับไฟพิภพ","groupTh":"🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"กระโดดลงเตาหลอมไฟพิภพเพื่อไม่ให้พิมพ์เขียวศาสตราตกไปอยู่ในมือศัตรู ดวงวิญญาณหลอมรวมกับหัวใจเปลวเพลิงใต้ปล่องภูเขาไฟ"},{"num":15,"id":"LORE_FIG_15","titleTh":"\"กงซูจี (Gongshu Ji)\" — สตรีอัจฉริยะเจ้ากรมกลไกผู้เปลี่ยนร่างเป็นหุ่นเชิดนิรันดร์","groupTh":"🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"เจ้าของผลงาน `LEG_WPN_PEACOCK_PLUME_FOCUS` ย้ายดวงจิตและทะเลสำนึกของตนเองเข้าไปสถิตในหุ่นเชิดหยกขาวในห้องนิรภัยใต้ดิน"},{"num":16,"id":"LORE_FIG_16","titleTh":"\"โหราจารย์หลวง ซิงเฉินจื่อ (Grand Astrologer Xingchenzi)\" — ผู้เห็นคำทำนายวันสิ้นอาณาจักรแต่ไม่มีใครเชื่อ","groupTh":"🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"ผู้ถือครอง `ASTROLABE` ที่ถูกขังลืมอยู่บนหอคอยดูดาวที่ถูกค่ายกลเวลาแช่แข็งไว้ตั้งแต่ยุคล่มสลาย"},{"num":17,"id":"LORE_FIG_17","titleTh":"\"เฒ่าเข็มทิศ ซูเหยียน (Old Compass Su Yan)\" — กัปตันนาวาหลวงผู้รอดชีวิตจากสุดขอบม่านหมอก","groupTh":"🎨 กลุ่มที่ 3: ยอดปราชญ์และปรมาจารย์สายอาชีพแห่งยุคโบราณ (6 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"ผนึกวิญญาณเข้ากับเข็มทิศหยกและพังงาจานดารา คอยชี้ทางให้คนรุ่นหลังตามซากเรือโบราณ"},{"num":18,"id":"LORE_FIG_18","titleTh":"\"ตงฟางเย่ (Dongfang Ye)\" — ขุนพลผู้ถูกตราหน้าว่าเป็นคนทรยศขายชาติ","groupTh":"🌑 กลุ่มที่ 4: บุคคลปริศนา ผู้ถูกตราหน้าว่าทรยศ และตัวแปรจากอาณาจักรศัตรู (4 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"ผู้ฝึก `LEG_FORB_STAR_ABSORBING_VORTEX` ที่ถูกขังในคุกมืดใต้ดินมานับแสนปี แท้จริงแล้วเขาไม่ได้ทรยศ แต่ยอมทำลายค่ายกลสังเวยชีวิตทหารนับล้านเพื่อช่วยผู้คนแล้วรับตราบาปแทน"},{"num":19,"id":"LORE_FIG_19","titleTh":"\"เฮ่อเหลียนโม่ (Helian Mo)\" — แม่ทัพทัพหน้าของอาณาจักรศัตรูที่ตกค้างอยู่ในแผ่นดินนี้","groupTh":"🌑 กลุ่มที่ 4: บุคคลปริศนา ผู้ถูกตราหน้าว่าทรยศ และตัวแปรจากอาณาจักรศัตรู (4 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"ยอดขุนพลของอาณาจักรผู้ชนะสงครามที่หนีกลับไม่ทันตอนประตูมิติระเบิด ต้องซ่อนตัวจำศีลรักษาบาดแผลอยู่ใต้หุบเขาไฟมานับแสนปี"},{"num":20,"id":"LORE_FIG_20","titleTh":"\"สตรีชุดขาวในโลงน้ำแข็ง — เยว่ชิง (Yue Qing)\" — ทูตเจรจาจากอาณาจักรศัตรูผู้หลงรักศัตรู","groupTh":"🌑 กลุ่มที่ 4: บุคคลปริศนา ผู้ถูกตราหน้าว่าทรยศ และตัวแปรจากอาณาจักรศัตรู (4 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"อดีตทูตจากอาณาจักรคู่สงครามที่ถูกผนึกไว้ในโลงหยกน้ำแข็งใต้โบราณสถาน เป็นตัวละครเดียวจากอาณาจักรศัตรูที่มีจิตใจเป็นมิตร"},{"num":21,"id":"LORE_FIG_21","titleTh":"\"ผู้ตรวจการสวรรค์ที่ถูกลืม — คงหมิง (Fallen Envoy Kong Ming)\" — คนจากโลกเบื้องบนที่ติดอยู่ในโลกล่าง","groupTh":"🌑 กลุ่มที่ 4: บุคคลปริศนา ผู้ถูกตราหน้าว่าทรยศ และตัวแปรจากอาณาจักรศัตรู (4 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"อดีตผู้เหินหาวที่ถูกโลกเบื้องบนกดขี่เป็นทาสและถูกส่งจิตลงมาแทรกแซงสงคราม แต่สายใยวิญญาณขาดตอนประตูมิติระเบิด จึงติดค้างอยู่ในโลกล่าง"},{"num":22,"id":"LORE_FIG_22","titleTh":"\"เถ้าแก่เฉียน (Innkeeper Qian)\" — อดีตเจ้าคลังหลวงผู้เปิดโรงเตี๊ยมเล็กๆ","groupTh":"🏮 กลุ่มที่ 5: ตัวละครเร้นกายที่แฝงตัวอยู่ในยุทธภพยุคปัจจุบัน (4 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"ปลอมตัวเป็นเถ้าแก่โรงเตี๊ยมเฝ้ากุญแจคลังสมบัติลับทั้ง 9 แห่งของอาณาจักรเก่า"},{"num":23,"id":"LORE_FIG_23","titleTh":"\"ภิกษุเฒ่ากวาดลาน — ไต้ซืออู๋เฉิน (Monk Wuchen)\" — อดีตขุนพลเพชฌฆาตผู้วางดาบหันพึ่งธรรม","groupTh":"🏮 กลุ่มที่ 5: ตัวละครเร้นกายที่แฝงตัวอยู่ในยุทธภพยุคปัจจุบัน (4 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"อดีตขุนพลเพชฌฆาตล้านศพผู้หักดาบออกบวชและฝึก `LEG_MANTRA_DIAMOND_INDESTRUCTIBLE` กวาดลานวัดเพื่อสะกดจิตมาร"},{"num":24,"id":"LORE_FIG_24","titleTh":"\"แม่เฒ่าหมื่นไหม — ยายเมิ่ง (Granny Meng)\" — อดีตนางกำนัลฝ่ายในผู้ถักทอชุดเกราะเซียน","groupTh":"🏮 กลุ่มที่ 5: ตัวละครเร้นกายที่แฝงตัวอยู่ในยุทธภพยุคปัจจุบัน (4 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"อดีตหัวหน้ากองภูษาหลวงผู้ถือครอง `LEG_WPN_TIANCAN_FATE_WHIP` อาศัยอยู่ในกระท่อมไม้ไผ่รับปะชุนเสื้อผ้าให้จอมยุทธ์พเนจร"},{"num":25,"id":"LORE_FIG_25","titleTh":"\"ผู้เฝ้าประตูไร้หน้า (The Faceless Gatekeeper)\" — ปริศนาใต้สำนักของผู้เล่น","groupTh":"🏮 กลุ่มที่ 5: ตัวละครเร้นกายที่แฝงตัวอยู่ในยุทธภพยุคปัจจุบัน (4 ตัวละคร)","eraId":"ERA_1_TIANGU_WAR","summaryTh":"องครักษ์เงาผู้หลอมรวมร่างกายเข้ากับฐานศิลาของประตูมิติโบราณ (`ATLAS_DIMENSION_GATE`) ใต้หุบเขาที่ตั้งสำนักของผู้เล่น"},{"num":26,"id":"LORE_FIG_26","titleTh":"\"ราชันย์คลังมืด เหยียนกวง (Dark-Vault King Yan Guang)\" — ผู้ก่อตั้งอาณาจักรเสนาบดีฝ่ายขวาที่ถูกฝังทั้งเป็นในกองทองคำ","groupTh":"🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"ขุดเจาะลงไปใต้ซากพระราชวังหลวงเก่าเพื่อฮุบคลังสมบัติ แต่ถูกตระกูลมหาเสนาบดีตงหวงถล่มอุโมงค์ขังไว้กับกองภูเขาทองคำและไอพิษสงครามจนกลายเป็นราชันย์ซากศพชุดเกราะทองคำ"},{"num":27,"id":"LORE_FIG_27","titleTh":"\"มหาขันทีเก้าเงา เฉาเจิ้งฉุน (Grand Eunuch Cao Zhengchun)\" — จ้าวอาณาจักรทมิฬไร้เงาผู้ฝึกวิชาหยินสุดขั้ว","groupTh":"🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"อดีตหัวหน้าขันทีผู้ขโมย `LEG_MANTRA_NINE_YIN_SOUL_MIRROR` ไปตั้งอาณาจักรมืด เมื่อถูกเป่ยหมิงและซีหรงบุกเผาทำลาย ได้แยกวิญญาณสิงอยู่ในเศษกระจกเงาโบราณเก้าเสี่ยง"},{"num":28,"id":"LORE_FIG_28","titleTh":"\"มหาปุโรหิตสังเวยฟ้า เสิ่นเทียนจุน (High Theocrat Shen Tianjun)\" — ผู้ก่อตั้งอาณาจักรเทวราชครูที่ถูกม่านฟ้าบดขยี้","groupTh":"🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"เกณฑ์คนนับแสนทำพิธีสังเวยเปิดรูหนอนโลกเบื้องบน แต่ถูกแรงสะท้อนม่านฟ้าถล่มเมืองจมดินจนสติแตกกลายเป็นครึ่งเทพครึ่งมารวิปลาส (`VOID_HERETIC_PACT`)"},{"num":29,"id":"LORE_FIG_29","titleTh":"\"อ๋องคลั่งปราบอุดร ทัวป๋าเซียว (Mad Warlord Tuoba Xiao)\" — ผู้นำกบฏเก้าทัพผู้ถูกตระกูลแม่ทัพใหญ่ตัดศีรษะ","groupTh":"🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"หลานชายสายรองที่แยกตัวไปตั้งก๊กกบฏและถูกตัดศีรษะที่หน้าด่านหินแดง แต่ร่างไร้ศีรษะลุกขึ้นคว้าดาบควบม้ากลายเป็นขุนศึกไร้หัวออกล่าท้าดวลในคืนจันทร์สีเลือด"},{"num":30,"id":"LORE_FIG_30","titleTh":"\"จักรพรรดิกลไก ม่อจี๋ (Automaton Emperor Mo Ji)\" — ราชาผู้เปลี่ยนประชากรทั้งเมืองเป็นหุ่นเชิด","groupTh":"🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"ผ่าตัดเปลี่ยนชาวเมืองทั้งอาณาจักรเป็นหุ่นกลกึ่งมนุษย์ เมื่อศิลาปราณหมดลงจากการถูกปิดล้อม ยังคงจำศีลอยู่บนบัลลังก์กลไกใต้ดิน (`NODE_3_AUTOMATON_STELE_HALL`)"},{"num":31,"id":"LORE_FIG_31","titleTh":"\"พญาอสูรคลั่ง โซ่วหวง (Beast-Tyrant Shou Huang)\" — เจ้าอาณาจักรหมื่นอสูรผู้ถูกสัตว์เลี้ยงตนเองกลืนกิน","groupTh":"🏚️ กลุ่มที่ 1: ปฐมกษัตริย์และผู้นำของ \"อาณาจักรยุคแรกที่ล่มสลายไปแล้ว\" (6 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"ใช้ยันต์โลหิตบังคับฝูงอสูรเป็นทาสจนถูกฝูงอสูรก่อกบฏฉีกร่างและต้องย้ายวิญญาณไปแฝงในร่างอสูรกลายพันธุ์สองบุคลิก"},{"num":32,"id":"LORE_FIG_32","titleTh":"\"จักรพรรดิร้อยวัน หลินเทียน (Hundred-Day Emperor Lin Tian)\" — ราชาสามัญชนผู้รวมแผ่นดินเกือบสำเร็จแต่ถูกสามมหาอำนาจร่วมมือกันสังหาร","groupTh":"⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)","eraId":"ERA_3_MIDDLE_EPOCHS","summaryTh":"สามัญชนไร้รากปราณที่เกือบจะรวบรวมแผ่นดินตอนกลางได้สำเร็จ จน 3 มหาอำนาจแอบจับมือกันส่งยอดฝีมือมารุมสังหารในวันที่ครองราชย์ครบ 100 วัน"},{"num":33,"id":"LORE_FIG_33","titleTh":"\"ราชินีเถ้าถ่าน ฉู่เยียน (Ash Queen Chu Yan)\" — จักรพรรดินีองค์สุดท้ายของราชวงศ์ที่ล่มสลาย","groupTh":"⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)","eraId":"ERA_3_MIDDLE_EPOCHS","summaryTh":"สวมหน้ากากทองคำครึ่งซีกปิดรอยไฟคลอก ออกเดินเก็บรวบรวมป้ายวิญญาณของอาณาจักรที่ล่มสลายไปแล้วทั่วแผ่นดิน"},{"num":34,"id":"LORE_FIG_34","titleTh":"\"ขุนพลเจ็ดแผ่นดิน เกาเซิ่ง (Seven-Banner General Gao Sheng)\" — ขุนศึกอมตะผู้รับใช้เจ็ดราชวงศ์ที่ล่มสลายทั้งหมด","groupTh":"⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)","eraId":"ERA_3_MIDDLE_EPOCHS","summaryTh":"แบกธงรบที่ขาดวิ่นทั้ง 7 ผืนไว้บนหลัง ไม่ยอมก้มหัวรับใช้ใครอีกยกเว้นจะพิสูจน์ได้ว่าจะไม่ล่มสลายเป็นแห่งที่ 8"},{"num":35,"id":"LORE_FIG_35","titleTh":"\"องค์ชายนักพนัน ไป๋อวี้ (Gambler Prince Bai Yu)\" — รัชทายาทผู้เอาอาณาจักรของตนเองไปเดิมพันบนโต๊ะพนัน","groupTh":"⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)","eraId":"ERA_3_MIDDLE_EPOCHS","summaryTh":"ผู้ถือ `REL_V230_FORTUNE_GAMBLER` ที่ยอมแกล้งแพ้พนันยกแผ่นดินให้ตงหวงเพื่อแลกกับสัญญาไว้ชีวิตชาวเมืองทุกคน"},{"num":36,"id":"LORE_FIG_36","titleTh":"\"อาลักษณ์บันทึกซาก หลิ่วจือ (Ruin Chronicler Liu Zhi)\" — ชายผู้เดินเก็บชื่อของอาณาจักรที่ถูกลืม","groupTh":"⚔️ กลุ่มที่ 2: มหาราชาและวีรชนผู้โศกเศร้าจาก \"วัฏจักรหมื่นราชวงศ์เกิด-ดับ\" (5 ตัวละคร)","eraId":"ERA_3_MIDDLE_EPOCHS","summaryTh":"เดินทางคัดลอกศิลาจารึกของอาณาจักรที่ถูก 3 มหาอำนาจลบชื่อออกจากประวัติศาสตร์ลงในสมุดปกขี้เถ้า"},{"num":37,"id":"LORE_FIG_37","titleTh":"\"มารดาบจันทร์เสี้ยว เย่กูหาน (Crescent Blade Demon Ye Guhan)\" — ผู้หลอมดาบโค้งจากเศษดาบของศพทหารหมื่นนาย","groupTh":"🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"ผู้ถือครอง `LEG_WPN_FULL_MOON_SCIMITAR` ที่ออกไล่ล่าสังหารขุนนางและแม่ทัพผู้ก่อสงคราม"},{"num":38,"id":"LORE_FIG_38","titleTh":"\"ประมุขพรรคไม้เท้าหยก หงชี (Beggar Sovereign Hong Qi)\" — ผู้นำกลุ่มผู้ลี้ภัยสงครามนับล้านคน","groupTh":"🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"ผู้ถือครอง `LEG_WPN_DAGOU_JADE_STAFF` ก่อตั้งเครือข่ายพรรคพเนจรคุ้มครองผู้อพยพสงคราม"},{"num":39,"id":"LORE_FIG_39","titleTh":"\"เซียนสุราหมื่นไห จิ้วเจี้ยนเซียน (Drunken Sword Immortal Jiu Jianxian)\" — อดีตยอดฝีมืออันดับหนึ่งผู้เมามายเพื่อลืมความพ่ายแพ้","groupTh":"🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"ผู้ฝึก `LEG_COMBAT_FEIXIAN_ONE_SWORD` ที่เคยบุกท้าดวล 3 มหาอำนาจและเลือกเมามายหลังล่วงรู้ความลับดำมืดของโลก"},{"num":40,"id":"LORE_FIG_40","titleTh":"\"จอมขมังเวทบึงทมิฬ ปู่เจ้าสมิงพราย (Grand Occultist Pu Jao)\" — ผู้รวบรวมวิญญาณทหารไร้ญาติในป่าดงดิบ","groupTh":"🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"ผู้ถือครอง `REL_V230_OCCULT_MAGE` ปลุกผีทหารและควายธนูตั้งเป็นแนวกันชนในบึงหมอก"},{"num":41,"id":"LORE_FIG_41","titleTh":"\"ซามูไรไร้ปราณ เคนชินแห่งผาเมฆา (Void Samurai Kenshin)\" — ชายผู้หั่นปราณเซียนด้วยดาบเหล็กธรรมดา","groupTh":"🗡️ กลุ่มที่ 3: จอมยุทธ์พเนจร มารนอกรีต และผู้บุกเบิกวิถีใหม่ในยุคกลียุค (5 ตัวละคร)","eraId":"ERA_2_POST_TIANGU_CHAOS","summaryTh":"ชายตันเถียนพิการผู้ฝึกฟันดาบคาตานะ (`SHADOW_SAMURAI`) วันละแสนครั้งจนตัดกระแสปราณของเซียนขาดสะบั้น"},{"num":42,"id":"LORE_FIG_42","titleTh":"\"ทูตเจ็ดลิ้น ซูฉิน (Silver-Tongued Envoy Su Qin)\" — นักการทูตผู้ร่างสนธิสัญญาเขตกันชนหุบเขาสองแคว","groupTh":"🏛️ กลุ่มที่ 4: ยอดคนผู้วางรากฐานสู่ยุคปัจจุบันและแคว้นเล็กของเรา (4 ตัวละคร)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","summaryTh":"บัณฑิตผู้เจรจาหยุดทัพ 3 มหาอำนาจและตั้งหุบเขาใจกลางแผ่นดินให้เป็นแคว้นอิสระขนาดเล็ก (ที่ตั้งสำนักเรา)"},{"num":43,"id":"LORE_FIG_43","titleTh":"\"จอมโจรพันหน้า เต้าจื่อ (Phantom Thief Dao Zhi)\" — ผู้ขโมยคัมภีร์จาก 3 มหาอำนาจมาซ่อนไว้ในแดนลับ","groupTh":"🏛️ กลุ่มที่ 4: ยอดคนผู้วางรากฐานสู่ยุคปัจจุบันและแคว้นเล็กของเรา (4 ตัวละคร)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","summaryTh":"ผู้ฝึก `LEG_LIGHT_LINGBO_STEP` ที่ลอบขโมยคัดลอกวิชาจากคลังหลวงทั้งสามไปซ่อนตามแดนลับให้คนรุ่นหลัง"},{"num":44,"id":"LORE_FIG_44","titleTh":"\"นายหญิงเรือผี หลานอิน (Ghost-Fleet Admiral Lan Yin)\" — ผู้นำกองเรือผู้ลี้ภัยที่แล่นเรือเข้าไปในม่านหมอกทะเลใต้","groupTh":"🏛️ กลุ่มที่ 4: ยอดคนผู้วางรากฐานสู่ยุคปัจจุบันและแคว้นเล็กของเรา (4 ตัวละคร)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","summaryTh":"นำกองเรือแล่นฝ่าม่านหมอกออกไปหาอาณาจักรอื่นและจะแล่นกลับมาปรากฏตัวในคืนพายุใหญ่พร้อมวัตถุดิบปริศนา"},{"num":45,"id":"LORE_FIG_45","titleTh":"\"ปรมาจารย์ผู้ก่อตั้งสำนักรุ่นแรก (The First Patriarch of the Forgotten Sect)\" — เจ้าสำนักคนแรกสุดที่เคยตั้งสำนักบนหุบเขาของเรามาก่อน","groupTh":"🏛️ กลุ่มที่ 4: ยอดคนผู้วางรากฐานสู่ยุคปัจจุบันและแคว้นเล็กของเรา (4 ตัวละคร)","eraId":"ERA_4_THREE_EMPIRES_BALANCE","summaryTh":"ผู้ทิ้งค่ายกลรากฐานและห้องลับใต้ดินไว้บนยอดเขาของเราก่อนหายสาบสูญไปใต้ฐานประตูมิติโบราณ!"},{"num":46,"id":"LORE_FIG_46","titleTh":"\"จักรพรรดิเหมันต์ กู่เทียนเฉิน (Frost Emperor Gu Tianchen)\" — จักรพรรดิองค์ปัจจุบันผู้แบกรับคำสาปสายเลือดราชวงศ์","groupTh":"❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: ราชันย์บัลลังก์น้ำแข็ง / ผู้ถือกระบี่อิงฟ้าจำลอง · ประวัติและ Lore: · ทายาทสายตรงรุ่นปัจจุบันของเชื้อพระวงศ์อาณาจักรเก่าที่ปกครองเป่ยหมิง เบื้องหน้าเขามีบุคลิกสง่างาม เยือกเย็น และเคร่งครัดในจารีตสวรรค์สูงสุด · แต่ความลับที่คนนอกไม่รู้คือ สายเลือดราชวงศ์เก่าที่สืบทอดมานับแสนปีเริ่มเกิดอาการ \"ปราณเหมันต์กัดกินหัวใจ\" ทำให้ผู้ครองบัลลังก์ทุกคนจะมีอายุขัยสั้นลงหากไม่พบ *\"แก่นปราณต้นกำเนิดใต้ประตูมิติโบราณ\"* เขาจึงกำลังส่งสายลับและสำนักในสังกัดลงมาสืบหาความลับในแคว้นเล็กของสำนักเราอย่างเงียบๆ"},{"num":47,"id":"LORE_FIG_47","titleTh":"\"องค์หญิงรัชทายาท กู่ชิงเสวี่ย (Crown Princess Gu Qingxue)\" — หญิงงามอันดับหนึ่งแห่งแดนเหนือผู้ตั้งคำถามกับกฎสวรรค์","groupTh":"❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: เทพธิดาเก้าเหมันต์ / กระบี่หิมะไร้ใจ · ประวัติและ Lore: · อัจฉริยะหญิงอันดับหนึ่งแห่งยุคของเป่ยหมิง ผู้ฝึกฝน กระบี่หกชีพจรปราณไร้รูป (`LEG_MANTRA_SIX_MERIDIAN_QI`) ได้สมบูรณ์ตั้งแต่วัยเยาว์ นางถูกวางตัวให้เป็นผู้ปลุกปฐมบรรพชน *องค์หญิงกู่หลิงเฟย (#2)* จากผลึกน้ำแข็ง · ทว่าระหว่างที่นางออกเดินทางท่องเที่ยวเก็บเกี่ยวประสบการณ์ในยุทธภพ นางกลับได้เห็นความทุกข์ยากของสามัญชนและเริ่มสงสัยว่า *\"การรักษาความบริสุทธิ์ของสายเลือดราชวงศ์เมื่อหนึ่งแสนปีก่อน สำคัญกว่าชีวิตผู้คนในวันนี้จริงหรือ?\"*"},{"num":48,"id":"LORE_FIG_48","titleTh":"\"อ๋องแปด กู่เจี้ยนหาน (Eighth Royal Uncle Gu Jianhan)\" — ผู้สำเร็จราชการเงาและเจ้าสำนักตรวจการแผ่นดินเหนือ","groupTh":"❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: กระบี่อาญาสิทธิ์ราชสกุล / พยัคฆ์เฝ้าหอคอยหิมะ · ประวัติและ Lore: · พระปิตุลา (อา) ของจักรพรรดิองค์ปัจจุบัน ผู้กุมอำนาจหน่วยองครักษ์เงาเหมันต์และดูแลสำนักเซียนที่เป็นแขนขาของเป่ยหมิงทั้งหมด เขามีแนวคิดชาตินิยมสุดโต่ง มองว่าทั้ง *ตระกูลมหาเสนาบดีตงหวง* และ *ตระกูลแม่ทัพซีหรง* ล้วนเป็นเพียง \"ข้าราชบริพารชั้นผู้น้อยที่บังอาจตั้งตนเสมอเจ้านาย\" และต้องการให้เป่ยหมิงใช้กำลังยึดครองหุบเขาใจกลางแผ่นดินทันทีโดยไม่ต้องสนสนธิสัญญา!"},{"num":49,"id":"LORE_FIG_49","titleTh":"\"เจ้าหอดูดาวหลวง ซิงอวิ๋น (Star-Tower Master Xing Yun)\" — โหราจารย์หนุ่มผู้มองเห็นดาวตัวแปรเหนือสำนักเรา","groupTh":"❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: เนตรดาราเจ็ดชีวิต / ผู้สืบทอดซิงเฉินจื่อ · ประวัติและ Lore: · เจ้าหอดูดาวหลวงคนปัจจุบันของเป่ยหมิง ในคืนที่ผู้เล่นก่อตั้งสำนักขึ้นในแคว้นเล็กใจกลางแผ่นดิน ซิงอวิ๋นได้มองเห็น \"ดาวจอมราชันย์เร้นลับ\" ส่องสว่างขึ้นตรงตำแหน่งหุบเขาสองแคว แทนที่จะรายงานเรื่องนี้ให้อ๋องแปดส่งคนไปทำลายสำนักเรา เขากลับเลือกปกปิดคำทำนายนั้นไว้และปลอมตัวเป็นนักพรตพเนจรลงมาสังเกตการณ์สำนักของเราด้วยตนเอง!"},{"num":50,"id":"LORE_FIG_50","titleTh":"\"แม่ชีดาบน้ำแข็ง เย่หนิงซวง (Frost-Blade Abbess Ye Ningshuang)\" — ผู้พิทักษ์สุสานราชวงศ์เก่าและผู้คุมคุกน้ำแข็ง","groupTh":"❄️ กลุ่มที่ 1: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรเป่ยหมิง\" — สายเชื้อพระวงศ์เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: ดาบตัดวาสนา / ผู้เฝ้าตำหนักต้องห้าม · ประวัติและ Lore: · ยอดฝีมือหญิงอาวุโสผู้สละทางโลกเพื่อเฝ้าทางเข้าสุสานราชวงศ์เทียนกู่ในเทือกเขาหิมะ นางไม่เคยสนใจการเมืองของราชสำนัก แต่จะลงมือสังหารทุกคนที่คิดจะล่วงล้ำเข้าไปรบกวนการจำศีลของบรรพชนราชวงศ์เก่า"},{"num":51,"id":"LORE_FIG_51","titleTh":"\"อัครมหาเสนาบดี ซือหม่าอี้เซวียน (Grand Chancellor Sima Yixuan)\" — ผู้นำตระกูลเสนาบดีคนปัจจุบันผู้เดินหมากทั้งแผ่นดิน","groupTh":"📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: จิ้งจอกเก้าหางแห่งตงหวง / ผู้กุมถุงเงินของโลกหล้า · ประวัติและ Lore: · ผู้นำสูงสุดคนปัจจุบันของมหาอาณาจักรตงหวง ชายวัยกลางคนผู้มีรอยยิ้มอบอุ่นเหมือนบัณฑิตใจดีและไม่เคยถืออาวุธออกศึกด้วยตนเองแม้แต่ครั้งเดียว · แต่เพียงเขาดีดลูกคิดและตวัดพู่กันลงนามคำสั่งการค้าเพียงฉบับเดียว ก็สามารถทำให้สำนักใหญ่ขาดแคลนเสบียงจนล่มสลายได้ภายในสามเดือน! เขาสงสัยว่าหนึ่งในลูกหลานของเขากำลังจะตื่นรู้ความทรงจำของปฐมบรรพชน *ซือหม่าชุน (#4)* จึงพยายามจัดฉากทดสอบทายาททุกคนในตระกูล"},{"num":52,"id":"LORE_FIG_52","titleTh":"\"คุณชายสาม ซือหม่าชิง (Third Young Master Sima Qing)\" — ทายาทหนุ่มผู้ตื่นรู้ความทรงจำเมื่อหนึ่งแสนปีก่อนแต่แกล้งทำเป็นคนเสเพล!","groupTh":"📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: คุณชายพัดทองคำจอมเสเพล / ผู้ซ่อนเนตรแสนปี · ประวัติและ Lore: · บุตรชายคนที่สามของตระกูลมหาเสนาบดีที่คนทั้งเมืองหลวงตงหวงตราหน้าว่าเป็นคนไม่ได้เรื่อง วันๆ เอาแต่เดินเที่ยวโรงเตี๊ยม ดื่มสุรา และสะสมของเก่าไร้ค่า · แต่ความจริงคือ: เขาคือคนที่ตื่นรู้ความทรงจำบางส่วนของปฐมบรรพชน *ซือหม่าชุน (#4)* แล้ว! เพราะเขารู้ความจริงเรื่องความพ่ายแพ้ของอาณาจักรเก่าและภัยจากโลกเบื้องบน เขาจึงแกล้งทำเป็นคนเสเพลเพื่อหลบเลี่ยงการแย่งชิงอำนาจในตระกูล แล้วแอบใช้เครือข่ายการค้าลับส่งทรัพยากรไปสนับสนุนสำนักเล็กๆ ที่มีแววจะต่อกรกับชะตากรรมของโลกได้!"},{"num":53,"id":"LORE_FIG_53","titleTh":"\"เจ้าสัวหญิง ว่านจินเหนียง (Merchant Empress Wan Jinniang)\" — ประมุขหอการค้าหมื่นทองคำและตลาดประมูลหลวง","groupTh":"📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: เทพธิดาลูกคิดหยก / นายหญิงผู้ซื้อได้แม้กระทั่งชีวิตเซียน · ประวัติและ Lore: · สตรีผู้ร่ำรวยที่สุดในแผ่นดินเบื้องล่าง ผู้ดูแล \"หอประมูลหมื่นทองคำ\" และเส้นทางคาราวานทั้งหมดของตงหวง นางถือคติว่า *\"ในโลกนี้ไม่มีสิ่งใดซื้อไม่ได้ หากซื้อไม่ได้แปลว่าศิลาปราณยังไม่มากพอ\"* นางคือตัวละครสำคัญที่จะเข้ามาติดต่อค้าขายระดับใหญ่และมอบพันธสัญญาการค้าให้แก่สำนักของผู้เล่น"},{"num":54,"id":"LORE_FIG_54","titleTh":"\"หัวหน้าผู้ตรวจการแผ่นดิน เหยียนหลัว (Chief Censor Yan Luo)\" — ตุลาการหน้าเหล็กผู้ถือมีดสั้นเซียวหลี่คนปัจจุบัน","groupTh":"📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: ยมทูตพู่กันดำ / มือปราบไร้ปราณีแห่งตงหวง · ประวัติและ Lore: · ผู้บังคับบัญชาสูงสุดของศาลตุลาการและกระดานค่าหัวแห่งตงหวง ผู้ได้รับพระราชทานสิทธิ์ถือครอง มีดสั้นเซียวหลี่ (`LEG_WPN_XIAOLI_HEART_DAGGER`) ในยุคปัจจุบัน เขาเป็นคนเถรตรงดั่งไม้บรรทัดเหล็ก ไม่ว่าโจรนอกรีตหรือลูกหลานขุนนางชั้นสูง หากทำผิดกฎหมายแผ่นดินตงหวง เขาจะตามไปซัดมีดสั้นปลิดชีพถึงหน้าประตูสำนัก!"},{"num":55,"id":"LORE_FIG_55","titleTh":"\"มหาปราชญ์หอคัมภีร์ ขงเหวิน (Grand Scholar Kong Wen)\" — ผู้ดูแลค่ายกลแปดประตูและหอจดหมายเหตุตงหวง","groupTh":"📜 กลุ่มที่ 2: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรตงหวง\" — ตระกูลมหาเสนาบดีเก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: ตู้คัมภีร์เดินได้ / ราชครูอักษรสวรรค์ · ประวัติและ Lore: · ชายชราผู้ดูแลหอคัมภีร์หลวงของตงหวงและควบคุม ค่ายกลแปดประตูราชสำนัก (`LEG_AUX_IMPERIAL_EIGHT_GATES`) เขามักจะจัดงาน \"ชุมนุมวิจารณ์คัมภีร์และประลองปัญญา\" เพื่อคัดเลือกศิษย์สายปราชญ์และสายค่ายกลจากสำนักต่างๆ เข้ามารับทุนสนับสนุนจากตงหวง"},{"num":56,"id":"LORE_FIG_56","titleTh":"\"จอมทัพใหญ่ ทัวป๋าเจิ้นเทียน (Grand Marshal Tuoba Zhentian)\" — ผู้นำตระกูลแม่ทัพคนปัจจุบันผู้กระหายสงครามรวมแผ่นดิน","groupTh":"⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: พยัคฆ์โลหิตผู้ครองประจิม / จอมทัพทวนสะท้านภพ · ประวัติและ Lore: · ผู้นำสูงสุดคนปัจจุบันของมหาอาณาจักรซีหรง ชายร่างยักษ์ผู้แบกทวนหนักหมื่นชั่งและมีรอยแผลเป็นเต็มแผ่นหลัง เขาเบื่อหน่ายสภาวะ \"คานอำนาจสามเส้า\" ที่ยืดเยื้อมานับแสนปีอย่างที่สุด และเชื่อว่าวิธีเดียวที่จะเตรียมรับมือกับภัยภายนอกคือ \"ซีหรงต้องบดขยี้ทั้งตงหวงและเป่ยหมิง แล้วรวบรวมแผ่นดินด้วยกฎอัยการศึก!\""},{"num":57,"id":"LORE_FIG_57","titleTh":"\"แม่ทัพน้อยหญิง ทัวป๋าหงเหลียน (Young General Tuoba Honglian)\" — ธิดาพยัคฆ์ผู้ชอบปลอมตัวไปท้าดวลตามสำนักต่างๆ","groupTh":"⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: ทวนเพลิงดอกบัวแดง / แชมเปี้ยนลานประลองซีหรง · ประวัติและ Lore: · บุตรสาวคนเดียวของจอมทัพใหญ่ทัวป๋าเจิ้นเทียน นางเกิดมาพร้อมรากฐานกายาเหล็กไหลระดับสูงสุดและหลงใหลการต่อสู้แบบตัวต่อตัวเป็นชีวิตจิตใจ · นางไม่ชอบนั่งบริหารกองทัพในค่ายทหาร แต่มักจะแอบหนีออกจากซีหรงมาประลองยุทธ์ในลานประลองและบุกไปขอท้าดวลกับศิษย์เอกของสำนักต่างๆ ทั่วแผ่นดิน หากใครสามารถเอาชนะนางได้โดยไม่ใช้ลูกไม้สกปรก นางจะนับถือเป็นสหายร่วมเป็นร่วมตายทันที!"},{"num":58,"id":"LORE_FIG_58","titleTh":"\"ขุนพลเขี้ยวหมาป่า ชางหลาง (Wolf-Fang General Cang Lang)\" — ผู้บัญชาการกองทัพทหารม้าอสูรทะเลทราย","groupTh":"⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: ราชันย์หมาป่าพายุทราย / ผู้สยบอสูรพันธะโลหิต · ประวัติและ Lore: · ขุนพลมือขวาของตระกูลแม่ทัพใหญ่ ผู้เติบโตมากับฝูงหมาป่าทะเลทรายและเชี่ยวชาญวิถีราชันย์อสูร (`BEAST_SOVEREIGN`) ผสานวิถีกายา (`BODY`) เขาคือผู้ควบคุมกองทัพทหารม้าขี่อสูรที่คอยลาดตระเวนตามแนวพรมแดนตะวันตกและออกล่าสัตว์อสูรระดับสูงในทะเลทรายหินแดง"},{"num":59,"id":"LORE_FIG_59","titleTh":"\"เจ้าสำนักคุกโลหิต กู้หุน (Blood-Warden Gu Hun)\" — ผู้ดูแลกองทัพนักโทษไถ่บาปและเหมืองเหล็กไหลซีหรง","groupTh":"⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: ผู้คุมโซ่กระดูก / เพชฌฆาตหุบเขาหินแดง · ประวัติและ Lore: · ในมหาอาณาจักรซีหรง ผู้ที่พ่ายแพ้หรือทำผิดกฎทหารจะไม่ถูกประหารชีวิตเปล่าๆ แต่จะถูกส่งมาให้ \"กู้หุน\" จองจำและจัดตั้งเป็น \"กองทัพนักโทษไถ่บาป\" ส่งไปขุดแร่เหล็กไหลหรือเป็นกองหน้าบุกทะลวงแดนลับที่อันตรายที่สุด"},{"num":60,"id":"LORE_FIG_60","titleTh":"\"ปรมาจารย์ทวนเฒ่า ทัวป๋ากัง (Old Spear Grandmaster Tuoba Gang)\" — ผู้อาวุโสสูงสุดผู้เฝ้าตราพยัคฆ์ไท่จี๋และรอฟังเสียงจากพายุทราย","groupTh":"⚔️ กลุ่มที่ 3: ขั้วอำนาจปัจจุบันแห่ง \"มหาอาณาจักรซีหรง\" — ตระกูลแม่ทัพใหญ่เก่า (5 ตัวละคร)","eraId":"ERA_5_PRESENT_CONVERGENCE","summaryTh":"สมญานามในยุคปัจจุบัน: ปราการเหล็กด่านสุดท้าย / ผู้สื่อสารกับวิญญาณบรรพชน · ประวัติและ Lore: · ผู้อาวุโสสูงสุดของตระกูลแม่ทัพใหญ่ที่มีอายุยืนยาวที่สุดในซีหรง เขานั่งขัดสมาธิเฝ้า ตราพยัคฆ์ไท่จี๋ (`LEG_ACC_TAICHI_HEAVEN_SEAL`) อยู่บนยอดผาหินแดงที่หันหน้าเข้าหาพายุทะเลทราย เพื่อคอยสดับฟังเสียงทวนของปฐมบรรพชน *ทัวป๋าเลี่ย (#5)* และเป็นคนเดียวที่สามารถสั่งยับยั้งไม่ให้ทัวป๋าเจิ้นเทียนเปิดสงครามล้างภพก่อนเวลาอันควร!"}],"FACT_ERA_MAP":{"FACT_27_ANTEDILUVIAN_THREE_SOVEREIGN_EPOCHS":"ERA_0_ANTEDILUVIAN","FACT_26_SUBCONTINENT_CRATER_BEYOND_FOG_SEA":"ERA_0_ANTEDILUVIAN","FACT_08_TIANGU_MISSING_RIVER_BEND":"ERA_1_TIANGU_WAR","FACT_23_MINGYU_FROST_ROBE_AND_HEART_FREEZE":"ERA_1_TIANGU_WAR","FACT_24_XINGCHENZI_TOY_ASTROLABE_GEAR":"ERA_1_TIANGU_WAR","FACT_25_KONG_MING_SHATTERED_DANTIAN_STRANDING":"ERA_1_TIANGU_WAR","FACT_V370_08_TRANS_FIELD_CLAUSE_SOVEREIGN":"ERA_1_TIANGU_WAR","FACT_V370_01_LEG_READ_FORM_BLADE":"ERA_2_POST_TIANGU_CHAOS","FACT_V370_05_LEG_OATH_JUDGE_WARDEN":"ERA_2_POST_TIANGU_CHAOS","FACT_V370_10_TRANS_SEALKEEPER_FORBIDDEN_KEY":"ERA_2_POST_TIANGU_CHAOS","FACT_V370_12_TRANS_DYNASTIC_MANDATE_WEAVER":"ERA_2_POST_TIANGU_CHAOS","FACT_14_CANGLAN_GRANARY_HALF_TALLY":"ERA_3_MIDDLE_EPOCHS","FACT_V370_03_LEG_STORM_CALLER_TEMPEST":"ERA_3_MIDDLE_EPOCHS","FACT_V370_06_LEG_ASHEN_KILN_ALCHEMY":"ERA_3_MIDDLE_EPOCHS","FACT_V370_09_TRANS_TEMPO_SOVEREIGN":"ERA_3_MIDDLE_EPOCHS","FACT_V370_11_TRANS_PRIMAL_VORTEX_MIRROR":"ERA_3_MIDDLE_EPOCHS","FACT_03_QINGLAN_DOUBLE_TOLL_SEAL":"ERA_4_THREE_EMPIRES_BALANCE","FACT_04_YUGUAN_REFUGEE_BOUNDARY":"ERA_4_THREE_EMPIRES_BALANCE","FACT_16_TIGER_SEAL_CHIPPED_INKSTONE":"ERA_4_THREE_EMPIRES_BALANCE","FACT_18_THREE_LANTERN_FOG_UNDERTOW":"ERA_4_THREE_EMPIRES_BALANCE","FACT_21_SU_QIN_820YR_YUNHE_TREATY":"ERA_4_THREE_EMPIRES_BALANCE","FACT_V370_02_LEG_TRIAGE_MERIDIAN":"ERA_4_THREE_EMPIRES_BALANCE","FACT_V370_04_LEG_JADE_CARAVAN_VOYAGER":"ERA_4_THREE_EMPIRES_BALANCE","FACT_V370_07_TRANS_CONSTELLATION_RELAY":"ERA_4_THREE_EMPIRES_BALANCE","FACT_28_NAMELESS_FOUNDER_UPPER_WORLD_VIGIL":"ERA_5_PRESENT_CONVERGENCE","FACT_07_GEN7_WOODEN_SWORD_AND_EMPTY_CHAIR":"ERA_5_PRESENT_CONVERGENCE","FACT_22_SIMA_QING_BROKEN_CURIO_HUNT":"ERA_5_PRESENT_CONVERGENCE"},"START_WORLD_YEAR":100001,"EPOCH_ZERO_TH":"ยุคที่ 0 ปีที่ 0 — คืนประตูมิติหลวงแตกและวันล่มสลายของมหาจักรวรรดิเทียนกู่","START_EPOCH":101,"START_YEAR_IN_EPOCH":1,"YEARS_PER_EPOCH":1000});
+  X.getLoreChronicleE0E1 = () => (g.JD && g.JD.LORE_CHRONICLE_E0_E1) || null;
+  X.LORE_COMPENDIUM_GET_ERA_FOR_FACT = (factId) => {
+    if (!factId) return "ERA_5_PRESENT_CONVERGENCE";
+    return (X.LORE_COMPENDIUM.FACT_ERA_MAP && X.LORE_COMPENDIUM.FACT_ERA_MAP[factId]) || "ERA_5_PRESENT_CONVERGENCE";
+  };
+
+  /* === JS2_V390_POLITICAL_LIVES_START === */
+  // JianghuSect 2 v3.9.0 — Political Lives & External Institutions
+  // Zero W.rng consumption (pure FNV-1a detHash390), single authoritative owner per entity/asset,
+  // 100% Observer / Autonomous NPC simulation, human_core.js untouched.
+  const detHash390 = (str) => {
+    let h = 2166136261 >>> 0;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  };
+  const detUnit390 = (key) => (detHash390(key) % 1000000) / 1000000;
+  const clamp390 = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  const PL_DYNASTY_SEEDS = Object.freeze({
+    POL_BEIMING: {
+      dynastyNameTh: 'ราชวงศ์กู่แห่งเป่ยหมิง',
+      reignNumber: 368,
+      successionRule: 'primogeniture',
+      rulerName: { family: 'กู่', given: 'เทียนเฉิน', full: 'กู่เทียนเฉิน' },
+      rulerAge: 142, rulerSex: 'M', rulerStage: 8, rulerPath: 'XIAN',
+      heirName: { family: 'กู่', given: 'ชิงเสวี่ย', full: 'กู่ชิงเสวี่ย' },
+      heirAge: 26, heirSex: 'F', heirStage: 6, heirPath: 'XIAN',
+      rivalName: { family: 'กู่', given: 'เจี้ยนหาน', full: 'กู่เจี้ยนหาน' },
+      rivalAge: 96, rivalSex: 'M', rivalStage: 7, rivalPath: 'XIAN', rivalRole: 'อ๋องแปดผู้สำเร็จราชการเงา',
+      clanId: 'CLAN_GU_NORTH', householdTreasury: 4200
+    },
+    POL_DONGHUANG: {
+      dynastyNameTh: 'ราชวงศ์จีแห่งตงหวง (บัลลังก์จี–ตราซือหม่า)',
+      reignNumber: 412,
+      jiDynastyReign: 319,
+      successionRule: 'primogeniture',
+      rulerName: { family: 'จี', given: 'เจาเหวิน', full: 'จีเจาเหวิน' },
+      rulerAge: 118, rulerSex: 'M', rulerStage: 7, rulerPath: 'STRATEGY_GOVERNANCE',
+      heirName: { family: 'จี', given: 'จิ่งหยวน', full: 'จีจิ่งหยวน' },
+      heirAge: 28, heirSex: 'M', heirStage: 5, heirPath: 'XIAN',
+      rivalName: { family: 'ซือหม่า', given: 'อี้เซวียน', full: 'ซือหม่าอี้เซวียน' },
+      rivalAge: 88, rivalSex: 'M', rivalStage: 7, rivalPath: 'STRATEGY_GOVERNANCE', rivalRole: 'อัครมหาเสนาบดีตงหวง',
+      clanId: 'CLAN_SIMA', householdTreasury: 5400
+    },
+    POL_XIRONG: {
+      dynastyNameTh: 'สายจอมทัพทัวป๋าแห่งซีหรง',
+      reignNumber: 529,
+      successionRule: 'trial_of_strength',
+      rulerName: { family: 'ทัวป๋า', given: 'เจิ้นเทียน', full: 'ทัวป๋าเจิ้นเทียน' },
+      rulerAge: 112, rulerSex: 'M', rulerStage: 8, rulerPath: 'BODY',
+      heirName: { family: 'ทัวป๋า', given: 'หงเหลียน', full: 'ทัวป๋าหงเหลียน' },
+      heirAge: 24, heirSex: 'F', heirStage: 6, heirPath: 'BODY',
+      rivalName: { family: 'ทัวป๋า', given: 'กัง', full: 'ทัวป๋ากัง' },
+      rivalAge: 168, rivalSex: 'M', rivalStage: 8, rivalPath: 'BODY', rivalRole: 'ปรมาจารย์ทวนเฒ่าผู้คุมตราพยัคฆ์',
+      clanId: null, householdTreasury: 3600
+    },
+    POL_YOUMING: {
+      dynastyNameTh: 'ราชวงศ์โคมหมอกโยวหมิง',
+      reignNumber: 14,
+      successionRule: 'primogeniture',
+      rulerName: { family: 'อิน', given: 'ซวี่เหอ', full: 'อินซวี่เหอ' },
+      rulerAge: 74, rulerSex: 'M', rulerStage: 6, rulerPath: 'HEART_SOUL',
+      heirName: { family: 'อิน', given: 'จื่อโม่', full: 'อินจื่อโม่' },
+      heirAge: 22, heirSex: 'M', heirStage: 4, heirPath: 'HEART_SOUL',
+      rivalName: { family: 'อิน', given: 'หานซวง', full: 'อินหานซวง' },
+      rivalAge: 52, rivalSex: 'M', rivalStage: 5, rivalPath: 'DEMON', rivalRole: 'เจ้ากรมพิธีสุสานหมอก',
+      clanId: null, householdTreasury: 1600
+    },
+    POL_YUNXIAO: {
+      dynastyNameTh: 'ราชวงศ์ผาเมฆาหยุนเซียว',
+      reignNumber: 12,
+      successionRule: 'trial_of_strength',
+      rulerName: { family: 'หลิน', given: 'เจิ้นฟง', full: 'หลินเจิ้นฟง' },
+      rulerAge: 68, rulerSex: 'M', rulerStage: 6, rulerPath: 'BODY',
+      heirName: { family: 'หลิน', given: 'ชิงอวิ๋น', full: 'หลินชิงอวิ๋น' },
+      heirAge: 23, heirSex: 'M', heirStage: 4, heirPath: 'XIAN',
+      rivalName: { family: 'หลิน', given: 'เสวียนอู่', full: 'หลินเสวียนอู่' },
+      rivalAge: 49, rivalSex: 'M', rivalStage: 5, rivalPath: 'BODY', rivalRole: 'แม่ทัพด่านผาเมฆา',
+      clanId: 'CLAN_YUNHE_LIN', householdTreasury: 1450
+    },
+    POL_CHIYAN: {
+      dynastyNameTh: 'สภาเตาหลอมฉื่อเยี่ยน',
+      reignNumber: 9,
+      successionRule: 'guild_charter',
+      rulerName: { family: 'เหยียน', given: 'หั่วหลิง', full: 'เหยียนหั่วหลิง' },
+      rulerAge: 64, rulerSex: 'M', rulerStage: 6, rulerPath: 'CRAFT_CREATION',
+      heirName: { family: 'เหยียน', given: 'จือเหยา', full: 'เหยียนจือเหยา' },
+      heirAge: 25, heirSex: 'F', heirStage: 4, heirPath: 'CRAFT_CREATION',
+      rivalName: { family: 'ตู้', given: 'เถี่ยซิน', full: 'ตู้เถี่ยซิน' },
+      rivalAge: 58, rivalSex: 'M', rivalStage: 5, rivalPath: 'CRAFT_CREATION', rivalRole: 'เจ้าสมาคมช่างหลอมตะวันตก',
+      clanId: null, householdTreasury: 1900
+    },
+    POL_SUVARNABODHI: {
+      dynastyNameTh: 'สังฆสภาสุวรรณโพธิ์',
+      reignNumber: 21,
+      successionRule: 'monastic_conclave',
+      rulerName: { family: 'เสวียน', given: 'กวงหมิง', full: 'พระมหาเถระเสวียนกวงหมิง' },
+      rulerAge: 92, rulerSex: 'M', rulerStage: 7, rulerPath: 'KARMA_SAMSARA',
+      heirName: { family: 'เสวียน', given: 'จื่อหยวน', full: 'เสวียนจื่อหยวน' },
+      heirAge: 31, heirSex: 'M', heirStage: 5, heirPath: 'KARMA_SAMSARA',
+      rivalName: { family: 'เสวียน', given: 'อู๋เจี้ยน', full: 'เสวียนอู๋เจี้ยน' },
+      rivalAge: 64, rivalSex: 'M', rivalStage: 6, rivalPath: 'KARMA_SAMSARA', rivalRole: 'เจ้าอาวาสหอคัมภีร์ใต้',
+      clanId: null, householdTreasury: 1700
+    },
+    POL_GUJIAO: {
+      dynastyNameTh: 'สมาพันธ์ชนเผ่าบึงหมื่นกู่',
+      reignNumber: 17,
+      successionRule: 'trial_of_strength',
+      rulerName: { family: 'เหมียว', given: 'ว่านกู่', full: 'เหมียวว่านกู่' },
+      rulerAge: 66, rulerSex: 'F', rulerStage: 6, rulerPath: 'DEMON',
+      heirName: { family: 'เหมียว', given: 'ชิงหลาน', full: 'เหมียวชิงหลาน' },
+      heirAge: 24, heirSex: 'F', heirStage: 4, heirPath: 'DEMON',
+      rivalName: { family: 'เหมียว', given: 'เฮยเสอ', full: 'เหมียวเฮยเสอ' },
+      rivalAge: 54, rivalSex: 'M', rivalStage: 5, rivalPath: 'DEMON', rivalRole: 'หัวหน้าเผ่าพิษน้ำลึก',
+      clanId: null, householdTreasury: 1300
+    },
+    POL_YUNHE: {
+      dynastyNameTh: 'สภาอิสระหุบเขาหยุนเหอ',
+      reignNumber: 41,
+      successionRule: 'council_election',
+      rulerName: { family: 'ซู', given: 'เหวินเจี๋ย', full: 'ซูเหวินเจี๋ย' },
+      rulerAge: 61, rulerSex: 'M', rulerStage: 5, rulerPath: 'STRATEGY_GOVERNANCE',
+      heirName: { family: 'ซู', given: 'อวี้เฉิน', full: 'ซูอวี้เฉิน' },
+      heirAge: 27, heirSex: 'M', heirStage: 4, heirPath: 'STRATEGY_GOVERNANCE',
+      rivalName: { family: 'เฉิน', given: 'จื่ออัน', full: 'เฉินจื่ออัน' },
+      rivalAge: 55, rivalSex: 'M', rivalStage: 5, rivalPath: 'STRATEGY_GOVERNANCE', rivalRole: 'ประธานหอชั่งตวงซวงเจียง',
+      clanId: 'CLAN_YUNHE_LIN', householdTreasury: 2100
+    }
+  });
+
+  const PL_CLAN_SEEDS = Object.freeze([
+    { id: 'CLAN_SIMA', nameTh: 'ตระกูลซือหม่า', surname: 'ซือหม่า', status: 'ACTIVE', polityId: 'POL_DONGHUANG', homeCityId: 'CITY_DH_JIUKU_CAPITAL', lineageArtTh: 'อักษรราชโองการและพิชัยยุทธ์แปดประตู', treasury: 3800, reputation: 88, rivalClanIds: ['CLAN_GU_NORTH'], branches: [{ id: 'BR_SIMA_MAIN', nameTh: 'สายหลักทำเนียบเสนาบดี', cityId: 'CITY_DH_JIUKU_CAPITAL', relationToMain: 90, treasury: 2400 }, { id: 'BR_SIMA_PORT', nameTh: 'สายรองท่าเรือตะวันออก', cityId: 'CITY_DH_QINGLAN_DICE_CITY', relationToMain: 48, treasury: 950 }] },
+    { id: 'CLAN_GU_NORTH', nameTh: 'ตระกูลกู่สาขาอุดร', surname: 'กู่', status: 'ACTIVE', polityId: 'POL_BEIMING', homeCityId: 'CITY_BM_HANYU_CAPITAL', lineageArtTh: 'ปราณเหมันต์และกระบี่หกชีพจร', treasury: 3400, reputation: 86, rivalClanIds: ['CLAN_SIMA'], branches: [{ id: 'BR_GU_MAIN', nameTh: 'สายหลักตำหนักหิมะ', cityId: 'CITY_BM_HANYU_CAPITAL', relationToMain: 92, treasury: 2200 }, { id: 'BR_GU_BORDER', nameTh: 'สายรองด่านเหมันต์', cityId: 'TOWN_BM_BAIMEI_OLD_FORT', relationToMain: 42, treasury: 780 }] },
+    { id: 'CLAN_LONGMEN_SHEN', nameTh: 'ตระกูลเสิ่นแห่งหลงเหมิน', surname: 'เสิ่น', status: 'ACTIVE', polityId: 'POL_DONGHUANG', homeCityId: 'CITY_DH_QINGLAN_DICE_CITY', lineageArtTh: 'วิถีวาณิชย์และค่ายกลบัญชีหยก', treasury: 2900, reputation: 76, rivalClanIds: ['CLAN_YUNHE_LIN'], branches: [{ id: 'BR_SHEN_MAIN', nameTh: 'สายหลักหอวาณิชย์', cityId: 'CITY_DH_QINGLAN_DICE_CITY', relationToMain: 85, treasury: 1800 }, { id: 'BR_SHEN_JUNIOR', nameTh: 'สายรองโรงช่างริมคลอง', cityId: 'CITY_YH_SHUANGJIANG', relationToMain: 28, treasury: 620 }] },
+    { id: 'CLAN_YUNHE_LIN', nameTh: 'ตระกูลหลินหุบเขาหยุนเหอ', surname: 'หลิน', status: 'ACTIVE', polityId: 'POL_YUNHE', homeCityId: 'CITY_YH_SHUANGJIANG', lineageArtTh: 'เคล็ดกระบี่สายน้ำสองแคว', treasury: 1650, reputation: 72, rivalClanIds: ['CLAN_LONGMEN_SHEN'], branches: [{ id: 'BR_LIN_MAIN', nameTh: 'สายหลักซวงเจียง', cityId: 'CITY_YH_SHUANGJIANG', relationToMain: 84, treasury: 1100 }, { id: 'BR_LIN_RIDGE', nameTh: 'สายรองผาเมฆา', cityId: 'CITY_YX_WUYACASTLE', relationToMain: 52, treasury: 550 }] },
+    { id: 'CLAN_DONGFANG', nameTh: 'ตระกูลตงฟาง (สายอริยะตกอับ)', surname: 'ตงฟาง', status: 'DECLINED', polityId: 'POL_YUNHE', homeCityId: 'CITY_YH_SHUANGJIANG', lineageArtTh: 'เศษเคล็ดดาราหมุนวน', treasury: 420, reputation: 45, rivalClanIds: [], branches: [{ id: 'BR_DF_REMNANT', nameTh: 'สายหลงเหลือเร้นกาย', cityId: 'CITY_YH_SHUANGJIANG', relationToMain: 60, treasury: 260 }] },
+    { id: 'CLAN_GONGSUN', nameTh: 'ตระกูลกงซุน (สายอริยะตกอับ)', surname: 'กงซุน', status: 'DECLINED', polityId: 'POL_DONGHUANG', homeCityId: 'CITY_DH_JIUKU_CAPITAL', lineageArtTh: 'เศษคัมภีร์ค่ายกลสัมปทาน', treasury: 390, reputation: 42, rivalClanIds: [], branches: [{ id: 'BR_GS_REMNANT', nameTh: 'สายรองช่างแผนที่', cityId: 'CITY_DH_JIUKU_CAPITAL', relationToMain: 58, treasury: 210 }] },
+    { id: 'CLAN_WEN', nameTh: 'ตระกูลเวิน (สายอริยะตกอับ)', surname: 'เวิน', status: 'DECLINED', polityId: 'POL_SUVARNABODHI', homeCityId: 'CITY_SB_JINYA_SANGHA', lineageArtTh: 'เศษตำราโอสถไฟเย็น', treasury: 410, reputation: 48, rivalClanIds: [], branches: [{ id: 'BR_WEN_REMNANT', nameTh: 'สายหมอพเนจรแดนใต้', cityId: 'CITY_SB_JINYA_SANGHA', relationToMain: 65, treasury: 240 }] },
+    { id: 'CLAN_YUWEN', nameTh: 'ตระกูลอวี่เหวิน (สายอริยะตกอับ)', surname: 'อวี่เหวิน', status: 'DECLINED', polityId: 'POL_XIRONG', homeCityId: 'CITY_XR_CHIYAN_CAPITAL', lineageArtTh: 'เศษเคล็ดตรึงกระแสฟ้า', treasury: 360, reputation: 40, rivalClanIds: [], branches: [{ id: 'BR_YW_REMNANT', nameTh: 'สายช่างลมด่านตะวันตก', cityId: 'CITY_XR_CHIYAN_CAPITAL', relationToMain: 55, treasury: 200 }] },
+    { id: 'CLAN_SITU', nameTh: 'ตระกูลซือถู (สายอริยะตกอับ)', surname: 'ซือถู', status: 'DECLINED', polityId: 'POL_YOUMING', homeCityId: 'CITY_YM_HUNDENG_CAPITAL', lineageArtTh: 'เศษคัมภีร์พินิจรอยกรรม', treasury: 340, reputation: 38, rivalClanIds: [], branches: [{ id: 'BR_ST_REMNANT', nameTh: 'สายเฝ้าหอจดหมายเหตุเก่า', cityId: 'CITY_YM_HUNDENG_CAPITAL', relationToMain: 62, treasury: 190 }] }
+  ]);
+
+  const PL_TRADE_HALL_SEEDS = Object.freeze([
+    { id: 'HALL_WANLI', nameTh: 'สหพันธ์คาราวานหยกทองว่านลี่', hqCityId: 'CITY_DH_JIUKU_CAPITAL', polityId: 'POL_DONGHUANG', cash: 6200, stock: { grain: 260, medicine: 120, ore: 140 }, branchCityIds: ['CITY_DH_JIUKU_CAPITAL', 'CITY_YH_SHUANGJIANG', 'CITY_BM_HANYU_CAPITAL'] },
+    { id: 'HALL_SHUANGJIANG', nameTh: 'หอการค้าซวงเจียงแห่งหยุนเหอ', hqCityId: 'CITY_YH_SHUANGJIANG', polityId: 'POL_YUNHE', cash: 3800, stock: { grain: 210, medicine: 95, ore: 90 }, branchCityIds: ['CITY_YH_SHUANGJIANG', 'CITY_YX_WUYACASTLE', 'CITY_YM_HUNDENG_CAPITAL'] },
+    { id: 'HALL_LONGMEN', nameTh: 'หอวาณิชย์หลงเหมิน', hqCityId: 'CITY_DH_QINGLAN_DICE_CITY', polityId: 'POL_DONGHUANG', cash: 4900, stock: { grain: 190, medicine: 140, ore: 110 }, branchCityIds: ['CITY_DH_QINGLAN_DICE_CITY', 'CITY_SB_JINYA_SANGHA', 'CITY_YH_SHUANGJIANG'] },
+    { id: 'HALL_CHIYAN_FORGE', nameTh: 'สมาคมเตาหลอมและเสบียงฉื่อเยี่ยน', hqCityId: 'CITY_CY_RONGLU_CAPITAL', polityId: 'POL_CHIYAN', cash: 3400, stock: { grain: 140, medicine: 80, ore: 260 }, branchCityIds: ['CITY_CY_RONGLU_CAPITAL', 'CITY_XR_CHIYAN_CAPITAL', 'CITY_YH_SHUANGJIANG'] },
+    { id: 'HALL_SOUTHERN_LOTUS', nameTh: 'หอสมุนไพรบัวใต้', hqCityId: 'CITY_SB_JINYA_SANGHA', polityId: 'POL_SUVARNABODHI', cash: 3100, stock: { grain: 160, medicine: 240, ore: 65 }, branchCityIds: ['CITY_SB_JINYA_SANGHA', 'CITY_GJ_WANGU_TOTEM', 'CITY_YH_SHUANGJIANG'] }
+  ]);
+
+  const PL_SUCCESSION_RULE_TH = Object.freeze({
+    primogeniture: 'สืบสายรัชทายาท',
+    trial_of_strength: 'ประลองชิงธงจอมทัพ',
+    council_election: 'เลือกตั้งโดยสภา',
+    monastic_conclave: 'ประชุมสังฆสภา',
+    guild_charter: 'กฎบัตรสมาคมช่าง'
+  });
+
+  const PL_CONTRACT_STATE_TH = Object.freeze({
+    offered: 'เสนอสัญญา',
+    accepted: 'ตกลงรับงาน',
+    reserved: 'กันทรัพยากรแล้ว',
+    in_transit: 'กำลังขนส่ง',
+    delivered: 'ส่งมอบแล้ว',
+    settled: 'ปิดบัญชีแล้ว',
+    refused: 'ปฏิเสธ',
+    expired: 'หมดอายุ',
+    partial: 'ส่งมอบบางส่วน',
+    defaulted: 'ผิดนัดสัญญา',
+    disputed: 'มีข้อพิพาท'
+  });
+
+  const PL_DISPUTE_STAGE_TH = Object.freeze({
+    OPENING: 'เปิดปมสืบราชย์',
+    MOBILIZATION: 'ระดมเสียงและทุนสนับสนุน',
+    RESOLUTION: 'ชี้ขาดอำนาจ',
+    AFTERMATH: 'ผลสืบเนื่องหลังเปลี่ยนแผ่นดิน'
+  });
+
+  const PL_OUTCOME_TH = Object.freeze({
+    PEACEFUL_ACCESSION: 'สืบราชสมบัติโดยสงบ',
+    REGENCY: 'ตั้งผู้สำเร็จราชการ',
+    RENUNCIATION: 'สละสิทธิ์โดยสมัครใจ',
+    NEGOTIATED_SETTLEMENT: 'เจรจาแบ่งอำนาจสำเร็จ',
+    EXILE_FLIGHT: 'รัชทายาทลี้ภัยออกนอกแคว้น',
+    CONTESTED_VICTORY: 'ผู้ท้าชิงหวนคืนครองบัลลังก์',
+    CONTESTED_DEFEAT: 'ความพยายามทวงสิทธิ์ล้มเหลว',
+    RECONCILIATION: 'ปรองดองและคืนตำแหน่ง'
+  });
+
+  X.POLITICAL_LIVES = {
+    VERSION: '3.9.5-witnesses-and-12shards',
+    SUCCESSION_RULE_TH: PL_SUCCESSION_RULE_TH,
+    CONTRACT_STATE_TH: PL_CONTRACT_STATE_TH,
+    DISPUTE_STAGE_TH: PL_DISPUTE_STAGE_TH,
+    OUTCOME_TH: PL_OUTCOME_TH,
+
+    _settlementPolity(cityId, W) {
+      if (W && X.LIVING_POLITIES && X.LIVING_POLITIES.ownerOf) {
+        const dynOwner = X.LIVING_POLITIES.ownerOf(W, cityId);
+        if (dynOwner) return dynOwner;
+      }
+      const s = X.SETTLEMENTS && X.SETTLEMENTS[cityId];
+      return (s && s.polityId) || 'POL_YUNHE';
+    },
+
+    _capitalOf(polityId) {
+      const pols = (g.JD && g.JD.CONTINENT && g.JD.CONTINENT.polities) || [];
+      const p = pols.find(x => x.id === polityId);
+      if (p && p.capitalId && X.SETTLEMENTS && X.SETTLEMENTS[p.capitalId]) return p.capitalId;
+      const allS = Object.values(X.SETTLEMENTS || {}).filter(s => s && s.polityId === polityId);
+      if (allS.length) {
+        const cap = allS.find(s => s.isCapital || s.kind === 'capital' || s.role === 'capital')
+          || allS.find(s => String(s.id || '').startsWith('CITY_'))
+          || allS.slice().sort((a, b) => (b.tier || 0) - (a.tier || 0))[0];
+        if (cap && cap.id) return cap.id;
+      }
+      return 'CITY_YH_SHUANGJIANG';
+    },
+
+    syncCityOwnerShift(W, cityId, newPolityId) {
+      const pl = W && W.world && W.world.politicalLives;
+      if (!pl || !cityId || !newPolityId) return;
+      if (pl.cityDistricts && pl.cityDistricts[cityId]) {
+        pl.cityDistricts[cityId].polityId = newPolityId;
+      }
+    },
+
+    syncFromLivingPolityCoup(W, polityId, newRulerName, dynastyGen) {
+      const pl = W && W.world && W.world.politicalLives;
+      if (!pl || !pl.dynasties || !pl.dynasties[polityId]) return;
+      const dyn = pl.dynasties[polityId];
+      const day = (W && W.day) || 0;
+      const oldRuler = pl.persons[dyn.rulerPersonId];
+      if (oldRuler) {
+        if (!oldRuler.formerRoles.includes(oldRuler.role)) oldRuler.formerRoles.push(oldRuler.role);
+        oldRuler.role = 'อดีตประมุข' + dyn.dynastyNameTh + ' (พ้นตำแหน่งหลังรัฐประหาร)';
+      }
+      const newId = 'PL_P_COUP_' + polityId + '_' + (pl.seq++);
+      const nm = String(newRulerName || 'ผู้นำคณะปฏิรูป');
+      const fam = nm.slice(0, Math.min(2, nm.length));
+      const giv = nm.slice(fam.length) || nm;
+      const capId = this._capitalOf(polityId);
+      const newP = this._makeExternalPerson(String((W && W.seed) || 'JS2'), newId, {
+        day,
+        name: { family: fam, given: giv, full: nm },
+        sex: 'M',
+        ageYears: 34 + (detHash390(newId) % 18),
+        locationNodeId: capId,
+        ownerType: 'DYNASTY',
+        ownerId: polityId,
+        role: 'ประมุข' + dyn.dynastyNameTh + ' (รัชกาลที่ ' + (dyn.reignNumber + 1) + ')',
+        cultStage: 5 + (detHash390(newId + ':st') % 3),
+        path: 'XIAN'
+      });
+      pl.persons[newId] = newP;
+      dyn.rulerPersonId = newId;
+      dyn.reignNumber = (dyn.reignNumber || 1) + 1;
+      dyn.officeVersion = (dyn.officeVersion || 1) + 1;
+      dyn.lastSuccessionDay = day;
+      dyn.activeDisputeId = null;
+      dyn.contestedTransitions = (dyn.contestedTransitions || 0) + 1;
+      pl.stats.contestedSuccessions = (pl.stats.contestedSuccessions || 0) + 1;
+      this._recordEvent(W, 'COUP_SYNCED', polityId,
+        nm + ' ขึ้นครองอำนาจใน' + dyn.dynastyNameTh + ' (รัชกาลที่ ' + dyn.reignNumber + ')',
+        { actorIds: [newId], visibility: 'PUBLIC' }
+      );
+    },
+
+    _makeExternalPerson(seed, id, opts) {
+      const h = detHash390(seed + ':pl_person:' + id);
+      const u = (tag) => detUnit390(seed + ':pl_p:' + id + ':' + tag);
+      const ageYears = opts.ageYears || (22 + (h % 45));
+      const day = opts.day || 0;
+      return {
+        id,
+        tier: 'EXTERNAL',
+        name: {
+          family: (opts.name && opts.name.family) || 'หลิน',
+          given: (opts.name && opts.name.given) || 'ซาน',
+          full: (opts.name && opts.name.full) || (((opts.name && opts.name.family) || 'หลิน') + ((opts.name && opts.name.given) || 'ซาน'))
+        },
+        sex: opts.sex || ((h % 2) === 0 ? 'M' : 'F'),
+        bornDay: day - Math.round(ageYears * 360),
+        ageYears,
+        alive: true,
+        locationNodeId: opts.locationNodeId || 'CITY_YH_SHUANGJIANG',
+        ownerType: opts.ownerType || 'DYNASTY',
+        ownerId: opts.ownerId || 'POL_YUNHE',
+        role: opts.role || 'ขุนนางภายนอก',
+        formerRoles: Array.isArray(opts.formerRoles) ? opts.formerRoles.slice() : [],
+        cultStage: opts.cultStage || 4,
+        path: opts.path || 'XIAN',
+        motives: {
+          ambition: opts.ambition != null ? opts.ambition : +(0.30 + u('amb') * 0.55).toFixed(2),
+          loyalty: opts.loyalty != null ? opts.loyalty : +(0.35 + u('loy') * 0.55).toFixed(2),
+          caution: opts.caution != null ? opts.caution : +(0.25 + u('cau') * 0.55).toFixed(2),
+          honor: opts.honor != null ? opts.honor : +(0.30 + u('hon') * 0.55).toFixed(2),
+          resentment: opts.resentment != null ? opts.resentment : +(0.05 + u('res') * 0.25).toFixed(2)
+        },
+        capabilities: {
+          martial: opts.martial != null ? opts.martial : Math.round(35 + (opts.cultStage || 4) * 7 + u('mar') * 15),
+          diplomacy: opts.diplomacy != null ? opts.diplomacy : Math.round(35 + u('dip') * 45),
+          logistics: opts.logistics != null ? opts.logistics : Math.round(30 + u('log') * 45),
+          intrigue: opts.intrigue != null ? opts.intrigue : Math.round(25 + u('int') * 45)
+        },
+        personalFunds: opts.personalFunds != null ? opts.personalFunds : (220 + (h % 450)),
+        clanId: opts.clanId || null,
+        branchId: opts.branchId || null,
+        originClanId: opts.originClanId || opts.clanId || null,
+        formerClanIds: Array.isArray(opts.formerClanIds) ? opts.formerClanIds.slice() : [],
+        clanVisibility: opts.clanVisibility || (opts.clanId ? 'PUBLIC' : 'NONE'),
+        knownBy: Object.assign({}, opts.knownBy || {}),
+        obligations: Array.isArray(opts.obligations) ? opts.obligations.slice() : [],
+        ties: Object.assign({}, opts.ties || {}),
+        claims: Array.isArray(opts.claims) ? opts.claims.slice() : [],
+        homeSectNpcId: null,
+        durableHcSnapshot: null,
+        travel: null,
+        nextDecisionDay: day + 15 + (h % 30),
+        lastUpdateDay: day
+      };
+    },
+
+    ensure(W) {
+      if (!W) return null;
+      if (!W.world) W.world = {};
+      if (W.world.politicalLives && W.world.politicalLives.version === this.VERSION) {
+        return W.world.politicalLives;
+      }
+      const existing = W.world.politicalLives || {};
+      const seed = String(W.seed || 'JS2_V390');
+      const day = W.day || 0;
+
+      const pl = {
+        version: this.VERSION,
+        lastDailyDay: existing.lastDailyDay != null ? existing.lastDailyDay : -1,
+        lastMonthTick: existing.lastMonthTick != null ? existing.lastMonthTick : -1,
+        seq: existing.seq || 1,
+        dynasties: existing.dynasties || {},
+        clans: existing.clans || {},
+        tradeHalls: existing.tradeHalls || {},
+        cityDistricts: existing.cityDistricts || {},
+        persons: existing.persons || {},
+        contracts: existing.contracts || {},
+        deliveries: existing.deliveries || {},
+        settledReceipts: existing.settledReceipts || {},
+        disputes: existing.disputes || {},
+        events: Array.isArray(existing.events) ? existing.events : [],
+        stats: Object.assign({
+          contractsOffered: 0,
+          contractsSettled: 0,
+          contractsDefaulted: 0,
+          contractsRefused: 0,
+          admissionsCount: 0,
+          departuresCount: 0,
+          reentriesCount: 0,
+          peacefulSuccessions: 0,
+          contestedSuccessions: 0,
+          exileFlights: 0,
+          secretDisclosures: 0
+        }, existing.stats || {})
+      };
+
+      // 1. Seed Cultivator Clans
+      for (const cs of PL_CLAN_SEEDS) {
+        if (!pl.clans[cs.id]) {
+          const headId = 'PL_P_CLANHEAD_' + cs.id;
+          pl.clans[cs.id] = {
+            id: cs.id,
+            nameTh: cs.nameTh,
+            surname: cs.surname,
+            status: cs.status,
+            polityId: cs.polityId,
+            homeCityId: cs.homeCityId,
+            headPersonId: headId,
+            lineageArtTh: cs.lineageArtTh,
+            treasury: cs.treasury,
+            reservedCash: 0,
+            stock: { grain: cs.status === 'ACTIVE' ? 90 : 20, medicine: cs.status === 'ACTIVE' ? 50 : 18, ore: cs.status === 'ACTIVE' ? 60 : 12 },
+            reservedStock: { grain: 0, medicine: 0, ore: 0 },
+            reputation: cs.reputation,
+            rivalClanIds: cs.rivalClanIds.slice(),
+            branches: cs.branches.map(b => Object.assign({}, b)),
+            trustByActorId: {}
+          };
+          if (!pl.persons[headId]) {
+            pl.persons[headId] = this._makeExternalPerson(seed, headId, {
+              day,
+              name: { family: cs.surname, given: cs.status === 'ACTIVE' ? 'จงเหอ' : 'จื่ออัน', full: cs.surname + (cs.status === 'ACTIVE' ? 'จงเหอ' : 'จื่ออัน') },
+              ageYears: cs.status === 'ACTIVE' ? 62 : 54,
+              locationNodeId: cs.homeCityId,
+              ownerType: 'CLAN',
+              ownerId: cs.id,
+              role: 'ผู้นำ' + cs.nameTh,
+              cultStage: cs.status === 'ACTIVE' ? 6 : 4,
+              clanId: cs.id,
+              branchId: cs.branches[0] ? cs.branches[0].id : null,
+              clanVisibility: cs.status === 'ACTIVE' ? 'PUBLIC' : 'SECRET'
+            });
+          }
+        }
+      }
+
+      // 2. Seed Trade Halls
+      for (const ts of PL_TRADE_HALL_SEEDS) {
+        if (!pl.tradeHalls[ts.id]) {
+          const dirId = 'PL_P_HALLDIR_' + ts.id;
+          pl.tradeHalls[ts.id] = {
+            id: ts.id,
+            nameTh: ts.nameTh,
+            hqCityId: ts.hqCityId,
+            polityId: ts.polityId,
+            directorPersonId: dirId,
+            cash: ts.cash,
+            reservedCash: 0,
+            creditExposure: 0,
+            stock: Object.assign({}, ts.stock),
+            reservedStock: { grain: 0, medicine: 0, ore: 0 },
+            branchCityIds: ts.branchCityIds.slice(),
+            trustByActorId: {},
+            relocatedFromCityIds: []
+          };
+          if (!pl.persons[dirId]) {
+            pl.persons[dirId] = this._makeExternalPerson(seed, dirId, {
+              day,
+              name: { family: 'ว่าน', given: ts.id === 'HALL_WANLI' ? 'จินเหนียง' : 'ฉิงซาน', full: ts.id === 'HALL_WANLI' ? 'ว่านจินเหนียง' : ('ว่านฉิงซาน (' + ts.nameTh.slice(0, 8) + ')') },
+              sex: ts.id === 'HALL_WANLI' ? 'F' : 'M',
+              ageYears: 48,
+              locationNodeId: ts.hqCityId,
+              ownerType: 'TRADE_HALL',
+              ownerId: ts.id,
+              role: 'ประมุข' + ts.nameTh,
+              cultStage: 5,
+              path: 'STRATEGY_GOVERNANCE',
+              caution: 0.72,
+              logistics: 82,
+              diplomacy: 80
+            });
+          }
+        }
+      }
+
+      // 3. Seed Polities & Royal Dynasties + Key Named External Actors
+      for (const [polId, ds] of Object.entries(PL_DYNASTY_SEEDS)) {
+        const capId = this._capitalOf(polId);
+        if (!pl.dynasties[polId]) {
+          const rulerId = 'PL_P_RULER_' + polId;
+          const heirId = 'PL_P_HEIR_' + polId;
+          const rivalId = 'PL_P_RIVAL_' + polId;
+          pl.dynasties[polId] = {
+            polityId: polId,
+            dynastyNameTh: ds.dynastyNameTh,
+            reignNumber: ds.reignNumber,
+            jiDynastyReign: ds.jiDynastyReign || null,
+            successionRule: ds.successionRule,
+            rulerPersonId: rulerId,
+            designatedHeirId: heirId,
+            regentPersonId: null,
+            householdTreasury: ds.householdTreasury,
+            reservedHouseholdCash: 0,
+            officeVersion: 1,
+            legitimateClaimants: [heirId, rivalId],
+            activeDisputeId: null,
+            peacefulTransitions: 0,
+            contestedTransitions: 0,
+            lastSuccessionDay: 0,
+            policyFavors: {}
+          };
+          if (!pl.persons[rulerId]) {
+            pl.persons[rulerId] = this._makeExternalPerson(seed, rulerId, {
+              day, name: ds.rulerName, sex: ds.rulerSex, ageYears: ds.rulerAge,
+              locationNodeId: capId, ownerType: 'DYNASTY', ownerId: polId,
+              role: 'ประมุข' + ds.dynastyNameTh, cultStage: ds.rulerStage, path: ds.rulerPath,
+              clanId: ds.clanId, personalFunds: Math.round(ds.householdTreasury * 0.25)
+            });
+          }
+          if (!pl.persons[heirId]) {
+            pl.persons[heirId] = this._makeExternalPerson(seed, heirId, {
+              day, name: ds.heirName, sex: ds.heirSex, ageYears: ds.heirAge,
+              locationNodeId: capId, ownerType: 'DYNASTY', ownerId: polId,
+              role: 'รัชทายาทแห่ง' + ds.dynastyNameTh, cultStage: ds.heirStage, path: ds.heirPath,
+              clanId: ds.clanId,
+              claims: [{ polityId: polId, kind: 'DESIGNATED_HEIR', legitimacy: 0.86, renounced: false, officeVersion: 1 }],
+              ties: { [rulerId]: 72 },
+              personalFunds: 380
+            });
+          }
+          if (!pl.persons[rivalId]) {
+            pl.persons[rivalId] = this._makeExternalPerson(seed, rivalId, {
+              day, name: ds.rivalName, sex: ds.rivalSex, ageYears: ds.rivalAge,
+              locationNodeId: capId, ownerType: 'COURT', ownerId: polId,
+              role: ds.rivalRole, cultStage: ds.rivalStage, path: ds.rivalPath,
+              clanId: ds.clanId,
+              ambition: polId === 'POL_YOUMING' || polId === 'POL_BEIMING' ? 0.78 : 0.45,
+              claims: [{ polityId: polId, kind: 'COLLATERAL_SENIOR', legitimacy: 0.58, renounced: false, officeVersion: 1 }],
+              ties: { [rulerId]: 38, [heirId]: -18 },
+              personalFunds: 520
+            });
+          }
+        }
+        // Ensure capital city district exists
+        this._ensureCityDistrict(pl, capId, polId, seed);
+      }
+
+      // Ensure Yunhe home capital & key border cities have districts
+      for (const cid of ['CITY_YH_SHUANGJIANG', 'CITY_DH_QINGLAN_DICE_CITY', 'TOWN_BM_BAIMEI_OLD_FORT', 'CITY_YX_WUYACASTLE', 'CITY_YM_HUNDENG_CAPITAL']) {
+        this._ensureCityDistrict(pl, cid, this._settlementPolity(cid), seed);
+      }
+
+      W.world.politicalLives = pl;
+      return pl;
+    },
+
+    _ensureCityDistrict(pl, cityId, polityId, seed) {
+      if (!cityId) return null;
+      if (!pl.cityDistricts[cityId]) {
+        const h = detHash390((seed || 'JS2') + ':dist:' + cityId);
+        pl.cityDistricts[cityId] = {
+          cityId,
+          polityId: polityId || this._settlementPolity(cityId),
+          grain: 110 + (h % 90),
+          medicine: 60 + (h % 50),
+          ore: 70 + (h % 60),
+          shortageLevel: 0,
+          shortageCommodity: null,
+          lastShortageDay: -999,
+          localTollRate: 0.05,
+          authorityVersion: 1
+        };
+      }
+      return pl.cityDistricts[cityId];
+    },
+
+    _recordEvent(W, kind, polityId, summaryTh, details) {
+      const pl = this.ensure(W);
+      const id = 'PL_EVT_' + (pl.seq++);
+      const entry = {
+        id,
+        day: W.day || 0,
+        kind,
+        polityId: polityId || null,
+        summaryTh,
+        actorIds: (details && details.actorIds) || [],
+        visibility: (details && details.visibility) || 'PUBLIC',
+        details: details || {}
+      };
+      pl.events.push(entry);
+      if (pl.events.length > 160) pl.events.splice(0, pl.events.length - 120);
+      if (entry.visibility === 'PUBLIC' && X.recordChronicle) {
+        try {
+          X.recordChronicle(W, {
+            kind: 'POLITICAL_LIFE',
+            category: 'FACTION',
+            storyThreadId: polityId ? ('court:' + polityId) : 'world:political_lives',
+            titleTh: summaryTh.length > 72 ? (summaryTh.slice(0, 69) + '...') : summaryTh,
+            storyTh: summaryTh,
+            day: W.day || 0
+          });
+        } catch (_) {}
+      }
+      return entry;
+    },
+
+    // =========================================================================
+    // 1. CONTINUOUS PERSON LIFECYCLE (External <-> Full Human Core Sect Member)
+    // =========================================================================
+
+    admitExternalPersonToHomeSect(W, personId, opts) {
+      const pl = this.ensure(W);
+      const p = pl.persons[personId];
+      if (!p || !p.alive) return { ok: false, reason: 'PERSON_UNAVAILABLE' };
+      // Single active owner invariant — never duplicate an already-admitted person!
+      if (p.ownerType === 'HOME_SECT' || (p.homeSectNpcId && W.byId && W.byId[p.homeSectNpcId])) {
+        return { ok: false, reason: 'ALREADY_IN_HOME_SECT', npcId: p.homeSectNpcId };
+      }
+      const SIM = g.SIM;
+      const HC = g.HC;
+      if (!SIM || !SIM.buildNpc || !SIM.register || !HC) {
+        return { ok: false, reason: 'SIM_UNAVAILABLE' };
+      }
+      const o = opts || {};
+      if (p.durableHcSnapshot && p.durableHcSnapshot.npcId && Array.isArray(W.graveyard) && W.graveyard.some(gr => gr && gr.id === p.durableHcSnapshot.npcId)) {
+        return { ok: false, reason: 'IN_GRAVEYARD' };
+      }
+      const _admitPath = (p.durableHcSnapshot && p.durableHcSnapshot.cult && p.durableHcSnapshot.cult.path) || p.path || 'XIAN';
+      const _admitMaxS = (g.CULT && g.CULT.PATHS && g.CULT.PATHS[_admitPath] && Array.isArray(g.CULT.PATHS[_admitPath].stages)) ? g.CULT.PATHS[_admitPath].stages.length : 9;
+      const childRng = g.U && g.U.RNG ? new g.U.RNG((W.seed || 'JS2') + ':pl_admit:' + personId + ':' + (p.durableHcSnapshot ? 're' : 'init')) : W.rng;
+      const npc = SIM.buildNpc(W, childRng, {
+        sex: p.sex,
+        ageYears: Math.max(16, Math.round(p.ageYears || 22)),
+        stage: clamp390(Math.round(p.cultStage || 3), 1, _admitMaxS),
+        path: _admitPath,
+        fromApplicant: false,
+        useTalentTier: false
+      });
+
+      // Restore durable Human Core identity if re-entering, else apply stable external identity
+      if (p.durableHcSnapshot) {
+        const snap = p.durableHcSnapshot;
+        npc.id = snap.npcId || npc.id;
+        if (Array.isArray(W.gone)) W.gone = W.gone.filter(gid => gid !== npc.id);
+        npc.h.name.family = snap.name.family;
+        npc.h.name.given = snap.name.given;
+        npc.h.sex = snap.sex;
+        npc.h.birthDay = p.bornDay;
+        if (snap.traits && snap.traits.length) npc.h.traits = snap.traits.map(t => Object.assign({}, t));
+        if (snap.personality) Object.assign(npc.h.personality, snap.personality);
+        if (snap.values) Object.assign(npc.h.values, snap.values);
+        if (snap.aptitudes) Object.assign(npc.h.aptitudes, snap.aptitudes);
+        for (const _hk of ["root", "constitution", "physiology", "intellect", "social", "temperament", "affinities", "interests", "skills"]) {
+          if (snap[_hk] != null) npc.h[_hk] = (typeof snap[_hk] === "object") ? JSON.parse(JSON.stringify(snap[_hk])) : snap[_hk];
+        }
+        if (snap.bio && snap.bio.length) npc.h.life.bio = snap.bio.map(b => Object.assign({}, b));
+        if (snap.relations) npc.h.mind.relations = JSON.parse(JSON.stringify(snap.relations));
+        if (npc.cult && snap.cult) {
+          npc.cult.path = snap.cult.path || npc.cult.path;
+          npc.cult.sub = snap.cult.sub || npc.cult.sub;
+          const _ms = (g.CULT && g.CULT.PATHS && g.CULT.PATHS[npc.cult.path] && g.CULT.PATHS[npc.cult.path].stages) ? g.CULT.PATHS[npc.cult.path].stages.length : 9;
+          npc.cult.stage = clamp390(Math.max(snap.cult.stage || 1, Math.round(p.cultStage || 1)), 1, _ms);
+          npc.cult.prog = Math.max(snap.cult.prog || 0, 0);
+          if (Array.isArray(snap.cult.techs)) npc.cult.techs = snap.cult.techs.slice();
+        }
+        HC.touch(npc);
+      } else {
+        npc.h.name.family = p.name.family;
+        npc.h.name.given = p.name.given;
+        npc.h.sex = p.sex;
+        npc.h.birthDay = p.bornDay;
+        if (p.role) {
+          npc.h.life.bio.push({ d: W.day || 0, text: 'เข้าสู่สำนักจากภายนอก (เดิม: ' + p.role + ')' });
+        }
+        HC.touch(npc);
+      }
+
+      // Place admitted NPC cleanly at sect gate/plaza instead of (0,0)
+      const _gate = (g.MAP && (g.MAP.EXIT || (g.MAP.ZONES && g.MAP.ZONES.plaza))) || { x: 18, y: 20 };
+      npc.x = (_gate.x || 18);
+      npc.y = (_gate.y || 20);
+      npc.px = npc.x;
+      npc.py = npc.y;
+
+      // Attach politicalLife extension without mutating Human Core schema
+      npc.ext = npc.ext || {};
+      npc.ext.world = Object.assign({}, npc.ext.world || {}, {
+        hometownNodeId: p.locationNodeId || 'CITY_YH_SHUANGJIANG',
+        birthPolityId: this._settlementPolity(p.locationNodeId, W),
+        originPublic: p.clanVisibility === 'PUBLIC'
+      });
+      npc.ext.politicalLife = {
+        personId: p.id,
+        clanId: p.clanId || null,
+        branchId: p.branchId || null,
+        originClanId: p.originClanId || null,
+        formerClanIds: p.formerClanIds.slice(),
+        clanVisibility: p.clanVisibility || 'NONE',
+        formerRoles: p.formerRoles.slice(),
+        externalRole: p.role,
+        claims: p.claims.map(c => Object.assign({}, c)),
+        obligations: p.obligations.map(ob => Object.assign({}, ob)),
+        admittedDay: W.day || 0,
+        asylumPolityId: o.asylumPolityId || null
+      };
+
+      // Bring modest personal funds without duplicating from external account
+      const bringStones = Math.min(p.personalFunds || 0, o.maxBringStones != null ? o.maxBringStones : 150);
+      if (bringStones > 0) {
+        p.personalFunds -= bringStones;
+        npc.inv.stones = (npc.inv.stones || 0) + bringStones;
+        npc.personalStones = npc.inv.stones;
+      }
+
+      // Register cleanly through official SIM.register
+      SIM.register(W, npc);
+
+      // Update external person record to single active owner = HOME_SECT
+      if (p.role && !p.formerRoles.includes(p.role)) p.formerRoles.push(p.role);
+      p.tier = 'HOME_SECT_MEMBER';
+      p.ownerType = 'HOME_SECT';
+      p.ownerId = 'HOME_SECT';
+      p.locationNodeId = 'HOME_SECT';
+      p.role = o.asylumPolityId ? 'ผู้ลี้ภัยและศิษย์สำนัก' : 'ศิษย์รับเข้าจากภายนอก';
+      p.homeSectNpcId = npc.id;
+      p.travel = null;
+      p.lastUpdateDay = W.day || 0;
+
+      if (p.durableHcSnapshot) pl.stats.reentriesCount++;
+      else pl.stats.admissionsCount++;
+
+      this._recordEvent(W, 'PERSON_ADMITTED', o.asylumPolityId || null,
+        p.name.full + ' เข้าสังกัดสำนักในฐานะ' + p.role + (p.clanVisibility === 'PUBLIC' && p.clanId && pl.clans[p.clanId] ? ' (' + pl.clans[p.clanId].nameTh + ')' : ''),
+        { actorIds: [p.id, npc.id], visibility: p.clanVisibility === 'SECRET' ? 'PRIVATE' : 'PUBLIC' }
+      );
+
+      return { ok: true, npc, person: p };
+    },
+
+    departHomeSectToExternal(W, npcId, reasonTh, targetOwnerType, targetOwnerId, destNodeId, opts) {
+      const pl = this.ensure(W);
+      const npc = W.byId && W.byId[npcId];
+      const o = opts || {};
+      if (!npc || npc.dead) return { ok: false, reason: 'NPC_NOT_ACTIVE' };
+      if (!o.allowMaster && W.sect && W.sect.masterId === npc.id) return { ok: false, reason: 'IS_SECT_MASTER' };
+      if (!o.force) {
+        if (npc.away || npc.travel) return { ok: false, reason: 'NPC_AWAY_OR_TRAVELING' };
+        if (npc.combat || (npc.act && npc.act.id === 'fight')) return { ok: false, reason: 'NPC_IN_COMBAT' };
+        const _hpMax = (g.CULT && g.CULT.hpMax) ? g.CULT.hpMax(npc) : 100;
+        if (npc.h && npc.h.state && npc.h.state.hp < _hpMax * 0.4) return { ok: false, reason: 'NPC_CRITICALLY_INJURED' };
+      }
+      const SIM = g.SIM;
+      const HC = g.HC;
+      if (!SIM || !SIM.retire) return { ok: false, reason: 'SIM_UNAVAILABLE' };
+
+      const plExt = npc.ext && npc.ext.politicalLife;
+      let personId = plExt && plExt.personId;
+      let p = personId && pl.persons[personId];
+      if (!p) {
+        // Promote an ordinary sect disciple into a continuous named external person on departure
+        personId = 'PL_P_ALUM_' + npc.id;
+        p = this._makeExternalPerson(String(W.seed || 'JS2'), personId, {
+          day: W.day || 0,
+          name: { family: npc.h.name.family, given: npc.h.name.given, full: HC ? HC.fullName(npc) : (npc.h.name.family + npc.h.name.given) },
+          sex: npc.h.sex,
+          ageYears: HC ? HC.ageYears(npc, W.day || 0) : 25,
+          locationNodeId: destNodeId || 'CITY_YH_SHUANGJIANG',
+          ownerType: targetOwnerType || 'EXTERNAL_SECT',
+          ownerId: targetOwnerId || 'WANDERING',
+          role: 'อดีตศิษย์สำนัก',
+          cultStage: npc.cult ? npc.cult.stage : 2,
+          path: npc.cult ? npc.cult.path : 'XIAN',
+          clanId: plExt ? plExt.clanId : null,
+          branchId: plExt ? plExt.branchId : null,
+          clanVisibility: plExt ? plExt.clanVisibility : 'NONE'
+        });
+        pl.persons[personId] = p;
+      }
+
+      // Sync durable growth back to external person BEFORE SIM.retire removes resident
+      p.ageYears = HC ? HC.ageYears(npc, W.day || 0) : p.ageYears;
+      p.bornDay = npc.h.birthDay;
+      p.cultStage = npc.cult ? npc.cult.stage : p.cultStage;
+      p.path = npc.cult ? npc.cult.path : p.path;
+      const carryOut = Math.min(npc.inv ? (npc.inv.stones || 0) : 0, 120);
+      if (carryOut > 0 && npc.inv) {
+        npc.inv.stones -= carryOut;
+        npc.personalStones = npc.inv.stones;
+        p.personalFunds = (p.personalFunds || 0) + carryOut;
+      }
+      if (!p.formerRoles.includes('ศิษย์สำนักหยุนเหอ')) p.formerRoles.push('ศิษย์สำนักหยุนเหอ');
+      if (plExt && plExt.obligations && plExt.obligations.length) {
+        p.obligations = plExt.obligations.map(ob => Object.assign({}, ob));
+      }
+      p.durableHcSnapshot = {
+        npcId: npc.id,
+        name: { family: npc.h.name.family, given: npc.h.name.given },
+        sex: npc.h.sex,
+        traits: (npc.h.traits || []).map(t => Object.assign({}, t)),
+        personality: Object.assign({}, npc.h.personality || {}),
+        values: Object.assign({}, npc.h.values || {}),
+        aptitudes: Object.assign({}, npc.h.aptitudes || {}),
+        root: npc.h.root ? JSON.parse(JSON.stringify(npc.h.root)) : null,
+        constitution: npc.h.constitution ? JSON.parse(JSON.stringify(npc.h.constitution)) : null,
+        physiology: npc.h.physiology ? JSON.parse(JSON.stringify(npc.h.physiology)) : null,
+        intellect: npc.h.intellect ? JSON.parse(JSON.stringify(npc.h.intellect)) : null,
+        social: npc.h.social ? JSON.parse(JSON.stringify(npc.h.social)) : null,
+        temperament: npc.h.temperament ? JSON.parse(JSON.stringify(npc.h.temperament)) : null,
+        affinities: npc.h.affinities ? JSON.parse(JSON.stringify(npc.h.affinities)) : null,
+        interests: npc.h.interests ? JSON.parse(JSON.stringify(npc.h.interests)) : null,
+        skills: npc.h.skills ? JSON.parse(JSON.stringify(npc.h.skills)) : null,
+        bio: (npc.h.life && npc.h.life.bio ? npc.h.life.bio.slice(-20) : []).map(b => Object.assign({}, b)),
+        relations: npc.h.mind && npc.h.mind.relations ? JSON.parse(JSON.stringify(npc.h.mind.relations)) : {},
+        cult: npc.cult ? { path: npc.cult.path, sub: npc.cult.sub, stage: npc.cult.stage, prog: npc.cult.prog, techs: Array.isArray(npc.cult.techs) ? npc.cult.techs.slice() : [] } : null
+      };
+
+      // Cleanly retire from W.npcs & W.byId via official SIM.retire (zero duplication!)
+      npc.leave = { t: W.t || 0, why: reasonTh || 'ออกเดินทางสู่โลกภายนอก' };
+      SIM.retire(W, npc);
+
+      p.tier = 'EXTERNAL';
+      p.ownerType = targetOwnerType || 'TRAVELING';
+      p.ownerId = targetOwnerId || 'WANDERING';
+      p.locationNodeId = destNodeId || 'CITY_YH_SHUANGJIANG';
+      p.role = reasonTh || 'อดีตศิษย์สำนักในโลกภายนอก';
+      p.homeSectNpcId = null;
+      p.lastUpdateDay = W.day || 0;
+      pl.stats.departuresCount++;
+
+      this._recordEvent(W, 'PERSON_DEPARTED', targetOwnerType === 'DYNASTY' || targetOwnerType === 'COURT' ? targetOwnerId : null,
+        p.name.full + ' อำลาสำนักเพื่อ' + (reasonTh || 'ออกสู่โลกภายนอก'),
+        { actorIds: [p.id, npcId], visibility: 'PUBLIC' }
+      );
+      return { ok: true, person: p };
+    },
+
+    reenterHomeSect(W, personId, opts) {
+      return this.admitExternalPersonToHomeSect(W, personId, opts);
+    },
+
+    // =========================================================================
+    // 2. OPTIONAL CLAN IDENTITY, SECRET VISIBILITY & ENCOUNTER-TIME MODIFIER
+    // =========================================================================
+
+    rollApplicantClanHeritage(W, npc) {
+      if (!W || !npc || !npc.h || !npc.h.name) return;
+      const pl = this.ensure(W);
+      if (npc.ext && npc.ext.politicalLife && npc.ext.politicalLife.clanId) return;
+      const u = detUnit390((W.seed || 'JS2') + ':app_clan:' + npc.id + ':' + (npc.h.name.family || ''));
+      // Majority (~76%) unaffiliated; ~16% visible regional clan; ~8% secret declined ancient clan (Book 59)
+      let chosen = null;
+      let vis = 'NONE';
+      if (u < 0.08) {
+        const declined = Object.values(pl.clans).filter(c => c.status === 'DECLINED');
+        if (declined.length) {
+          chosen = declined[detHash390(npc.id + ':dec') % declined.length];
+          vis = 'SECRET';
+        }
+      } else if (u < 0.24) {
+        const active = Object.values(pl.clans).filter(c => c.status === 'ACTIVE');
+        if (active.length) {
+          chosen = active[detHash390(npc.id + ':act') % active.length];
+          vis = 'PUBLIC';
+        }
+      }
+      npc.ext = npc.ext || {};
+      if (!npc.ext.politicalLife) {
+        npc.ext.politicalLife = {
+          personId: null,
+          clanId: chosen ? chosen.id : null,
+          branchId: chosen && chosen.branches && chosen.branches.length ? chosen.branches[chosen.branches.length - 1].id : null,
+          originClanId: chosen ? chosen.id : null,
+          formerClanIds: [],
+          clanVisibility: vis,
+          formerRoles: [],
+          claims: [],
+          obligations: [],
+          admittedDay: W.day || 0
+        };
+      }
+    },
+
+    getVisibleClanLabel(W, npcOrPerson, viewerId) {
+      if (!W || !npcOrPerson) return null;
+      const pl = W.world && W.world.politicalLives;
+      if (!pl) return null;
+      const plData = npcOrPerson.ext && npcOrPerson.ext.politicalLife ? npcOrPerson.ext.politicalLife : npcOrPerson;
+      if (!plData || !plData.clanId) return null;
+      const vis = plData.clanVisibility || 'NONE';
+      const person = plData.personId ? pl.persons[plData.personId] : (pl.persons[npcOrPerson.id] || null);
+      const isKnownToViewer = viewerId && person && person.knownBy && person.knownBy[viewerId];
+      if (vis !== 'PUBLIC' && !isKnownToViewer) return null;
+      const clan = pl.clans[plData.clanId];
+      if (!clan) return null;
+      const branch = plData.branchId && clan.branches ? clan.branches.find(b => b.id === plData.branchId) : null;
+      return {
+        clanId: clan.id,
+        clanNameTh: clan.nameTh,
+        branchId: branch ? branch.id : null,
+        branchNameTh: branch ? branch.nameTh : null,
+        status: clan.status
+      };
+    },
+
+    revealPersonSecret(W, personId, secretType, witnessIds, reasonTh, makePublic) {
+      const pl = this.ensure(W);
+      const p = pl.persons[personId];
+      if (!p) return { ok: false, reason: 'NOT_FOUND' };
+      const wits = Array.isArray(witnessIds) ? witnessIds : [];
+      for (const wid of wits) {
+        p.knownBy[wid] = { secretType: secretType || 'CLAN_AND_CLAIM', day: W.day || 0, reasonTh: reasonTh || 'เปิดเผยความจริง' };
+      }
+      if (makePublic) {
+        p.clanVisibility = 'PUBLIC';
+      }
+      if (p.homeSectNpcId && W.byId && W.byId[p.homeSectNpcId]) {
+        const npc = W.byId[p.homeSectNpcId];
+        if (npc.ext && npc.ext.politicalLife && makePublic) {
+          npc.ext.politicalLife.clanVisibility = 'PUBLIC';
+        }
+      }
+      pl.stats.secretDisclosures++;
+      this._recordEvent(W, 'SECRET_DISCLOSED', p.ownerType === 'DYNASTY' ? p.ownerId : null,
+        p.name.full + ' ถูกเปิดเผยชาติกำเนิด' + (reasonTh ? ' (' + reasonTh + ')' : ''),
+        { actorIds: [p.id].concat(wits), visibility: makePublic ? 'PUBLIC' : 'PRIVATE' }
+      );
+      return { ok: true, visibility: p.clanVisibility, witnessCount: Object.keys(p.knownBy).length };
+    },
+
+    // Encounter-time directional familiarity modifier (no global pair scan, shared surname alone = 0)
+    evaluateClanEncounterModifier(W, observer, target, interactionValence) {
+      if (!W || !observer || !target || observer.id === target.id) return 0;
+      const pl = W.world && W.world.politicalLives;
+      if (!pl) return 0;
+      const obsPl = observer.ext && observer.ext.politicalLife ? observer.ext.politicalLife : observer;
+      const tgtPl = target.ext && target.ext.politicalLife ? target.ext.politicalLife : target;
+      if (!obsPl || !tgtPl || !obsPl.clanId || !tgtPl.clanId) return 0;
+      if (obsPl.clanId !== tgtPl.clanId) {
+        // Check rival clans if both are publicly known
+        const c1 = pl.clans[obsPl.clanId];
+        if (c1 && c1.rivalClanIds && c1.rivalClanIds.includes(tgtPl.clanId) &&
+            obsPl.clanVisibility === 'PUBLIC' && tgtPl.clanVisibility === 'PUBLIC') {
+          return -2;
+        }
+        return 0;
+      }
+      // Must be recognized by observer (PUBLIC or explicitly knownBy observer)
+      const tgtPerson = tgtPl.personId ? pl.persons[tgtPl.personId] : pl.persons[target.id];
+      const obsRecognizes = tgtPl.clanVisibility === 'PUBLIC' || (tgtPerson && tgtPerson.knownBy && tgtPerson.knownBy[observer.id]);
+      if (!obsRecognizes) return 0;
+
+      // Check grudge or estranged branch
+      const grudges = observer.h && observer.h.mind && observer.h.mind.grudges;
+      if (Array.isArray(grudges) && grudges.some(gr => gr.targetId === target.id)) return -3;
+
+      const clan = pl.clans[obsPl.clanId];
+      let delta = (interactionValence != null && interactionValence < 0) ? -1 : 3;
+      if (clan && obsPl.branchId && tgtPl.branchId && obsPl.branchId !== tgtPl.branchId) {
+        const br = clan.branches && clan.branches.find(b => b.id === tgtPl.branchId);
+        if (br && br.relationToMain < 35) delta = -2;
+        else delta = Math.round(delta * 0.5);
+      }
+
+      // Cap overlap with close kinship or shared hometown
+      const fam = observer.h && observer.h.life && observer.h.life.family;
+      const isKin = fam && ((fam.parents || []).includes(target.id) || (fam.children || []).includes(target.id) || fam.spouse === target.id);
+      const sameHometown = observer.ext && observer.ext.world && target.ext && target.ext.world &&
+        observer.ext.world.hometownNodeId && observer.ext.world.hometownNodeId === target.ext.world.hometownNodeId;
+      if (isKin || sameHometown) {
+        delta = clamp390(delta, -2, 1);
+      }
+      return clamp390(delta, -4, 4);
+    },
+
+    // =========================================================================
+    // 3. SHARED CONTRACT & MATERIAL FULFILLMENT LIFECYCLE
+    // offered -> accepted -> reserved -> in_transit -> delivered -> settled
+    // (+ refused, expired, partial, defaulted, disputed)
+    // =========================================================================
+
+    _getAssetOwner(W, ownerType, ownerId) {
+      const pl = this.ensure(W);
+      if (ownerType === 'TRADE_HALL') return pl.tradeHalls[ownerId] || null;
+      if (ownerType === 'CLAN') return pl.clans[ownerId] || null;
+      if (ownerType === 'DYNASTY') return pl.dynasties[ownerId] || null;
+      if (ownerType === 'COURT') {
+        const c = W.world && W.world.continent && W.world.continent.courts && W.world.continent.courts[ownerId];
+        return c ? c.livingPolity : null;
+      }
+      if (ownerType === 'HOME_SECT') return W.sect || null;
+      return null;
+    },
+
+    offerContract(W, spec) {
+      const pl = this.ensure(W);
+      const id = 'PL_CTR_' + (pl.seq++);
+      const day = W.day || 0;
+      const route = (spec.originCityId && spec.destCityId && X.planContinentalRoute)
+        ? X.planContinentalRoute(W, spec.originCityId, spec.destCityId)
+        : null;
+      const travelDays = route && route.days ? Math.max(2, Math.round(route.days)) : (spec.travelDays || 5);
+      const ctr = {
+        id,
+        kind: spec.kind || 'GRAIN_PROCUREMENT', // GRAIN_PROCUREMENT, MEDICINE_RELIEF, ESCORT, TRADE_CREDIT, CONCESSION, POLITICAL_AID
+        state: 'offered',
+        requesterType: spec.requesterType || 'COURT',
+        requesterId: spec.requesterId || 'POL_YUNHE',
+        providerType: spec.providerType || 'TRADE_HALL',
+        providerId: spec.providerId || 'HALL_SHUANGJIANG',
+        commodity: spec.commodity || 'grain',
+        quantity: Math.max(1, Math.round(spec.quantity || 30)),
+        deliveredQty: 0,
+        paymentStones: Math.max(0, Math.round(spec.paymentStones || 120)),
+        originCityId: spec.originCityId || 'CITY_YH_SHUANGJIANG',
+        destCityId: spec.destCityId || 'CITY_YX_WUYACASTLE',
+        travelDays,
+        offeredDay: day,
+        deadlineDay: day + Math.max(travelDays + 5, spec.deadlineDays || 25),
+        allowPartial: spec.allowPartial !== false,
+        visibility: spec.visibility || 'PUBLIC',
+        escortContractId: spec.escortContractId || null,
+        disputeId: spec.disputeId || null,
+        witnessIds: Array.isArray(spec.witnessIds) ? spec.witnessIds.slice() : [],
+        deliveryIds: [],
+        reservedCash: 0,
+        reservedQty: 0,
+        authorityVersion: spec.authorityVersion || 1,
+        noteTh: spec.noteTh || ''
+      };
+      pl.contracts[id] = ctr;
+      pl.stats.contractsOffered++;
+      return ctr;
+    },
+
+    evaluateContractOffer(W, contractId, forceDecision) {
+      const pl = this.ensure(W);
+      const ctr = pl.contracts[contractId];
+      if (!ctr || ctr.state !== 'offered') return { ok: false, reason: 'INVALID_STATE' };
+      const provider = this._getAssetOwner(W, ctr.providerType, ctr.providerId);
+      if (!provider) return { ok: false, reason: 'NO_PROVIDER' };
+
+      // Check trust & stock/cash capacity
+      const trust = (provider.trustByActorId && provider.trustByActorId[ctr.requesterId]) || 50;
+      let canSupply = true;
+      if (ctr.kind === 'GRAIN_PROCUREMENT' || ctr.kind === 'MEDICINE_RELIEF') {
+        const avail = provider.stock ? (provider.stock[ctr.commodity] || 0) : 0;
+        if (avail < Math.ceil(ctr.quantity * 0.5)) canSupply = false;
+      } else if (ctr.kind === 'TRADE_CREDIT' || ctr.kind === 'POLITICAL_AID') {
+        const availCash = provider.cash != null ? provider.cash : (provider.treasury != null ? provider.treasury : (provider.stones || 0));
+        if (availCash < ctr.paymentStones) canSupply = false;
+      }
+
+      const accept = forceDecision === 'accept' ? true : (forceDecision === 'refuse' ? false : (canSupply && trust >= 25));
+      if (!accept) {
+        ctr.state = 'refused';
+        pl.stats.contractsRefused++;
+        return { ok: true, state: 'refused', contract: ctr };
+      }
+      ctr.state = 'accepted';
+      return this.reserveContractResources(W, contractId);
+    },
+
+    reserveContractResources(W, contractId) {
+      const pl = this.ensure(W);
+      const ctr = pl.contracts[contractId];
+      if (!ctr || ctr.state !== 'accepted') return { ok: false, reason: 'INVALID_STATE' };
+      const provider = this._getAssetOwner(W, ctr.providerType, ctr.providerId);
+      const requester = this._getAssetOwner(W, ctr.requesterType, ctr.requesterId);
+      if (!provider) return { ok: false, reason: 'NO_PROVIDER' };
+
+      // Single-owner reservation: deduct from available pool & place into reserved bucket
+      if (ctr.kind === 'GRAIN_PROCUREMENT' || ctr.kind === 'MEDICINE_RELIEF') {
+        const avail = provider.stock ? (provider.stock[ctr.commodity] || 0) : 0;
+        const lockQty = ctr.allowPartial ? Math.min(avail, ctr.quantity) : (avail >= ctr.quantity ? ctr.quantity : 0);
+        if (lockQty <= 0) {
+          ctr.state = 'refused';
+          pl.stats.contractsRefused++;
+          return { ok: false, reason: 'INSUFFICIENT_STOCK' };
+        }
+        provider.stock[ctr.commodity] -= lockQty;
+        provider.reservedStock = provider.reservedStock || {};
+        provider.reservedStock[ctr.commodity] = (provider.reservedStock[ctr.commodity] || 0) + lockQty;
+        ctr.reservedQty = lockQty;
+      }
+
+      // Reserve payment on requester (supports TRADE_HALL/CLAN/DYNASTY/HOME_SECT; COURT delegates to DYNASTY treasury)
+      let payActor = requester;
+      let payActorType = ctr.requesterType;
+      if (ctr.requesterType === 'COURT' && pl.dynasties[ctr.requesterId]) {
+        payActor = pl.dynasties[ctr.requesterId];
+        payActorType = 'DYNASTY';
+      }
+      if (payActor && ctr.paymentStones > 0) {
+        if (payActorType === 'HOME_SECT' && (payActor.stones || 0) >= ctr.paymentStones) {
+          payActor.stones -= ctr.paymentStones;
+          payActor.reservedPlStones = (payActor.reservedPlStones || 0) + ctr.paymentStones;
+          ctr.reservedCash = ctr.paymentStones;
+        } else if (payActor.cash != null && payActor.cash >= ctr.paymentStones) {
+          payActor.cash -= ctr.paymentStones;
+          payActor.reservedCash = (payActor.reservedCash || 0) + ctr.paymentStones;
+          ctr.reservedCash = ctr.paymentStones;
+        } else if (payActorType === 'DYNASTY' && (payActor.householdTreasury || 0) >= ctr.paymentStones) {
+          payActor.householdTreasury -= ctr.paymentStones;
+          payActor.reservedHouseholdCash = (payActor.reservedHouseholdCash || 0) + ctr.paymentStones;
+          ctr.reservedCash = ctr.paymentStones;
+        } else if (payActorType !== 'COURT' && payActor.treasury != null && payActor.treasury >= ctr.paymentStones) {
+          payActor.treasury -= ctr.paymentStones;
+          payActor.reservedCash = (payActor.reservedCash || 0) + ctr.paymentStones;
+          ctr.reservedCash = ctr.paymentStones;
+        } else {
+          if (ctr.reservedQty > 0 && provider && provider.reservedStock && provider.reservedStock[ctr.commodity] >= ctr.reservedQty) {
+            provider.reservedStock[ctr.commodity] -= ctr.reservedQty;
+            provider.stock[ctr.commodity] = (provider.stock[ctr.commodity] || 0) + ctr.reservedQty;
+            ctr.reservedQty = 0;
+          }
+          ctr.state = 'refused';
+          pl.stats.contractsRefused++;
+          return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
+        }
+      }
+
+      ctr.inTransitQty = ctr.inTransitQty || 0;
+      ctr.state = 'reserved';
+      return { ok: true, state: 'reserved', reservedQty: ctr.reservedQty, reservedCash: ctr.reservedCash };
+    },
+
+    _releaseContractReserves(W, ctr) {
+      const pl = this.ensure(W);
+      const provider = this._getAssetOwner(W, ctr.providerType, ctr.providerId);
+      let payActor = this._getAssetOwner(W, ctr.requesterType, ctr.requesterId);
+      let payActorType = ctr.requesterType;
+      if (ctr.requesterType === 'COURT' && pl.dynasties[ctr.requesterId]) {
+        payActor = pl.dynasties[ctr.requesterId];
+        payActorType = 'DYNASTY';
+      }
+      if (ctr.reservedQty > 0 && provider && provider.reservedStock) {
+        const relQ = Math.min(ctr.reservedQty, provider.reservedStock[ctr.commodity] || 0);
+        if (relQ > 0) {
+          provider.reservedStock[ctr.commodity] -= relQ;
+          provider.stock[ctr.commodity] = (provider.stock[ctr.commodity] || 0) + relQ;
+        }
+        ctr.reservedQty = 0;
+      }
+      if (ctr.reservedCash > 0 && payActor) {
+        const relC = ctr.reservedCash;
+        if (payActorType === 'HOME_SECT') {
+          payActor.reservedPlStones = Math.max(0, (payActor.reservedPlStones || 0) - relC);
+          payActor.stones = (payActor.stones || 0) + relC;
+        } else if (payActor.cash != null) {
+          payActor.reservedCash = Math.max(0, (payActor.reservedCash || 0) - relC);
+          payActor.cash += relC;
+        } else if (payActorType === 'DYNASTY') {
+          payActor.reservedHouseholdCash = Math.max(0, (payActor.reservedHouseholdCash || 0) - relC);
+          payActor.householdTreasury = (payActor.householdTreasury || 0) + relC;
+        } else if (payActor.treasury != null) {
+          payActor.reservedCash = Math.max(0, (payActor.reservedCash || 0) - relC);
+          payActor.treasury += relC;
+        }
+        ctr.reservedCash = 0;
+      }
+    },
+
+    dispatchContractDelivery(W, contractId, qtyOverride) {
+      const pl = this.ensure(W);
+      const ctr = pl.contracts[contractId];
+      if (!ctr || (ctr.state !== 'reserved' && ctr.state !== 'in_transit' && ctr.state !== 'partial')) {
+        return { ok: false, reason: 'NOT_RESERVED' };
+      }
+      const isCommodity = (ctr.kind === 'GRAIN_PROCUREMENT' || ctr.kind === 'MEDICINE_RELIEF');
+      const availToDispatch = isCommodity
+        ? Math.max(0, (ctr.reservedQty || 0) - (ctr.inTransitQty || 0))
+        : Math.max(0, (ctr.quantity || 0) - (ctr.deliveredQty || 0) - (ctr.inTransitQty || 0));
+      if (availToDispatch <= 0) {
+        return { ok: false, reason: 'NO_REMAINING_RESERVED_QTY' };
+      }
+      const sendQty = qtyOverride != null ? Math.min(Math.max(1, Math.round(qtyOverride)), availToDispatch) : availToDispatch;
+      const delId = 'PL_DEL_' + (pl.seq++);
+      const day = W.day || 0;
+      const del = {
+        id: delId,
+        contractId: ctr.id,
+        commodity: ctr.commodity,
+        quantity: sendQty,
+        originCityId: ctr.originCityId,
+        destCityId: ctr.destCityId,
+        departDay: day,
+        etaDay: day + ctr.travelDays,
+        state: 'in_transit',
+        escorted: !!ctr.escortContractId,
+        settled: false
+      };
+      pl.deliveries[delId] = del;
+      ctr.deliveryIds.push(delId);
+      ctr.inTransitQty = (ctr.inTransitQty || 0) + sendQty;
+      ctr.state = 'in_transit';
+      return { ok: true, delivery: del };
+    },
+
+    settleDelivery(W, deliveryId, opts) {
+      const pl = this.ensure(W);
+      const del = pl.deliveries[deliveryId];
+      if (!del) return { ok: false, reason: 'DELIVERY_NOT_FOUND' };
+      // Idempotency guard: each delivery settles AT MOST ONCE!
+      if (del.settled || pl.settledReceipts[deliveryId]) {
+        return { ok: false, reason: 'ALREADY_SETTLED' };
+      }
+      const ctr = pl.contracts[del.contractId];
+      if (!ctr) return { ok: false, reason: 'CONTRACT_NOT_FOUND' };
+      const provider = this._getAssetOwner(W, ctr.providerType, ctr.providerId);
+      const requester = this._getAssetOwner(W, ctr.requesterType, ctr.requesterId);
+      const o = opts || {};
+
+      // Check interception / route interruption
+      const destCity = W.world && W.world.continent && W.world.continent.cities && W.world.continent.cities[del.destCityId];
+      const safety = destCity && destCity.safety != null ? destCity.safety : 70;
+      const interceptRisk = del.escorted ? Math.max(0.02, (85 - safety) / 400) : Math.max(0.05, (90 - safety) / 220);
+      const roll = detUnit390((W.seed || 'JS2') + ':del:' + deliveryId + ':' + (W.day || 0));
+      const interrupted = o.forceInterrupt === true ? true : (o.forceSuccess === true ? false : (roll < interceptRisk));
+
+      del.settled = true;
+      pl.settledReceipts[deliveryId] = { day: W.day || 0, outcome: interrupted ? 'interrupted' : 'delivered' };
+
+      ctr.inTransitQty = Math.max(0, (ctr.inTransitQty || 0) - del.quantity);
+      let payActor = requester;
+      let payActorType = ctr.requesterType;
+      if (ctr.requesterType === 'COURT' && pl.dynasties[ctr.requesterId]) {
+        payActor = pl.dynasties[ctr.requesterId];
+        payActorType = 'DYNASTY';
+      }
+
+      if (interrupted) {
+        del.state = 'defaulted';
+        if (provider && provider.reservedStock && provider.reservedStock[del.commodity] >= del.quantity) {
+          provider.reservedStock[del.commodity] -= del.quantity;
+        }
+        ctr.reservedQty = Math.max(0, (ctr.reservedQty || 0) - del.quantity);
+        this._releaseContractReserves(W, ctr);
+        ctr.state = 'defaulted';
+        pl.stats.contractsDefaulted++;
+        this._adjustEpistemicTrust(pl, ctr.requesterId, ctr.providerId, -12, ctr.witnessIds);
+        this._recordEvent(W, 'CONTRACT_INTERRUPTED', this._settlementPolity(del.destCityId, W),
+          'ขบวนขนส่ง ' + del.commodity + ' (' + del.quantity + ') สู่นคร ' + del.destCityId + ' ถูกตัดเส้นทาง สัญญาผิดนัด',
+          { actorIds: [ctr.requesterId, ctr.providerId].concat(ctr.witnessIds), visibility: ctr.visibility }
+        );
+        return { ok: true, outcome: 'defaulted', contract: ctr };
+      }
+
+      del.state = 'delivered';
+      ctr.deliveredQty += del.quantity;
+      if (provider && provider.reservedStock && provider.reservedStock[del.commodity] >= del.quantity) {
+        provider.reservedStock[del.commodity] -= del.quantity;
+      }
+      ctr.reservedQty = Math.max(0, (ctr.reservedQty || 0) - del.quantity);
+
+      const dist = this._ensureCityDistrict(pl, del.destCityId, this._settlementPolity(del.destCityId, W), String(W.seed || 'JS2'));
+      if (dist && (del.commodity === 'grain' || del.commodity === 'medicine' || del.commodity === 'ore')) {
+        dist[del.commodity] = (dist[del.commodity] || 0) + del.quantity;
+        if (dist.shortageCommodity === del.commodity) {
+          dist.shortageLevel = Math.max(0, dist.shortageLevel - Math.round(del.quantity * 1.4));
+          if (dist.shortageLevel <= 10) dist.shortageCommodity = null;
+        }
+      }
+
+      const payRatio = Math.min(1, del.quantity / Math.max(1, ctr.quantity));
+      const payAmt = Math.min(ctr.reservedCash || 0, Math.round(ctr.paymentStones * payRatio));
+      if (payAmt > 0 && payActor && provider) {
+        if (payActorType === 'HOME_SECT' && (payActor.reservedPlStones || 0) >= payAmt) payActor.reservedPlStones -= payAmt;
+        else if (payActor.reservedCash != null && payActor.reservedCash >= payAmt) payActor.reservedCash -= payAmt;
+        else if (payActor.reservedHouseholdCash != null && payActor.reservedHouseholdCash >= payAmt) payActor.reservedHouseholdCash -= payAmt;
+        ctr.reservedCash = Math.max(0, (ctr.reservedCash || 0) - payAmt);
+        if (provider.cash != null) provider.cash += payAmt;
+        else if (ctr.providerType === 'DYNASTY') provider.householdTreasury = (provider.householdTreasury || 0) + payAmt;
+        else if (provider.treasury != null) provider.treasury += payAmt;
+        else if (ctr.providerType === 'HOME_SECT') {
+          provider.stones = (provider.stones || 0) + payAmt;
+        }
+      }
+
+      ctr.state = ctr.deliveredQty >= ctr.quantity ? 'settled' : 'partial';
+      if (ctr.state === 'settled') {
+        pl.stats.contractsSettled++;
+        this._adjustEpistemicTrust(pl, ctr.requesterId, ctr.providerId, +8, ctr.witnessIds);
+        this._recordEvent(W, 'CONTRACT_SETTLED', this._settlementPolity(del.destCityId),
+          'ปิดสัญญาส่งมอบ ' + del.commodity + ' จำนวน ' + ctr.deliveredQty + ' สู่นคร ' + del.destCityId + ' สำเร็จ',
+          { actorIds: [ctr.requesterId, ctr.providerId], visibility: ctr.visibility }
+        );
+      }
+      return { ok: true, outcome: ctr.state, contract: ctr, delivery: del };
+    },
+
+    _adjustEpistemicTrust(pl, actorA, actorB, delta, witnessIds) {
+      const halls = Object.values(pl.tradeHalls);
+      const clans = Object.values(pl.clans);
+      const all = halls.concat(clans);
+      for (const inst of all) {
+        if (inst.id === actorA || inst.id === actorB || (witnessIds && witnessIds.includes(inst.id))) {
+          const other = inst.id === actorA ? actorB : actorA;
+          inst.trustByActorId = inst.trustByActorId || {};
+          const cur = inst.trustByActorId[other] != null ? inst.trustByActorId[other] : 50;
+          inst.trustByActorId[other] = clamp390(cur + delta, 0, 100);
+        }
+      }
+    },
+
+    // =========================================================================
+    // 4. FOUR-FACTOR SUCCESSION & POLITICAL CONFLICT ENGINE
+    // =========================================================================
+
+    evaluateClaimantStanding(W, polityId, personId) {
+      const pl = this.ensure(W);
+      const dyn = pl.dynasties[polityId];
+      const p = pl.persons[personId];
+      if (!dyn || !p || !p.alive) return { eligible: false, motive: 0, recognition: 0, capability: 0, totalScore: 0 };
+
+      const claim = (p.claims || []).find(c => c.polityId === polityId && !c.renounced);
+      const eligible = !!claim || dyn.designatedHeirId === personId || (dyn.legitimateClaimants || []).includes(personId);
+      const eligibilityScore = eligible ? (dyn.designatedHeirId === personId ? 0.90 : ((claim && claim.legitimacy) || 0.55)) : 0;
+
+      // Motive: ambition + resentment - caution
+      const m = p.motives || {};
+      const motive = clamp390((m.ambition || 0.4) * 0.6 + (m.resentment || 0.1) * 0.4 - (m.caution || 0.4) * 0.2, 0, 1);
+
+      // Recognition: office standing + clan reputation + explicit backers
+      const clanRep = p.clanId && pl.clans[p.clanId] ? (pl.clans[p.clanId].reputation / 100) * 0.25 : 0;
+      const inCapital = p.locationNodeId === this._capitalOf(polityId) ? 0.25 : 0.05;
+      const recognition = clamp390(eligibilityScore * 0.5 + clanRep + inCapital, 0, 1);
+
+      // Practical capability: personal funds + active aid contracts + cultivation credibility
+      const activeAid = Object.values(pl.contracts).filter(c =>
+        c.kind === 'POLITICAL_AID' && (c.requesterId === personId || c.requesterId === polityId) && (c.state === 'reserved' || c.state === 'in_transit' || c.state === 'settled')
+      ).reduce((acc, c) => acc + (c.paymentStones || 0), 0);
+      const fundScore = Math.min(0.45, ((p.personalFunds || 0) + activeAid) / 1500);
+      const cultScore = Math.min(0.30, ((p.cultStage || 3) / 9) * 0.30);
+      const capability = clamp390(fundScore + cultScore + ((p.capabilities && p.capabilities.diplomacy) || 40) / 250, 0, 1);
+
+      const _ct = W.world && W.world.continent && W.world.continent.courts && W.world.continent.courts[polityId];
+      const _stab = _ct && _ct.stability != null ? _ct.stability : 70;
+      const instabilitySwing = (dyn.designatedHeirId !== personId && _stab < 62) ? Math.min(0.22, ((62 - _stab) / 62) * 0.22 + motive * 0.08) : 0;
+      const totalScore = +(eligibilityScore * 0.30 + motive * 0.20 + recognition * 0.25 + capability * 0.25 + instabilitySwing).toFixed(3);
+      return { eligible, eligibilityScore, motive, recognition, capability, totalScore };
+    },
+
+    openSuccessionDispute(W, polityId, triggerReasonTh, opts) {
+      const pl = this.ensure(W);
+      const dyn = pl.dynasties[polityId];
+      if (!dyn) return { ok: false, reason: 'NO_DYNASTY' };
+      if (dyn.activeDisputeId && pl.disputes[dyn.activeDisputeId] && pl.disputes[dyn.activeDisputeId].stage !== 'AFTERMATH') {
+        return { ok: false, reason: 'DISPUTE_ALREADY_ACTIVE', disputeId: dyn.activeDisputeId };
+      }
+      const o = opts || {};
+      const id = 'PL_DSP_' + (pl.seq++);
+      const claimants = (o.claimantIds || dyn.legitimateClaimants || []).filter(cid => pl.persons[cid] && pl.persons[cid].alive);
+      const disp = {
+        id,
+        polityId,
+        triggerReasonTh: triggerReasonTh || 'ถึงวาระผลัดแผ่นดิน',
+        stage: 'OPENING',
+        openedDay: W.day || 0,
+        expectedOfficeVersion: dyn.officeVersion,
+        claimantIds: claimants,
+        backersByClaimant: {},
+        outcome: null,
+        winnerId: null,
+        displacedHeirId: null,
+        aftermathApplied: false
+      };
+      pl.disputes[id] = disp;
+      dyn.activeDisputeId = id;
+      this._recordEvent(W, 'SUCCESSION_OPENED', polityId,
+        dyn.dynastyNameTh + ' เข้าสู่กระบวนการสืบราชสมบัติ (' + disp.triggerReasonTh + ')',
+        { actorIds: claimants, visibility: 'PUBLIC' }
+      );
+      return { ok: true, dispute: disp };
+    },
+
+    resolveSuccessionDispute(W, disputeId, opts) {
+      const pl = this.ensure(W);
+      const disp = pl.disputes[disputeId];
+      if (!disp || disp.stage === 'AFTERMATH') return { ok: false, reason: 'INVALID_DISPUTE' };
+      const dyn = pl.dynasties[disp.polityId];
+      if (!dyn) return { ok: false, reason: 'NO_DYNASTY' };
+
+      // Stale/delayed version check: never overwrite a newer office appointment!
+      if (disp.expectedOfficeVersion !== dyn.officeVersion) {
+        disp.stage = 'AFTERMATH';
+        disp.outcome = 'NEGOTIATED_SETTLEMENT';
+        return { ok: false, reason: 'STALE_OFFICE_VERSION' };
+      }
+
+      const o = opts || {};
+      const scores = disp.claimantIds.map(cid => ({
+        id: cid,
+        eval: this.evaluateClaimantStanding(W, disp.polityId, cid)
+      })).sort((a, b) => b.eval.totalScore - a.eval.totalScore);
+
+      const court = W.world && W.world.continent && W.world.continent.courts && W.world.continent.courts[disp.polityId];
+      const stability = court && court.stability != null ? court.stability : 70;
+      const top = scores[0];
+      const runnerUp = scores[1];
+
+      // Determine peaceful vs contested outcome
+      const forceExile = o.forceOutcome === 'EXILE_FLIGHT';
+      const forcePeaceful = o.forceOutcome === 'PEACEFUL_ACCESSION';
+      const forceContestedWin = o.forceOutcome === 'CONTESTED_VICTORY';
+
+      let outcome = 'PEACEFUL_ACCESSION';
+      let winnerId = top ? top.id : dyn.designatedHeirId;
+      let displacedHeirId = null;
+
+      if (forceExile || (!forcePeaceful && !forceContestedWin && runnerUp && top && top.id !== dyn.designatedHeirId && stability < 62 && top.eval.motive > 0.35)) {
+        outcome = 'EXILE_FLIGHT';
+        winnerId = (runnerUp && top && top.id !== dyn.designatedHeirId) ? top.id : (runnerUp ? runnerUp.id : top.id);
+        displacedHeirId = dyn.designatedHeirId;
+        pl.stats.exileFlights++;
+        pl.stats.contestedSuccessions++;
+        dyn.contestedTransitions++;
+      } else if (forceContestedWin && top) {
+        outcome = 'CONTESTED_VICTORY';
+        winnerId = o.winnerId || top.id;
+        pl.stats.contestedSuccessions++;
+        dyn.contestedTransitions++;
+      } else {
+        outcome = 'PEACEFUL_ACCESSION';
+        winnerId = dyn.designatedHeirId && pl.persons[dyn.designatedHeirId] && pl.persons[dyn.designatedHeirId].alive
+          ? dyn.designatedHeirId : (top ? top.id : dyn.rulerPersonId);
+        pl.stats.peacefulSuccessions++;
+        dyn.peacefulTransitions++;
+      }
+
+      // Commit authoritative throne transition with bumped officeVersion
+      const prevRuler = pl.persons[dyn.rulerPersonId];
+      if (prevRuler && prevRuler.id !== winnerId) {
+        if (!prevRuler.formerRoles.includes(prevRuler.role)) prevRuler.formerRoles.push(prevRuler.role);
+        prevRuler.role = 'อดีตประมุข' + dyn.dynastyNameTh;
+      }
+      dyn.rulerPersonId = winnerId;
+      dyn.reignNumber = (dyn.reignNumber || 1) + 1;
+      dyn.officeVersion = (dyn.officeVersion || 1) + 1;
+      dyn.lastSuccessionDay = W.day || 0;
+      dyn.activeDisputeId = null;
+      dyn.legitimateClaimants = (dyn.legitimateClaimants || []).filter(cid => cid !== winnerId && pl.persons[cid] && pl.persons[cid].alive);
+      if (dyn.designatedHeirId === winnerId || !pl.persons[dyn.designatedHeirId] || !pl.persons[dyn.designatedHeirId].alive) {
+        const nextHeirId = 'PL_P_HEIR_GEN_' + disp.polityId + '_' + (pl.seq++);
+        const capNode = this._capitalOf(disp.polityId);
+        const wPerson = pl.persons[winnerId];
+        const fam = (wPerson && wPerson.name && wPerson.name.family) || dyn.dynastyNameTh.slice(0, 2);
+        const givenPool = ['เฉินอวี่', 'ซวนหมิง', 'จื้อหยวน', 'ชิงหลาน', 'เหวินอวิ๋น', 'หลิงซี'];
+        const giv = givenPool[detHash390(nextHeirId) % givenPool.length];
+        pl.persons[nextHeirId] = this._makeExternalPerson(String(W.seed || 'JS2'), nextHeirId, {
+          day: W.day || 0,
+          name: { family: fam, given: giv, full: fam + giv },
+          sex: (detHash390(nextHeirId + ':sx') % 2 === 0) ? 'M' : 'F',
+          ageYears: 18 + (detHash390(nextHeirId + ':ag') % 10),
+          locationNodeId: capNode,
+          ownerType: 'DYNASTY',
+          ownerId: disp.polityId,
+          role: 'รัชทายาทแห่ง' + dyn.dynastyNameTh,
+          cultStage: 3 + (detHash390(nextHeirId + ':st') % 2),
+          path: 'XIAN',
+          claims: [{ polityId: disp.polityId, legitimacy: 0.88, renounced: false }]
+        });
+        dyn.designatedHeirId = nextHeirId;
+        dyn.legitimateClaimants.unshift(nextHeirId);
+      }
+      if (dyn.legitimateClaimants.length < 2) {
+        const nextRivId = 'PL_P_RIVAL_GEN_' + disp.polityId + '_' + (pl.seq++);
+        const capNode = this._capitalOf(disp.polityId);
+        const wPerson = pl.persons[winnerId];
+        const fam = (wPerson && wPerson.name && wPerson.name.family) || dyn.dynastyNameTh.slice(0, 2);
+        const rPool = ['เจิ้นเทียน', 'อู๋จี๋', 'เสวียนเช่อ', 'เยว่หาน'];
+        const giv = rPool[detHash390(nextRivId) % rPool.length];
+        pl.persons[nextRivId] = this._makeExternalPerson(String(W.seed || 'JS2'), nextRivId, {
+          day: W.day || 0,
+          name: { family: fam, given: giv, full: fam + giv },
+          sex: 'M',
+          ageYears: 24 + (detHash390(nextRivId + ':ag') % 14),
+          locationNodeId: capNode,
+          ownerType: 'DYNASTY',
+          ownerId: disp.polityId,
+          role: 'เชื้อพระวงศ์สายรองแห่ง' + dyn.dynastyNameTh,
+          cultStage: 4 + (detHash390(nextRivId + ':st') % 2),
+          path: 'XIAN',
+          claims: [{ polityId: disp.polityId, legitimacy: 0.62, renounced: false }]
+        });
+        pl.persons[nextRivId].motives.ambition = clamp390(0.62 + detUnit390(nextRivId + ':amb') * 0.30, 0.55, 0.95);
+        dyn.legitimateClaimants.push(nextRivId);
+      }
+      if (court && court.livingPolity) {
+        if (outcome === 'EXILE_FLIGHT' || outcome === 'CONTESTED_VICTORY') {
+          court.livingPolity.dynastyGen = (court.livingPolity.dynastyGen || 1) + 1;
+        }
+        const seatList = Array.isArray(court.seats) ? court.seats : Object.values(court.seats || {});
+        const rSeat = seatList.find(s => s && s.role === 'ruler');
+        const wFig = pl.persons[winnerId];
+        if (rSeat && rSeat.holderId && W.world.continent.figures && W.world.continent.figures[rSeat.holderId] && wFig) {
+          const cf = W.world.continent.figures[rSeat.holderId];
+          if (cf.h && cf.h.name) {
+            cf.h.name.family = wFig.name.family || cf.h.name.family;
+            cf.h.name.given = wFig.name.given || cf.h.name.given;
+            cf.h.name.full = wFig.name.full;
+          }
+          cf.name = wFig.name.full;
+          cf.officeSince = W.day || 0;
+        }
+      }
+
+      const winner = pl.persons[winnerId];
+      if (winner) {
+        winner.ownerType = 'DYNASTY';
+        winner.ownerId = disp.polityId;
+        winner.locationNodeId = this._capitalOf(disp.polityId);
+        winner.role = 'ประมุข' + dyn.dynastyNameTh + ' (รัชกาลที่ ' + dyn.reignNumber + ')';
+        // If winner was a former Home Sect disciple, evaluate gratitude vs court politics!
+        if (winner.formerRoles && winner.formerRoles.includes('ศิษย์สำนักหยุนเหอ')) {
+          const shelterOb = (winner.obligations || []).find(ob => ob.creditorId === 'HOME_SECT' && !ob.fulfilled);
+          const gratitude = ((winner.motives && winner.motives.loyalty || 0.5) + (shelterOb ? 0.25 : 0)) >= 0.48;
+          if (shelterOb) { shelterOb.fulfilled = true; shelterOb.fulfilledTag = 'SHELTERED_IN_EXILE_FULFILLED'; }
+          dyn.policyFavors.HOME_SECT = {
+            kind: gratitude ? 'TRADE_AND_PASSAGE_RECOGNITION' : 'ARMS_LENGTH_RESPECT',
+            grantedDay: W.day || 0,
+            byPersonId: winner.id,
+            tollDiscount: gratitude ? 0.03 : 0,
+            noteTh: gratitude ? 'ลดด่านภาษีและรับรองสิทธิ์เดินทางตอบแทนบุญคุณสำนักเก่า' : 'เคารพอาจารย์เก่าเป็นการส่วนตัวแต่รักษาระยะห่างเชิงราชสำนัก'
+          };
+          if (gratitude && court && court.livingPolity) {
+            court.livingPolity.sectSupportBonus = (court.livingPolity.sectSupportBonus || 0) + 5;
+          }
+        }
+      }
+
+      // If EXILE_FLIGHT: displaced heir flees toward Yunhe / Home Sect for potential asylum
+      if (outcome === 'EXILE_FLIGHT' && displacedHeirId && pl.persons[displacedHeirId]) {
+        const heir = pl.persons[displacedHeirId];
+        if (!heir.formerRoles.includes(heir.role)) heir.formerRoles.push(heir.role);
+        heir.ownerType = 'TRAVELING';
+        heir.ownerId = 'EXILE_FLIGHT';
+        heir.role = 'รัชทายาทลี้ภัยแห่ง' + dyn.dynastyNameTh;
+        heir.clanVisibility = 'SECRET'; // hides royal identity while fleeing
+        heir.motives.resentment = clamp390((heir.motives.resentment || 0.2) + 0.35, 0, 1);
+        heir.travel = {
+          destNodeId: 'HOME_SECT',
+          departDay: W.day || 0,
+          etaDay: (W.day || 0) + 6,
+          purpose: 'SEEK_ASYLUM',
+          fromPolityId: disp.polityId
+        };
+      }
+
+      disp.stage = 'AFTERMATH';
+      disp.outcome = outcome;
+      disp.winnerId = winnerId;
+      disp.displacedHeirId = displacedHeirId;
+      disp.aftermathApplied = true;
+
+      this._recordEvent(W, 'SUCCESSION_RESOLVED', disp.polityId,
+        dyn.dynastyNameTh + ' ปิดฉากการผลัดแผ่นดิน: ' + (PL_OUTCOME_TH[outcome] || outcome) + (winner ? ' — ผู้ครองอำนาจคือ ' + winner.name.full : ''),
+        { actorIds: [winnerId, displacedHeirId].filter(Boolean), visibility: 'PUBLIC', outcome }
+      );
+      return { ok: true, outcome, winnerId, displacedHeirId, dispute: disp };
+    },
+
+    // =========================================================================
+    // 5. BOUNDED DAILY & MONTHLY SIMULATION TICKS (ZERO W.rng CONSUMPTION!)
+    // =========================================================================
+
+    tickDaily(W) {
+      if (!W) return;
+      const pl = this.ensure(W);
+      const day = W.day || 0;
+      if (pl.lastDailyDay >= day) return;
+      pl.lastDailyDay = day;
+
+      // 1. Bounded convoy settlement (max 6 deliveries per day)
+      // 0. Sync Home Sect deaths back to politicalLives.persons (zero zombie persons!)
+      for (const p of Object.values(pl.persons)) {
+        if (!p.alive || p.ownerType !== 'HOME_SECT') continue;
+        const npc = p.homeSectNpcId && W.byId && W.byId[p.homeSectNpcId];
+        if (!npc || npc.dead) {
+          p.alive = false;
+          p.ownerType = 'DECEASED';
+          p.homeSectNpcId = null;
+          p.lastUpdateDay = day;
+        }
+      }
+
+      let settledToday = 0;
+      for (const del of Object.values(pl.deliveries)) {
+        if (settledToday >= 6) break;
+        if (del.state === 'in_transit' && !del.settled && day >= del.etaDay) {
+          this.settleDelivery(W, del.id);
+          settledToday++;
+        }
+      }
+
+      // 2. Expire overdue offered / reserved / partial contracts with full reserve release
+      let expCount = 0;
+      for (const ctr of Object.values(pl.contracts)) {
+        if (expCount >= 6) break;
+        if ((ctr.state === 'offered' || ctr.state === 'reserved' || ctr.state === 'partial') && (ctr.inTransitQty || 0) <= 0 && day > ctr.deadlineDay) {
+          this._releaseContractReserves(W, ctr);
+          ctr.state = 'expired';
+          expCount++;
+        }
+      }
+
+      // 3. Process traveling exiled heirs arriving at Home Sect gate
+      for (const p of Object.values(pl.persons)) {
+        if (!p.alive || !p.travel) continue;
+        if (p.travel.purpose === 'SEEK_ASYLUM' && day >= p.travel.etaDay) {
+          const fromPol = p.travel.fromPolityId;
+          p.travel = null;
+          const sectPop = W.npcs ? W.npcs.filter(n => n && !n.dead).length : 0;
+          if (sectPop < 75) {
+            this.admitExternalPersonToHomeSect(W, p.id, { asylumPolityId: fromPol });
+          } else {
+            p.ownerType = 'EXILED';
+            p.locationNodeId = 'CITY_YH_SHUANGJIANG';
+          }
+        }
+      }
+    },
+
+    tickMonthly(W) {
+      if (!W) return;
+      const pl = this.ensure(W);
+      const day = W.day || 0;
+      const month = Math.floor(day / 30);
+      if (pl.lastMonthTick >= month) return;
+      pl.lastMonthTick = month;
+      const seed = String(W.seed || 'JS2');
+
+      // 1. Age external persons with realistic cultivation-stage lifespan & replenish base economies
+      for (const p of Object.values(pl.persons)) {
+        if (!p.alive || p.ownerType === 'HOME_SECT') continue;
+        p.ageYears = +(p.ageYears + 1 / 12).toFixed(2);
+        const maxLife = 88 + Math.round((p.cultStage || 2) * 18);
+        if (p.ageYears >= maxLife) {
+          p.alive = false;
+          p.ownerType = 'DECEASED';
+          p.lastUpdateDay = day;
+        }
+      }
+      for (const dyn of Object.values(pl.dynasties)) {
+        dyn.householdTreasury = Math.min(8000, (dyn.householdTreasury || 0) + 45);
+      }
+      for (const hall of Object.values(pl.tradeHalls)) {
+        hall.stock.grain = Math.min(400, (hall.stock.grain || 0) + 18);
+        hall.stock.medicine = Math.min(300, (hall.stock.medicine || 0) + 10);
+        hall.stock.ore = Math.min(300, (hall.stock.ore || 0) + 10);
+      }
+
+      // 2. One bounded district shortage & autonomous contract loop per month (bills DYNASTY stone treasury!)
+      const distIds = Object.keys(pl.cityDistricts);
+      if (distIds.length) {
+        const pickIdx = detHash390(seed + ':pl_shortage:' + month) % distIds.length;
+        const dist = pl.cityDistricts[distIds[pickIdx]];
+        const roll = detUnit390(seed + ':pl_short_roll:' + month + ':' + dist.cityId);
+        if (dist && roll < 0.35 && day - dist.lastShortageDay > 60) {
+          dist.polityId = this._settlementPolity(dist.cityId, W);
+          dist.shortageCommodity = (detHash390(seed + ':comm:' + month) % 2 === 0) ? 'grain' : 'medicine';
+          dist.shortageLevel = 45 + (detHash390(seed + ':sev:' + month) % 35);
+          dist.lastShortageDay = day;
+          if (dist.shortageLevel >= 62 && detUnit390(seed + ':pl_med:' + month + ':' + dist.cityId) < 0.40) {
+            this.evaluateCrisisMediation(W, dist.cityId);
+          }
+          const hallIds = Object.keys(pl.tradeHalls);
+          const hallId = hallIds[detHash390(seed + ':hall:' + month) % hallIds.length];
+          const hall = pl.tradeHalls[hallId];
+          if (hall && dist.shortageLevel >= 20) {
+            const ctr = this.offerContract(W, {
+              kind: dist.shortageCommodity === 'grain' ? 'GRAIN_PROCUREMENT' : 'MEDICINE_RELIEF',
+              requesterType: 'DYNASTY',
+              requesterId: dist.polityId,
+              providerType: 'TRADE_HALL',
+              providerId: hall.id,
+              commodity: dist.shortageCommodity,
+              quantity: 35,
+              paymentStones: 140,
+              originCityId: hall.hqCityId,
+              destCityId: dist.cityId,
+              noteTh: 'จัดหาเสบียงบรรเทาภาวะขาดแคลนประจำเขต'
+            });
+            const evalRes = this.evaluateContractOffer(W, ctr.id);
+            if (evalRes.ok && evalRes.state === 'reserved') {
+              this.dispatchContractDelivery(W, ctr.id);
+            }
+          }
+        }
+      }
+
+      // 2b. Organic Co-Designer Systems (quarterly/semi-annual bounded cadence — zero Code Zero!)
+      if (month > 0 && month % 3 === 0) {
+        const cIds = Object.keys(pl.clans);
+        if (cIds.length) {
+          const cid = cIds[detHash390(seed + ':pl_branch:' + month) % cIds.length];
+          const cl = pl.clans[cid];
+          if (cl && Array.isArray(cl.branches) && cl.branches.length >= 2 && !cl.branches[1].splitOff) {
+            const jr = cl.branches[1];
+            const drift = detUnit390(seed + ':pl_bdrift:' + month + ':' + cid);
+            if (drift < 0.45) {
+              jr.relationToMain = clamp390((jr.relationToMain || 60) - 9, 10, 100);
+              jr.treasury = (jr.treasury || 300) + 85;
+            }
+            this.evaluateClanBranchDynamics(W, cid);
+          }
+        }
+        this.evaluateAlumniAppointments(W);
+      }
+
+      if (month > 0 && month % 6 === 0) {
+        for (const p of Object.values(pl.persons)) {
+          if (!p.alive) continue;
+          if (p.ownerType === 'HOME_SECT' && p.homeSectNpcId && W.byId && W.byId[p.homeSectNpcId]) {
+            const npc = W.byId[p.homeSectNpcId];
+            const plExt = npc.ext && npc.ext.politicalLife;
+            const stayedDays = plExt ? (day - (plExt.admittedDay || 0)) : 0;
+            if (stayedDays >= 180 && (p.claims || []).some(c => !c.renounced)) {
+              this.evaluateExiledHeirReturn(W, p.id);
+            } else if (p.clanVisibility === 'SECRET' && stayedDays >= 240 && ((npc.cult && npc.cult.stage >= 4) || detUnit390(seed + ':rev:' + month + ':' + p.id) < 0.18)) {
+              this.revealPersonSecret(W, p.id, 'เปิดเผยชาติกำเนิดหลังบำเพ็ญเพียรร่วมกับศิษย์สำนัก');
+            }
+          } else if (p.ownerType === 'EXILED' && p.durableHcSnapshot && detUnit390(seed + ':reent:' + month + ':' + p.id) < 0.15) {
+            const sectPop = W.npcs ? W.npcs.filter(n => n && !n.dead).length : 0;
+            if (sectPop < 65) this.reenterHomeSect(W, p.id);
+          }
+        }
+      }
+
+      // 3. Bounded succession check (at most 1 polity per month; peaceful default!)
+      const polIds = Object.keys(pl.dynasties);
+      if (polIds.length && month > 0 && month % 6 === 0) {
+        const polId = polIds[detHash390(seed + ':pl_succ:' + month) % polIds.length];
+        const dyn = pl.dynasties[polId];
+        const ruler = dyn && pl.persons[dyn.rulerPersonId];
+        if (dyn && ruler && !dyn.activeDisputeId && day - dyn.lastSuccessionDay > 360) {
+          const successionRoll = detUnit390(seed + ':pl_succ_roll:' + month + ':' + polId);
+          if (successionRoll < 0.18 || ruler.ageYears > 155) {
+            const openRes = this.openSuccessionDispute(W, polId, ruler.ageYears > 155 ? 'ประมุขชราภาพสละราชย์' : 'วาระผลัดแผ่นดินตามกฎราชสำนัก');
+            if (openRes.ok) {
+              this.resolveSuccessionDispute(W, openRes.dispute.id);
+            }
+          }
+        }
+      }
+
+      // 4. Prune old closed contracts/deliveries to keep save size bounded
+      const ctrKeys = Object.keys(pl.contracts);
+      if (ctrKeys.length > 60) {
+        const closed = ctrKeys.filter(k => ['settled', 'refused', 'expired', 'defaulted'].includes(pl.contracts[k].state));
+        for (const k of closed.slice(0, ctrKeys.length - 45)) delete pl.contracts[k];
+      }
+      const delKeys = Object.keys(pl.deliveries);
+      if (delKeys.length > 80) {
+        const done = delKeys.filter(k => pl.deliveries[k].settled);
+        for (const k of done.slice(0, delKeys.length - 60)) delete pl.deliveries[k];
+      }
+    },
+
+
+    // =========================================================================
+    // 6. CO-DESIGNER UPGRADES: OBLIGATIONS, EMERGENT DRAMAS & LIVE FEEDBACK
+    // =========================================================================
+
+    recordObligation(W, debtorId, creditorId, kind, weight, noteTh) {
+      const pl = this.ensure(W);
+      const p = pl.persons[debtorId];
+      const ob = {
+        id: 'PL_OB_' + (pl.seq++),
+        debtorId,
+        creditorId,
+        kind: kind || 'SHELTERED_IN_EXILE',
+        weight: clamp390(weight || 25, 5, 100),
+        day: W.day || 0,
+        fulfilled: false,
+        noteTh: noteTh || 'บุญคุณที่ยังมิได้ตอบแทน'
+      };
+      if (p) {
+        p.obligations = p.obligations || [];
+        p.obligations.push(ob);
+        if (p.homeSectNpcId && W.byId && W.byId[p.homeSectNpcId]) {
+          const npc = W.byId[p.homeSectNpcId];
+          if (npc.ext && npc.ext.politicalLife) {
+            npc.ext.politicalLife.obligations = p.obligations.map(x => Object.assign({}, x));
+          }
+        }
+      }
+      return ob;
+    },
+
+    evaluateExiledHeirReturn(W, personId, opts) {
+      const pl = this.ensure(W);
+      const p = pl.persons[personId];
+      if (!p || !p.alive || p.ownerType !== 'HOME_SECT' || !p.homeSectNpcId) {
+        return { ok: false, reason: 'NOT_IN_HOME_SECT' };
+      }
+      const npc = W.byId && W.byId[p.homeSectNpcId];
+      if (!npc || npc.dead) return { ok: false, reason: 'NPC_MISSING' };
+      const claim = (p.claims || []).find(c => !c.renounced);
+      if (!claim) return { ok: false, reason: 'NO_ACTIVE_CLAIM' };
+      const dyn = pl.dynasties[claim.polityId];
+      if (!dyn || dyn.rulerPersonId === p.id) return { ok: false, reason: 'ALREADY_RULER' };
+
+      // Read REAL Human Core personality/values & sect bonds via HC.eff!
+      const HC = g.HC;
+      const _eff = (k, fb) => (HC && HC.eff ? HC.eff(npc, k) : fb);
+      const hcAmb = ((_eff('values.powerStatus', 50) * 0.6 + _eff('personality.ambition', 50) * 0.4) / 100);
+      const hcLoy = ((_eff('personality.loyalty', 50) * 0.6 + _eff('values.sectDuty', 50) * 0.4) / 100);
+      const rels = (npc.h && npc.h.mind && npc.h.mind.relations) || {};
+      const deepSectBonds = Object.values(rels).filter(r => r && (r.a || 0) >= 65).length;
+      const stage = (npc.cult && npc.cult.stage) || p.cultStage || 3;
+      const o = opts || {};
+
+      // Credible opening score vs attachment to new life in Home Sect
+      const court = W.world && W.world.continent && W.world.continent.courts && W.world.continent.courts[claim.polityId];
+      const courtWeakness = court && court.stability != null ? Math.max(0, (70 - court.stability) / 70) : 0.35;
+      const returnDrive = hcAmb * 0.45 + (p.motives.resentment || 0.2) * 0.30 + courtWeakness * 0.25 + (stage >= 5 ? 0.15 : 0);
+      const stayDrive = hcLoy * 0.35 + Math.min(0.45, deepSectBonds * 0.15) + (p.motives.caution || 0.3) * 0.20;
+
+      const decision = o.forceDecision || (returnDrive > stayDrive + 0.08 ? 'CONTEST_RETURN' : (stayDrive > returnDrive + 0.22 ? 'RENOUNCE_AND_STAY' : 'WAIT'));
+
+      if (decision === 'RENOUNCE_AND_STAY') {
+        claim.renounced = true;
+        p.role = 'ศิษย์สำนักผู้สละสิทธิ์ราชบัลลังก์';
+        if (npc.ext && npc.ext.politicalLife) {
+          npc.ext.politicalLife.claims = p.claims.map(c => Object.assign({}, c));
+        }
+        if (npc.h && npc.h.life && npc.h.life.bio) {
+          npc.h.life.bio.push({ d: W.day || 0, text: 'ตัดสินใจสละสิทธิ์ในราชบัลลังก์ ' + dyn.dynastyNameTh + ' เพื่อใช้ชีวิตบำเพ็ญเพียรในสำนัก' });
+        }
+        this._recordEvent(W, 'CLAIM_RENOUNCED', claim.polityId,
+          p.name.full + ' ตัดสินใจสละสิทธิ์ชิงบัลลังก์ ' + dyn.dynastyNameTh + ' และฝากชีวิตไว้กับสำนักหยุนเหอ',
+          { actorIds: [p.id, npc.id], visibility: 'PUBLIC' }
+        );
+        return { ok: true, decision: 'RENOUNCE_AND_STAY', person: p };
+      }
+
+      if (decision === 'CONTEST_RETURN') {
+        // Record shelter obligation to Home Sect before departing!
+        const hasShelterOb = (p.obligations || []).some(ob => ob.creditorId === 'HOME_SECT' && ob.kind === 'SHELTERED_IN_EXILE');
+        if (!hasShelterOb) {
+          this.recordObligation(W, p.id, 'HOME_SECT', 'SHELTERED_IN_EXILE', 45, 'เคยได้รับที่พักพิงและฝึกฝนในสำนักหยุนเหอยามลี้ภัย');
+        }
+        // Seek real material backing (POLITICAL_AID contract from a Trade Hall if trusted)
+        const hall = pl.tradeHalls.HALL_SHUANGJIANG || Object.values(pl.tradeHalls)[0];
+        let aidContract = null;
+        if (hall && hall.cash >= 200) {
+          aidContract = this.offerContract(W, {
+            kind: 'POLITICAL_AID',
+            requesterType: 'DYNASTY',
+            requesterId: claim.polityId,
+            providerType: 'TRADE_HALL',
+            providerId: hall.id,
+            commodity: 'grain',
+            quantity: 25,
+            paymentStones: 180,
+            originCityId: hall.hqCityId,
+            destCityId: this._capitalOf(claim.polityId),
+            noteTh: 'สนับสนุนเสบียงและทุนเดินทางคืนสู่ราชสำนักของ ' + p.name.full
+          });
+          const _aidRes = this.evaluateContractOffer(W, aidContract.id, 'accept');
+          if (_aidRes && _aidRes.ok && _aidRes.state === 'reserved') {
+            this.dispatchContractDelivery(W, aidContract.id);
+          }
+        }
+        this.departHomeSectToExternal(W, npc.id, 'ออกเดินทางคืนสู่' + dyn.dynastyNameTh + 'เพื่อทวงสิทธิ์', 'TRAVELING', claim.polityId, this._capitalOf(claim.polityId), { force: !!o.forceDecision });
+        return { ok: true, decision: 'CONTEST_RETURN', person: p, aidContractId: aidContract ? aidContract.id : null };
+      }
+
+      return { ok: true, decision: 'WAIT', returnDrive: +returnDrive.toFixed(2), stayDrive: +stayDrive.toFixed(2) };
+    },
+
+    evaluateClanBranchDynamics(W, clanId) {
+      const pl = this.ensure(W);
+      const clan = pl.clans[clanId];
+      if (!clan || !Array.isArray(clan.branches) || clan.branches.length < 2) return { ok: false, reason: 'NO_JUNIOR_BRANCH' };
+      const junior = clan.branches[1];
+      if (junior.splitOff) return { ok: false, reason: 'ALREADY_SPLIT' };
+      if (junior.relationToMain >= 35 || (junior.treasury || 0) < 500) {
+        return { ok: false, reason: 'CONDITIONS_NOT_MET' };
+      }
+      // Junior branch splits off into an independent rival workshop/house (conserving parent assets!)
+      junior.splitOff = true;
+      const splitCash = Math.min(clan.treasury || 0, junior.treasury || 500);
+      clan.treasury = Math.max(0, (clan.treasury || 0) - splitCash);
+      const sG = Math.min(45, (clan.stock && clan.stock.grain) || 0);
+      const sM = Math.min(30, (clan.stock && clan.stock.medicine) || 0);
+      const sO = Math.min(55, (clan.stock && clan.stock.ore) || 0);
+      if (clan.stock) {
+        clan.stock.grain = Math.max(0, (clan.stock.grain || 0) - sG);
+        clan.stock.medicine = Math.max(0, (clan.stock.medicine || 0) - sM);
+        clan.stock.ore = Math.max(0, (clan.stock.ore || 0) - sO);
+      }
+      const newClanId = clan.id + '_BRANCH_' + (pl.seq++);
+      pl.clans[newClanId] = {
+        id: newClanId,
+        nameTh: junior.nameTh + ' (แยกสายอิสระ)',
+        surname: clan.surname,
+        status: 'ACTIVE',
+        polityId: this._settlementPolity(junior.cityId, W),
+        homeCityId: junior.cityId,
+        headPersonId: null,
+        lineageArtTh: clan.lineageArtTh + ' (สายประยุกต์)',
+        treasury: splitCash,
+        reservedCash: 0,
+        stock: { grain: sG, medicine: sM, ore: sO },
+        reservedStock: { grain: 0, medicine: 0, ore: 0 },
+        reputation: 54,
+        rivalClanIds: [clan.id],
+        branches: [{ id: junior.id, nameTh: junior.nameTh, cityId: junior.cityId, relationToMain: 100, treasury: junior.treasury }],
+        trustByActorId: {}
+      };
+      if (!clan.rivalClanIds.includes(newClanId)) clan.rivalClanIds.push(newClanId);
+      pl.stats.branchSchisms = (pl.stats.branchSchisms || 0) + 1;
+      this._recordEvent(W, 'CLAN_BRANCH_SCHISM', pl.clans[newClanId].polityId,
+        junior.nameTh + ' แยกตัวออกจาก' + clan.nameTh + ' ตั้งโรงช่างและสายตระกูลอิสระ ณ ' + junior.cityId,
+        { actorIds: [clan.id, newClanId], visibility: 'PUBLIC' }
+      );
+      return { ok: true, newClanId, parentClanId: clan.id };
+    },
+
+    evaluateAlumniAppointments(W) {
+      const pl = this.ensure(W);
+      const appointed = [];
+      for (const p of Object.values(pl.persons)) {
+        if (!p.alive || p.ownerType === 'HOME_SECT' || p.ownerType === 'DYNASTY') continue;
+        if (!p.formerRoles || !p.formerRoles.includes('ศิษย์สำนักหยุนเหอ')) continue;
+        if ((p.cultStage || 0) < 5 || p.appointedRegulatorPolityId) continue;
+        const targetPol = this._settlementPolity(p.locationNodeId) || 'POL_YUNHE';
+        p.appointedRegulatorPolityId = targetPol;
+        p.ownerType = 'COURT';
+        p.ownerId = targetPol;
+        p.role = 'ผู้ตรวจการภูมิภาค (' + targetPol + ' · ศิษย์เก่าสำนักหยุนเหอ)';
+        const dyn = pl.dynasties[targetPol];
+        if (dyn) {
+          dyn.alumniInOffice = dyn.alumniInOffice || [];
+          if (!dyn.alumniInOffice.includes(p.id)) dyn.alumniInOffice.push(p.id);
+        }
+        pl.stats.alumniAppointments = (pl.stats.alumniAppointments || 0) + 1;
+        this._recordEvent(W, 'ALUMNUS_APPOINTED_REGULATOR', targetPol,
+          'อดีตศิษย์สำนัก ' + p.name.full + ' ได้รับแต่งตั้งเป็นผู้ตรวจการราชสำนักประจำ ' + targetPol,
+          { actorIds: [p.id, targetPol], visibility: 'PUBLIC' }
+        );
+        appointed.push(p.id);
+      }
+      return { ok: true, appointed };
+    },
+
+    evaluateCrisisMediation(W, cityId) {
+      const pl = this.ensure(W);
+      const dist = pl.cityDistricts[cityId];
+      if (!dist || dist.shortageLevel < 60) return { ok: false, reason: 'NO_SEVERE_CRISIS' };
+      // Find a pair of rival clans who can temporarily co-sign relief for this crisis
+      const activeClans = Object.values(pl.clans).filter(c => c.status === 'ACTIVE' && (c.rivalClanIds || []).length > 0);
+      for (const cA of activeClans) {
+        const cB = pl.clans[cA.rivalClanIds[0]];
+        if (!cB || cB.status !== 'ACTIVE') continue;
+        const comm = dist.shortageCommodity || 'medicine';
+        const qA = Math.min(20, (cA.stock && cA.stock[comm]) || 0);
+        const qB = Math.min(20, (cB.stock && cB.stock[comm]) || 0);
+        if (qA + qB < 15) continue;
+        cA.stock[comm] -= qA;
+        cB.stock[comm] -= qB;
+        dist[comm] = (dist[comm] || 0) + qA + qB;
+        dist.shortageLevel = Math.max(0, dist.shortageLevel - Math.round((qA + qB) * 1.5));
+        this._adjustEpistemicTrust(pl, cA.id, cB.id, +18, [dist.polityId]);
+        pl.stats.crisisTruces = (pl.stats.crisisTruces || 0) + 1;
+        this._recordEvent(W, 'CRISIS_RIVAL_TRUCE', dist.polityId,
+          cA.nameTh + ' และ ' + cB.nameTh + ' พักศึกชั่วคราวร่วมส่ง' + comm + ' (' + (qA + qB) + ') บรรเทาภัย ณ ' + cityId,
+          { actorIds: [cA.id, cB.id], visibility: 'PUBLIC' }
+        );
+        return { ok: true, clanA: cA.id, clanB: cB.id, delivered: qA + qB };
+      }
+      return { ok: false, reason: 'NO_ELIGIBLE_RIVALS' };
+    },
+
+    // Read-only summary helper for UI.rPolities / UI.rWorld (zero W mutation, zero W.rng!)
+    getReadOnlySummary(W) {
+      const pl = W && W.world && W.world.politicalLives;
+      if (!pl) return null;
+      const activeContracts = Object.values(pl.contracts || {}).filter(c => ['offered', 'accepted', 'reserved', 'in_transit', 'partial'].includes(c.state));
+      const activeDeliveries = Object.values(pl.deliveries || {}).filter(d => d.state === 'in_transit');
+      const activeDisputes = Object.values(pl.disputes || {}).filter(d => d.stage !== 'AFTERMATH');
+      const recentEvents = (pl.events || []).filter(e => e.visibility === 'PUBLIC').slice(-8).reverse();
+      return {
+        dynastyCount: Object.keys(pl.dynasties || {}).length,
+        clanCount: Object.keys(pl.clans || {}).length,
+        tradeHallCount: Object.keys(pl.tradeHalls || {}).length,
+        personCount: Object.keys(pl.persons || {}).length,
+        activeContracts,
+        activeDeliveries,
+        activeDisputes,
+        recentEvents,
+        stats: pl.stats || {}
+      };
+    }
+  };
+  /* === JS2_V390_POLITICAL_LIVES_END === */
+
+  /* === JS2_V394_LIVING_INSTITUTIONS_START === */
+  X.LIVING_INSTITUTIONS = {
+    VERSION: '3.9.4-living-institutions-and-cycles',
+
+    WORLD_CYCLE_DEFS: [
+      { id: 'PRIMORDIAL_RIFT', nameTh: 'ประตูรอยแยกบรรพกาล (สุสานสวนสวรรค์ & ตำหนักโอสถ)', firstYear: 1, month: 3, dom: 15, durationDays: 180, periodYears: 1000, kind: 'PORTAL' },
+      { id: 'DAWN_STELE_CAVE', nameTh: 'ประตูปากถ้ำศิลารับอรุณ (ถ้ำศิลาจารึกวิถีกระบี่)', firstYear: 2, month: 2, dom: 9, durationDays: 15, periodYears: 12, kind: 'PORTAL' },
+      { id: 'FOG_WHIRLPOOL', nameTh: 'ช่องน้ำวนแยกตัว (เกาะม่านหมอกชายขอบทะเลหมอก)', firstYear: 3, month: 6, dom: 1, durationDays: 30, periodYears: 25, kind: 'PORTAL' },
+      { id: 'REVERSE_RIVER', nameTh: 'แม่น้ำหนี่สุ่ยไหลย้อนขึ้นยอดเขา', firstYear: 4, month: 6, dom: 12, durationDays: 3, periodYears: 12, kind: 'ANOMALY' },
+      { id: 'DEEP_YIN_ECLIPSE', nameTh: 'เหมันต์สุริยคราสหยินลึก', firstYear: 4, month: 10, dom: 1, durationDays: 180, periodYears: 120, kind: 'CALAMITY' },
+      { id: 'BLOOD_ECLIPSE_PORTAL', nameTh: 'ประตูสุริยุปราคาโลหิต (ห้วงเหวราชันอสูร)', firstYear: 4, month: 12, dom: 15, durationDays: 45, periodYears: 120, kind: 'PORTAL' },
+      { id: 'KONGCHENG_TOWER', nameTh: 'ซุ้มเสาวาร์ปนครเมฆาลอยคงเฉิง', firstYear: 7, month: 7, dom: 1, durationDays: 90, periodYears: 100, kind: 'PORTAL' },
+      { id: 'ASTRAL_CONJUNCTION', nameTh: 'ประตูดาราจักรบรรจบ (ตำหนักพิณอสนี & วิหารดาราจักร)', firstYear: 12, month: 8, dom: 15, durationDays: 60, periodYears: 300, kind: 'PORTAL' },
+      { id: 'DRAGON_VEIN_SURGE', nameTh: 'คลื่นปราณชีพจรมังกรตื่น', firstYear: 20, month: 1, dom: 1, durationDays: 1080, periodYears: 60, kind: 'SURGE' }
+    ],
+
+    _hashSeed(seed) {
+      const s = String(seed == null ? 'js2_v394' : seed);
+      let h = 2166136261 >>> 0;
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619) >>> 0;
+      }
+      return (h ^ 0x394A7B1D) >>> 0 || 1337;
+    },
+
+    _rand(li) {
+      let x = (li.rngState >>> 0) || 1337;
+      x = (Math.imul(x, 1664525) + 1013904223) >>> 0;
+      li.rngState = x;
+      return x / 4294967296;
+    },
+
+    _cal(W) {
+      if (typeof SIM !== 'undefined' && SIM.calendar) return SIM.calendar(W.t || 0);
+      const day = Math.floor((W.t || 0) / 1440);
+      const y = Math.floor(day / 360) + 1;
+      const m = Math.floor((day % 360) / 30) + 1;
+      const d = (day % 30) + 1;
+      return { epoch: 101, yearInEpoch: y, year: y, month: m, dom: d, worldYear: 100000 + y, day };
+    },
+
+    _leaderProfile(W) {
+      const npcs = (W && W.npcs) || [];
+      const masterId = W && W.sect && (W.sect.masterId || (W.sect.offices && W.sect.offices.master));
+      const master = (masterId && npcs.find(n => n && !n.dead && n.id === masterId))
+        || npcs.find(n => n && !n.dead && (n.id === 'n_master' || n.rank === 'MASTER' || n.role === 'master' || n.isMaster))
+        || npcs.find(n => n && !n.dead)
+        || null;
+      const h = (master && master.h) || {};
+      const v = h.values || (master && master.hc && master.hc.values) || (master && master.values) || {};
+      const p = h.personality || (master && master.hc && master.hc.personality) || (master && master.personality) || {};
+      const clamp01 = x => Math.max(0, Math.min(1, typeof x === 'number' ? (x > 1 ? x / 100 : x) : 0.5));
+      const integrity = clamp01(p.integrity != null ? p.integrity : (p.honesty != null ? p.honesty : 55));
+      const honor = clamp01(v.honorLegacy != null ? v.honorLegacy : (v.justice != null ? v.justice : 55));
+      const wealth = clamp01(v.wealthResource != null ? v.wealthResource : (v.wealth != null ? v.wealth : 45));
+      const ambition = clamp01(p.ambition != null ? p.ambition : (v.ambition != null ? v.ambition : 45));
+      const caution = clamp01(p.caution != null ? p.caution : 55);
+      const discipline = clamp01(p.discipline != null ? p.discipline : 55);
+      const rationality = clamp01(p.rationality != null ? p.rationality : 55);
+      const empathy = clamp01(p.empathy != null ? p.empathy : (v.compassion != null ? v.compassion : 55));
+      const sectDuty = clamp01(v.sectDuty != null ? v.sectDuty : 55);
+      const fullName = (typeof HC !== 'undefined' && HC.fullName && master)
+        ? HC.fullName(master)
+        : ((master && master.name && master.name.full) || (master && master.name) || 'เจ้าสำนักรุ่นที่ 7');
+      return {
+        master,
+        name: fullName,
+        justice: Number((integrity * 0.6 + honor * 0.4).toFixed(3)),
+        greed: Number((wealth * 0.65 + ambition * 0.35).toFixed(3)),
+        prudence: Number((caution * 0.55 + discipline * 0.25 + rationality * 0.20).toFixed(3)),
+        benevolence: Number((empathy * 0.6 + sectDuty * 0.4).toFixed(3))
+      };
+    },
+
+    // Pure Read-Only Market Price Modifier for ECO.price (ZERO W.rng consumption, ZERO mutation)
+    getMarketPriceModifier(W, id) {
+      const li = W && W.world && W.world.livingInstitutions;
+      if (!li || typeof id !== 'string') return 1;
+      const mat = (g.ECO && g.ECO.matById && g.ECO.matById[id]) || null;
+      if (mat && mat.category === 'HERB' && (mat.element === 'FIRE' || mat.element === 'LIGHT_YANG' || /เพลิง|ไฟ|สุริยัน|หยาง|ชาด|ร้อน|อัคคี/.test(mat.nameTh || ''))) {
+        const hm = (li.curseEconomy && li.curseEconomy.heatHerbPriceMultiplier) || 1;
+        return Math.max(1, Math.min(4.5, Number(hm) || 1));
+      }
+      if (id === 'grain' || id === 'meal') {
+        const deepYin = Array.isArray(li.activeCycles) && li.activeCycles.some(c => c && c.id === 'DEEP_YIN_ECLIPSE');
+        const dnTrust = (li.departedNetwork && li.departedNetwork.trust) || 0;
+        if (deepYin) {
+          return dnTrust >= 3 ? 1.30 : 1.45;
+        }
+        const pressure = (li.bloodlessWar && li.bloodlessWar.localPressure) || 0;
+        if (pressure >= 5 && dnTrust < 3) return 1.12;
+      }
+      return 1;
+    },
+
+    _recordEvent(W, li, kind, summaryTh) {
+      const day = Math.floor((W.t || 0) / 1440);
+      const cal = this._cal(W);
+      li.recentEvents.unshift({
+        day,
+        yearInEpoch: cal.yearInEpoch,
+        month: cal.month,
+        dom: cal.dom,
+        kind,
+        summaryTh
+      });
+      if (li.recentEvents.length > 40) li.recentEvents.length = 40;
+      if (typeof SIM !== 'undefined' && typeof SIM.log === 'function') {
+        try { SIM.log(W, 'world', summaryTh); } catch (_) {}
+      }
+    },
+
+    ensure(W) {
+      if (!W) return null;
+      if (!W.world) W.world = {};
+      const existing = W.world.livingInstitutions;
+      if (existing && existing.version === this.VERSION) {
+        if (existing.sectNameRegistry && existing.sectNameRegistry.totalTollPaid == null) existing.sectNameRegistry.totalTollPaid = 0;
+        if (existing.departedNetwork) {
+          if (existing.departedNetwork.totalGrainDelivered == null) existing.departedNetwork.totalGrainDelivered = 0;
+          if (existing.departedNetwork.referredApplicantsCount == null) existing.departedNetwork.referredApplicantsCount = 0;
+          if (existing.departedNetwork.lastReferralYear == null) existing.departedNetwork.lastReferralYear = 0;
+        }
+        return existing;
+      }
+
+      const livingDisc = ((W.npcs || []).filter(n => n && !n.dead)).length;
+      const li = {
+        version: this.VERSION,
+        rngState: this._hashSeed(W.seed),
+        lastTickDay: -1,
+        activeCycles: [],
+        completedCyclesCount: 0,
+        tripleEventYearTriggered: false,
+        ticketMarket: {
+          active: true,
+          stage: 'OPENING',
+          ticketFever: 1,
+          counterfeitEvidence: 0,
+          commonerTrust: 2,
+          brokerHostility: 0,
+          sectEndorsedShares: 0,
+          endorsedVerified: true,
+          priceIndex: 1.0,
+          exposedAtDay: null,
+          escalatedToBlackLedger: false,
+          settled: false,
+          milestonesDone: {}
+        },
+        bloodlessWar: {
+          localPressure: 2,
+          fiveGuildIndependence: 'CLEAN',
+          ritualLegitimacy: 2,
+          publicDebt: 0,
+          blackLedgerWitnessEligible: true,
+          nameLeaseDecision: 'PENDING',
+          nameLeaseOfferDay: 20,
+          evidenceOfErasure: 0,
+          nameCaseResolved: false
+        },
+        sectNameRegistry: {
+          plaqueIntact: true,
+          deedHeld: true,
+          registeredDisciples: Math.max(1, livingDisc),
+          nameThreatLevel: 1,
+          assessedValueStones: 1000,
+          taxRate: 0.02,
+          annualTaxStones: 20,
+          taxPaidThroughYear: 1,
+          missedTaxYears: 0,
+          totalTaxPaid: 0,
+          totalTollPaid: 0
+        },
+        departedNetwork: {
+          initialized: false,
+          teaPouchReturned: false,
+          trust: 2,
+          aidEventsCount: 0,
+          totalGrainDelivered: 0,
+          referredApplicantsCount: 0,
+          lastReferralYear: 0,
+          stoneBenchesInspected: false
+        },
+        curseEconomy: {
+          countdownYearsRemaining: 11,
+          lastCountdownYear: 1,
+          heatHerbPriceMultiplier: 1.4,
+          curseTicketScareActive: false,
+          winterPalaceBulkBuyCount: 0
+        },
+        recentEvents: []
+      };
+      W.world.livingInstitutions = li;
+      return li;
+    },
+
+    _tickCycles(W, li, cal, absDay) {
+      for (let i = li.activeCycles.length - 1; i >= 0; i--) {
+        const ac = li.activeCycles[i];
+        if (absDay >= ac.endDay) {
+          li.activeCycles.splice(i, 1);
+          li.completedCyclesCount++;
+          this._recordEvent(W, li, 'CYCLE_END', 'วัฏจักรโลก "' + ac.nameTh + '" ปิดฉากลงตามคาบเวลา');
+        }
+      }
+      const y = cal.yearInEpoch;
+      if (y === 4 && !li.tripleEventYearTriggered && cal.month === 1 && cal.dom === 1) {
+        li.tripleEventYearTriggered = true;
+        this._recordEvent(W, li, 'TRIPLE_EVENT_YEAR', 'เข้าสู่ "ปีสามเหตุ" (ยุคที่ 101 ปีที่ 4) — หอดูดาวเตือนการบรรจบของแม่น้ำหนี่สุ่ยไหลย้อน เหมันต์สุริยคราสหยินลึก และประตูสุริยุปราคาโลหิตในปีเดียวกัน');
+      }
+      for (const def of this.WORLD_CYCLE_DEFS) {
+        if (y < def.firstYear) continue;
+        if ((y - def.firstYear) % def.periodYears !== 0) continue;
+        if (cal.month === def.month && cal.dom === def.dom) {
+          const already = li.activeCycles.some(c => c.id === def.id && c.startDay === absDay);
+          if (!already) {
+            li.activeCycles.push({
+              id: def.id,
+              nameTh: def.nameTh,
+              kind: def.kind,
+              startDay: absDay,
+              endDay: absDay + def.durationDays,
+              yearInEpoch: y
+            });
+            this._recordEvent(W, li, 'CYCLE_OPEN', 'วัฏจักรโลกเปิดฉาก: ' + def.nameTh + ' (เปิดนาน ' + def.durationDays + ' วัน)');
+            if (def.id === 'DEEP_YIN_ECLIPSE') {
+              li.curseEconomy.heatHerbPriceMultiplier = Number(Math.min(4.5, li.curseEconomy.heatHerbPriceMultiplier + 0.8).toFixed(2));
+              li.bloodlessWar.localPressure = Math.min(10, li.bloodlessWar.localPressure + 1);
+            }
+          }
+        }
+      }
+    },
+
+    _tickDepartedNetwork(W, li, cal) {
+      const dn = li.departedNetwork;
+      if (cal.yearInEpoch === 1 && cal.month === 1 && cal.dom <= 2 && !dn.stoneBenchesInspected) {
+        dn.initialized = true;
+        dn.stoneBenchesInspected = true;
+        this._recordEvent(W, li, 'DEPARTED_NET', 'ม่อซานกุ้ย ช่างหินเฒ่าขึ้นเขาตรวจเคาะม้านั่งหินเก้าก้อนให้สำนักโดยไม่คิดค่าจ้างเพื่อชดใช้หนี้ข้าวรุ่นปู่');
+      }
+      if (cal.yearInEpoch === 1 && cal.month === 1 && cal.dom === 9 && !dn.teaPouchReturned) {
+        dn.teaPouchReturned = true;
+        this._recordEvent(W, li, 'DEPARTED_NET', 'เจ้าสำนักชิงจู๋แห่งสำนักร้อยวิถีไผ่เขียวส่งคืนถุงใบชาเปล่าของรุ่นที่ 6 พร้อมรายชื่อศิษย์เก่าเจ็ดชื่อรอบหุบเขาหยุนเหอ');
+      }
+      // Seasonal mutual aid if trust >= 2 (Month 4 & Month 10 Day 15) — delivers REAL grain to W.sect.stock via ECO.add!
+      if (dn.teaPouchReturned && dn.trust >= 2 && (cal.month === 4 || cal.month === 10) && cal.dom === 15) {
+        const deepYin = Array.isArray(li.activeCycles) && li.activeCycles.some(c => c && c.id === 'DEEP_YIN_ECLIPSE');
+        const aidChance = deepYin ? 0.85 : 0.45;
+        if (this._rand(li) < aidChance) {
+          const grainAmt = deepYin ? 24 : 12;
+          dn.aidEventsCount++;
+          dn.totalGrainDelivered = (dn.totalGrainDelivered || 0) + grainAmt;
+          if (g.ECO && typeof g.ECO.add === 'function') {
+            g.ECO.add(W, 'grain', grainAmt);
+          } else if (W.sect && W.sect.stock) {
+            W.sect.stock.grain = (W.sect.stock.grain || 0) + grainAmt;
+          }
+          this._recordEvent(W, li, 'DEPARTED_NET', 'เครือข่ายศิษย์ลงเขา (โรงต้มโจ๊กหลัวชุนเหอและท่าเรือถานเสี่ยวหม่าน) แบ่งส่งข้าวสาร ' + grainAmt + ' หน่วยเข้าคลังเสบียงสำนักตามธรรมเนียมหนี้บุญคุณ');
+        }
+      }
+      // Autonomous Mortal Applicant Referral Pipeline (Month 4 Day 15): Luo Chunhe checks if the mountain has enough grain!
+      if (dn.teaPouchReturned && dn.trust >= 3 && cal.month === 4 && cal.dom === 15 && dn.referredApplicantsCount < 3 && dn.lastReferralYear !== cal.yearInEpoch) {
+        const grainNow = (g.ECO && typeof g.ECO.count === 'function') ? g.ECO.count(W, 'grain') : ((W.sect && W.sect.stock && W.sect.stock.grain) || 0);
+        const livingCount = ((W.npcs || []).filter(n => n && !n.dead && !n.exiled)).length;
+        if (grainNow >= 80 && livingCount < 18 && typeof SIM !== 'undefined' && typeof SIM.addNpc === 'function') {
+          dn.lastReferralYear = cal.yearInEpoch;
+          const age = 15 + Math.floor(this._rand(li) * 6);
+          try {
+            const recruited = SIM.addNpc(W, { fromApplicant: true, ageYears: age, rank: 0 });
+            if (recruited) {
+              dn.referredApplicantsCount++;
+              recruited.referredByDepartedNetwork = true;
+              const recName = (typeof HC !== 'undefined' && HC.fullName) ? HC.fullName(recruited) : (recruited.id || 'ศิษย์ใหม่');
+              this._recordEvent(W, li, 'DEPARTED_NET', 'หลัวชุนเหอตรวจเห็นข้าวสารบนเขามีเพียงพอ (' + Math.round(grainNow) + ' หน่วย) จึงส่งลูกหลานสามัญชน「' + recName + '」ขึ้นเขาชิงซีมาสมัครเป็นศิษย์นอกโดยไม่ต้องผ่านนายหน้า');
+            }
+          } catch (_) {}
+        }
+      }
+    },
+
+    _tickTicketMarket(W, li, cal, absDay) {
+      const tm = li.ticketMarket;
+      if (!tm.active || tm.settled || cal.yearInEpoch > 1) {
+        tm.active = false;
+        return;
+      }
+      const startOff = (typeof SIM !== 'undefined' && SIM.CALENDAR && SIM.CALENDAR.START_DAY_OFFSET) || 0;
+      const d = Math.max(0, absDay - startOff) + 1;
+      const prof = this._leaderProfile(W);
+
+      if (d === 6 && !tm.milestonesDone.d6) {
+        tm.milestonesDone.d6 = true;
+        tm.stage = 'RUMOR_SURGE';
+        const endorseRisky = ((prof.greed - prof.prudence) > 0.12 && ((W.sect && W.sect.stones) || 0) < 1200)
+          || (prof.greed >= 0.72 && prof.justice < 0.45);
+        if (endorseRisky) {
+          tm.sectEndorsedShares = 2;
+          tm.endorsedVerified = false;
+          tm.commonerTrust = Math.max(0, tm.commonerTrust - 1);
+          tm.ticketFever += 1;
+          li.bloodlessWar.fiveGuildIndependence = 'COMPROMISED';
+          li.bloodlessWar.blackLedgerWitnessEligible = false;
+          this._recordEvent(W, li, 'TICKET_MARKET', prof.name + ' ประทับตราค้ำตั๋วส่วนแบ่งแดนลับให้ฉีซานเหนียงโดยไม่ตรวจบัญชีละเอียด (ความตื่นตั๋วเพิ่ม ความอิสระจากห้าหอการค้าเสีย)');
+        } else {
+          tm.sectEndorsedShares = prof.prudence >= 0.5 ? 1 : 0;
+          tm.endorsedVerified = true;
+          tm.counterfeitEvidence += 1;
+          this._recordEvent(W, li, 'TICKET_MARKET', prof.name + ' ปฏิเสธการค้ำตั๋วส่วนแบ่งที่ไร้หมายเลขทะเบียนของฉีซานเหนียง และเริ่มสังเกตความผิดปกติของหมายเลขตั๋วซ้ำ');
+        }
+      }
+
+      if (d === 18 && !tm.milestonesDone.d18) {
+        tm.milestonesDone.d18 = true;
+        tm.priceIndex = Number((tm.priceIndex + 0.8 + this._rand(li) * 0.4).toFixed(2));
+        tm.ticketFever += 1;
+        if (prof.prudence >= 0.45 || li.departedNetwork.trust >= 2) {
+          tm.counterfeitEvidence += 1;
+          this._recordEvent(W, li, 'TICKET_MARKET', 'ไช่เสี่ยวลู่และศิษย์สำนักตรวจพบแผนที่ "สวนชั้นนอกสุสานสวนสวรรค์" ปลอมที่ถูกนำมาปั่นราคาตั๋วในตลาดเช้าตีนเขาชิงซี');
+        }
+      }
+
+      if (d === 45 && !tm.milestonesDone.d45) {
+        tm.milestonesDone.d45 = true;
+        tm.stage = 'TEA_FESTIVAL_RECKONING';
+        if (tm.counterfeitEvidence >= 2) {
+          tm.exposedAtDay = d;
+          tm.ticketFever = Math.max(0, tm.ticketFever - 2);
+          tm.commonerTrust += 1;
+          tm.brokerHostility += 1;
+          if (typeof W.fame === 'function') W.fame(2);
+          this._recordEvent(W, li, 'TICKET_MARKET', 'กลางงานชาร้อยบุปผา (ลานไร้อาวุธหนัก) หลักฐานตั๋วปลอมถูกเปิดโปงต่อหน้าพยาน ทำให้ตลาดฟองสบู่ตั๋วแดนลับยุบตัวลงก่อนบานปลาย');
+        } else {
+          tm.ticketFever += 2;
+          tm.priceIndex = Number((tm.priceIndex + 0.9).toFixed(2));
+        }
+      }
+
+      if (d === 58 && !tm.milestonesDone.d58) {
+        tm.milestonesDone.d58 = true;
+        if (tm.counterfeitEvidence >= 2 && li.bloodlessWar.fiveGuildIndependence === 'CLEAN') {
+          tm.counterfeitEvidence += 1;
+          tm.escalatedToBlackLedger = true;
+          li.bloodlessWar.evidenceOfErasure += 1;
+          this._recordEvent(W, li, 'BLACK_LEDGER', 'มหาตุลาการหญิงซ่งเยี่ยนชิงรับสำนวนตั๋วปลอมที่เชื่อมโยงถึงที่ดินเชิงเขาชิงซีจากสำนักอิสระขึ้นสู่หอพิพากษากลาง');
+        }
+      }
+
+      if (d === 67 && !tm.milestonesDone.d67) {
+        tm.milestonesDone.d67 = true;
+        tm.stage = 'SWORD_TOMB_RECKONING';
+        if (!tm.exposedAtDay && tm.counterfeitEvidence >= 2) {
+          tm.exposedAtDay = d;
+          tm.ticketFever = Math.max(0, tm.ticketFever - 2);
+          if (typeof W.fame === 'function') W.fame(2);
+          this._recordEvent(W, li, 'TICKET_MARKET', 'ระหว่างพิธีเซ่นสุสานกระบี่ หลักฐานคำสาบานเท็จบนตั๋วส่วนแบ่งถูกเปิดเผย ช่วยชาวบ้านหลายครัวเรือนรอดจากการถูกหลอก');
+        }
+      }
+
+      if (d >= 75 && !tm.settled) {
+        tm.settled = true;
+        tm.active = false;
+        tm.stage = 'SETTLED';
+        if (tm.sectEndorsedShares > 0 && !tm.endorsedVerified) {
+          const penalty = Math.min(80, Math.max(0, Math.floor((W.sect && W.sect.stones) || 0)));
+          if (penalty > 0) {
+            if (g.ECO && g.ECO.pay) g.ECO.pay(W, penalty, 'ชดใช้หนี้เสียตั๋วส่วนแบ่งแดนลับ 74 วัน (ฉีซานเหนียง)', { toPool: true });
+            else if (W.sect) W.sect.stones = Math.max(0, (W.sect.stones || 0) - penalty);
+          }
+          li.bloodlessWar.localPressure = Math.min(10, li.bloodlessWar.localPressure + 2);
+          this._recordEvent(W, li, 'TICKET_MARKET', 'วันเปิดประตูสุสานสวนสวรรค์ ตั๋วที่สำนักเคยค้ำประกันไว้เกิดหนี้เสีย ทำให้สำนักต้องชดใช้ 80 ศิลาและถูกแรงกดดันท้องถิ่นเพิ่มสูงขึ้น');
+        } else {
+          if (tm.sectEndorsedShares > 0 && W.sect) {
+            if (g.ECO && g.ECO.earn) g.ECO.earn(W, 45, 'ส่วนแบ่งสุจริตจากการค้ำตั๋วแดนลับสุสานสวนสวรรค์');
+            else W.sect.stones = (W.sect.stones || 0) + 45;
+          }
+          li.departedNetwork.trust += 1;
+          this._recordEvent(W, li, 'TICKET_MARKET', 'ตลาดตั๋วแดนลับ 74 วันปิดฉากลงอย่างสงบเมื่อประตูสุสานสวนสวรรค์เปิดออก เครือข่ายสามัญชนในหยุนเหอไว้วางใจสำนักมากขึ้น');
+        }
+      }
+    },
+
+    _tickBloodlessWarAndTax(W, li, cal) {
+      const reg = li.sectNameRegistry;
+      const bw = li.bloodlessWar;
+      const prof = this._leaderProfile(W);
+
+      const living = ((W.npcs || []).filter(n => n && !n.dead)).length;
+      reg.registeredDisciples = living;
+
+      if (cal.yearInEpoch === 1 && cal.month === 1 && cal.dom === 20 && bw.nameLeaseDecision === 'PENDING') {
+        const desperate = ((W.sect && W.sect.stones) || 0) < 250 || (prof.greed > 0.65 && prof.justice < 0.45);
+        if (desperate) {
+          bw.nameLeaseDecision = 'LEASED';
+          bw.fiveGuildIndependence = 'COMPROMISED';
+          bw.blackLedgerWitnessEligible = false;
+          bw.ritualLegitimacy = Math.max(0, bw.ritualLegitimacy - 1);
+          if (g.ECO && g.ECO.earn) g.ECO.earn(W, 60, 'ค่าเช่าสิทธิ์เดินเกวียนใต้ชื่อสำนัก (เถ้าแก่ถงอวี้)');
+          else if (W.sect) W.sect.stones = (W.sect.stones || 0) + 60;
+          this._recordEvent(W, li, 'BLOODLESS_WAR', prof.name + ' ตกลงให้เถ้าแก่ถงอวี้เช่าสิทธิ์เดินเกวียนใต้ชื่อสำนักแลก 60 ศิลา (เสียสถานะอิสระจากห้าหอการค้า)');
+        } else {
+          bw.nameLeaseDecision = 'REJECTED';
+          bw.ritualLegitimacy += 1;
+          bw.localPressure = Math.min(10, bw.localPressure + 1);
+          bw.evidenceOfErasure += 1;
+          this._recordEvent(W, li, 'BLOODLESS_WAR', prof.name + ' ปฏิเสธข้อเสนอเช่าชื่อสำนักของเถ้าแก่ถงอวี้เพื่อรักษาความชอบธรรมและป้ายชื่อไม้เก่า (รักษาสิทธิ์พยานคดีสมุดปกดำ)');
+        }
+      }
+
+      if (cal.month === 1 && cal.dom === 1 && cal.yearInEpoch > reg.taxPaidThroughYear) {
+        const due = reg.annualTaxStones;
+        if (W.sect && (W.sect.stones || 0) >= due) {
+          if (g.ECO && g.ECO.pay) g.ECO.pay(W, due, 'ภาษีธำรงชื่อคันชั่งสองฝั่งประจำปีที่ ' + cal.yearInEpoch + ' (ศาลากลางหยุนเหอ)', { toPool: true });
+          else W.sect.stones -= due;
+          reg.taxPaidThroughYear = cal.yearInEpoch;
+          reg.totalTaxPaid += due;
+          reg.missedTaxYears = 0;
+          reg.nameThreatLevel = Math.max(1, reg.nameThreatLevel - 1);
+          this._recordEvent(W, li, 'NAME_TAX', 'สำนักชำระภาษีธำรงชื่อคันชั่งสองฝั่งประจำปีที่ ' + cal.yearInEpoch + ' (' + due + ' ศิลา) ต่อศาลากลางหุบเขาหยุนเหอเรียบร้อย');
+        } else {
+          reg.missedTaxYears += 1;
+          reg.nameThreatLevel = Math.min(4, reg.nameThreatLevel + 1);
+          bw.localPressure = Math.min(10, bw.localPressure + 1);
+          this._recordEvent(W, li, 'NAME_TAX', 'คลังศิลาไม่พอชำระภาษีธำรงชื่อประจำปีที่ ' + cal.yearInEpoch + ' (' + due + ' ศิลา) — ชื่อสำนักถูกเลื่อนชั้นความเสี่ยงเป็นระดับ ' + reg.nameThreatLevel);
+        }
+      } else if (reg.missedTaxYears > 0 && cal.dom === 1 && W.sect && (W.sect.stones || 0) >= reg.annualTaxStones * 2 && (prof.prudence + prof.justice) >= 0.9) {
+        const due = reg.annualTaxStones;
+        if (g.ECO && g.ECO.pay) g.ECO.pay(W, due, 'ชำระภาษีย้อนหลังธำรงชื่อคันชั่งสองฝั่ง (หุบเขาหยุนเหอ)', { toPool: true });
+        else W.sect.stones -= due;
+        reg.missedTaxYears = Math.max(0, reg.missedTaxYears - 1);
+        reg.taxPaidThroughYear = Math.min(cal.yearInEpoch, (reg.taxPaidThroughYear || 1) + 1);
+        reg.totalTaxPaid += due;
+        reg.nameThreatLevel = Math.max(1, reg.nameThreatLevel - 1);
+        this._recordEvent(W, li, 'NAME_TAX', prof.name + ' สั่งชำระภาษีย้อนหลังธำรงชื่อสำนัก (' + due + ' ศิลา) เพื่อลดความเสี่ยงการถูกถอนชื่อจากศาลากลางหยุนเหอ');
+      }
+
+      if (cal.month === 6 && cal.dom === 6 && !bw.nameCaseResolved && bw.fiveGuildIndependence === 'CLEAN' && bw.evidenceOfErasure >= 2) {
+        bw.nameCaseResolved = true;
+        bw.localPressure = Math.max(0, bw.localPressure - 2);
+        bw.ritualLegitimacy += 1;
+        if (typeof W.fame === 'function') W.fame(3);
+        this._recordEvent(W, li, 'BLACK_LEDGER', 'ในวันตากคัมภีร์เดือนหกพิรุณร้อน รอยผงกรดกัดชื่อบนทะเบียนถูกชันสูตรต่อหน้าช่างแกะป้ายอู๋เสิงและหอพิพากษากลาง ช่วยยับยั้งแผนฮุบที่ดินเชิงเขาชิงซีได้สำเร็จ');
+      }
+
+      if (reg.registeredDisciples === 0) reg.nameThreatLevel = 4;
+      bw.blackLedgerWitnessEligible = (bw.fiveGuildIndependence === 'CLEAN');
+    },
+
+    _tickCurseEconomy(W, li, cal) {
+      const ce = li.curseEconomy;
+      if (cal.yearInEpoch > ce.lastCountdownYear) {
+        ce.lastCountdownYear = cal.yearInEpoch;
+        ce.countdownYearsRemaining = Math.max(0, ce.countdownYearsRemaining - 1);
+      }
+      if (cal.month === 11 && cal.dom === 21) {
+        ce.winterPalaceBulkBuyCount++;
+        const urgency = ce.countdownYearsRemaining <= 4 ? 1.2 : 0.4;
+        ce.heatHerbPriceMultiplier = Number(Math.min(4.5, 1.5 + urgency + this._rand(li) * 0.6).toFixed(2));
+        ce.curseTicketScareActive = true;
+        this._recordEvent(W, li, 'CURSE_ECONOMY', 'คืนเหมายันปีที่ ' + cal.yearInEpoch + ': นายหน้าวังเหมันต์กว้านซื้อสมุนไพรธาตุร้อนจนราคาพุ่ง ' + ce.heatHerbPriceMultiplier + ' เท่า ขณะที่ตลาดตั๋วเลื่อนคำสาปเป่ยหมิงคึกคักผิดปกติ');
+      } else if (cal.month === 3 && cal.dom === 1 && ce.curseTicketScareActive) {
+        ce.curseTicketScareActive = false;
+        ce.heatHerbPriceMultiplier = Number(Math.max(1.2, ce.heatHerbPriceMultiplier - 0.5).toFixed(2));
+      }
+    },
+
+    tickDaily(W) {
+      if (!W) return null;
+      const li = this.ensure(W);
+      const absDay = Math.floor((W.t || 0) / 1440);
+      if (absDay === li.lastTickDay) return li;
+      li.lastTickDay = absDay;
+
+      const cal = this._cal(W);
+      this._tickCycles(W, li, cal, absDay);
+      this._tickDepartedNetwork(W, li, cal);
+      this._tickTicketMarket(W, li, cal, absDay);
+      this._tickBloodlessWarAndTax(W, li, cal);
+      this._tickCurseEconomy(W, li, cal);
+      return li;
+    },
+
+    // Pure Read-Only Summary for UI (ZERO W mutation, ZERO W.rng consumption!)
+    getReadOnlySummary(W) {
+      const li = W && W.world && W.world.livingInstitutions;
+      if (!li) return null;
+      const cal = this._cal(W);
+      const upcomingCycles = this.WORLD_CYCLE_DEFS
+        .map(d => {
+          let nextY = d.firstYear;
+          while (nextY < cal.yearInEpoch || (nextY === cal.yearInEpoch && (d.month < cal.month || (d.month === cal.month && d.dom < cal.dom)))) {
+            nextY += d.periodYears;
+          }
+          return { id: d.id, nameTh: d.nameTh, nextYear: nextY, month: d.month, dom: d.dom, durationDays: d.durationDays };
+        })
+        .sort((a, b) => (a.nextYear - b.nextYear) || (a.month - b.month) || (a.dom - b.dom))
+        .slice(0, 4);
+      return {
+        version: li.version,
+        yearInEpoch: cal.yearInEpoch,
+        activeCycles: li.activeCycles.slice(),
+        upcomingCycles,
+        tripleEventYearTriggered: li.tripleEventYearTriggered,
+        ticketMarket: Object.assign({}, li.ticketMarket),
+        bloodlessWar: Object.assign({}, li.bloodlessWar),
+        sectNameRegistry: Object.assign({}, li.sectNameRegistry),
+        departedNetwork: Object.assign({}, li.departedNetwork),
+        curseEconomy: Object.assign({}, li.curseEconomy),
+        recentEvents: li.recentEvents.slice(0, 6)
+      };
+    }
+  };
+  /* === JS2_V394_LIVING_INSTITUTIONS_END === */
+
+  /* === JS2_V395_WITNESSES_AND_SHARDS_START === */
+  X.WITNESSES_AND_SHARDS = {
+    VERSION: '3.9.5-witnesses-subpaths-and-12shards',
+
+    TWELVE_SHARDS: [
+      { num: 1, id: 'PRIMORDIAL_GARDEN', nameTh: 'สุสานสวนสวรรค์ล่มสลาย', mode: 'PERIODIC', periodYears: 1000, durationDays: 180 },
+      { num: 2, id: 'MYRIAD_ALCHEMY_HALL', nameTh: 'ตำหนักโอสถเทวะหมื่นกัลป์', mode: 'PERIODIC', periodYears: 1000, durationDays: 180 },
+      { num: 3, id: 'BLOOD_MOON_MYRIAD', nameTh: 'แดนหมื่นพิภพจันทร์โลหิตหมื่นอสูร', mode: 'PERIODIC', periodYears: 120, durationDays: 45 },
+      { num: 4, id: 'FROST_BLOOD_ABYSS', nameTh: 'ห้วงเหวราชันอสูรเหมันต์โลหิต', mode: 'PERIODIC', periodYears: 120, durationDays: 45 },
+      { num: 5, id: 'NINE_THUNDER_ZITHER', nameTh: 'ตำหนักพิณอสนีเก้าสวรรค์', mode: 'PERIODIC', periodYears: 300, durationDays: 60 },
+      { num: 6, id: 'ASTRAL_GOD_RUINS', nameTh: 'ซากวิหารดาราจักรเทพโบราณ', mode: 'PERIODIC', periodYears: 300, durationDays: 60 },
+      { num: 7, id: 'KONGCHENG_FLOATING', nameTh: 'นครเมฆาลอยคงเฉิง', mode: 'PERIODIC', periodYears: 100, durationDays: 90 },
+      { num: 8, id: 'FOG_EDGE_ISLE', nameTh: 'เกาะม่านหมอกชายขอบทะเลหมอก', mode: 'PERIODIC', periodYears: 25, durationDays: 30 },
+      { num: 9, id: 'DAWN_STELE_CAVE', nameTh: 'ถ้ำศิลาจารึกวิถีกระบี่และปราณบรรพกาล', mode: 'PERIODIC', periodYears: 12, durationDays: 15 },
+      { num: 10, id: 'TIANGU_FOLDED_TREASURY', nameTh: 'ท้องพระคลังพับมิติเทียนกู่', mode: 'EVENT_TRIGGERED', durationDays: 9, triggerTh: 'เปิดเมื่อได้รับมอบกุญแจคลังลับครบ 9 ดอกโดยสมัครใจ' },
+      { num: 11, id: 'SKY_FALL_SORTING_YARD', nameTh: 'ลานคัดแยกของตกฟ้า', mode: 'EVENT_TRIGGERED', durationDays: 3, triggerTh: 'เปิด 1–3 วันเมื่อม่านกั้นภพสั่นสะเทือน (ไม่สรุปสาเหตุ คงปริศนาข้อ 3)' },
+      { num: 12, id: 'TWO_BANK_WATER_REALM', nameTh: 'แดนถ้วยน้ำสองฝั่ง', mode: 'EVENT_TRIGGERED', durationDays: 1, triggerTh: 'เปิดเมื่อศัตรูสองฝ่ายวางอาวุธและเทน้ำบ่อบ้านเกิดร่วมกันเพื่อเจรจา' },
+      { num: 13, id: 'DAO_ZHI_SHADOW_ARCHIVE', nameTh: 'คลังเงาสำเนาเต้าจื่อ (แดนสำรอง)', mode: 'RESERVE_TRIGGERED', durationDays: 3, triggerTh: 'เปิด 3 วันเมื่อสำนักคืนคัมภีร์ที่เคยลักลอบคัดลอกให้เจ้าของเดิม' }
+    ],
+
+    SECRET_SUBPATHS: {
+      BREATH_RELAY_DAO: {
+        id: 'BREATH_RELAY_DAO',
+        nameTh: 'วิถีผลัดลม (นอกบัญชี 55 มหาวิถี · ศาลาผลัดลมหายใจ)',
+        stagesTh: ['หายใจตามบัญชี', 'รับลมค้าง', 'เดินห้วง', 'ผลัดลม', 'ครบวง'],
+        artsTh: ['เคล็ดลอกลมจากบัญชี', 'กลั้นลมเก้าจังหวะ', 'แตรผลัดหมู่', 'ลมคลอดคืนชีพ', 'ลมสุดท้ายยืมปลายทาง', 'ผลัดลม', 'ย่างผลัดไร้เงา']
+      },
+      SHADOW_RADIANCE_SUBPATH: {
+        id: 'SHADOW_RADIANCE_SUBPATH',
+        parentPath: 'KARMA_SAMSARA',
+        nameTh: 'สายย่อยจิตรับภพ (ยอดคนเงาประกาย · เว่ยเหิง)',
+        artsTh: ['เคล็ดฟังลมฝั่งเดิม', 'เงาจำคมเดิม', 'หวนกายครึ่งปราณ', 'คัมภีร์ลมหายใจข้ามภพ']
+      },
+      PENDING_REGISTRY_PATH: {
+        id: 'PENDING_REGISTRY_PATH',
+        nameTh: 'วิถีชื่อค้างวัฏ (อาผิงผู้คัดลอก · นับถอยหลัง 5→0)',
+        tiersTh: ['ชั้น ๕ แบกเต็ม (39,884)', 'ชั้น ๔ แบกสามหมื่น', 'ชั้น ๓ แบกหมื่น', 'ชั้น ๒ แบกร้อย', 'ชั้น ๑ แบกหนึ่ง', 'ชั้น ๐ ว่าง'],
+        artsTh: ['ท่ายกถังน้ำ', 'ท่าก้าวข้ามธรณีประตู', 'ท่าปล่อยมือ', 'ท่าประทับตราด้านที่สาม']
+      }
+    },
+
+    FOLK_TRAITS: [
+      { id: 'TR_FOLK_ROPE_BEARER', nameTh: 'ผู้ถือเชือก', descTh: 'ยึดมั่นความเป็นกลางไม่เข้าข้างฝ่ายใดแม้ถูกกดดัน สืบสายวิชาชิวหลิงเจา' },
+      { id: 'TR_FOLK_SCALE_WALKER', nameTh: 'คนเดินคันชั่ง', descTh: 'ไวต่อส่วนต่างราคาและช่องว่างระหว่างสองมาตรฐานในตลาดศิลา' },
+      { id: 'TR_FOLK_LINGERING_BREATH', nameTh: 'ลมค้างแฝง (วงถอนใจ)', descTh: 'หายใจเป็นจังหวะเก้าและฝันถึงลานเสาสิบเจ็ดต้นโดยไม่รู้ตัว' }
+    ],
+
+    RELIC_ECHOES: [
+      { id: 'REL_ECHO_THREE_SIDED_SEAL', nameTh: 'ตราสามด้านของลู่เหิง', status: 'DORMANT_IN_YUNHE' },
+      { id: 'REL_ECHO_BREATH_JADE', nameTh: 'หยกกักลมห้วงที่หก', status: 'BLACK_MARKET_RUMOR' },
+      { id: 'REL_ECHO_NAME_COMPASS', nameTh: 'เข็มทิศจำชื่อของสือหลันอวิ๋น', status: 'LOST_IN_KONGCHENG_RUINS' }
+    ],
+
+    _hashSeed(seed) {
+      const s = String(seed == null ? 'js2_v395' : seed);
+      let h = 2166136261 >>> 0;
+      for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+      return (h ^ 0x395C4E2F) >>> 0 || 2468;
+    },
+
+    _rand(ws) {
+      let x = (ws.rngState >>> 0) || 2468;
+      x = (Math.imul(x, 1664525) + 1013904223) >>> 0;
+      ws.rngState = x;
+      return x / 4294967296;
+    },
+
+    _cal(W) {
+      if (typeof SIM !== 'undefined' && SIM.calendar) return SIM.calendar(W.t || 0);
+      const day = Math.floor((W.t || 0) / 1440);
+      const y = Math.floor(day / 360) + 1;
+      return { epoch: 101, yearInEpoch: y, month: Math.floor((day % 360) / 30) + 1, dom: (day % 30) + 1, worldYear: 100000 + y, day };
+    },
+
+    _log(W, ws, kind, summaryTh) {
+      const day = Math.floor((W.t || 0) / 1440);
+      const cal = this._cal(W);
+      ws.recentEvents.unshift({ day, yearInEpoch: cal.yearInEpoch, month: cal.month, dom: cal.dom, kind, summaryTh });
+      if (ws.recentEvents.length > 40) ws.recentEvents.length = 40;
+      if (typeof SIM !== 'undefined' && typeof SIM.log === 'function') {
+        try { SIM.log(W, 'world', summaryTh); } catch (_) {}
+      }
+    },
+
+    ensure(W) {
+      if (!W) return null;
+      if (!W.world) W.world = {};
+      const existing = W.world.witnessesAndShards;
+      if (existing && existing.version === this.VERSION) {
+        this._syncWitnessById(W);
+        return existing;
+      }
+
+      const ws = {
+        version: this.VERSION,
+        rngState: this._hashSeed(W.seed),
+        lastTickDay: -1,
+        // 1. Two Reincarnated Witnesses (Book 102)
+        aping: {
+          id: 'WITNESS_APING',
+          nameTh: 'อาผิง (คนคัดชื่อ)',
+          active: true,
+          ageYears: 19,
+          birthYearInEpoch: -19,
+          pendingNamesRemaining: 39884,
+          countdownTier: 5,
+          namesReleasedLegally: 0,
+          namesBurnedInCrisis: 0,
+          handwritingVerified: false,
+          witnessesFound: 0,
+          lastYearChecked: 1
+        },
+        weiheng: {
+          id: 'WITNESS_WEIHENG',
+          nameTh: 'เว่ยเหิง (ยอดคนเงาประกาย · ถานอี้กลับชาติ)',
+          born: false,
+          birthYearInEpoch: 2,
+          ageYears: 0,
+          stage: 'UNBORN', // UNBORN -> CHILD -> RECORD_SEEKER -> CEILING_REACHED -> SHADOW_RADIANCE -> LIVING_CHRONICLER
+          epithetEarned: false,
+          ceilingReached: false,
+          ceramicRecordVerified: false,
+          disciplesTaughtCount: 0,
+          storiesSharedCount: 0
+        },
+        // 2. Breath Relay Pavilion Legacy (Book 98)
+        breathRelay: {
+          cycle7Stage: 6,
+          latentBearersCount: 0,
+          relayPassCount: 0,
+          returnWindLogs: []
+        },
+        // 3. 3 New Event-Triggered Rift-Shard Realms + 1 Reserve (Book 103)
+        eventShards: {
+          tianguKeysGranted: 0,
+          tianguTreasuryOpenUntilDay: -1,
+          skyFallOpenCount: 7, // 7 historical openings prior to Epoch 101
+          skyFallOpenUntilDay: -1,
+          twoBankOpenUntilDay: -1,
+          twoBankTrucesWitnessed: 0,
+          daoZhiArchiveOpenUntilDay: -1
+        },
+        recentEvents: []
+      };
+      W.world.witnessesAndShards = ws;
+      return ws;
+    },
+
+    _makeDetRng(seedNum) {
+      if (g.U && typeof g.U.RNG === 'function') return new g.U.RNG(String(seedNum));
+      if (g.U && typeof g.U.rng === 'function') return g.U.rng(String(seedNum));
+      let s = (seedNum >>> 0) || 12345;
+      const next = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+      return {
+        next,
+        range: (a, b) => a + next() * (b - a),
+        float: (a, b) => a + next() * (b - a),
+        int: (a, b) => Math.floor(a + next() * (b - a + 1)),
+        pick: arr => arr[Math.floor(next() * arr.length)],
+        chance: p => next() < p,
+        shuffle: arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(next() * (i + 1)); const t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; },
+        gauss: (m, sd) => {
+          const u1 = Math.max(1e-7, next()), u2 = next();
+          return (m || 0) + (sd || 1) * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+        },
+        weighted: (arr, fn) => {
+          const w = arr.map(fn), tot = w.reduce((a, b) => a + Math.max(0, b), 0) || 1;
+          let r = next() * tot;
+          for (let i = 0; i < arr.length; i++) { r -= Math.max(0, w[i]); if (r <= 0) return arr[i]; }
+          return arr[arr.length - 1];
+        }
+      };
+    },
+
+    _syncWitnessById(W) {
+      if (!W || !W.world || !W.world.witnessNpcs) return;
+      W.byId = W.byId || {};
+      const wn = W.world.witnessNpcs;
+      if (wn.aping && wn.aping.id) W.byId[wn.aping.id] = wn.aping;
+      if (wn.weiheng && wn.weiheng.id) W.byId[wn.weiheng.id] = wn.weiheng;
+    },
+
+    _createWitnessNpc(W, spec) {
+      if (!W || typeof HC === 'undefined' || !HC.generate) return null;
+      const detRng = this._makeDetRng(this._hashSeed((W.seed || 'js2') + '_' + spec.id));
+      const exactAge = spec.age != null ? spec.age : 18;
+      const absDay = Math.floor((W.t || 0) / 1440);
+      const npc = HC.generate(detRng, {
+        id: spec.id,
+        day: absDay,
+        sex: 'M',
+        ageYears: Math.max(0, exactAge),
+        quality: spec.slot === 'weiheng' ? 0.9 : 0.7
+      });
+      const h = npc.h || npc;
+      if (h) {
+        h.birthDay = absDay - exactAge * 360;
+      }
+      if (h && h.name) {
+        h.name.family = spec.family;
+        h.name.given = spec.given;
+        h.name.full = spec.fullName;
+      }
+      if (h && h.personality && spec.personality) Object.assign(h.personality, spec.personality);
+      if (h && h.values && spec.values) Object.assign(h.values, spec.values);
+      if (h && h.skills && spec.skills) Object.assign(h.skills, spec.skills);
+      npc.id = spec.id;
+      npc.name = h.name;
+      npc.age = exactAge;
+      npc.dead = false;
+      npc.away = false;
+      npc.exiled = false;
+      npc.rank = 0;
+      npc.merit = 0;
+      npc.cp = 0;
+      npc.isExternalWitness = true;
+      npc.witnessRole = spec.witnessRole;
+      npc.secretSubPathId = spec.secretSubPathId;
+      if (spec.pendingCountdownTier != null) npc.pendingCountdownTier = spec.pendingCountdownTier;
+      npc.cult = {
+        path: 'KARMA_SAMSARA',
+        sub: 'NONE',
+        stage: spec.stage || 1,
+        prog: 0,
+        techs: [],
+        mantra: null
+      };
+      npc.equip = npc.equip || {};
+      npc.inv = npc.inv || { pills: {}, mats: {} };
+      npc.buffs = npc.buffs || [];
+      npc.assemblyTitles = npc.assemblyTitles || [];
+      npc.epithets = npc.epithets || [];
+      npc.x = 12;
+      npc.y = 12;
+      if (g.CULT && typeof g.CULT.hpMax === 'function' && npc.h && npc.h.state) {
+        npc.h.state.hp = g.CULT.hpMax(npc);
+      }
+      W.world.witnessNpcs = W.world.witnessNpcs || {};
+      W.world.witnessNpcs[spec.slot] = npc;
+      W.byId = W.byId || {};
+      W.byId[npc.id] = npc;
+      return npc;
+    },
+
+    ensureWitnessNpc(W, who) {
+      if (!W) return null;
+      W.world = W.world || {};
+      W.world.witnessNpcs = W.world.witnessNpcs || {};
+      const ws = this.ensure(W);
+      if (who === 'aping') {
+        let n = W.world.witnessNpcs.aping;
+        if (!n) {
+          n = this._createWitnessNpc(W, {
+            id: 'WITNESS_APING',
+            slot: 'aping',
+            family: '',
+            given: 'อาผิง',
+            fullName: 'อาผิง (คนคัดชื่อ)',
+            age: ws.aping.ageYears || 19,
+            stage: 2,
+            witnessRole: 'PENDING_COPIER',
+            secretSubPathId: 'PENDING_REGISTRY_PATH',
+            pendingCountdownTier: ws.aping.countdownTier,
+            personality: { integrity: 94, discipline: 96, composure: 92, caution: 88, empathy: 82, ambition: 12 },
+            values: { honorLegacy: 86, wealthResource: 10, sectDuty: 78 },
+            skills: { SCRIPTURE: 95, diplomacy: 68 }
+          });
+        }
+        if (n) {
+          n.age = ws.aping.ageYears;
+          n.pendingCountdownTier = ws.aping.countdownTier;
+          if (n.cult) n.cult.stage = Math.max(2, 7 - ws.aping.countdownTier); // grows from stage 2 -> stage 6 as names release!
+          W.byId = W.byId || {};
+          W.byId[n.id] = n;
+        }
+        return n;
+      }
+      if (who === 'weiheng') {
+        if (!ws.weiheng.born) return null;
+        let n = W.world.witnessNpcs.weiheng;
+        if (!n) {
+          n = this._createWitnessNpc(W, {
+            id: 'WITNESS_WEIHENG',
+            slot: 'weiheng',
+            family: 'เว่ย',
+            given: 'เหิง',
+            fullName: 'เว่ยเหิง',
+            age: ws.weiheng.ageYears || 0,
+            stage: 1,
+            witnessRole: 'SHADOW_RADIANCE',
+            secretSubPathId: 'SHADOW_RADIANCE_SUBPATH',
+            personality: { integrity: 92, courage: 90, composure: 94, empathy: 88, rationality: 90, ambition: 28 },
+            values: { honorLegacy: 90, martialPeak: 88, knowledgeCraft: 85, wealthResource: 15 },
+            skills: { SWORD: 85, SCRIPTURE: 88, diplomacy: 78 }
+          });
+        }
+        if (n) {
+          n.age = ws.weiheng.ageYears;
+          if (n.cult) {
+            const st = ws.weiheng.ceilingReached ? 9
+              : ws.weiheng.ceramicRecordVerified ? 4
+              : ws.weiheng.ageYears >= 16 ? 2
+              : 1;
+            n.cult.stage = Math.max(n.cult.stage || 1, st);
+          }
+          if (ws.weiheng.epithetEarned) {
+            n.assemblyTitles = n.assemblyTitles || [];
+            if (!n.assemblyTitles.includes('ยอดคนเงาประกาย')) n.assemblyTitles.push('ยอดคนเงาประกาย');
+          }
+          W.byId = W.byId || {};
+          W.byId[n.id] = n;
+        }
+        return n;
+      }
+      return null;
+    },
+
+        rollApplicantFolkTrait(W, npc) {
+      if (!W || !npc || npc.dead) return null;
+      const ws = this.ensure(W);
+      if (npc.folkTraitId) return npc.folkTraitId;
+      const r = this._rand(ws);
+      if (r < 0.06) {
+        const picked = this.FOLK_TRAITS[Math.floor(this._rand(ws) * this.FOLK_TRAITS.length)];
+        npc.folkTraitId = picked.id;
+        npc.folkTraitNameTh = picked.nameTh;
+        if (picked.id === 'TR_FOLK_LINGERING_BREATH') {
+          ws.breathRelay.latentBearersCount++;
+          this._log(W, ws, 'BREATH_RELAY', `พบผู้มีลมค้างแฝงแห่งวงถอนใจ (${(npc.name && npc.name.full) || npc.id}) หายใจเป็นจังหวะเก้าและฝันถึงลานเสาสิบเจ็ดต้น`);
+        }
+        return picked.id;
+      }
+      return null;
+    },
+
+    _tickAping(W, ws, cal) {
+      const ap = ws.aping;
+      if (!ap.active) return;
+      if (cal.yearInEpoch > ap.lastYearChecked) {
+        ap.ageYears += (cal.yearInEpoch - ap.lastYearChecked);
+        ap.lastYearChecked = cal.yearInEpoch;
+      }
+      // Year 1 Month 1 Day 12: Appears at 4th stone bench & Cai Xiaolu verifies handwriting
+      if (cal.yearInEpoch >= 1 && (cal.yearInEpoch > 1 || cal.month > 1 || cal.dom >= 12) && !ap.handwritingVerified) {
+        ap.handwritingVerified = true;
+        this._log(W, ws, 'WITNESS_APING', 'อาผิง (คนคัดชื่อ) ปรากฏตัวบนม้านั่งหินก้อนที่สี่หน้าสำนัก ไช่เสี่ยวลู่ตรวจลายมือคำว่า "ยังไม่อาจตัดสิน" แล้วยืนยันว่าความสม่ำเสมอระดับนี้ปลอมไม่ได้');
+        this.ensureWitnessNpc(W, 'aping');
+      }
+      // Twice a year (Month 3 Day 5 Sword Tomb & Month 7 Day 15 Lanterns): Autonomous name release progress
+      if (ap.handwritingVerified && ((cal.month === 3 && cal.dom === 5) || (cal.month === 7 && cal.dom === 15))) {
+        if (ap.pendingNamesRemaining > 1) {
+          const released = Math.min(ap.pendingNamesRemaining - 1, 250 + Math.floor(this._rand(ws) * 450));
+          ap.pendingNamesRemaining -= released;
+          ap.namesReleasedLegally += released;
+          const prevTier = ap.countdownTier;
+          if (ap.pendingNamesRemaining <= 1) ap.countdownTier = 1;
+          else if (ap.pendingNamesRemaining <= 100) ap.countdownTier = 2;
+          else if (ap.pendingNamesRemaining <= 10000) ap.countdownTier = 3;
+          else if (ap.pendingNamesRemaining <= 30000) ap.countdownTier = 4;
+          if (ap.countdownTier < prevTier) {
+            this._log(W, ws, 'WITNESS_APING', `วิถีชื่อค้างวัฏของอาผิงนับถอยหลังสู่ชั้น ${ap.countdownTier} (เหลือชื่อค้าง ${ap.pendingNamesRemaining.toLocaleString('en-US')} ชื่อ)`);
+          }
+          this.ensureWitnessNpc(W, 'aping');
+          // Autonomous quiet mentorship on the 4th stone bench
+          const disc = (W.npcs || []).find(n => n && !n.dead && !n.exiled && n.cult && !n.secretSubPathId && ((n.h && n.h.personality && n.h.personality.integrity) || 50) >= 65);
+          if (disc && g.CULT && g.CULT.gain) {
+            g.CULT.gain(disc, 35, W, 'aping_witness_copy');
+            if (ap.countdownTier <= 2 && this._rand(ws) < 0.25) {
+              disc.secretSubPathId = 'PENDING_REGISTRY_PATH';
+              disc.pendingCountdownTier = 5;
+              this._log(W, ws, 'WITNESS_APING', 'อาผิงทิ้งกระดาษคัดชื่อไว้บนม้านั่งหินก้อนที่สี่ ศิษย์「' + (HC.fullName ? HC.fullName(disc) : disc.id) + '」ตระหนักในวิถีชื่อค้างวัฏ!');
+            }
+          }
+        }
+      }
+    },
+
+    _tickWeiHeng(W, ws, cal) {
+      const wh = ws.weiheng;
+      const y = cal.yearInEpoch;
+      if (y < wh.birthYearInEpoch) return;
+      wh.ageYears = y - wh.birthYearInEpoch;
+
+      if (!wh.born && y >= 2 && (y > 2 || cal.month > 1 || cal.dom >= 1)) {
+        wh.born = true;
+        wh.stage = 'CHILD';
+        this._log(W, ws, 'WITNESS_WEIHENG', 'ยุคที่ 101 ปีที่ 2: ทารกนาม "เว่ยเหิง" ถือกำเนิดในครอบครัวสามัญชนพร้อมความทรงจำครบถ้วนของถานอี้ นายทะเบียนท่าอ้อหักแห่งยุคที่ 1');
+        this.ensureWitnessNpc(W, 'weiheng');
+      }
+      if (wh.born && !wh.ceramicRecordVerified && y >= 25 && cal.month === 4 && cal.dom === 10) {
+        wh.ceramicRecordVerified = true;
+        wh.stage = 'RECORD_SEEKER';
+        wh.storiesSharedCount++;
+        this._log(W, ws, 'WITNESS_WEIHENG', 'ยุคที่ 101 ปีที่ 25: เว่ยเหิง (วัย 23 ปี) ตรวจพบแผ่นเซรามิกเผาแตกสามชิ้นของท่าอ้อหัก ยืนยันชื่อชายชรา "เถาเต๋อ" และเรื่องเล่าตะเกียบไม้ของหลานสาว');
+      }
+      if (wh.born && !wh.ceilingReached && y >= 48 && cal.month === 8 && cal.dom === 15) {
+        wh.ceilingReached = true;
+        wh.stage = 'CEILING_REACHED';
+        this._log(W, ws, 'WITNESS_WEIHENG', 'ยุคที่ 101 ปีที่ 48: เว่ยเหิง (วัย 46 ปี) บรรลุสายย่อยจิตรับภพแห่งวิถีสังสารวัฏ ทะลุถึงเพดานตบะสูงสุดที่โลกเบื้องล่างรองรับได้');
+      }
+      if (wh.ceilingReached && !wh.epithetEarned && y >= 52 && cal.month === 9 && cal.dom === 9) {
+        wh.epithetEarned = true;
+        wh.stage = 'SHADOW_RADIANCE';
+        this._log(W, ws, 'WITNESS_WEIHENG', 'ยุคที่ 101 ปีที่ 52: เว่ยเหิง (วัย 50 ปี) รับคมดาบแทนคนงานสองคนแล้วสวนปลดอาวุธด้วยคัมภีร์ลมหายใจข้ามภพ ได้รับฉายา "ยอดคนเงาประกาย" ทั่วแผ่นดิน');
+      }
+      if (wh.born) this.ensureWitnessNpc(W, 'weiheng');
+      if (wh.epithetEarned && wh.stage !== 'LIVING_CHRONICLER' && y >= 61 && cal.month === 1 && cal.dom === 1) {
+        wh.stage = 'LIVING_CHRONICLER';
+        wh.storiesSharedCount += 3;
+        wh.disciplesTaughtCount += 1;
+        this._log(W, ws, 'WITNESS_WEIHENG', 'ยุคที่ 101 ปีที่ 61: ยอดคนเงาประกาย เว่ยเหิง (วัย 59 ปี) ปฏิเสธตำแหน่งผู้ดูแลหอพงศาวดารที่ขอตรวจเซนเซอร์เรื่องเล่า แล้วกลับบ้านกินข้าวกับแม่และเริ่มนับจากถ้วยใบที่สิบเก้า');
+        this.ensureWitnessNpc(W, 'weiheng');
+        // Autonomous real mentorship to a living sect disciple!
+        const student = (W.npcs || []).find(n => n && !n.dead && !n.exiled && n.cult && !n.secretSubPathId) || (W.npcs || []).find(n => n && !n.dead && !n.exiled && n.cult);
+        if (student) {
+          if (g.CULT && g.CULT.gain) g.CULT.gain(student, 120, W, 'weiheng_shadow_radiance_teaching');
+          if (!student.secretSubPathId) student.secretSubPathId = 'SHADOW_RADIANCE_SUBPATH';
+          student.mentoredByWeiHeng = true;
+          this._log(W, ws, 'WITNESS_WEIHENG', 'ยอดคนเงาประกาย เว่ยเหิง แวะสนทนาและถ่ายทอดเคล็ด "สายย่อยจิตรับภพ" แก่ศิษย์「' + (HC.fullName ? HC.fullName(student) : student.id) + '」(+120 ตบะ)');
+        }
+      }
+    },
+
+    _tickEventShards(W, ws, cal, absDay) {
+      const es = ws.eventShards;
+      // Sky-Fall Sorting Yard (#11): Rare Realm Veil tremor (1-3 days), e.g., during Year 4 "ปีสามเหตุ" or rare annual roll
+      if (absDay > es.skyFallOpenUntilDay && cal.month === 12 && cal.dom === 15) {
+        const isYear4 = cal.yearInEpoch === 4;
+        if (isYear4 || this._rand(ws) < 0.12) {
+          es.skyFallOpenCount++;
+          es.skyFallOpenUntilDay = absDay + 3;
+          this._log(W, ws, 'SHARD_11', `ม่านกั้นภพสั่นสะเทือนโดยไม่ทราบสาเหตุ! แดนลับที่ 11 "ลานคัดแยกของตกฟ้า" เปิดออก 3 วัน (ครั้งที่ ${es.skyFallOpenCount} ในประวัติศาสตร์ — หุ่นเสมียนเมฆยังคงนับสต็อกของคัดทิ้งจากเบื้องบน)`);
+        }
+      }
+      // Two-Bank Water Realm (#12): Rival factions autonomously lay down arms for 1-day mediation
+      if (absDay > es.twoBankOpenUntilDay && cal.month === 6 && cal.dom === 15 && this._rand(ws) < 0.28) {
+        es.twoBankOpenUntilDay = absDay + 1;
+        es.twoBankTrucesWitnessed++;
+        this._log(W, ws, 'SHARD_12', 'แดนลับที่ 12 "แดนถ้วยน้ำสองฝั่ง" เปิดออก 1 วันเมื่อสองฝ่ายคู่แค้นยอมวางอาวุธและเทน้ำบ่อบ้านเกิดร่วมกันเพื่อเจรจาในเขตที่กดตบะเท่ากัน');
+      }
+      // Tiangu Folded Treasury (#10): Gradual voluntary key grants across decades
+      if (cal.month === 10 && cal.dom === 1 && es.tianguKeysGranted < 9 && this._rand(ws) < 0.35) {
+        es.tianguKeysGranted++;
+        if (es.tianguKeysGranted === 9) {
+          es.tianguTreasuryOpenUntilDay = absDay + 9;
+          this._log(W, ws, 'SHARD_10', 'กุญแจคลังลับทั้ง 9 ดอกได้รับการส่งมอบโดยสมัครใจครบถ้วน! แดนลับที่ 10 "ท้องพระคลังพับมิติเทียนกู่" เปิดออก 9 วันเผยสมุดบัญชีที่ดินโบราณ (หน้าสุดท้ายยังคงขาดหาย)');
+        }
+      }
+    },
+
+    tickDaily(W) {
+      if (!W) return null;
+      const ws = this.ensure(W);
+      const absDay = Math.floor((W.t || 0) / 1440);
+      if (absDay === ws.lastTickDay) return ws;
+      ws.lastTickDay = absDay;
+
+      const cal = this._cal(W);
+      this._tickAping(W, ws, cal);
+      this._tickWeiHeng(W, ws, cal);
+      this._tickEventShards(W, ws, cal, absDay);
+      return ws;
+    },
+
+    // Pure Read-Only Summary (ZERO mutation, ZERO W.rng consumption!)
+    getReadOnlySummary(W) {
+      const ws = W && W.world && W.world.witnessesAndShards;
+      if (!ws) return null;
+      const absDay = Math.floor((W.t || 0) / 1440);
+      return {
+        version: ws.version,
+        totalShardsCount: 12,
+        reserveShardCount: 1,
+        secretSubpathsCount: Object.keys(this.SECRET_SUBPATHS).length,
+        aping: Object.assign({}, ws.aping),
+        weiheng: Object.assign({}, ws.weiheng),
+        breathRelay: Object.assign({}, ws.breathRelay),
+        eventShards: {
+          tianguKeysGranted: ws.eventShards.tianguKeysGranted,
+          tianguTreasuryOpen: absDay <= ws.eventShards.tianguTreasuryOpenUntilDay,
+          skyFallOpenCount: ws.eventShards.skyFallOpenCount,
+          skyFallOpen: absDay <= ws.eventShards.skyFallOpenUntilDay,
+          twoBankTrucesWitnessed: ws.eventShards.twoBankTrucesWitnessed,
+          twoBankOpen: absDay <= ws.eventShards.twoBankOpenUntilDay
+        },
+        recentEvents: ws.recentEvents.slice(0, 6)
+      };
+    }
+  };
+  /* === JS2_V395_WITNESSES_AND_SHARDS_END === */
+
+
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

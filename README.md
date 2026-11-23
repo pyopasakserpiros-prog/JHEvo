@@ -1,6 +1,40 @@
-# JianghuSect 2 (ภาค 2) — JS2-v2.6.0 (Living Chronicle, Jianghu Reporting & News Filtering Release)
+> **Latest Release: `JS2 v3.8.5`** — Lore Continuity & Canon Hardening (resolved all 15 audit findings `LC-01..LC-15` + 3 worldbuilding decisions across runtime `sim.js`/`sect.js`/`expedition.js`/`visitors_clues.js` and 44 bundled Lore Chronicles), verified 40-script lock & `JianghuSect_single.html` (`21,261 KB`). See [`NEW_CHAT_HANDOFF_JS2_v3.8.5.md`](NEW_CHAT_HANDOFF_JS2_v3.8.5.md) & [`PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md`](PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md).
 
-**สถานะส่งมอบปัจจุบัน (`JS2-v2.6.0`):** พัฒนา ทดสอบ และส่งมอบแพตช์ **พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว (`JS2-v2.6.0`)** เสร็จสมบูรณ์แล้ว ดูรายละเอียดได้ที่ [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจระบบที่ [JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
+> **Latest Release: `JS2 v3.8.4`** — 44 Standalone Novel-Grade Lore Chronicles (`3.65 MB`, `1,299` unique Entity IDs, 24 `systemBlueprint` recurring events/pocket realms) synced into `data_expansion.js` & `UI.rLore("chronicles")`, plus Legendary/Transcendent canon fixes, verified 40-script lock & `JianghuSect_single.html` (`21,257 KB`). See [`NEW_CHAT_HANDOFF_JS2_v3.8.4.md`](NEW_CHAT_HANDOFF_JS2_v3.8.4.md) & [`PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.4.md`](PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.4.md).
+
+> **Latest Release: `JS2 v3.8.3`** — 11 Standalone Novel-Grade Lore Chronicles (~706 KB) bundled into `data_expansion.js` & `UI.rLore()` (`📚 คลังมหากาพย์ 11 บท`), verified 40-script lock & `JianghuSect_single.html` (19,842 KB). See `NEW_CHAT_HANDOFF_JS2_v3.8.3.md` & `PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.3.md`.
+
+> **Latest Release: ** — 11 Standalone Novel-Grade Lore Chronicles (~706 KB) bundled into  &  (), verified 40-script lock &  (19,842 KB). See  & .
+
+> **Latest Stable Release: JianghuSect 2 (`JS2 v3.8.2` — Living Rise & Fall: Sects & Polities)** — เล่นได้ทันทีผ่าน `GAME_SOURCE/JianghuSect_single.html` (ไฟล์เดี่ยว) หรือ `GAME_SOURCE/index.html` · ดูสรุปการอัปเดตทั้งหมดตั้งแต่ `v3.1.0` → `v3.7.0a` ได้ใน [`CHANGELOG_JS2_V310_TO_V382.md`](CHANGELOG_JS2_V310_TO_V382.md) และรายละเอียดทุกแพทในโฟลเดอร์ [`PATCH_REPORTS/`](PATCH_REPORTS/)
+
+> **Current Version:** JS2 v3.4.0 External World Events (`3.4.0-world-events`) · See `PATCH_REPORTS/WORLD_EVENTS_JS2_V3_4_0.md` & `docs/handovers/JS2_V3_5_0_NEXT_PATCH_HANDOFF.md`
+
+> **Current Version:** JS2 v3.3.0 Tactical Combat & Six-Path Mastery (`3.3.0-tactical-sixpaths`) · See `PATCH_REPORTS/TACTICAL_SIXPATHS_JS2_V3_3_0.md`
+
+> **Current Version:** JS2 v3.2.0 Equipment Expansion () · See  & 
+
+# JianghuSect 2 (ภาค 2) — JS2-v3.1.0 Living Lore
+
+> **อัปเดตล่าสุด — JS2-v3.1.0 Living Lore (ตำนานมีชีวิต ความรู้รายบุคคล 4 ชั้นความจริง และ 20 สายเรื่องราวในยุทธภพ):** พัฒนาและตรวจสอบเสร็จสมบูรณ์ (`187 / 187 PASS`) ดูรายงานฉบับเต็มที่ [PATCH_REPORTS/LIVING_LORE_JS2_V3_1_0.md](PATCH_REPORTS/LIVING_LORE_JS2_V3_1_0.md), ทะเบียนประสาน Lore ที่ [JS2_V3_1_0_LIVING_LORE_CANON_AND_DISPOSITION.md](docs/handovers/JS2_V3_1_0_LIVING_LORE_CANON_AND_DISPOSITION.md), และคำแนะนำสำหรับ AI ที่ [START_HERE_FOR_AI.md](START_HERE_FOR_AI.md)
+
+เปิด **ยุทธภพ → แผนที่ยุทธภพ** เพื่อดูทวีปเต็มผืน ซูมเข้าเพื่ออ่านภูมิประเทศและดูตำแหน่งจริงของคณะเดินทาง หรือเปิด **ยุทธภพ → อาณาจักร** เพื่อดูราชสำนัก เมือง และผู้ครองตำแหน่งทั้ง 9 อาณาจักร [รายงาน Living Continent](PATCH_REPORTS/LIVING_CONTINENT_JS2_V3_0_0.md)
+
+> **main-debug — คู่หูแห่งหุบเขา:** มีคู่หูประจำถิ่น 18 แบบ (T1–T2 ระดับละ 5) NPC ผูกพันธสัญญาเอง และมีท่าขี่พาหนะกับกระบี่บินบนแผนที่ [รายงานแพตช์](PATCH_REPORTS/REGIONAL_COMPANIONS_JS2_V2_6_0.md).
+
+> **main-debug — สัตว์คู่หูสามระดับ:** คุนเผิง จิ้งจอกเก้าหาง กิเลน และไป๋เจ๋อ รวม 12 แบบ มีจุดเด่น จุดอ่อน และเส้นทางที่ NPC ค้นพบเอง ดู [รายงานแพตช์](PATCH_REPORTS/MYTHIC_COMPANION_LINEAGES_JS2_V2_6_0.md).
+
+> **main-debug — กรุเหนือตำนาน:** เพิ่มทางค้นพบจริงในวิหารโบราณ อุปกรณ์ใหม่ 2 ชิ้น และวิชาใหม่ครบ 8 ประเภท ดู [รายงานแพตช์](PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md).
+
+> **main-debug — Transcendent VFX:** ภาพวิชาและอุปกรณ์เหนือตำนานชุดใหม่เชื่อมกับการต่อสู้และคลังแล้ว ดู [รายงานแพตช์](PATCH_REPORTS/TRANSCENDENT_VISUALS_JS2_V2_6_0.md).
+
+> **Historical Carbon assignment:** Gemini Argon4 received [the archived Carbon prompt](docs/historical_prompts/ARCHIVE_CARBON_COMPENDIA.md) and its [31-PDF review guide](docs/handovers/CARBON_LATEST_TWO_UPLOADS_REVIEW_FOR_GEMINI_ARGON4.md). This covers uploads 881fecf and 6670b49 only; AGENTS.md remains the project constitution.
+
+> **main-debug — ล่าอสูรหุบเขา:** อสูรทั่วไป T1–T7 เกิดบนบกและในแม่น้ำ มินิบอสกับบอสให้คณะล่ารวมตัวเองตามกำลังและตบะ บอสเหนือตำนานต้องมีผู้พร้อมอย่างน้อย 51 คน บอสพำนักสงบจนถูกท้าทาย [รายงานแพตช์](PATCH_REPORTS/VALLEY_BEAST_RAIDS_JS2_V2_6_0.md).
+
+> **main-debug — โมเดลอสูรรอบสำนัก:** อสูร 125 ชนิดใช้ 35 รูปทรงพื้นฐาน แยกด้วยลายเฉพาะและขนาด T1–T7 เห็นรูปลักษณ์เดิมต่อเนื่องจากเดินสำรวจถึงต่อสู้ [รายงานแพตช์](PATCH_REPORTS/WILD_BEAST_MODELS_JS2_V2_6_0.md).
+
+**แพตช์พงศาวดาร (`JS2-v2.6.0`):** พัฒนา ทดสอบ และส่งมอบแพตช์ **พงศาวดารมีชีวิต การรายงานยุทธภพ และระบบกรองการรับข่าว (`JS2-v2.6.0`)** เสร็จสมบูรณ์แล้ว ดูรายละเอียดได้ที่ [PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md](PATCH_REPORTS/PATCH_IMPLEMENTATION_REPORT_JIANGHUSECT2_V2_6_0.md) และตารางสำรวจระบบที่ [JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md](docs/audits/JS2_V2_6_0_CHRONICLE_COVERAGE_MATRIX_TH.md)
 
 > **ไฮไลต์ `JS2-v2.6.0` (2026-11-09):**
 > - **Fact Snapshot & ประวัติบุคคลย้อนหลัง (`SIM.snapshotPerson`, `EXPED.buildFactSnapshot`, `UI.rHistoricalPerson`)**: เก็บข้อมูลตัวละคร ณ เวลาเกิดเหตุ พร้อมประวัติชื่อเดิม (`formerNames`) และหน้าต่างแผ่นป้ายจารึกประวัติสำหรับผู้ที่เสียชีวิต ฝังสุสาน ถูกขับไล่ หรือเปลี่ยนชื่อ
@@ -51,3 +85,54 @@ node test/core_lock.js
 node test/v260_living_chronicle_and_reporting_suite.js
 node tools/run_parallel_tests.js
 ```
+
+- **Patch JS2-v2.6.0 (Bugfix Categories 02–03: NPC Brain & Martial Arts)**: Remediated confirmed findings across `02A`–`02C` (Epistemic Knowledge, 16-Weapon Parity, Goal/Utility Loops, Autonomous Executive & Mentorship Sync) and `03A`–`03G` (Move Profiles, Active Mantra Moves, Composable/Elemental Normalization, Mantra/Formation/Defensive/Support/Forbidden Combat Guards & Lifespan Sacrifice). See `PATCH_REPORTS/BUGFIX_CATEGORIES_02_03_JS2_V2_6_0.md` and `GAME_SOURCE/test/v260_bugfix_categories_02_03_suite.js`.
+
+## อัปเดตล่าสุด: แพตช์แก้บัคเชิงลึก หมวด 02–03 และ หมวด 04–05–06 (`JS2-v2.6.0`)
+- รายงานหมวด 02–03: `PATCH_REPORTS/BUGFIX_CATEGORIES_02_03_JS2_V2_6_0.md` (`GAME_SOURCE/test/v260_bugfix_categories_02_03_suite.js`)
+- รายงานหมวด 04–05–06: `PATCH_REPORTS/BUGFIX_CATEGORIES_04_05_06_JS2_V2_6_0.md` (`GAME_SOURCE/test/v260_bugfix_categories_04_05_06_suite.js`)
+- รักษา `GAME_SOURCE/js/human_core.js` (`155:2f9c9dd7`) และลำดับ `<script>` 40 ไฟล์ครบถ้วน 100%
+
+
+## Update: Bugfix Categories 07 & 08 Completed (JS2-v2.6.0)
+- **Categories 07–08 (`07A`–`07E` Sect Governance & `08A`–`08F` Outside World/Ecology)**: All confirmed root-cause bugs fixed on top of the Categories 01–06 codebase.
+- **Regression Suite**: `GAME_SOURCE/test/v260_bugfix_categories_07_08_suite.js` (registered in `GAME_SOURCE/test/run_all.js`).
+- **Patch Report**: `PATCH_REPORTS/BUGFIX_CATEGORIES_07_08_JS2_V2_6_0.md`.
+
+
+## อัปเดตแพตช์แก้บัคหมวด 09–10 (JS2-v2.6.0)
+- แก้ไขบัคหมวด 09 (Combat Engine & Tactical Simulation: `09A`–`09F`) และหมวด 10 (Economy & Supply Chain: `10A`–`10E`) ครบถ้วน
+- รายงานฉบับเต็ม: `PATCH_REPORTS/BUGFIX_CATEGORIES_09_10_JS2_V2_6_0.md`
+- ชุดทดสอบถดถอย: `GAME_SOURCE/test/v260_bugfix_categories_09_10_suite.js`
+
+- **Wave 5 (Categories 11–12 Human Core Bridge, Psychology, Social/Karma, UI, Visuals, Sect Map Layout & Build Pipeline)**: See `PATCH_REPORTS/BUGFIX_CATEGORIES_11_12_JS2_V2_6_0.md` and `GAME_SOURCE/test/v260_bugfix_categories_11_12_suite.js`.
+
+Post-13 review: [ผลตรวจและข้อจำกัด](after%20debug/02_POST13_REVIEW_AND_NEXT_PATCH.md) · [แผนแพตช์ต่อไป](after%20debug/03_NEXT_PATCH_POST13.md).
+
+
+อัปเดต 2026-11-15: ถอดคำสั่ง NPC 157 action เพิ่มทางเลือกอัตโนมัติ 31 กลุ่มและเหตุการณ์โลกที่เลือกไม่เกิดได้ แก้สูตรโรงหลอมที่เข้าไม่ถึง 8 สูตร/รหัสผลผลิต ดู [รายงานและข้อจำกัด](after%20debug/04_OBSERVER_AUTONOMY_AND_REACHABILITY.md). เครื่องมือแก้สถานะ/เสกของยังใช้ได้ตาม AGENTS.md; ผลทดสอบปัจจุบันอยู่ท้ายรายงาน.
+
+Checkpoint ส่งต่อ Agy: [งานที่ทำแล้วและสิ่งที่ต้องตรวจต่อ](after%20debug/05_CHECKPOINT_FOR_AGY.md). ยังต้องรัน full sweep บน snapshot สุดท้ายเดียวกัน.
+
+
+## Living Jianghu Epithets, Sobriquets, Daoist Styles, Group Titles, Moveable Crowns & Posthumous Honorifics (`JS2-v2.6.0`)
+- **Catalog & Audit**: `JD.EPITHETS` (`274` active runtime epithets: `258` from PDF volumes `EPITHET_01A/01B/01C` + `16` codebase-grounded originals `EPI_NEW_261..276`). Full 260-row decision ledger in `docs/handovers/EPITHET_260_REVIEW_TRACKER.csv` (`0 UNREVIEWED`, `0 BLOCKED`), with audits in `docs/audits/EPITHET_FEATURE_OPPORTUNITIES.md` and `docs/audits/EPITHET_ACTIVE_REGISTRY.md`.
+- **Runtime Engine (`CULT.EPITHETS` / `SECT.EPITHETS` / `g.EPITHETS`)**:
+  - **Evidence & Anti-Farming (`npc.deedStats`)**: `recordDeed(W, npc, deedKey, amount, meta)` with `receiptId` idempotency and 6 anti-farming guards (blocks non-serious sparring, trivial targets >2 stages below, overhealing >=90% HP, zero-contribution AFK tag-alongs, and cauldron-explosion stat farming).
+  - **Witness & Epistemic Propagation (`VERIFIED` / `OBSERVED` / `RUMOR`)**: Unwitnessed wilderness feats stay in `npc.deedStats.unwitnessedDeeds` until verified via `verifySecretDeedWithProof`. `propagateRumor` (hooked into `COG.shareKnowledgeOnInteract`) deduplicates `originEventId` in `rumorLedger` to prevent echo-chamber `witnessCount` inflation. Supports `seedAccusationRumor` and `clearFalseAccusation`.
+  - **Multi-Perspective Perception (`evaluatePerception(W, observer, target)`)**: Pure zero-RNG, zero-mutation evaluation returning `attitudeDelta`, `trustDelta`, `fearDelta`, `respectDelta`, and `perceptionLabelTh`.
+  - **Shame Stigma & Autonomous Redemption (`wash_shame_epithet`)**: Shame epithets (`polarity === "SHAME"`) cannot be suppressed by stealth; upright/prideful NPCs activate `npc.epithets.redemptionDrive` and cognition goal `wash_shame_epithet`, redeeming stigma through real heroic deeds (`redeemShameEpithet`) with a 30-day `residualSkepticUntilDay` window.
+  - **12 One-in-the-World Moveable Crowns (`W.world.uniqueCrowns`, `EPI_CRN_235..246`)**: Strictly 1 holder across `W.npcs`, `W.world.figuresById`, and `W.world.wanderingFigures`; supports direct duel transfer (`checkCrownDuelTransfer`), Tianji ranking reconciliation (`reconcileUniqueCrowns`) with tie-keeps-incumbent and >8% margin, age-28 vacation (`EPI_CRN_245`), immediate vacation on death (`vacateCrownOnDeath`), 2-day rumor lag (`publicKnownHolderId`), and max 1 Sovereign Aura in `ST._applyDaoTraits`.
+  - **Collective Group Epithets (`W.sect.collectiveEpithets`, `EPI_GRP_173..188`), Daoist Names (`EPI_DAO_077..084`), Lineage Seniority (`EPI_DAO_085..092`), Posthumous Tablets (`EPI_PST_247..260`) & Snapshot Immutability**: `bestowDaoName` preserves birth names; `bestowPosthumousTitle` engraves posthumous honorifics onto `W.sect.legacyTablets`; `SIM.snapshotPerson` and `EXPED.buildFactSnapshot` freeze `epithetAtEventTh` immutably.
+  - **Verification Suite**: `node GAME_SOURCE/test/epithets_living_jianghu_suite.js`.
+
+
+## สถานะล่าสุด: 260c repair บน JS2-v2.6.0
+
+นำชุด Gemini `260c.zip` มารวมบน `main-debug` และแก้เส้นทางเหตุการณ์/ค่าสถานะที่ตรวจพบแล้ว ระบบฉายา274รายการอยู่ในซอร์สแล้ว ไม่ต้องเริ่มแพตช์ฉายาซ้ำ มีวาสนาภายหลัง27 ประสบการณ์36 รอยชำนาญ24 (ทะเบียนข้อเสนอ88แถว รวมหนึ่งข้อที่รวมกับของเดิม) แผนที่360×304 วันยาว1.5เท่า และปุ่ม96×
+
+ประสบการณ์ให้ผลครั้งเดียว รอยชำนาญออกฤทธิ์เฉพาะสามช่องที่ NPC เลือกเอง การฟื้นภาระเก็บภูมิปัญญาและไม่แจกผลซ้ำ เชื่อมเหตุการณ์จริงด้านต่อสู้ รักษา ผลิต เดินทาง สำรวจ ตกปลา และชีวิตสำนัก เพิ่ม guard ของนาฬิกาเพื่อไม่ให้เหตุการณ์ซ้ำในนาทีค้าง และเก็บ workSteps/timePhase/หลักฐานระหว่างศึกในเซฟปัจจุบัน
+
+ทิศทางการต่อสู้ตามผู้ใช้: คล้ายจังหวะ Dungeon Village ของ Kairosoft ในแง่เห็นสมาชิกออกจากสำนักไปปะทะอสูร แล้วกลับพัก รักษา และใช้ชีวิตต่อ โดย NPC เลือกเองตามนิสัย ความสามารถ ความพร้อม และสถานการณ์ ผู้เล่นติดตามได้ ไม่สั่งทีม/เป้าหมาย อ้างอิงความรู้สึกของวงจรการเล่น ไม่ต้องคัดลอกเกมนั้นทั้งระบบหรือภาพ
+
+หลักฐานและข้อจำกัดปัจจุบันอยู่ใน [รายงาน260c repair](PATCH_REPORTS/260C_REPAIR_JS2_V2_6_0.md), [ทะเบียนคุณลักษณะ](docs/audits/LIFE_TRAITS_ACTIVE_REGISTRY.md), [สัญญาเวลา/ผัง](docs/audits/TIME_AND_MAP_CONTRACT.md) และ [จุดส่งต่องาน](docs/handovers/archive/JS2_V2_6_0_260C_REPAIR_CHECKPOINT_ARCHIVE.md) ตัวเลขผลตรวจเก่าในประวัติไม่ใช่ผลของชุดปัจจุบัน; 96× เป็นความเร็วที่ขอ ประมวลผลได้จริงขึ้นกับเครื่อง

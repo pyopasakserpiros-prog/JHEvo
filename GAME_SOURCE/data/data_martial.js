@@ -1,7 +1,7 @@
 /* Martial paths & Technique Overhaul (v1.11.0): native catalog extension, 100 passives, 10-category legends, variable multi-move arts, and tier/grade rubric. */
 (function(g){
 'use strict';
-const JD=g.JD, D=JD.MARTIAL={version:'1.12.0',types:{SWORD:'กระบี่',BLADE:'ดาบ',BOW:'ธนู',SPEAR:'หอก/ทวน',STAFF:'พลอง',FIST:'สนับหมัด',FOCUS:'สื่อปราณ',ZITHER:'พิณคีตเวทย์',BRUSH:'พู่กันอาคม',WHIP:'แส้และด้ายปราณ',HEAVY:'เกราะหนัก',LIGHT:'เกราะเบา',ROBE:'อาภรณ์',RING:'แหวน',NECKLACE:'สร้อย',BRACELET:'กำไล',CHARM:'เครื่องราง'}};
+const JD=g.JD, D=JD.MARTIAL={version:'1.12.0',types:{SWORD:'กระบี่',BLADE:'ดาบ',BOW:'ธนู',SPEAR:'หอก/ทวน',STAFF:'พลอง',FIST:'สนับหมัด',FOCUS:'สื่อปราณ',ZITHER:'พิณคีตเวทย์',BRUSH:'พู่กันอาคม',WHIP:'แส้และด้ายปราณ',ROSARY:'ลูกประคำศึก',CLAW:'กรงเล็บอสูร',NEEDLE:'เข็มปราณ',FAN:'พัดยุทธภพ',ASTROLABE:'จานดาราพยากรณ์',ABACUS:'ลูกคิดทองคำ',HEAVY:'เกราะหนัก',LIGHT:'เกราะเบา',ROBE:'อาภรณ์',RING:'แหวน',NECKLACE:'สร้อย',BRACELET:'กำไล',CHARM:'เครื่องราง',SHOES:'รองเท้าวิชาตัวเบา'}};
 D.GRADES={
  Common:{id:'Common',nameTh:'สามัญ',rank:1,priceMult:1.0,color:'#9fb0c2'},
  Refined:{id:'Refined',nameTh:'ประณีต',rank:2,priceMult:1.15,color:'#6ddfb5'},
@@ -17,7 +17,7 @@ D.PASSIVE_SLOT_BONUSES={
  STAFF_GUARD:{slots:1,reasonTh:'สายองครักษ์พลองเหล็กเน้นตั้งรับและลดความเร็ว จึงได้ช่องวิชาติดตัวเพิ่ม +1 ช่อง'}
 };
 D.classify=(slot,name)=>{
- if(slot==='WEAPON'){for(const [re,t] of [[/ธนู|คันศร/,'BOW'],[/พิณ|ขลุ่ย|สังข์|กระดิ่ง|ระฆัง|กลองศึก/,'ZITHER'],[/พู่กัน|สิ่วจารึก|ปากกาอาคม/,'BRUSH'],[/แส้|ด้าย|เส้นไหม|โซ่ตรวน/,'WHIP'],[/กระบี่/,'SWORD'],[/ดาบ|กริช|มีด|ขวาน|ง้าว/,'BLADE'],[/หอก|ทวน/,'SPEAR'],[/พลอง|กระบอง|ค้อน|ไม้เท้า/,'STAFF'],[/หมัด|สนับ|กรงเล็บ/,'FIST']])if(re.test(name||''))return t;return 'FOCUS';}
+ if(slot==='WEAPON'){for(const [re,t] of [[/ธนู|คันศร/,'BOW'],[/พิณ|ขลุ่ย|สังข์|กระดิ่ง|ระฆัง|กลองศึก/,'ZITHER'],[/พู่กัน|สิ่วจารึก|ปากกาอาคม/,'BRUSH'],[/แส้|ด้าย|เส้นไหม|โซ่ตรวน/,'WHIP'],[/ประคำ|ลูกประคำ/,'ROSARY'],[/กรงเล็บ/,'CLAW'],[/เข็ม/,'NEEDLE'],[/พัด/,'FAN'],[/จานดารา|จานหยก|จานพยากรณ์/,'ASTROLABE'],[/ลูกคิด/,'ABACUS'],[/กระบี่/,'SWORD'],[/ดาบ|กริช|มีด|ขวาน|ง้าว/,'BLADE'],[/หอก|ทวน/,'SPEAR'],[/พลอง|กระบอง|ค้อน|ไม้เท้า/,'STAFF'],[/หมัด|สนับ/,'FIST']])if(re.test(name||''))return t;return 'FOCUS';}
  if(slot==='ARMOR')return /เสื้อคลุม|อาภรณ์|จีวร|ชุดแพร|袍/.test(name||'')?'ROBE':/เกราะ|เหล็ก|โลหะ/.test(name||'')?'HEAVY':'LIGHT';
  return /แหวน/.test(name||'')?'RING':/สร้อย|จี้|ประคำ/.test(name||'')?'NECKLACE':/กำไล|ข้อมือ/.test(name||'')?'BRACELET':'CHARM';
 };
@@ -219,6 +219,7 @@ D.legendaryTechniques=[
  {
   id:'LEG_COMBAT_DUGU_NINE_SWORDS',
   nameTh:'เก้ากระบี่เดียวดายทลายกระบวน',
+ descTh:'เก้าเพลงกระบี่ทลายทุกกระบวนท่าที่สืบสายจากปรมาจารย์สันโดษยุคที่ 85–94 เน้นการอ่านช่องโหว่ไร้รูปแบบเพื่อตัดกระแสปราณศัตรูตั้งแต่ยังไม่ทันออกท่าสมบูรณ์',
   cat:'COMBAT_TECHNIQUE',
   role:'COMBAT_OFFENSE',
   path:'XIAN',
@@ -256,6 +257,7 @@ D.legendaryTechniques=[
  {
   id:'LEG_COMBAT_DRAGON_SUBDUING_PALMS',
   nameTh:'สิบแปดฝ่ามือพิชิตมังกรสะท้านภพ',
+ descTh:'สิบแปดฝ่ามือปราณหยางอันหนักแน่นที่ถือกำเนิดในปลายยุคที่ 2 หลังต้าเฉียนล่มสลาย แปรพลังกายาและเจตจำนงผู้พิทักษ์เป็นคลื่นฝ่ามือสยบเกราะหนัก',
   cat:'COMBAT_TECHNIQUE',
   role:'COMBAT_OFFENSE',
   path:'BODY',
@@ -318,6 +320,7 @@ D.legendaryTechniques=[
  {
   id:'LEG_AUX_QIANKUN_SHIFT',
   nameTh:'เคล็ดเคลื่อนย้ายจักรวาลพลิกผัน',
+ descTh:'เคล็ดเบี่ยงทิศและย้อนคืนแรงปะทะแห่งหอเฉียนคุนในยุคที่ 60–62 ใช้หลักสมดุลหยินหยางย้ายแรงโจมตีศัตรูให้พ้นจุดตายและสะท้อนกลับอย่างแยบยล',
   cat:'AUXILIARY_ART',
   role:'HEAL_SUPPORT_TRAINING',
   path:'XIAN',
@@ -348,6 +351,7 @@ D.legendaryTechniques=[
  {
   id:'LEG_AUX_LINGXI_ONE_FINGER',
   nameTh:'ดัชนีใจสื่อใจสกัดพันคม',
+ descTh:'วิชานิ้วสกัดคมศาสตราแห่งศาลาหลิงซีในยุคที่ 60–62 อาศัยจิตสมาธิเฉียบคมคีบหยุดอาวุธและตัดจังหวะกระบวนท่าของคู่ต่อสู้ในเสี้ยวพริบตา',
   cat:'AUXILIARY_ART',
   role:'HEAL_SUPPORT_TRAINING',
   path:'HEART_SOUL',
@@ -378,6 +382,7 @@ D.legendaryTechniques=[
  {
   id:'LEG_LIGHT_LINGBO_STEP',
   nameTh:'ย่างก้าวเหยียบคลื่นไร้ร่องรอย',
+ descTh:'วิชาตัวเบาเหยียบคลื่นตามผังแปดทิศที่เลื่องชื่อตั้งแต่ยุคกลาง ช่วยเคลื่อนที่พลิ้วไหวดั่งระลอกน้ำพร้อมฟื้นฟูปราณระหว่างหลบหลีก',
   cat:'LIGHTNESS_ART',
   role:'MOVEMENT_STEALTH_RECON',
   path:'XIAN',
@@ -407,6 +412,7 @@ D.legendaryTechniques=[
  {
   id:'LEG_LIGHT_MOON_BAT_SHADOW',
   nameTh:'ท่าร่างปีกจันทราเร้นเงาพันลี้',
+ descTh:'ท่าร่างเร้นเงาสายอธรรมที่เคลื่อนไหวเงียบเชียบดุจปีกค้างคาวใต้แสงจันทร์ เหมาะแก่การลอบจู่โจมจากมุมอับและถอนตัวในความมืด',
   cat:'LIGHTNESS_ART',
   role:'MOVEMENT_STEALTH_RECON',
   path:'DEMON',
@@ -437,6 +443,7 @@ D.legendaryTechniques=[
  {
   id:'LEG_FORB_STAR_ABSORBING_VORTEX',
   nameTh:'มหาเวทต้องห้าม • วังวนดูดดาวกลืนชีพจร',
+ descTh:'มหาเวทต้องห้ามสายมารที่หมุนวนตันเถียนดึงดูดปราณคู่ต่อสู้มาหล่อเลี้ยงตน ทว่าหากดูดซับปราณต่างธาตุมากเกินขีดจำกัดจะเสี่ยงปราณตีกลับอย่างรุนแรง',
   cat:'FORBIDDEN_ART',
   role:'FORBIDDEN_HIGH_STAKES',
   path:'DEMON',
@@ -609,6 +616,7 @@ D.legendaryMantras=[
  {
   id:'LEG_MANTRA_SIX_MERIDIAN_QI',
   nameTh:'คัมภีร์ปราณกระบี่หกชีพจรไร้รูป',
+ descTh:'คัมภีร์โคจรปราณกระบี่ผ่านหกเส้นชีพจรปลายนิ้ว แปรปราณภายในเป็นคมกระบี่ไร้รูปที่ยิงจู่โจมได้ทั้งระยะใกล้และกลางโดยไม่ต้องพึ่งศาสตราเหล็ก',
   cat:'QI_MANTRA',
   path:'XIAN',
   tier:7,
@@ -639,6 +647,7 @@ D.legendaryMantras=[
  {
   id:'LEG_MANTRA_DRAGON_ELEPHANT_PRAJNA',
   nameTh:'มหาคัมภีร์กายานาคช้างปัญญาบารมี',
+ descTh:'มหาคัมภีร์หลอมกายาสายวัชระที่เคี่ยวกรำกระดูกและกล้ามเนื้อทีละชั้นอย่างมั่นคง เพิ่มพละกำลังและความทนทานระดับยอดคนแห่งโลกเบื้องล่าง',
   cat:'BODY_MANTRA',
   path:'BODY',
   tier:6,
@@ -664,6 +673,7 @@ D.legendaryMantras=[
  {
   id:'LEG_MANTRA_DIAMOND_INDESTRUCTIBLE',
   nameTh:'คัมภีร์กายาวัชระอมตะไม่บุบสลาย',
+ descTh:'คัมภีร์กายาคุ้มร่างที่กลั่นปราณดินทองห่อหุ้มเส้นเอ็นและอวัยวะภายใน ลดทอนแรงกระแทกและบาดแผลฉกรรจ์กลางศึกยืดเยื้อ',
   cat:'BODY_MANTRA',
   path:'BODY',
   tier:7,
@@ -748,6 +758,7 @@ D.legendaryMantras=[
  {
   id:'LEG_MANTRA_ASHURA_BLOOD_SEA',
   nameTh:'มหาคัมภีร์มารทะเลโลหิตอสูรบรรพกาล',
+ descTh:'มหาคัมภีร์มารที่ฟื้นคืนในยุคที่ 74–77 หลังสาธารณรัฐต้าเหรินล่มสลาย หลอมรวมไอโลหิตเป็นพลังรบดุดันแต่ต้องคุมจิตไม่ให้ตกสู่ความคลุ้มคลั่ง',
   cat:'DEMON_MANTRA',
   path:'DEMON',
   tier:6,
@@ -774,6 +785,7 @@ D.legendaryMantras=[
  {
   id:'LEG_MANTRA_TEN_THOUSAND_GU_MONARCH',
   nameTh:'มหาคัมภีร์มารจักรพรรดิกู่หมื่นพิษกลืนฟ้า',
+ descTh:'คัมภีร์เลี้ยงและหลอมรวมกู่พิษหมื่นชนิดในร่างเดียว สืบสายจากบึงพิษแดนใต้ ช่วยสร้างภูมิคุ้มกันพิษและแปรไอพิษเป็นปราณจู่โจม',
   cat:'DEMON_MANTRA',
   path:'DEMON',
   tier:7,
@@ -804,6 +816,7 @@ D.legendaryMantras=[
  {
   id:'LEG_MANTRA_NINE_YIN_SOUL_MIRROR',
   nameTh:'มหาคัมภีร์จิตเก้าหยินส่องวิญญาณ',
+ descTh:'มหาคัมภีร์จิตวิญญาณสายหยินจากยุคกลาง ขัดเกลาทะเลจิตให้ใสกระจ่างดั่งกระจกเงา เสริมทั้งการอ่านใจ ป้องกันจิตมาร และความเฉียบคมของวิชาจิต',
   cat:'SOUL_MANTRA',
   path:'HEART_SOUL',
   tier:6,
@@ -832,6 +845,7 @@ D.legendaryMantras=[
  {
   id:'LEG_MANTRA_LITTLE_LI_HEART_BLADE',
   nameTh:'มหาคัมภีร์จิตมีดบินไร้พลาดสะท้านภพ',
+ descTh:'มหาคัมภีร์จิตมีดบินแห่งตระกูลหลี่ในยุคที่ 60–62 รวมสมาธิ ลมหายใจ และเจตจำนงทั้งหมดไว้ที่ปลายคมมีดเดียวเพื่อปลิดศึกอย่างแม่นยำไร้พลาด',
   cat:'SOUL_MANTRA',
   path:'HEART_SOUL',
   tier:7,
@@ -1497,11 +1511,30 @@ function inferWeaponTypesFromName(t){
  if(/ทวน|หอก/.test(nm))return['SPEAR'];
  if(/กระบอง|พลอง|ค้อน/.test(nm))return['STAFF'];
  if(/คฑา/.test(nm))return['STAFF','FOCUS'];
- if(/พัด|พิณ|ขลุ่ย|พู่กัน|ลูกคิด|เข็ม|แส้|โซ่|ระฆัง/.test(nm))return['FOCUS'];
- if(/หมัด|ฝ่ามือ|ดัชนี|กรงเล็บ|สนับมือ|ท่ากระแทก|ท่าทุ่ม|ท่ากระทืบ/.test(nm))return['FIST'];
+ if(/พัด/.test(nm))return['FAN','FOCUS'];
+ if(/พิณ|ขลุ่ย|สังข์|กระดิ่ง|ระฆัง|กลอง/.test(nm))return['ZITHER','FOCUS'];
+ if(/พู่กัน/.test(nm))return['BRUSH','FOCUS'];
+ if(/ลูกคิด/.test(nm))return['ABACUS','FOCUS'];
+ if(/เข็ม/.test(nm))return['NEEDLE','FOCUS'];
+ if(/แส้|โซ่|ด้าย|เส้นไหม/.test(nm))return['WHIP','FOCUS'];
+ if(/ประคำ/.test(nm))return['ROSARY','FOCUS'];
+ if(/จานดารา|จานหยก|จานพยากรณ์/.test(nm))return['ASTROLABE','FOCUS'];
+ if(/กรงเล็บ/.test(nm))return['CLAW','FIST'];
+ if(/หมัด|ฝ่ามือ|ดัชนี|สนับมือ|ท่ากระแทก|ท่าทุ่ม|ท่ากระทืบ/.test(nm))return['FIST'];
  return preferred[t.sub]?preferred[t.sub].slice():null;
 }
-JD.TECH.techniques.forEach(t=>{if(t.cat==='COMBAT_TECHNIQUE'&&!t.weaponTypes){const wt=inferWeaponTypesFromName(t);if(wt)t.weaponTypes=wt;}});
+JD.TECH.techniques.forEach(t=>{
+ if((t.cat==='COMBAT_TECHNIQUE'||(!t.passive&&Array.isArray(t.moves)&&t.moves.length))&&!t.weaponTypes){
+  const wt=inferWeaponTypesFromName(t);if(wt)t.weaponTypes=wt;
+ }
+ if(Array.isArray(t.weaponTypes)&&t.nameTh){
+  const nm=t.nameTh;
+  const addW=(re,w)=>{if(re.test(nm)&&!t.weaponTypes.includes(w))t.weaponTypes.unshift(w);};
+  addW(/พัด/,'FAN');addW(/พิณ|ขลุ่ย|สังข์|กระดิ่ง|ระฆัง|กลอง/,'ZITHER');addW(/พู่กัน/,'BRUSH');
+  addW(/ลูกคิด/,'ABACUS');addW(/เข็ม/,'NEEDLE');addW(/แส้|โซ่|ด้าย|เส้นไหม/,'WHIP');
+  addW(/ประคำ/,'ROSARY');addW(/จานดารา|จานหยก|จานพยากรณ์/,'ASTROLABE');addW(/กรงเล็บ/,'CLAW');
+ }
+});
 D.preferred=preferred;
 D.subPreferences={STAR_ARCHER:{aff:{SWORD:.2,WIND:.5},p:{'physiology.dexterity':.7,'intellect.perceptiveness':.6,'personality.caution':.3}},SHADOW_ARCHER:{aff:{POISON:.4,YIN_SHADOW:.6,MOVEMENT:.4},p:{'physiology.agility':.7,'intellect.perceptiveness':.6,'social.deception':.4}},STAFF_GUARD:{aff:{BODY_REFINING:.8},p:{'physiology.toughness':.7,'physiology.endurance':.6,'personality.loyalty':.3}}};
 
@@ -9762,7 +9795,7 @@ const EXP_V204 = {
           "functionalCombatPower": 140,
           "majorBandEquivalent": 1,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 15,
             "secondarySkill": "ritual",
             "minSecondarySkill": 10
@@ -9797,7 +9830,7 @@ const EXP_V204 = {
           "functionalCombatPower": 280,
           "majorBandEquivalent": 1.5,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 25,
             "secondarySkill": "ritual",
             "minSecondarySkill": 16
@@ -9832,7 +9865,7 @@ const EXP_V204 = {
           "functionalCombatPower": 580,
           "majorBandEquivalent": 2,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 35,
             "secondarySkill": "ritual",
             "minSecondarySkill": 22
@@ -9867,7 +9900,7 @@ const EXP_V204 = {
           "functionalCombatPower": 1200,
           "majorBandEquivalent": 2.5,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 45,
             "secondarySkill": "ritual",
             "minSecondarySkill": 28
@@ -9902,7 +9935,7 @@ const EXP_V204 = {
           "functionalCombatPower": 2450,
           "majorBandEquivalent": 3,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 55,
             "secondarySkill": "ritual",
             "minSecondarySkill": 34
@@ -9937,7 +9970,7 @@ const EXP_V204 = {
           "functionalCombatPower": 4600,
           "majorBandEquivalent": 3.3,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 65,
             "secondarySkill": "ritual",
             "minSecondarySkill": 40
@@ -9972,7 +10005,7 @@ const EXP_V204 = {
           "functionalCombatPower": 8600,
           "majorBandEquivalent": 3.7,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 75,
             "secondarySkill": "ritual",
             "minSecondarySkill": 46
@@ -10007,7 +10040,7 @@ const EXP_V204 = {
           "functionalCombatPower": 16200,
           "majorBandEquivalent": 3.9,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 85,
             "secondarySkill": "ritual",
             "minSecondarySkill": 52
@@ -10042,7 +10075,7 @@ const EXP_V204 = {
           "functionalCombatPower": 31000,
           "majorBandEquivalent": 4,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "BOW",
             "minPrimarySkill": 95,
             "secondarySkill": "ritual",
             "minSecondarySkill": 58
@@ -10100,7 +10133,7 @@ const EXP_V204 = {
           "functionalCombatPower": 140,
           "majorBandEquivalent": 1,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 15,
             "secondarySkill": "ritual",
             "minSecondarySkill": 10
@@ -10135,7 +10168,7 @@ const EXP_V204 = {
           "functionalCombatPower": 280,
           "majorBandEquivalent": 1.5,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 25,
             "secondarySkill": "ritual",
             "minSecondarySkill": 16
@@ -10170,7 +10203,7 @@ const EXP_V204 = {
           "functionalCombatPower": 580,
           "majorBandEquivalent": 2,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 35,
             "secondarySkill": "ritual",
             "minSecondarySkill": 22
@@ -10205,7 +10238,7 @@ const EXP_V204 = {
           "functionalCombatPower": 1200,
           "majorBandEquivalent": 2.5,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 45,
             "secondarySkill": "ritual",
             "minSecondarySkill": 28
@@ -10240,7 +10273,7 @@ const EXP_V204 = {
           "functionalCombatPower": 2450,
           "majorBandEquivalent": 3,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 55,
             "secondarySkill": "ritual",
             "minSecondarySkill": 34
@@ -10275,7 +10308,7 @@ const EXP_V204 = {
           "functionalCombatPower": 4600,
           "majorBandEquivalent": 3.3,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 65,
             "secondarySkill": "ritual",
             "minSecondarySkill": 40
@@ -10310,7 +10343,7 @@ const EXP_V204 = {
           "functionalCombatPower": 8600,
           "majorBandEquivalent": 3.7,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 75,
             "secondarySkill": "ritual",
             "minSecondarySkill": 46
@@ -10345,7 +10378,7 @@ const EXP_V204 = {
           "functionalCombatPower": 16200,
           "majorBandEquivalent": 3.9,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 85,
             "secondarySkill": "ritual",
             "minSecondarySkill": 52
@@ -10380,7 +10413,7 @@ const EXP_V204 = {
           "functionalCombatPower": 31000,
           "majorBandEquivalent": 4,
           "skillGate": {
-            "primarySkill": "SWORD",
+            "primarySkill": "STAFF",
             "minPrimarySkill": 95,
             "secondarySkill": "ritual",
             "minSecondarySkill": 58
@@ -41037,7 +41070,7 @@ const EXP_V208 = (function() {
       id: 'HEAVENLY_GOLEM',
       path: 'MECH_PUPPET',
       nameTh: 'สายมหาเทวะศิลาจักรกล',
-      resourceTh: 'ศิลาเหล็กไหลดำและแกนสัมฤทธิ์ปราการม่อจื่อ',
+      resourceTh: 'ศิลาเหล็กไหลดำและแกนสัมฤทธิ์จักรพรรดิกลไกม่อจี๋ (#30)',
       strengthTh: 'ตรึงฐานเทวะศิลารับความเสียหายแทนพวกพ้องและปลดปล่อยคลื่นกระแทกสะเทือนปฐพี',
       weaknessTh: 'เคลื่อนที่ช้าลงเมื่อตั้งปราการตรึงฐาน และต้องใช้แร่ซ่อมแซมความทนทานหุ่น',
       combatBonus: 1.12,
@@ -41050,7 +41083,7 @@ const EXP_V208 = (function() {
       id: 'THOUSAND_THREAD_ASSASSIN',
       path: 'MECH_PUPPET',
       nameTh: 'สายเส้นไหมเชิดเงาสังหาร',
-      resourceTh: 'เส้นไหมเงินวิญญาณและเข็มพิษกลไกตระกูลถัง',
+      resourceTh: 'เส้นไหมเงินวิญญาณและเข็มพิษกลไกหน่วยองครักษ์เงาเทียนกู่',
       strengthTh: 'วางกับดักเส้นไหมตรึงร่างแล้วเลือกใช้แรงตึงเส้นไหมสังหารจุดตายหรือดีดตัวถอยฉาก',
       weaknessTh: 'หากเส้นไหมขาดหรือเป้าหมายหลุดระยะจะได้เปรียบลดลง',
       combatBonus: 1.28,
@@ -41089,7 +41122,7 @@ const EXP_V208 = (function() {
       id: 'SOUL_VESSEL_AVATAR',
       path: 'MECH_PUPPET',
       nameTh: 'สายหุ่นเชิดกายทิพย์นิรันดร์',
-      resourceTh: 'ไม้วิญญาณพันปีและตราประทับหุ่นตัวแทน (ตามตำนานช่างเหยียนซือ)',
+      resourceTh: 'ไม้วิญญาณพันปีและตราประทับหุ่นตัวแทน (ตามตำรับหุ่นหยกขาวเจ้ากรมกลไกกงซูจี #15)',
       strengthTh: 'จัดเตรียมหุ่นกายว่างรับเคราะห์แทนชีวิต 1 ครั้งเมื่อเจอศึกหนัก พร้อมดึงเส้นวิญญาณฟื้นตัว',
       weaknessTh: 'เมื่อหุ่นตัวแทนแตกสลายจะมีหนี้ซ่อมแซมและติดคูลดาวน์ฟื้นฟูแกนวิญญาณ',
       combatBonus: 1.15,
@@ -41115,7 +41148,7 @@ const EXP_V208 = (function() {
       id: 'ASTRAL_CLOCKWORK_PRIME',
       path: 'MECH_PUPPET',
       nameTh: 'สายสมองกลดาราพยากรณ์',
-      resourceTh: 'ลูกคิดดาราจักรกลและเฟืองหยกคำนวณวิถี (สร้างสรรค์พิเศษ v2.0.8)',
+      resourceTh: 'ลูกคิดดาราจักรกลและเฟืองหยกคำนวณวิถี',
       strengthTh: 'คำนวณวิถีโจมตีล่วงหน้าด้วยสมองกลดารา เพิ่มความแม่นยำ ความเร็วร่าย และระบายความร้อนกลไกอัตโนมัติ',
       weaknessTh: 'ต้องใช้สมาธิและปราณควบคุมค่ายกลคำนวณสูง',
       combatBonus: 1.22,
@@ -41208,7 +41241,7 @@ const EXP_V208 = (function() {
       id: 'BODHI_VOW_GUARDIAN',
       path: 'KARMA_SAMSARA',
       nameTh: 'สายมหาปณิธานโพธิสัตว์คุ้มภพ',
-      resourceTh: 'ศิลาคำสัตย์โพธิญาณและระฆังทองคำอธิษฐาน (สร้างสรรค์พิเศษ v2.0.8)',
+      resourceTh: 'ศิลาคำสัตย์โพธิญาณและระฆังทองคำอธิษฐาน',
       strengthTh: 'ตั้งคำสัตย์คุ้มครองสหายร่วมรบ แบ่งเบาความเสียหายและเปลี่ยนความเสียสละเป็นปราณหยางคุ้มกันทั้งหมู่คณะ',
       weaknessTh: 'ต้องรักษากำลังใจและวินัยให้มั่นคง ห้ามทอดทิ้งพวกพ้องกลางศึก',
       combatBonus: 1.14,
@@ -41301,7 +41334,7 @@ const EXP_V208 = (function() {
       id: 'ABYSSAL_DRAGON_TOTEM',
       path: 'BEAST_SOVEREIGN',
       nameTh: 'สายราชันย์มังกรสมุทรและอสูรอัสนี',
-      resourceTh: 'มุกมังกรสมุทรและขนนกสายฟ้าเทพอสูร (สร้างสรรค์พิเศษ v2.0.8)',
+      resourceTh: 'มุกมังกรสมุทรและขนนกสายฟ้าเทพอสูร',
       strengthTh: 'ควบคุมอสูรสายมังกรวารีและวิหคสายฟ้า ปลดปล่อยคลื่นอสนีวารีทะลวงเกราะและข่มขวัญสัตว์อสูรทั่วสมรภูมิ',
       weaknessTh: 'ต้องมีค่าความชำนาญฝึกอสูรและรากฐานปราณที่มั่นคง',
       combatBonus: 1.29,
@@ -41371,7 +41404,7 @@ const EXP_V208 = (function() {
     THOUSAND_THREAD_ASSASSIN: ['ปั่นไหมปราณ', 'ซ่อนเข็มเงา', 'ขึงตาข่ายสังหาร', 'เชิดหุ่นไร้เสียง', 'เส้นไหมตัดชีพจร', 'พันธนาการเก้าเงา', 'หุ่นสังหารไร้ลักษณ์', 'หมื่นเส้นไหมสะบั้นฟ้า', 'จ้าวเชิดเงาไร้รอย'],
     BEAST_CHIMERA_MECH: ['ประกอบโครงพยัคฆ์', 'ฝังเตาหลอมปราณ', 'ติดเกราะเขี้ยวเหล็ก', 'ผสานแกนธาตุพ่นไฟ', 'ปลุกวิญญาณสมิงกล', 'หุ้มเกราะอสูรคู่สัญญา', 'พยัคฆ์กลคำรามฟ้า', 'สมิงจักรกลแปดทิศ', 'ราชันย์สมิงเหล็กนิรันดร์'],
     CELESTIAL_BALLISTA: ['ขึ้นสายเกาทัณฑ์กล', 'สลักรางศรดารา', 'ตั้งฐานยิงสกัด', 'ค่ายกลศรต่อเนื่อง', 'เนตรเหยี่ยวคำนวณวิถี', 'ระดมยิงเก้าดารา', 'ศรจักรกลทะลวงเมฆ', 'ปืนใหญ่ดาราถล่มทัพ', 'จ้าวเกาทัณฑ์ดาราจักร'],
-    SOUL_VESSEL_AVATAR: ['แกะสลักไม้灵', 'จารึกอักขระแทนกาย', 'เชื่อมสายใยชีวิต', 'ฝากเสี้ยววิญญาณ', 'หุ่นกายว่างรับเคราะห์', 'สลับร่างหลีกทัณฑ์', 'หุ่นทิพย์แฝดสวรรค์', 'กายทิพย์ไร้บุบสลาย', 'ปรมาจารย์หุ่นวิญญาณอมตะ'],
+    SOUL_VESSEL_AVATAR: ['แกะสลักไม้วิญญาณ', 'จารึกอักขระแทนกาย', 'เชื่อมสายใยชีวิต', 'ฝากเสี้ยววิญญาณ', 'หุ่นกายว่างรับเคราะห์', 'สลับร่างหลีกทัณฑ์', 'หุ่นทิพย์แฝดสวรรค์', 'กายทิพย์ไร้บุบสลาย', 'ปรมาจารย์หุ่นวิญญาณอมตะ'],
     FLYING_BLADE_ORBITER: ['หลอมใบมีดบิน', 'ตั้งวงโคจรแม่เหล็ก', 'กงล้อมีดคุ้มกาย', 'แยกค่ายกลรุกรับ', 'พายุใบมีดหมุนวน', 'กระบี่กลคืนรัง', 'วงจักรสังหารแปดทิศ', 'พันศาสตราโคจรรอบฟ้า', 'ราชันย์กงล้อศาสตรานิรันดร์'],
     ASTRAL_CLOCKWORK_PRIME: ['วางเฟืองคำนวณ', 'เดินเข็มทิศดารา', 'ลูกคิดกลหยั่งรู้', 'ประสานค่ายกลเวลา', 'สมองกลไร้คลาดเคลื่อน', 'ระบายปราณสมดุล', 'คำนวณหมื่นกระบวนท่า', 'จักรกลดาราพยากรณ์', 'เอกภพสมองกลนิรันดร์'],
 
@@ -41485,7 +41518,7 @@ const EXP_V208 = (function() {
     // MECH_PUPPET Innates (7)
     {
       id: 'INNATE_HEAVENLY_GOLEM_CORE',
-      nameTh: 'ตรึงฐานเทวะศิลาปราการม่อจื่อ',
+      nameTh: 'ตรึงฐานเทวะศิลาปราการจักรพรรดิกลไกม่อจี๋ (#30)',
       cat: 'DEFENSIVE_TECHNIQUE',
       role: 'COMBAT_DEFENSE',
       path: 'MECH_PUPPET',
@@ -42214,7 +42247,7 @@ const EXP_V208 = (function() {
       element: 'ASTRAL',
       power: 78,
       weaponTypes: ['BOW', 'FOCUS'],
-      moves: ['กลไกศร连珠', 'ห่าศรกลเก้าดารา'],
+      moves: ['กลไกศรต่อเนื่อง', 'ห่าศรกลเก้าดารา'],
       moveDefs: [
         { id: 'ART_MECH_002_M1', parentId: 'ART_MECH_PUPPET_002', stageReq: 1, reqMastery: 0, nameTh: 'กลไกศรต่อเนื่อง', arch: 'barrage', type: 'p', M: 1.20, hits: 3, aoe: true, cd: 12, wind: 4, costPct: 4.5, pen: 16 },
         { id: 'ART_MECH_002_M2', parentId: 'ART_MECH_PUPPET_002', stageReq: 2, reqMastery: 18, nameTh: 'ศรเดียวเจาะแกนดาว', arch: 'snipe', type: 'p', M: 1.62, hits: 1, cd: 13, wind: 4, costPct: 5.0, pen: 28, critAdd: 12 }
@@ -42904,7 +42937,9 @@ const EXP_V208 = (function() {
       value: 260,
       craft: 'ALCHEMY',
       element: 'FIRE',
-      elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'FIRE', weights: { FIRE: 1 } }
+      elementProfile: { mode: 'ELEMENT_LINK_ONLY', primary: 'FIRE', weights: { FIRE: 1 } },
+      effect: { beastEvolve: 1, hpPct: 0.12, atkPct: 0.10, cultivationProgress: 45, healHealth: 35 },
+      descTh: 'กระตุ้นสายเลือดสัตว์อสูรคู่หูให้วิวัฒน์ เพิ่มพลังชีวิต +12% และพลังโจมตี +10%'
     }
   ];
 
@@ -43242,7 +43277,7 @@ EXP_V208.newResonanceSets.forEach(rs => {
       id: 'GOLDEN_NEEDLE_SAINT',
       path: 'SAGE_SUPPORT',
       nameTh: 'สายปราชญ์เข็มทองเปิดชีพจร',
-      resourceTh: 'เข็มทองเก้าดาราและตำราฝังเข็มหวงตี้เน่ยจิง',
+      resourceTh: 'เข็มทองเก้าดาราและตำราฝังเข็มหมอหลวงไป๋เฉ่า (#13)',
       strengthTh: 'ฝังเข็มทองเปิดจุดชีพจรสำคัญ ฟื้นฟูบาดแผลฉับพลันและมอบบัฟเปิดชีพจรยุทธ์เร่งพลังให้ตนเองหรือพวกพ้อง',
       weaknessTh: 'ต้องใช้ความแม่นยำและสมาธิในการเล็งจุดชีพจรสูง',
       combatBonus: 1.08,
@@ -43367,7 +43402,7 @@ EXP_V208.newResonanceSets.forEach(rs => {
     THOUSAND_THREAD_PUPPETEER: 'THOUSAND_THREAD_ASSASSIN',
     SPIRIT_ARTILLERY_ENGINEER: 'CELESTIAL_BALLISTA',
     CLOCKWORK_SWARM_WEAVER: 'FLYING_BLADE_ORBITER',
-    FORTRESS_BASTION_ARCHITECT: 'BEAST_CHIMERA_MECH',
+    FORTRESS_BASTION_ARCHITECT: 'HEAVENLY_GOLEM',
     RED_THREAD_ARBITER: 'FATE_SEVERING_THREAD',
     PAST_LIFE_CHRONICLER: 'PAST_LIFE_MIRROR',
     SYMBIOTIC_FANG_FUSION: 'SYMBIOTIC_BEAST_WARRIOR',
@@ -44651,7 +44686,7 @@ EXP_V208.newResonanceSets.forEach(rs => {
       { stage: 2, nameTh: 'ขั้นที่ 2 • ร้อยหลอมชุบชีพจร', lifespanMax: 138, combatPower: 260, breakthroughBaseChance: 0.69, tribulationLayers: 0, resourceReq: 'เหล็กเย็นหลอมปราณและบัวหยก' },
       { stage: 3, nameTh: 'ขั้นที่ 3 • รวมใจเตาโอสถและทั่งเหล็ก', lifespanMax: 198, combatPower: 550, breakthroughBaseChance: 0.57, tribulationLayers: 1, resourceReq: 'เตาหลอมหยกเพลิงคู่ทั่งทอง' },
       { stage: 4, nameTh: 'ขั้นที่ 4 • ปลุกวิญญาณศาสตราโอสถ', lifespanMax: 290, combatPower: 1160, breakthroughBaseChance: 0.46, tribulationLayers: 2, resourceReq: 'ถ่านเพลิงสุริยันพันปี' },
-      { stage: 5, nameTh: 'ขั้นที่ 5 • หลอมเพลิงสาม昧แท้จริง', lifespanMax: 435, combatPower: 2420, breakthroughBaseChance: 0.36, tribulationLayers: 4, resourceReq: 'ค้อนเทวะสลักอักขระเสินหนง-โอวเหย่' },
+      { stage: 5, nameTh: 'ขั้นที่ 5 • หลอมเพลิงสามสมาธิแท้จริง', lifespanMax: 435, combatPower: 2420, breakthroughBaseChance: 0.36, tribulationLayers: 4, resourceReq: 'ค้อนเทวะสลักอักขระเสินหนง-โอวเหย่' },
       { stage: 6, nameTh: 'ขั้นที่ 6 • จารึกกฎเกณฑ์ฟ้าดิน', lifespanMax: 650, combatPower: 4860, breakthroughBaseChance: 0.27, tribulationLayers: 5, resourceReq: 'หัวใจเพลิงต้นกำเนิดฟ้าดิน' },
       { stage: 7, nameTh: 'ขั้นที่ 7 • ปรมาจารย์รังสรรค์เทวะ', lifespanMax: 990, combatPower: 9700, breakthroughBaseChance: 0.18, tribulationLayers: 7, resourceReq: 'ตราประทับเทพรังสรรค์บรรพกาล' },
       { stage: 8, nameTh: 'ขั้นที่ 8 • อมตะผู้สร้างหมื่นศาสตราเก้าโอสถ', lifespanMax: 1820, combatPower: 24400, breakthroughBaseChance: 0.12, tribulationLayers: 8, resourceReq: 'เตาหลอมจักรวาลบรรพกาล' }
@@ -44687,7 +44722,52 @@ EXP_V208.newResonanceSets.forEach(rs => {
     DIVINE_FORGE_FOUNDER: 'HEAVENLY_ANVIL_SMITH',
     BATTLE_ARRAY_TACTICIAN: 'BATTLEFIELD_STRATEGIST',
     BLOOD_SEA_FIEND: 'BLOOD_SPEAR_ASURA',
-    PILL_FLAME_SOVEREIGN: 'PILL_FURNACE_IMMORTAL'
+    PILL_FLAME_SOVEREIGN: 'PILL_FURNACE_IMMORTAL',
+    IMPERIAL_PEACE_SOVEREIGN: 'SECT_STEWARD',
+    IRON_LEGION_MARSHAL: 'BATTLEFIELD_STRATEGIST',
+    HEAVENLY_MANDATE_CHANCELLOR: 'IMPERIAL_SEAL_CHANCELLOR',
+    DIPLOMATIC_HEGEMON: 'DIPLOMATIC_ENVOY',
+    DIVINE_FORGE_ARTISAN: 'HEAVENLY_ANVIL_SMITH',
+    IMPERIAL_DECREE_CALLIGRAPHER: 'IMPERIAL_EDICT_CALLIGRAPHER',
+    GRAND_HISTORIAN_SCHOLAR: 'HISTORIANS_DESTINY_QUILL',
+    TREASURY_SOVEREIGN: 'GOLDEN_ABACUS_ARBITER',
+    BODHI_SALVATION_MONK: 'BODHI_VOW_GUARDIAN',
+    SAMSARA_WHEEL_ARBITER: 'GOLDEN_WHEEL_ARBITER',
+    BLOOD_MARROW_DEVOURER: 'BEAST_FLESH_CONSUMER',
+    DIVINE_PHYSICIAN_HEALER: 'GOLDEN_NEEDLE_SAINT',
+    MYRIAD_POISON_APOTHECARY: 'MYRIAD_VENOM_APOTHECARY',
+    GALE_CLOUD_CONDUCTOR: 'TYPHOON_GALE_SOVEREIGN',
+    THUNDER_MONSOON_SOVEREIGN: 'THUNDER_CLOUD_CALLER',
+    STARLIGHT_ASTROLOGER: 'POLARIS_FATE_WEAVER',
+    EPOCH_HOURGLASS_KEEPER: 'HOURGLASS_SAND_REAPER',
+    SPIRIT_THREAD_PUPPETEER: 'PHANTOM_SILK_PUPPETEER',
+    ELEMENTAL_GRIMOIRE_SAGE: 'SACRED_GOLEM_TAMER',
+    STAR_CHART_ORACLE: 'STAR_CHART_PROPHET',
+    FORTRESS_BASTION_ARCHITECT: 'HEAVENLY_GOLEM',
+    CELESTIAL_PUPPET_MASTER: 'HEAVENLY_GOLEM',
+    HEAVENLY_PUPPETEER: 'HEAVENLY_GOLEM',
+    MECHANICAL_FORTRESS_MASTER: 'HEAVENLY_GOLEM',
+    THOUSAND_PUPPET_LORD: 'THOUSAND_THREAD_ASSASSIN',
+    SPIRIT_WEAPON_FORGER: 'FLYING_BLADE_ORBITER',
+    CELESTIAL_CLOCKWORK_ARCHITECT: 'ASTRAL_CLOCKWORK_PRIME',
+    KARMIC_FLAME_ARHAT: 'REVERSED_RETRIBUTION',
+    RED_LOTUS_KARMA_FLAME: 'REVERSED_RETRIBUTION',
+    CAUSAL_JUSTICIAR: 'REVERSED_RETRIBUTION',
+    SIX_REALMS_TRANSCENDENT: 'SIX_PATHS_WHEEL',
+    SIX_PATHS_REINCARNATION: 'SIX_PATHS_WHEEL',
+    FATE_THREAD_WEAVER: 'FATE_SEVERING_THREAD',
+    SAMSARA_NIRVANA_SHEPHERD: 'LOTUS_MERCY_PURIFIER',
+    SAMSARA_BUDDHA_HEART: 'BODHI_VOW_GUARDIAN',
+    MYRIAD_BEAST_EMPEROR: 'MYRIAD_BEAST_PACK',
+    TEN_THOUSAND_BEAST_KING: 'MYRIAD_BEAST_PACK',
+    PRIMORDIAL_MYRIAD_BEAST_EMPEROR: 'MYRIAD_BEAST_PACK',
+    CHIMERA_BLOODLINE_FUSIONIST: 'PRIMORDIAL_BLOOD_MUTATOR',
+    TOTEMIC_WAR_CHIEFTAIN: 'ABYSSAL_DRAGON_TOTEM',
+    ANCIENT_SUN_GOD: 'SUN_BOW_DEITY',
+    STAR_LORD_GOD: 'FATE_ORACLE',
+    OCEAN_GOD: 'OCEAN_SOVEREIGN',
+    THUNDER_LORD_GOD: 'WAR_DEITY',
+    ACUPUNCTURE_SAINT: 'GOLDEN_NEEDLE_SAINT'
   });
 
   const craftSubStats = {
@@ -46082,7 +46162,7 @@ JD.ITEMS.items.forEach(it => {
     { idx: 9, tier: 3, nameTh: 'พู่กันชาดแสงดาราเจ็ดดารา', el: 'ASTRAL', el2: 'FIRE', res: 'RES_NINE_DAO_ARRAY_TALISMAN', mat1: 'MAT_BRUSH_STARLIGHT_CINNABAR_3', c1: 2, mat2: 'MAT_ORE_STAR_COPPER_3', c2: 1, efx: 'EFX_QI_RESERVOIR', p: { reservoirCapacity: 390, leakagePerDay: 2 } },
     { idx: 10, tier: 3, nameTh: 'พู่กันทองแดงอสนีฟ้าคำราม', el: 'LIGHTNING', el2: 'FIRE', res: 'RES_NINE_DAO_ARRAY_TALISMAN', mat1: 'MAT_ORE_THUNDER_SCORCH_COPPER_3', c1: 2, mat2: 'MAT_BRUSH_STARLIGHT_CINNABAR_3', c2: 1, efx: 'EFX_PARALYSIS_ARC', p: { paralyzeChance: 0.19, chainTargets: 2 } },
     { idx: 11, tier: 3, nameTh: 'พู่กันปราชญ์วาดขุนเขาและสายน้ำ', el: 'WOOD_LIFE', el2: 'WATER_ICE', res: 'RES_SAGE_HARMONY_SANCTUARY', mat1: 'MAT_BRUSH_STARLIGHT_CINNABAR_3', c1: 2, mat2: 'MAT_ORE_STAR_COPPER_3', c2: 1, efx: 'EFX_REGEN_AURA', p: { healPerTurn: 32, radius: 2 } },
-    { idx: 12, tier: 3, nameTh: 'พู่กันบัญชีชะตา判วิญญาณ', el: 'YIN_SHADOW', el2: 'ASTRAL', res: 'RES_GHOST_NETHER_SOUL', mat1: 'MAT_BRUSH_STARLIGHT_CINNABAR_3', c1: 2, mat2: 'MAT_FORM_YIN_CRYSTAL_3', c2: 1, efx: 'EFX_SOUL_SHOCK', p: { stunChance: 0.18, spiritDamage: 45 } },
+    { idx: 12, tier: 3, nameTh: 'พู่กันบัญชีชะตาพิพากษาวิญญาณ', el: 'YIN_SHADOW', el2: 'ASTRAL', res: 'RES_GHOST_NETHER_SOUL', mat1: 'MAT_BRUSH_STARLIGHT_CINNABAR_3', c1: 2, mat2: 'MAT_FORM_YIN_CRYSTAL_3', c2: 1, efx: 'EFX_SOUL_SHOCK', p: { stunChance: 0.18, spiritDamage: 45 } },
     // T4 (4)
     { idx: 13, tier: 4, nameTh: 'พู่กันหยกอสนีจารึกฟ้า', el: 'LIGHTNING', el2: 'ASTRAL', res: 'RES_NINE_DAO_ARRAY_TALISMAN', mat1: 'MAT_ORE_THUNDER_JADE_4', c1: 2, mat2: 'MAT_BRUSH_STARLIGHT_CINNABAR_3', c2: 2, efx: 'EFX_PARALYSIS_ARC', p: { paralyzeChance: 0.25, chainTargets: 3 } },
     { idx: 14, tier: 4, nameTh: 'พู่กันเงินหยกสุริยันส่องธรรม', el: 'LIGHT_YANG', el2: 'FIRE', res: 'RES_SAGE_HARMONY_SANCTUARY', mat1: 'MAT_ORE_MITHRIL_JADE_4', c1: 2, mat2: 'MAT_BRUSH_STARLIGHT_CINNABAR_3', c2: 2, efx: 'EFX_MIND_SHIELD', p: { mentalResistBonus: 0.28, durationDays: 8 } },
@@ -46214,17 +46294,17 @@ JD.ITEMS.items.forEach(it => {
   const v215TechSpecs = [
     // ZITHER Actives (8)
     { id: 'TECH_V215_ZITHER_ACT_01', nameTh: 'คีตเวทย์สายลมพลิ้วใบหลิว', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 1, grade: 'Common', el: 'WIND', w: ['ZITHER'], arch: 'wave', M: 1.24, cd: 6, pen: 10, aoe: true, status: 'slow', dur: 4 },
-    { id: 'TECH_V215_ZITHER_ACT_02', nameTh: 'เพลงขลุ่ยน้ำค้างแข็งสะกดใจ', path: 'HEART_SOUL', sub: 'SOUL_MUSICIAN', tier: 2, grade: 'Common', el: 'WATER_ICE', w: ['ZITHER', 'FOCUS'], arch: 'soul', M: 1.32, cd: 7, pen: 12, aoe: false, status: 'chill', dur: 5 },
+    { id: 'TECH_V215_ZITHER_ACT_02', nameTh: 'เพลงขลุ่ยน้ำค้างแข็งสะกดใจ', path: 'HEART_SOUL', sub: 'SEVEN_EMOTIONS_ZITHER', tier: 2, grade: 'Common', el: 'WATER_ICE', w: ['ZITHER', 'FOCUS'], arch: 'soul', M: 1.32, cd: 7, pen: 12, aoe: false, status: 'chill', dur: 5 },
     { id: 'TECH_V215_ZITHER_ACT_03', nameTh: 'พิณเจ็ดสายคลื่นวารีตัดเมฆ', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 3, grade: 'Refined', el: 'WATER_ICE', w: ['ZITHER'], arch: 'wave', M: 1.44, cd: 8, pen: 15, aoe: true, status: 'weaken', dur: 5 },
-    { id: 'TECH_V215_ZITHER_ACT_04', nameTh: 'ลำนำมารสะกดวิญญาณรัตติกาล', path: 'HEART_SOUL', sub: 'ILLUSION_MIND', tier: 4, grade: 'Rare', el: 'YIN_SHADOW', w: ['ZITHER', 'FOCUS'], arch: 'soul', M: 1.56, cd: 9, pen: 18, aoe: true, status: 'fear', dur: 5 },
-    { id: 'TECH_V215_ZITHER_ACT_05', nameTh: 'คีตธรรมกังวานระฆังโพธิ์', path: 'SAGE_SUPPORT', sub: 'CHANT_RESONANCE', tier: 4, grade: 'Rare', el: 'LIGHT_YANG', w: ['ZITHER', 'STAFF'], arch: 'burst', M: 1.52, cd: 9, pen: 16, aoe: true, status: 'morale', dur: 6 },
+    { id: 'TECH_V215_ZITHER_ACT_04', nameTh: 'ลำนำมารสะกดวิญญาณรัตติกาล', path: 'HEART_SOUL', sub: 'DREAM_ILLUSION_WEAVER', tier: 4, grade: 'Rare', el: 'YIN_SHADOW', w: ['ZITHER', 'FOCUS'], arch: 'soul', M: 1.56, cd: 9, pen: 18, aoe: true, status: 'fear', dur: 5 },
+    { id: 'TECH_V215_ZITHER_ACT_05', nameTh: 'คีตธรรมกังวานระฆังโพธิ์', path: 'SAGE_SUPPORT', sub: 'CELESTIAL_ZITHER_ENVOY', tier: 4, grade: 'Rare', el: 'LIGHT_YANG', w: ['ZITHER', 'STAFF'], arch: 'burst', M: 1.52, cd: 9, pen: 16, aoe: true, status: 'morale', dur: 6 },
     { id: 'TECH_V215_ZITHER_ACT_06', nameTh: 'พิณศรดาราพายุคลื่นเสียง', path: 'HEART_SOUL', sub: 'ZITHER_HEART_BOW', tier: 5, grade: 'Rare', el: 'ASTRAL', w: ['ZITHER', 'BOW'], arch: 'pierce', M: 1.68, cd: 10, pen: 22, aoe: true, status: 'silence', dur: 5 },
     { id: 'TECH_V215_ZITHER_ACT_07', nameTh: 'มหาคีตเวทย์หงส์เพลิงคำราม', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 6, grade: 'Exceptional', el: 'FIRE', w: ['ZITHER'], arch: 'wave', M: 1.82, cd: 11, pen: 25, aoe: true, status: 'burn', dur: 6 },
-    { id: 'TECH_V215_ZITHER_ACT_08', nameTh: 'ทิพยสังคีตสวรรค์เก้าดารา', path: 'SAGE_SUPPORT', sub: 'CHANT_RESONANCE', tier: 7, grade: 'Exceptional', el: 'ASTRAL', w: ['ZITHER', 'FOCUS'], arch: 'burst', M: 1.98, cd: 12, pen: 28, aoe: true, status: 'stun', dur: 4 },
+    { id: 'TECH_V215_ZITHER_ACT_08', nameTh: 'ทิพยสังคีตสวรรค์เก้าดารา', path: 'SAGE_SUPPORT', sub: 'CELESTIAL_ZITHER_ENVOY', tier: 7, grade: 'Exceptional', el: 'ASTRAL', w: ['ZITHER', 'FOCUS'], arch: 'burst', M: 1.98, cd: 12, pen: 28, aoe: true, status: 'stun', dur: 4 },
     // ZITHER Passives (4)
     { id: 'TECH_V215_ZITHER_PAS_01', nameTh: 'เคล็ดสดับเสียงสายพิณ', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 1, grade: 'Common', el: 'WIND', w: ['ZITHER', 'FOCUS'], passive: { f: { acc: 8, cast: 4 }, p: { matk: 0.05 } } },
-    { id: 'TECH_V215_ZITHER_PAS_02', nameTh: 'ใจพิณประสานวิญญาณ', path: 'HEART_SOUL', sub: 'SOUL_MUSICIAN', tier: 3, grade: 'Refined', el: 'WATER_ICE', w: ['ZITHER', 'BOW', 'FOCUS'], passive: { f: { acc: 12, cast: 6, mdef: 18 }, p: { matk: 0.08, mdef: 0.06 } } },
-    { id: 'TECH_V215_ZITHER_PAS_03', nameTh: 'กายาคลื่นเสียงสะท้อนปราณ', path: 'SAGE_SUPPORT', sub: 'CHANT_RESONANCE', tier: 5, grade: 'Rare', el: 'LIGHT_YANG', w: ['ZITHER', 'FOCUS'], passive: { f: { cast: 10, eva: 8, mdef: 28 }, p: { matk: 0.11, mdef: 0.09 } } },
+    { id: 'TECH_V215_ZITHER_PAS_02', nameTh: 'ใจพิณประสานวิญญาณ', path: 'HEART_SOUL', sub: 'SEVEN_EMOTIONS_ZITHER', tier: 3, grade: 'Refined', el: 'WATER_ICE', w: ['ZITHER', 'BOW', 'FOCUS'], passive: { f: { acc: 12, cast: 6, mdef: 18 }, p: { matk: 0.08, mdef: 0.06 } } },
+    { id: 'TECH_V215_ZITHER_PAS_03', nameTh: 'กายาคลื่นเสียงสะท้อนปราณ', path: 'SAGE_SUPPORT', sub: 'CELESTIAL_ZITHER_ENVOY', tier: 5, grade: 'Rare', el: 'LIGHT_YANG', w: ['ZITHER', 'FOCUS'], passive: { f: { cast: 10, eva: 8, mdef: 28 }, p: { matk: 0.11, mdef: 0.09 } } },
     { id: 'TECH_V215_ZITHER_PAS_04', nameTh: 'สัจธรรมคีตเวทย์ไร้ลักษณ์', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 6, grade: 'Exceptional', el: 'ASTRAL', w: ['ZITHER'], passive: { f: { acc: 16, cast: 12, crit: 5 }, p: { matk: 0.14, mdef: 0.10 } } },
 
     // BRUSH Actives (8)
@@ -46232,29 +46312,29 @@ JD.ITEMS.items.forEach(it => {
     { id: 'TECH_V215_BRUSH_ACT_02', nameTh: 'ตวัดหมึกวาดค่ายกลศิลา', path: 'ARRAY_TALISMAN', sub: 'SEAL_SCRIPT_EXORCIST', tier: 2, grade: 'Common', el: 'EARTH_METAL', w: ['BRUSH', 'FOCUS'], arch: 'wave', M: 1.34, cd: 7, pen: 12, aoe: true, status: 'slow', dur: 5 },
     { id: 'TECH_V215_BRUSH_ACT_03', nameTh: 'อักขระอสนีฟาดผ่าแปดทิศ', path: 'ARRAY_TALISMAN', sub: 'THUNDER_TALISMAN_ADEPT', tier: 3, grade: 'Refined', el: 'LIGHTNING', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 1.46, cd: 8, pen: 16, aoe: true, status: 'paralyze', dur: 4 },
     { id: 'TECH_V215_BRUSH_ACT_04', nameTh: 'ภาพวาดขุนเขาและสายน้ำกักมาร', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 4, grade: 'Rare', el: 'WOOD_LIFE', w: ['BRUSH', 'FOCUS'], arch: 'wave', M: 1.56, cd: 9, pen: 18, aoe: true, status: 'root', dur: 5 },
-    { id: 'TECH_V215_BRUSH_ACT_05', nameTh: 'พู่กันประกาศิตพิชัยสงคราม', path: 'STRATEGY_GOVERNANCE', sub: 'GRAND_STRATEGIST', tier: 4, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'STAFF', 'FOCUS'], arch: 'strike', M: 1.54, cd: 9, pen: 18, aoe: true, status: 'armorbreak', dur: 5 },
-    { id: 'TECH_V215_BRUSH_ACT_06', nameTh: 'จารึกดาราปิดกั้นฟ้าดิน', path: 'ARRAY_TALISMAN', sub: 'GRAND_FORMATION_ARCHITECT', tier: 5, grade: 'Rare', el: 'ASTRAL', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 1.70, cd: 10, pen: 22, aoe: true, status: 'silence', dur: 5 },
-    { id: 'TECH_V215_BRUSH_ACT_07', nameTh: 'พู่กันยมทูตขีดเส้นตายวัฏสงสาร', path: 'KARMA_SAMSARA', sub: 'UNDERWORLD_DECREE', tier: 6, grade: 'Exceptional', el: 'YIN_SHADOW', w: ['BRUSH', 'FOCUS'], arch: 'soul', M: 1.84, cd: 11, pen: 26, aoe: false, status: 'curse', dur: 6 },
+    { id: 'TECH_V215_BRUSH_ACT_05', nameTh: 'พู่กันประกาศิตพิชัยสงคราม', path: 'STRATEGY_GOVERNANCE', sub: 'BATTLEFIELD_STRATEGIST', tier: 4, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'STAFF', 'FOCUS'], arch: 'strike', M: 1.54, cd: 9, pen: 18, aoe: true, status: 'armorbreak', dur: 5 },
+    { id: 'TECH_V215_BRUSH_ACT_06', nameTh: 'จารึกดาราปิดกั้นฟ้าดิน', path: 'ARRAY_TALISMAN', sub: 'EARTH_VEIN_WARDEN', tier: 5, grade: 'Rare', el: 'ASTRAL', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 1.70, cd: 10, pen: 22, aoe: true, status: 'silence', dur: 5 },
+    { id: 'TECH_V215_BRUSH_ACT_07', nameTh: 'พู่กันยมทูตขีดเส้นตายวัฏสงสาร', path: 'KARMA_SAMSARA', sub: 'SIX_PATHS_WHEEL', tier: 6, grade: 'Exceptional', el: 'YIN_SHADOW', w: ['BRUSH', 'FOCUS'], arch: 'soul', M: 1.84, cd: 11, pen: 26, aoe: false, status: 'curse', dur: 6 },
     { id: 'TECH_V215_BRUSH_ACT_08', nameTh: 'มหาพู่กันเทวะรังสรรค์หมื่นยันต์', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 7, grade: 'Exceptional', el: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS'], arch: 'burst', M: 2.00, cd: 12, pen: 30, aoe: true, status: 'stun', dur: 4 },
     // BRUSH Passives (4)
     { id: 'TECH_V215_BRUSH_PAS_01', nameTh: 'เคล็ดเดินพู่กันมั่นคงดั่งขุนเขา', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 1, grade: 'Common', el: 'WOOD_LIFE', w: ['BRUSH', 'FOCUS'], passive: { f: { acc: 9, cast: 4 }, p: { matk: 0.05 } } },
     { id: 'TECH_V215_BRUSH_PAS_02', nameTh: 'หมึกปราณซึมลึกทะลวงเกราะ', path: 'ARRAY_TALISMAN', sub: 'SEAL_SCRIPT_EXORCIST', tier: 3, grade: 'Refined', el: 'ASTRAL', w: ['BRUSH', 'FOCUS'], passive: { f: { acc: 12, pen: 8, cast: 6 }, p: { matk: 0.08, mdef: 0.05 } } },
-    { id: 'TECH_V215_BRUSH_PAS_03', nameTh: 'จิตอักขระประสานค่ายกล', path: 'ARRAY_TALISMAN', sub: 'GRAND_FORMATION_ARCHITECT', tier: 5, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS', 'STAFF'], passive: { f: { acc: 15, cast: 10, mdef: 26 }, p: { matk: 0.11, def: 0.06, mdef: 0.08 } } },
+    { id: 'TECH_V215_BRUSH_PAS_03', nameTh: 'จิตอักขระประสานค่ายกล', path: 'ARRAY_TALISMAN', sub: 'EARTH_VEIN_WARDEN', tier: 5, grade: 'Rare', el: 'LIGHT_YANG', w: ['BRUSH', 'FOCUS', 'STAFF'], passive: { f: { acc: 15, cast: 10, mdef: 26 }, p: { matk: 0.11, def: 0.06, mdef: 0.08 } } },
     { id: 'TECH_V215_BRUSH_PAS_04', nameTh: 'สัจธรรมพู่กันสวรรค์ลิขิตฟ้า', path: 'HEART_SOUL', compatiblePaths: ['HEART_SOUL', 'SAGE_SUPPORT'], sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 6, grade: 'Exceptional', el: 'ASTRAL', w: ['BRUSH'], passive: { f: { acc: 18, cast: 12, pen: 12 }, p: { matk: 0.14, mdef: 0.10 } } },
 
     // WHIP Actives (8)
     { id: 'TECH_V215_WHIP_ACT_01', nameTh: 'เพลงแส้อสรพิษฉกเงา', path: 'DEMON', sub: 'VENOM_GU_SOVEREIGN', tier: 1, grade: 'Common', el: 'WOOD_LIFE', w: ['WHIP'], arch: 'slash', M: 1.26, cd: 6, pen: 12, aoe: false, status: 'poison', dur: 4 },
-    { id: 'TECH_V215_WHIP_ACT_02', nameTh: 'ด้ายปราณร้อยรัดหุ่นศึก', path: 'MECH_PUPPET', sub: 'SPIRIT_THREAD_PUPPET', tier: 2, grade: 'Common', el: 'EARTH_METAL', w: ['WHIP', 'FOCUS'], arch: 'pierce', M: 1.35, cd: 7, pen: 14, aoe: false, status: 'slow', dur: 5 },
+    { id: 'TECH_V215_WHIP_ACT_02', nameTh: 'ด้ายปราณร้อยรัดหุ่นศึก', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 2, grade: 'Common', el: 'EARTH_METAL', w: ['WHIP', 'FOCUS'], arch: 'pierce', M: 1.35, cd: 7, pen: 14, aoe: false, status: 'slow', dur: 5 },
     { id: 'TECH_V215_WHIP_ACT_03', nameTh: 'ด้ายไหมสังหารตัดชีพจร', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 3, grade: 'Refined', el: 'YIN_SHADOW', w: ['WHIP', 'BLADE'], arch: 'pierce', M: 1.48, cd: 8, pen: 18, aoe: false, status: 'bleed', dur: 5 },
-    { id: 'TECH_V215_WHIP_ACT_04', nameTh: 'แส้อสนีพันธนาการพยัคฆ์', path: 'BEAST_SOVEREIGN', sub: 'PACK_COMMAND_HUNT', tier: 4, grade: 'Rare', el: 'LIGHTNING', w: ['WHIP', 'SPEAR'], arch: 'slash', M: 1.58, cd: 9, pen: 18, aoe: true, status: 'paralyze', dur: 4 },
-    { id: 'TECH_V215_WHIP_ACT_05', nameTh: 'โซ่ยมโลกกระชากวิญญาณ', path: 'KARMA_SAMSARA', sub: 'REINCARNATION_WARDEN', tier: 4, grade: 'Rare', el: 'YIN_SHADOW', w: ['WHIP', 'SPEAR'], arch: 'soul', M: 1.56, cd: 9, pen: 20, aoe: false, status: 'curse', dur: 5 },
+    { id: 'TECH_V215_WHIP_ACT_04', nameTh: 'แส้อสนีพันธนาการพยัคฆ์', path: 'BEAST_SOVEREIGN', sub: 'MYRIAD_BEAST_PACK', tier: 4, grade: 'Rare', el: 'LIGHTNING', w: ['WHIP', 'SPEAR'], arch: 'slash', M: 1.58, cd: 9, pen: 18, aoe: true, status: 'paralyze', dur: 4 },
+    { id: 'TECH_V215_WHIP_ACT_05', nameTh: 'โซ่ยมโลกกระชากวิญญาณ', path: 'KARMA_SAMSARA', sub: 'SIX_PATHS_WHEEL', tier: 4, grade: 'Rare', el: 'YIN_SHADOW', w: ['WHIP', 'SPEAR'], arch: 'soul', M: 1.56, cd: 9, pen: 20, aoe: false, status: 'curse', dur: 5 },
     { id: 'TECH_V215_WHIP_ACT_06', nameTh: 'ด้ายแดงสะบั้นวาสนา', path: 'KARMA_SAMSARA', sub: 'FATE_SEVERING_THREAD', tier: 5, grade: 'Rare', el: 'ASTRAL', w: ['WHIP', 'FOCUS'], arch: 'pierce', M: 1.72, cd: 10, pen: 24, aoe: true, status: 'weaken', dur: 6 },
-    { id: 'TECH_V215_WHIP_ACT_07', nameTh: 'ค่ายด้ายสวรรค์เชิดร้อยหุ่นสังหาร', path: 'MECH_PUPPET', sub: 'SPIRIT_THREAD_PUPPET', tier: 6, grade: 'Exceptional', el: 'EARTH_METAL', w: ['WHIP', 'FOCUS'], arch: 'burst', M: 1.86, cd: 11, pen: 26, aoe: true, status: 'bleed', dur: 6 },
+    { id: 'TECH_V215_WHIP_ACT_07', nameTh: 'ค่ายด้ายสวรรค์เชิดร้อยหุ่นสังหาร', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 6, grade: 'Exceptional', el: 'EARTH_METAL', w: ['WHIP', 'FOCUS'], arch: 'burst', M: 1.86, cd: 11, pen: 26, aoe: true, status: 'bleed', dur: 6 },
     { id: 'TECH_V215_WHIP_ACT_08', nameTh: 'แส้เทวะสะบัดคว่ำแปดพิภพ', path: 'KARMA_SAMSARA', sub: 'FATE_SEVERING_THREAD', tier: 7, grade: 'Exceptional', el: 'ASTRAL', w: ['WHIP'], arch: 'slash', M: 2.02, cd: 12, pen: 30, aoe: true, status: 'stun', dur: 4 },
     // WHIP Passives (4)
-    { id: 'TECH_V215_WHIP_PAS_01', nameTh: 'เคล็ดนิ้ว灵เชิดเส้นด้ายปราณ', path: 'MECH_PUPPET', sub: 'SPIRIT_THREAD_PUPPET', tier: 1, grade: 'Common', el: 'WIND', w: ['WHIP', 'FOCUS'], passive: { f: { acc: 8, crit: 3, pen: 4 }, p: { atk: 0.05 } } },
+    { id: 'TECH_V215_WHIP_PAS_01', nameTh: 'เคล็ดนิ้ววิญญาณเชิดเส้นด้ายปราณ', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 1, grade: 'Common', el: 'WIND', w: ['WHIP', 'FOCUS'], passive: { f: { acc: 8, crit: 3, pen: 4 }, p: { atk: 0.05 } } },
     { id: 'TECH_V215_WHIP_PAS_02', nameTh: 'ก้าวเงาซ่อนไหมสังหาร', path: 'MECH_PUPPET', sub: 'THOUSAND_THREAD_ASSASSIN', tier: 3, grade: 'Refined', el: 'YIN_SHADOW', w: ['WHIP', 'BLADE'], passive: { f: { crit: 5, critDmg: 10, pen: 8 }, p: { atk: 0.08, matk: 0.04 } } },
-    { id: 'TECH_V215_WHIP_PAS_03', nameTh: 'ปราณแส้พันธนาการอสูร', path: 'BEAST_SOVEREIGN', sub: 'PACK_COMMAND_HUNT', tier: 5, grade: 'Rare', el: 'WOOD_LIFE', w: ['WHIP', 'SPEAR'], passive: { f: { acc: 14, pen: 10, eva: 8 }, p: { atk: 0.10, def: 0.06 } } },
+    { id: 'TECH_V215_WHIP_PAS_03', nameTh: 'ปราณแส้พันธนาการอสูร', path: 'BEAST_SOVEREIGN', sub: 'MYRIAD_BEAST_PACK', tier: 5, grade: 'Rare', el: 'WOOD_LIFE', w: ['WHIP', 'SPEAR'], passive: { f: { acc: 14, pen: 10, eva: 8 }, p: { atk: 0.10, def: 0.06 } } },
     { id: 'TECH_V215_WHIP_PAS_04', nameTh: 'สัจธรรมด้ายชะตาไร้ร่องรอย', path: 'KARMA_SAMSARA', sub: 'FATE_SEVERING_THREAD', tier: 6, grade: 'Exceptional', el: 'ASTRAL', w: ['WHIP'], passive: { f: { acc: 16, crit: 6, pen: 14 }, p: { atk: 0.12, matk: 0.10 } } }
   ];
 
@@ -46341,14 +46421,14 @@ JD.ITEMS.items.forEach(it => {
       nameTh: 'มหาคีตเวทย์กวงหลิงสะท้านเก้าสวรรค์',
       chineseName: '九霄广陵仙音',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Guqin classic Guangling San (《广陵散》) & Jin Yong — Laughing Proud Wanderer (《笑傲江湖》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — บทเพลงพิณสังคีตแห่งปรมาจารย์ฉินอวิ๋น (#17) ณ หอคีตเมฆา',
       cat: 'COMBAT_TECHNIQUE',
       role: 'ACTIVE',
       combatArch: 'wave',
       path: 'XIAN',
       sub: 'SOUND_ZITHER',
       compatiblePaths: ['XIAN', 'HEART_SOUL', 'SAGE_SUPPORT', 'ANY'],
-      preferredSubs: ['SOUND_ZITHER', 'SOUL_MUSICIAN', 'ZITHER_HEART_BOW', 'CHANT_RESONANCE'],
+      preferredSubs: ['SOUND_ZITHER', 'SEVEN_EMOTIONS_ZITHER', 'ZITHER_HEART_BOW', 'CELESTIAL_ZITHER_ENVOY'],
       tier: 7,
       reqTier: 5,
       grade: 'Legendary',
@@ -46376,14 +46456,14 @@ JD.ITEMS.items.forEach(it => {
       nameTh: 'มหาพู่กันเทวะจารึกผนึกสวรรค์',
       chineseName: '天书神笔封天录',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Judge Cui Verdict Brush lore & Jin Yong — Heaven Sword and Dragon Saber calligraphy martial arts (《倚天屠龙记》银钩铁画)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — พู่กันพิพากษาของหัวหน้าสำนักตรวจการเอี๊ยนหลัว (#54) แห่งราชสำนักตงหวง',
       cat: 'COMBAT_TECHNIQUE',
       role: 'ACTIVE',
       combatArch: 'burst',
       path: 'ARRAY_TALISMAN',
-      sub: 'GRAND_FORMATION_ARCHITECT',
+      sub: 'EARTH_VEIN_WARDEN',
       compatiblePaths: ['ARRAY_TALISMAN', 'SAGE_SUPPORT', 'STRATEGY_GOVERNANCE', 'ANY'],
-      preferredSubs: ['GRAND_FORMATION_ARCHITECT', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT', 'CALLIGRAPHY_PAINTING_SAGE', 'GRAND_STRATEGIST'],
+      preferredSubs: ['EARTH_VEIN_WARDEN', 'SEAL_SCRIPT_EXORCIST', 'THUNDER_TALISMAN_ADEPT', 'CALLIGRAPHY_PAINTING_SAGE', 'BATTLEFIELD_STRATEGIST'],
       tier: 7,
       reqTier: 5,
       grade: 'Legendary',
@@ -46411,14 +46491,14 @@ JD.ITEMS.items.forEach(it => {
       nameTh: 'ด้ายสวรรค์เชิดวัฏสงสารพันวิญญาณ',
       chineseName: '天蚕轮回千丝引',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Classical Wuxia Heavenly Silkworm Thread & Puppet Strings lore (《天蚕神功》/《傀儡丝》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ตำรับไหมสวรรค์เชิดหุ่นของเจ้ากรมกลไกกงซูจี (#15) สมัยจักรวรรดิเทียนกู่',
       cat: 'COMBAT_TECHNIQUE',
       role: 'ACTIVE',
       combatArch: 'pierce',
       path: 'MECH_PUPPET',
-      sub: 'SPIRIT_THREAD_PUPPET',
+      sub: 'THOUSAND_THREAD_ASSASSIN',
       compatiblePaths: ['MECH_PUPPET', 'KARMA_SAMSARA', 'DEMON', 'BEAST_SOVEREIGN', 'ANY'],
-      preferredSubs: ['SPIRIT_THREAD_PUPPET', 'THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'VENOM_GU_SOVEREIGN', 'PACK_COMMAND_HUNT'],
+      preferredSubs: ['THOUSAND_THREAD_ASSASSIN', 'FATE_SEVERING_THREAD', 'VENOM_GU_SOVEREIGN', 'MYRIAD_BEAST_PACK'],
       tier: 7,
       reqTier: 5,
       grade: 'Legendary',
@@ -46454,7 +46534,7 @@ JD.ITEMS.items.forEach(it => {
     nameTh: 'มหาคัมภีร์เตาหลอมหมื่นโอสถเสินหนง',
     chineseName: '神农万象造化炉经',
     provenanceType: 'ADAPTATION_FROM_CANON',
-    literarySource: 'Classical Shennong Materia Medica & Divine Cauldron Mythos (《神农本草经》)',
+    literarySource: 'บันทึกพงศาวดารเทียนกู่ — คัมภีร์เตาหลอมหมื่นโอสถของหมอหลวงไป๋เฉ่า (#13) แห่งราชสำนักเทียนกู่',
     cat: 'MANTRA',
     role: 'MANTRA',
     path: 'CRAFT_CREATION',
@@ -46658,15 +46738,15 @@ JD.ITEMS.items.forEach(it => {
       nameTh: 'เคล็ดพิชัยสงครามแปดพยุหะอภิบาลหล้า',
       chineseName: '八门金锁经世兵法',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Classical Eight Gates Golden Lock Battle Array & Zhuge Liang / Jiang Ziya Grand Strategy Canon (《八阵图》/《六韬》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ตำราพิชัยสงครามแปดพยุหะของมหาเสนาบดีซือหม่าชิง (#52) และขุนพลเย่ชิงชาง (#8)',
       cat: 'AUXILIARY_ART',
       role: 'HEAL_SUPPORT_TRAINING',
       combatArch: 'command',
       grantBuff: 'tacticalCommand',
       path: 'STRATEGY_GOVERNANCE',
-      sub: 'GRAND_STRATEGIST',
+      sub: 'BATTLEFIELD_STRATEGIST',
       compatiblePaths: ['STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN', 'GOD', 'XIAN', 'ANY'],
-      preferredSubs: ['GRAND_STRATEGIST', 'BATTLE_ARRAY_TACTICIAN', 'IRON_LEGION_MARSHAL', 'IMPERIAL_PEACE_SOVEREIGN', 'HEAVENLY_MANDATE_CHANCELLOR', 'GRAND_FORMATION_ARCHITECT'],
+      preferredSubs: ['BATTLEFIELD_STRATEGIST', 'SECT_STEWARD', 'IMPERIAL_SEAL_CHANCELLOR', 'EARTH_VEIN_WARDEN'],
       tier: 7,
       reqTier: 5,
       origTier: 7,
@@ -46770,7 +46850,7 @@ JD.ITEMS.items.forEach(it => {
       nameTh: 'กระบวนท่าพิณโอสถเก้าบุปผาชุบชีวา',
       chineseName: '九花玉露涅槃仙曲',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Jin Yong Nine-Flower Jade Dew & Classical Medical Zither Resonance (《九花玉露》/《黄帝内经·五音疗疾》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — ตำรับคีตโอสถเก้าบุปผาของหมอหลวงไป๋เฉ่า (#13) และหุบเขาโอสถบัวหยก',
       cat: 'COMBAT_TECHNIQUE',
       role: 'ACTIVE',
       combatArch: 'harmonize',
@@ -46910,15 +46990,15 @@ JD.ITEMS.items.forEach(it => {
       nameTh: 'ท่าร่างคุนเผิงเหินดาราข้ามขอบฟ้า',
       chineseName: '鲲鹏扶摇九万里身法',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Zhuangzi — Carefree Wandering Kunpeng Mythos (《庄子·逍遥游》扶摇直上九万里)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — เคล็ดเหินดาราของนักพรตดาราซิงเฉินจื่อ (#16) และทายาทซิงอวิ๋น (#49)',
       cat: 'LIGHTNESS_ART',
       role: 'MOVEMENT_STEALTH_RECON',
       combatArch: 'blink',
       grantBuff: 'astralMirage',
       path: 'BEAST_SOVEREIGN',
-      sub: 'ASTRAL_LEVIATHAN_KRAKEN',
+      sub: 'ABYSSAL_DRAGON_TOTEM',
       compatiblePaths: ['BEAST_SOVEREIGN', 'XIAN', 'DEMON', 'HEART_SOUL', 'ANY'],
-      preferredSubs: ['ASTRAL_LEVIATHAN_KRAKEN', 'MOUNT_CHARGER', 'TIME_VOID', 'SHADOW_ASSASSIN', 'PHANTOM_SOUL'],
+      preferredSubs: ['ABYSSAL_DRAGON_TOTEM', 'CELESTIAL_ASTRAL_FAIRY_TAMER', 'TIME_VOID', 'SHADOW_ASSASSIN', 'PHANTOM_SOUL'],
       tier: 7,
       reqTier: 5,
       origTier: 7,
@@ -46995,7 +47075,7 @@ JD.ITEMS.items.forEach(it => {
       nameTh: 'วิชาต้องห้าม • พลิกผันกงล้อกรรมสังสารวัฏ',
       chineseName: '六道逆命轮回禁术',
       provenanceType: 'ADAPTATION_FROM_CANON',
-      literarySource: 'Six-Paths Wheel of Samsara & Karmic Inversion Forbidden Canon (《六道轮回经》)',
+      literarySource: 'บันทึกพงศาวดารเทียนกู่ — คัมภีร์ต้องห้ามกงล้อหกภพจากซากสุสานมหาปราชญ์สังสารวัฏสมัยเทียนกู่',
       cat: 'FORBIDDEN_ART',
       role: 'FORBIDDEN_HIGH_STAKES',
       combatArch: 'karmaReversal',
@@ -47003,7 +47083,7 @@ JD.ITEMS.items.forEach(it => {
       path: 'KARMA_SAMSARA',
       sub: 'REVERSED_RETRIBUTION',
       compatiblePaths: ['KARMA_SAMSARA', 'DEMON', 'HEART_SOUL', 'GOD', 'ANY'],
-      preferredSubs: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'RED_THREAD_ARBITER', 'ASURA_JUDGMENT_BLADE'],
+      preferredSubs: ['REVERSED_RETRIBUTION', 'SIX_PATHS_WHEEL', 'FATE_SEVERING_THREAD', 'ASURA_JUDGMENT_BLADE'],
       tier: 7,
       reqTier: 6,
       origTier: 7,
@@ -47113,13 +47193,13 @@ JD.ITEMS.items.forEach(it => {
     nameTh: 'มหาคัมภีร์โองการจักรพรรดิพิชัยสวรรค์',
     chineseName: '皇极经世天命宝典',
     provenanceType: 'ADAPTATION_FROM_CANON',
-    literarySource: 'Shao Yong Supreme World-Ordering Canon (《皇极经世书》) & Imperial Mandate Military Classics',
+    literarySource: 'บันทึกพงศาวดารเทียนกู่ — โองการปกครองแผ่นดินของจักรพรรดิองค์สุดท้ายกู่เสวียนหยวน (#1) แห่งเทียนกู่',
     cat: 'MANTRA',
     role: 'MANTRA',
     path: 'STRATEGY_GOVERNANCE',
-    sub: 'IMPERIAL_PEACE_SOVEREIGN',
+    sub: 'SECT_STEWARD',
     compatiblePaths: ['STRATEGY_GOVERNANCE', 'ARRAY_TALISMAN', 'GOD', 'HEART_SOUL', 'ANY'],
-    preferredSubs: ['IMPERIAL_PEACE_SOVEREIGN', 'GRAND_STRATEGIST', 'HEAVENLY_MANDATE_CHANCELLOR', 'IRON_LEGION_MARSHAL', 'BATTLE_ARRAY_TACTICIAN', 'DIPLOMATIC_HEGEMON'],
+    preferredSubs: ['SECT_STEWARD', 'BATTLEFIELD_STRATEGIST', 'IMPERIAL_SEAL_CHANCELLOR', 'DIPLOMATIC_ENVOY'],
     tier: 7,
     reqTier: 5,
     grade: 'Legendary',
@@ -47154,7 +47234,7 @@ JD.ITEMS.items.forEach(it => {
   const v222TechSpecs = [
     // --- BLOOD_DEMON Actives (5) + Passives (2) = 7 ---
     {
-      id: "TECH_V222_01", nameTh: "หมัดมารโลหิตกิเลนคลั่ง", path: "BODY", sub: "BLOOD_FURNACE", tier: 3, grade: "Refined",
+      id: "TECH_V222_01", nameTh: "หมัดมารโลหิตกิเลนคลั่ง", path: "BODY", sub: "DEVOURING_FIEND", tier: 3, grade: "Refined",
       el: "BLOOD_DEMON", el2: "FIRE", w: ["FIST", "BLADE"], arch: "charge",
       obtainSources: ["FORTUNE:f1_blood_thorn_hollow", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
       sourceInfoTh: "จุดวาสนาโพรงหนามโลหิตชายเขา · แดนหมื่นพิภพจันทร์โลหิตหมื่นอสูร · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
@@ -47190,7 +47270,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_04", nameTh: "คีตมารโลหิตกล่อมวิญญาณคลั่ง", path: "HEART_SOUL", sub: "SOUL_MUSICIAN", tier: 4, grade: "Rare",
+      id: "TECH_V222_04", nameTh: "คีตมารโลหิตกล่อมวิญญาณคลั่ง", path: "HEART_SOUL", sub: "SEVEN_EMOTIONS_ZITHER", tier: 4, grade: "Rare",
       el: "BLOOD_DEMON", el2: "YIN_SHADOW", w: ["ZITHER", "WHIP"], arch: "harmonize",
       obtainSources: ["FORTUNE:f3_crimson_slaughter_altar", "MYRIAD_WORLD:bloodmoon", "SANCTUM:SANCTUM_MYRIAD_BEAST_TOTEM"],
       sourceInfoTh: "จุดวาสนาแท่นบูชาโลหิตอสูรโบราณ · แดนหมื่นพิภพจันทร์โลหิต · มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ",
@@ -47202,7 +47282,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_05", nameTh: "ทวนมารพยัคฆ์โลหิตบัญชาศึก", path: "BEAST_SOVEREIGN", sub: "PACK_COMMAND_HUNT", tier: 5, grade: "Exceptional",
+      id: "TECH_V222_05", nameTh: "ทวนมารพยัคฆ์โลหิตบัญชาศึก", path: "BEAST_SOVEREIGN", sub: "MYRIAD_BEAST_PACK", tier: 5, grade: "Exceptional",
       el: "BLOOD_DEMON", el2: "EARTH_METAL", w: ["SPEAR", "FIST", "BLADE"], arch: "command",
       obtainSources: ["FORTUNE:f3_glacier_phoenix_roost", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
       sourceInfoTh: "จุดวาสนารังหงส์น้ำแข็งเก้าเหมันต์ · แดนหมื่นพิภพจันทร์โลหิต · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
@@ -47240,7 +47320,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_08", nameTh: "ศรเหมันต์อสรพิษแช่แข็งวิญญาณ", path: "BEAST_SOVEREIGN", sub: "BEAST_BLOOD_FUSION", tier: 5, grade: "Rare",
+      id: "TECH_V222_08", nameTh: "ศรเหมันต์อสรพิษแช่แข็งวิญญาณ", path: "BEAST_SOVEREIGN", sub: "SYMBIOTIC_BEAST_WARRIOR", tier: 5, grade: "Rare",
       el: "WATER_ICE", el2: "YIN_SHADOW", w: ["BOW", "WHIP"], arch: "dot",
       obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:frostabyss", "SANCTUM:SANCTUM_MYRIAD_BEAST_TOTEM"],
       sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · มหาวิหารหมื่นอสูรและคีตเวทย์โบราณ",
@@ -47264,7 +47344,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_10", nameTh: "ฝ่ามือวาฬสมุทรเหมันต์กลืนคลื่น", path: "XIAN", sub: "TIDAL_WATER_MIRROR", tier: 6, grade: "Exceptional",
+      id: "TECH_V222_10", nameTh: "ฝ่ามือวาฬสมุทรเหมันต์กลืนคลื่น", path: "XIAN", sub: "FROST_MOON_IMMORTAL", tier: 6, grade: "Exceptional",
       el: "WATER_ICE", el2: "ASTRAL", w: ["FIST", "ZITHER", "SPEAR"], arch: "channel",
       obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:frostabyss", "SECRET_REALM:REALM_NINE_NETHER_BLOOD_SEA"],
       sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพห้วงลึกเหมันต์นิรันดร์ · วังบาดาลสมุทรโลหิตเก้ายมโลก",
@@ -47278,7 +47358,7 @@ JD.ITEMS.items.forEach(it => {
 
     // --- LIGHTNING Actives (4) + Passives (1) = 5 ---
     {
-      id: "TECH_V222_11", nameTh: "ดาบเขี้ยวเสือดาวอสนีพริบตา", path: "BODY", sub: "LIGHTNING_TEMPERED_BODY", tier: 3, grade: "Refined",
+      id: "TECH_V222_11", nameTh: "ดาบเขี้ยวเสือดาวอสนีพริบตา", path: "BODY", sub: "THUNDER_BODY", tier: 3, grade: "Refined",
       el: "LIGHTNING", el2: "WIND", w: ["BLADE", "FIST"], arch: "blink",
       obtainSources: ["FORTUNE:f2_thunder_echo_cliff", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
       sourceInfoTh: "จุดวาสนาผาอสนีสะท้อนพิณ · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
@@ -47290,7 +47370,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_12", nameTh: "ศรสายฟ้ากระเรียนพายุทะลวงเมฆ", path: "GOD", sub: "THUNDER_PUNISHMENT_ENVOY", tier: 4, grade: "Rare",
+      id: "TECH_V222_12", nameTh: "ศรสายฟ้ากระเรียนพายุทะลวงเมฆ", path: "GOD", sub: "STORM_THUNDER_EMPEROR", tier: 4, grade: "Rare",
       el: "LIGHTNING", el2: "WIND", w: ["BOW", "SPEAR"], arch: "channel",
       obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
       sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
@@ -47328,7 +47408,7 @@ JD.ITEMS.items.forEach(it => {
 
     // --- WIND Actives (2) + Passives (1) = 3 ---
     {
-      id: "TECH_V222_15", nameTh: "ดาบเขี้ยววายุคลั่งตัดพายุ", path: "XIAN", sub: "WIND_SHADOW_ROAMER", tier: 3, grade: "Refined",
+      id: "TECH_V222_15", nameTh: "ดาบเขี้ยววายุคลั่งตัดพายุ", path: "XIAN", sub: "PHANTOM_SOUL", tier: 3, grade: "Refined",
       el: "WIND", el2: "LIGHTNING", w: ["BLADE", "SWORD", "WHIP"], arch: "evade",
       obtainSources: ["FORTUNE:f2_venom_lotus_marsh", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_EMPEROR_SWORD_TOMB"],
       sourceInfoTh: "จุดวาสนาบึงบัวพิษหมื่นบุปผา · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · สุสานกระบี่จักรพรรดิบรรพกาล",
@@ -47354,7 +47434,7 @@ JD.ITEMS.items.forEach(it => {
 
     // --- FIRE Actives (2) + Passives (1) = 3 ---
     {
-      id: "TECH_V222_17", nameTh: "หมัดเพลิงสุริยันหลอมศิลา", path: "CRAFT_CREATION", sub: "DIVINE_FORGE_FOUNDER", tier: 4, grade: "Rare",
+      id: "TECH_V222_17", nameTh: "หมัดเพลิงสุริยันหลอมศิลา", path: "CRAFT_CREATION", sub: "HEAVENLY_ANVIL_SMITH", tier: 4, grade: "Rare",
       el: "FIRE", el2: "EARTH_METAL", w: ["FIST", "BLADE", "SWORD"], arch: "dot",
       obtainSources: ["FORTUNE:f3_crimson_slaughter_altar", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_ASTRAL_GOD_RUINS"],
       sourceInfoTh: "จุดวาสนาแท่นบูชาโลหิตอสูรโบราณ · แดนหมื่นพิภพดาราจักรสุญตา · ซากวิหารดาราจักรเทพโบราณ",
@@ -47366,7 +47446,7 @@ JD.ITEMS.items.forEach(it => {
       ]
     },
     {
-      id: "TECH_V222_18", nameTh: "เกาทัณฑ์เพลิงผลาญกัลป์สั่งทัพ", path: "STRATEGY_GOVERNANCE", sub: "BATTLE_ARRAY_TACTICIAN", tier: 5, grade: "Exceptional",
+      id: "TECH_V222_18", nameTh: "เกาทัณฑ์เพลิงผลาญกัลป์สั่งทัพ", path: "STRATEGY_GOVERNANCE", sub: "BATTLEFIELD_STRATEGIST", tier: 5, grade: "Exceptional",
       el: "FIRE", el2: "LIGHT_YANG", w: ["BOW", "SPEAR", "SWORD"], arch: "command",
       obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_ASTRAL_GOD_RUINS"],
       sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพดาราจักรสุญตา · ซากวิหารดาราจักรเทพโบราณ",
@@ -47380,7 +47460,7 @@ JD.ITEMS.items.forEach(it => {
 
     // --- 6 Passive Techniques with Rare Procs (onHit & combatTick) ---
     {
-      id: "TECH_V222_19", nameTh: "เคล็ดชีพจรโลหิตอสูรสูบปราณ", path: "DEMON", sub: "BLOOD_SEA_FIEND", tier: 4, grade: "Rare",
+      id: "TECH_V222_19", nameTh: "เคล็ดชีพจรโลหิตอสูรสูบปราณ", path: "DEMON", sub: "BLOOD_SPEAR_ASURA", tier: 4, grade: "Rare",
       el: "BLOOD_DEMON", el2: "YIN_SHADOW", w: ["FIST", "BLADE", "WHIP"],
       obtainSources: ["FORTUNE:f3_glacier_phoenix_roost", "MYRIAD_WORLD:bloodmoon", "SECRET_REALM:REALM_FROST_BLOOD_BEAST_ABYSS"],
       sourceInfoTh: "จุดวาสนารังหงส์น้ำแข็งเก้าเหมันต์ · แดนหมื่นพิภพจันทร์โลหิต · แดนลับห้วงเหวราชันอสูรเหมันต์โลหิต",
@@ -47423,7 +47503,7 @@ JD.ITEMS.items.forEach(it => {
       }
     },
     {
-      id: "TECH_V222_22", nameTh: "เคล็ดชีพจรสายฟ้าสวรรค์สะท้อนศึก", path: "GOD", sub: "THUNDER_PUNISHMENT_ENVOY", tier: 5, grade: "Exceptional",
+      id: "TECH_V222_22", nameTh: "เคล็ดชีพจรสายฟ้าสวรรค์สะท้อนศึก", path: "GOD", sub: "STORM_THUNDER_EMPEROR", tier: 5, grade: "Exceptional",
       el: "LIGHTNING", el2: "FIRE", w: ["BLADE", "BOW", "WHIP", "SWORD"],
       obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
       sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
@@ -47438,7 +47518,7 @@ JD.ITEMS.items.forEach(it => {
       }
     },
     {
-      id: "TECH_V222_23", nameTh: "เคล็ดลมหายใจวายุเมฆาไร้เหน็ดเหนื่อย", path: "HEART_SOUL", sub: "SOUL_MUSICIAN", tier: 4, grade: "Rare",
+      id: "TECH_V222_23", nameTh: "เคล็ดลมหายใจวายุเมฆาไร้เหน็ดเหนื่อย", path: "HEART_SOUL", sub: "SEVEN_EMOTIONS_ZITHER", tier: 4, grade: "Rare",
       el: "WIND", el2: "WATER_ICE", w: ["ZITHER", "BOW", "SWORD", "WHIP"],
       obtainSources: ["FORTUNE:f4_astral_starfall_observatory", "MYRIAD_WORLD:thunderpeak", "SECRET_REALM:REALM_THUNDER_ZITHER_SANCTUARY"],
       sourceInfoTh: "จุดวาสนาหอดูดาวดาราจักรล่มสลาย · แดนหมื่นพิภพสายฟ้าเก้าสวรรค์ · ตำหนักพิณอสนีเก้าสวรรค์",
@@ -47453,7 +47533,7 @@ JD.ITEMS.items.forEach(it => {
       }
     },
     {
-      id: "TECH_V222_24", nameTh: "เคล็ดเตาหลอมอัคคีสุริยันนิรันดร์", path: "CRAFT_CREATION", sub: "PILL_FLAME_SOVEREIGN", tier: 5, grade: "Exceptional",
+      id: "TECH_V222_24", nameTh: "เคล็ดเตาหลอมอัคคีสุริยันนิรันดร์", path: "CRAFT_CREATION", sub: "PILL_FURNACE_IMMORTAL", tier: 5, grade: "Exceptional",
       el: "FIRE", el2: "LIGHT_YANG", w: ["FIST", "BLADE", "SWORD", "SPEAR"],
       obtainSources: ["FORTUNE:f4_abyssal_chimera_maw", "MYRIAD_WORLD:astralvoid", "SECRET_REALM:REALM_PRIMORDIAL_ALCHEMIST_PALACE"],
       sourceInfoTh: "จุดวาสนาหุบเหวอสูรกลืนสวรรค์ · แดนหมื่นพิภพดาราจักรสุญตา · ตำหนักโอสถเทวะหมื่นกัลป์",
@@ -47595,7 +47675,7 @@ JD.ITEMS.items.forEach(it => {
       stance: 'BLOOD_ASURA_STANCE', mark: 'bloodBrand', fusion: 'INFERNO_VORTEX',
       stats: { atk: 18, matk: 8, def: 14, mdef: 10, hp: 80, crit: 8, pen: 10, eva: 2, acc: 7 },
       prefs: { combat: 1.40, smithing: 1.35, training: 1.35, fortitude: 1.30 },
-      descTh: 'เปลี่ยนร่างกายเป็นเตาหลอมเก้าสุริยัน เผาผลาญเลือดส่วนหนึ่งเพื่อเร่งปราณและแผ่คลื่นความร้อนเผาศัตรูรอบข้าง (โดดเด่นเลือดสูงและระเบิดพลังโอเวอร์ไดรฟ์)'
+      descTh: 'เปลี่ยนร่างกายเป็นเตาหลอมเก้าสุริยัน เผาผลาญเลือดส่วนหนึ่งเพื่อเร่งปราณและแผ่คลื่นความร้อนเผาศัตรูรอบข้าง (โดดเด่นเลือดสูงและระเบิดพลังเร่งผลาญแกนปราณ)'
     },
     {
       id: 'ABYSSAL_LEVIATHAN_BONE', path: 'BODY', nameTh: 'กายากระดูกมังกรสมุทรบาดาล', icon: '🐋',
@@ -47942,9 +48022,9 @@ JD.ITEMS.items.forEach(it => {
       path: sp.path,
       nameTh: sp.nameTh,
       icon: sp.icon,
-      resourceTh: "ผลึกปราณธาตุ " + sp.el + " และคัมภีร์สายย่อย",
+      resourceTh: "ผลึกปราณ" + ({FIRE:"ธาตุไฟสุริยัน",WATER_ICE:"ธาตุน้ำ-เหมันต์",LIGHTNING:"ธาตุสายฟ้าอสนี",WIND:"ธาตุวายุเมฆา",EARTH_METAL:"ธาตุดิน-โลหะ",WOOD_LIFE:"ธาตุไม้-พฤกษา",YIN_SHADOW:"ธาตุหยิน-เงา",LIGHT_YANG:"ธาตุแสง-หยาง",ASTRAL:"ดารา-มิติ",BLOOD_DEMON:"โลหิต-มาร"}[sp.el] || "ธาตุธรรมชาติ") + "และคัมภีร์สายย่อย",
       strengthTh: sp.descTh,
-      weaknessTh: "ต้องอาศัยการวางจังหวะท่วงท่าและตราประทับให้สอดคล้องกับศาสตราประจำสาย",
+      weaknessTh: "กินกำลังสมาธิและปราณต่อเนื่องเมื่อต้องรักษาตราประทับประจำสายย่อย「" + sp.nameTh + "」ท่ามกลางศึกยืดเยื้อ",
       combatBonus: +(0.95 + Math.max(0.05, Math.min(0.32, offScale * 0.25))).toFixed(2),
       defenseBonus: +(0.92 + Math.max(0.02, Math.min(0.34, defScale * 0.25))).toFixed(2),
       breakthroughMod: 1.04,
@@ -48781,11 +48861,13 @@ JD.ITEMS.items.forEach(it => {
       const mantraObj = {
         id: mid,
         nameTh: 'คัมภีร์บ่มเพ็ญเพียร · มหาเคล็ด' + noun,
+        cat: 'MANTRA',
         path: pc.path,
         sub: subId,
         reqPath: pc.path,
         bonusSubpath: subId,
         tier,
+        power: i === 0 ? 180 : 325,
         reqStage: i === 0 ? 2 : 4,
         element: el1,
         elementalRole: 'ELEMENTAL',
@@ -48850,6 +48932,8 @@ JD.ITEMS.items.forEach(it => {
       icon: mk.icon,
       tier,
       cat: mk.cat,
+      category: mk.cat,
+      terrain: mk.kind === 'HERB' ? 'forest' : (mk.kind === 'BEAST' ? 'wilds' : (mk.kind === 'ESSENCE' ? 'peak' : (mk.kind === 'ORE' ? 'mountain' : 'ruin'))),
       kind: mk.kind,
       out: 'MATERIAL',
       price: tier * 38 + (i % 5) * 12,
@@ -50673,6 +50757,168 @@ JD.ITEMS.items.forEach(it => {
         { id: 'CROWD_ROAR_BRAWLER', nameTh: 'สายหมัดสังเวียนสะท้านเสียงเชียร์', icon: '🥊', el: 'FIRE', el2: 'LIGHTNING', w: ['FIST', 'CLAW'], arm: ['HEAVY', 'LIGHT'], pSk: 'FIST_PALM', sSk: 'BODY_REFINING', stance: 'BLOOD_ASURA_STANCE', mark: 'bloodBrand', fusion: 'SUPERCONDUCT_SHATTER', trigger: 'onAuraPulse', action: 'ATAVISM_FRENZY_BITE', buff: 'fervorMight', debuff: 'stun', stats: { atk: 25, matk: 10, def: 22, mdef: 16, hp: 70, crit: 17, pen: 19, eva: 12, acc: 18 }, descTh: 'ยิ่งการต่อสู้ยืดเยื้อและดุเดือด หมัดยิ่งหนักหน่วงและสะเทือนขวัญศัตรูทั้งสนาม' },
         { id: 'BANNER_GLORY_MARSHAL', nameTh: 'สายธงชัยเกียรติยศปลุกขวัญทัพ', icon: '🚩', el: 'LIGHT_YANG', el2: 'EARTH_METAL', w: ['SPEAR', 'FAN'], arm: ['HEAVY'], pSk: 'SPEAR', sSk: 'LEADERSHIP', stance: 'VAJRA_BASTION_STANCE', mark: 'starSeal', fusion: 'KARMIC_PURIFICATION_SMITE', trigger: 'onAuraPulse', action: 'BODHI_KARMA_AEGIS', buff: 'tacticalCommand', debuff: 'weaken', stats: { atk: 21, matk: 16, def: 22, mdef: 20, hp: 68, crit: 14, pen: 17, eva: 11, acc: 19 }, descTh: 'ชูธงเกียรติยศแห่งสำนักกลางสนามรบ เพิ่มพลังรบและป้องกันความตื่นตระหนกให้ทั้งทีม' }
       ]
+    },
+    {"id": "LEG_READ_FORM_BLADE", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "nameTh": "วิถีกระบี่อ่านช่องฟ้า", "shortTh": "กระบี่อ่านช่องฟ้า", "icon": "🗡️", "color": "#38bdf8", "element": "EARTH_METAL", "gaugeId": "FORM_TRACE", "gaugeNameTh": "รอยกระบวนท่า", "statWeights": {"atk": 1.3, "matk": 1.02, "def": 1.2, "mdef": 1.18}, "resourceUsed": "แผ่นจารึกกระบวนท่า ศิลาลับคม และประสบการณ์ประลองกับยอดฝีมือหลากสาย", "coreMechanicTh": "สังเกตและจดจำรูปแบบกระบวนท่าที่ศัตรูใช้จริงในศึก เมื่อคู่ต่อสู้ลงมือซ้ำรูปแบบเดิมจึงตัดจังหวะสวนกลับอย่างเฉียบคม", "supremeRiskTh": "ต้องใช้เวลาอ่านทางศัตรูในช่วงต้นศึก เสียเปรียบหากปะทะศึกสั้นหรือคู่ต่อสู้สลับกระบวนท่าไม่ซ้ำรอย", "weapons": ["SWORD", "BLADE"], "armor": ["LIGHT", "HEAVY"], "life": {"SWORD": 0.4, "BLADE": 0.24, "MOVEMENT": 0.22}, "body": {"dexterity": 28, "strength": 24, "toughness": 24}, "stageNames": ["ขั้นที่ 1 • สังเกตเงากระบี่", "ขั้นที่ 2 • จดจำรอยเท้าและจังหวะหายใจ", "ขั้นที่ 3 • อ่านทางคมศาสตรา", "ขั้นที่ 4 • ตัดช่องว่างกลางกระบวน", "ขั้นที่ 5 • กระบี่เดียวปิดทางรุก", "ขั้นที่ 6 • ปรมาจารย์อ่านรูปศึก", "ขั้นที่ 7 • กระบี่สงบสยบพันท่า", "ขั้นที่ 8 • ยอดกระบี่อ่านช่องฟ้า"], "realmTraits": [{"stage": 2, "id": "TRAIT_RFB_S2", "nameTh": "สายตาจับรอยท่า", "trigger": "onHit", "action": "IAI_ZERO_QI_SLASH", "grantBuff": "parryCounter", "bonusStats": {"acc": 12, "eva": 8}, "descTh": "จดจำจังหวะลงมือของศัตรู เพิ่มความแม่นยำและการหลบหลีก"}, {"stage": 4, "id": "TRAIT_RFB_S4", "nameTh": "ตัดช่องว่างกลางกระบวน", "trigger": "onStruck", "action": "IAI_ZERO_QI_SLASH", "applyDebuff": "exposed", "bonusStats": {"atkPct": 0.12, "pen": 14}, "descTh": "เปิดเผยช่องโหว่ของคู่ต่อสู้เมื่อเห็นกระบวนท่าซ้ำ"}, {"stage": 6, "id": "TRAIT_RFB_S6", "nameTh": "คมกระบี่สวนทาง", "trigger": "onCrit", "action": "IAI_ZERO_QI_SLASH", "applyDebuff": "armorbreak", "bonusStats": {"atkPct": 0.16, "critDmg": 18}, "descTh": "แทงสวนจุดตายเมื่อศัตรูเปิดช่องว่าง"}, {"stage": 8, "id": "TRAIT_RFB_S8", "nameTh": "กระบี่ปิดบทไร้ช่องโหว่", "trigger": "onHit", "action": "IAI_ZERO_QI_SLASH", "grantBuff": "parryCounter", "bonusStats": {"atkPct": 0.2, "pen": 20, "acc": 16}, "descTh": "อ่านทางกระบวนท่าทุกรูปแบบและสวนกลับด้วยความแม่นยำสูงสุด"}], "subs": [{"id": "LEG_SUB_CLOSING_BLADE", "nameTh": "กระบี่ปิดบท", "icon": "🗡️", "el": "EARTH_METAL", "el2": "WIND", "w": ["SWORD"], "arm": ["LIGHT"], "pSk": "SWORD", "sSk": "MOVEMENT", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onIaiDraw", "action": "IAI_ZERO_QI_SLASH", "buff": "parryCounter", "debuff": "exposed", "stats": {"atk": 26, "matk": 14, "def": 18, "mdef": 16, "hp": 60, "crit": 18, "pen": 22, "eva": 15, "acc": 22}, "descTh": "จำท่าโจมตีหลักของศัตรูแล้วตัดกระบวนด้วยคมกระบี่เดียวเมื่อเห็นสัญญาณซ้ำ"}, {"id": "LEG_SUB_STANCE_BREAKER", "nameTh": "กระบี่ตัดกระบวน", "icon": "⚔️", "el": "EARTH_METAL", "el2": "FIRE", "w": ["SWORD", "BLADE"], "arm": ["HEAVY", "LIGHT"], "pSk": "SWORD", "sSk": "BLADE", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "INFERNO_VORTEX", "trigger": "onHit", "action": "IAI_ZERO_QI_SLASH", "buff": "parryCounter", "debuff": "armorbreak", "stats": {"atk": 27, "matk": 12, "def": 19, "mdef": 16, "hp": 64, "crit": 16, "pen": 24, "eva": 12, "acc": 20}, "descTh": "เน้นฟันทำลายหลักการยืนและเกราะปราณของศัตรูที่ตั้งท่าต่อเนื่อง"}, {"id": "LEG_SUB_ECHO_PARRY", "nameTh": "กระบี่สะท้อนจังหวะ", "icon": "🛡️", "el": "WIND", "el2": "WATER_ICE", "w": ["SWORD"], "arm": ["LIGHT"], "pSk": "SWORD", "sSk": "MOVEMENT", "stance": "VAJRA_BASTION_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onStruck", "action": "IAI_ZERO_QI_SLASH", "buff": "parryCounter", "debuff": "slow", "stats": {"atk": 21, "matk": 15, "def": 22, "mdef": 20, "hp": 66, "crit": 14, "pen": 18, "eva": 18, "acc": 20}, "descTh": "รับแรงปะทะแล้วเบี่ยงจังหวะศัตรูให้เสียหลักเปิดทางให้สหายซ้ำ"}, {"id": "LEG_SUB_BORDER_SENTINEL", "nameTh": "กระบี่เฝ้าด่าน", "icon": "🏯", "el": "EARTH_METAL", "el2": "LIGHT_YANG", "w": ["SWORD", "BLADE"], "arm": ["HEAVY"], "pSk": "SWORD", "sSk": "BODY_REFINING", "stance": "VAJRA_BASTION_STANCE", "mark": "starSeal", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onStruck", "action": "BODHI_KARMA_AEGIS", "buff": "leylineBastion", "debuff": "weaken", "stats": {"atk": 22, "matk": 14, "def": 24, "mdef": 20, "hp": 70, "crit": 13, "pen": 18, "eva": 11, "acc": 19}, "descTh": "ยึดมั่นแนวป้องกันด่านชายแดน ปิดทางบุกของศัตรูที่โถมเข้าใส่"}, {"id": "LEG_SUB_SINGLE_DRAW_VERDICT", "nameTh": "กระบี่ชักเดี่ยวตัดสิน", "icon": "⚡", "el": "LIGHTNING", "el2": "EARTH_METAL", "w": ["SWORD", "BLADE"], "arm": ["LIGHT"], "pSk": "SWORD", "sSk": "MOVEMENT", "stance": "SHADOW_REAPER_STANCE", "mark": "starSeal", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onIaiDraw", "action": "IAI_ZERO_QI_SLASH", "buff": "fervorMight", "debuff": "exposed", "stats": {"atk": 28, "matk": 13, "def": 16, "mdef": 15, "hp": 58, "crit": 21, "pen": 23, "eva": 16, "acc": 21}, "descTh": "สะสมสมาธิรอจังหวะเดียวที่ศัตรูเผยช่องว่างแล้วชักกระบี่ปลิดศึก"}], "lore": {"eraTh": "ยุคที่ 39–44 (ศ.ท. 38,019–43,888) · รากเหง้าการประลองร้อยก้าวไร้เสียงและด่านซานเจียง", "regionId": "NORTHERN_PEAKS", "inventorTh": "ครูฝึกด่านซานเจียงผู้รอดชีวิตจากทัพม้าเหล็ก", "adapterTh": "ศิษย์เฝ้าด่านรุ่นหลังที่บันทึกแผ่นท่าลงกระดานไม้", "competingAccountsTh": "ด่านซานเจียงถือว่าเป็นวิชารักษาด่านท้องถิ่น ขณะที่หอคัมภีร์บางแห่งเข้าใจผิดว่าเป็นเศษคัมภีร์สำนักกระบี่โบราณ", "discoverySources": ["แผ่นจารึกท่าด่านชายแดน", "ครูฝึกเฝ้าด่าน", "บันทึกการประลอง"]}, "kw": "KW_DAO_READ_FORM"},
+    {"id": "LEG_TRIAGE_MERIDIAN", "grade": "LEGENDARY", "originType": "LOWLY_UPPER_WORLD", "nameTh": "วิถีชีพจรประคองสหาย", "shortTh": "ชีพจรประคองสหาย", "icon": "🩺", "color": "#34d399", "element": "WOOD_LIFE", "gaugeId": "TRIAGE_PULSE", "gaugeNameTh": "ชีพจรประคองชีวิต", "statWeights": {"atk": 1.0, "matk": 1.28, "def": 1.18, "mdef": 1.28}, "resourceUsed": "สมุดเวรหอรักษา เข็มเงินตรวจชีพจร และสมุนไพรประคองปราณ", "coreMechanicTh": "ตรวจจับอาการบาดเจ็บ พิษ และปราณแปรปรวนของสหายรายคน แล้วเลือกจ่ายปราณฟื้นฟู ล้างพิษ หรือคุ้มกันตรงจุดตามงบปราณที่มี", "supremeRiskTh": "ดูแลได้ทีละเป้าหมายและใช้งบปราณร่วมกัน หากสหายบาดเจ็บพร้อมกันทั้งคณะต้องตัดสินใจเลือกช่วยตามความเร่งด่วน", "weapons": ["NEEDLE", "FAN", "ROSARY", "STAFF"], "armor": ["ROBE", "LIGHT"], "life": {"MEDICINE": 0.44, "ALCHEMY": 0.28, "SCRIPTURE": 0.2}, "body": {"spiritualFoundation": 28, "meridianCapacity": 28, "dexterity": 25}, "stageNames": ["ขั้นที่ 1 • สดับเสียงชีพจรติดขัด", "ขั้นที่ 2 • แยกแยะพิษและธาตุไฟแทรก", "ขั้นที่ 3 • ดัชนีประคองลมหายใจ", "ขั้นที่ 4 • ถ่ายเทปราณคืนสมดุล", "ขั้นที่ 5 • หัตถ์หมอสนามกลางวงล้อม", "ขั้นที่ 6 • สลายพิษลึกถึงไขกระดูก", "ขั้นที่ 7 • เข็มเงินตรึงชีพจรมิให้ดับ", "ขั้นที่ 8 • ปรมาจารย์ชีพจรประคองหล้า"], "realmTraits": [{"stage": 2, "id": "TRAIT_TRM_S2", "nameTh": "ตรวจชีพจรฉับไว", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "grantBuff": "bodhiGrace", "bonusStats": {"mdefPct": 0.1, "cast": 8}, "descTh": "จับอาการบาดเจ็บและพิษของสหายได้ทันท่วงที"}, {"stage": 4, "id": "TRAIT_TRM_S4", "nameTh": "เข็มเงินสลายพิษ", "trigger": "onCast", "action": "BODHI_KARMA_AEGIS", "grantBuff": "clarityLotus", "bonusStats": {"matkPct": 0.12, "hpPct": 0.1}, "descTh": "ชะล้างสถานะผิดปกติและลดภาระปราณของเป้าหมาย"}, {"stage": 6, "id": "TRAIT_TRM_S6", "nameTh": "ประคองลมหายใจยามวิกฤต", "trigger": "onStruck", "action": "BODHI_KARMA_AEGIS", "grantBuff": "aegisWard", "bonusStats": {"defPct": 0.12, "mdefPct": 0.14}, "descTh": "กางม่านปราณคุ้มกันสหายที่ใกล้หมดสติ"}, {"stage": 8, "id": "TRAIT_TRM_S8", "nameTh": "ชีพจรบริสุทธิ์คืนชีวิต", "trigger": "onRoundStart", "action": "BODHI_KARMA_AEGIS", "grantBuff": "bodhiGrace", "bonusStats": {"matkPct": 0.18, "mdefPct": 0.18, "cast": 14}, "descTh": "ถ่ายทอดปราณรักษาและสกัดจุดฟื้นฟูให้ทีมยืนหยัดในศึกยาวนาน"}], "subs": [{"id": "LEG_SUB_WARD_PHYSICIAN", "nameTh": "หมอสนามประคองชีพ", "icon": "🩺", "el": "WOOD_LIFE", "el2": "LIGHT_YANG", "w": ["NEEDLE", "STAFF"], "arm": ["ROBE"], "pSk": "MEDICINE", "sSk": "ALCHEMY", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "buff": "bodhiGrace", "debuff": "weaken", "stats": {"atk": 12, "matk": 25, "def": 19, "mdef": 24, "hp": 68, "crit": 12, "pen": 14, "eva": 13, "acc": 19}, "descTh": "มุ่งเน้นฟื้นฟูสหายที่บาดเจ็บหนักที่สุดอย่างตรงจุดและประหยัดปราณ"}, {"id": "LEG_SUB_MERIDIAN_UNBLOCK", "nameTh": "ดัชนีเปิดชีพจร", "icon": "👆", "el": "WOOD_LIFE", "el2": "WIND", "w": ["NEEDLE", "FAN"], "arm": ["LIGHT", "ROBE"], "pSk": "MEDICINE", "sSk": "MOVEMENT", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onCast", "action": "MERIDIAN_SEAL", "buff": "clarityLotus", "debuff": "meridianSeal", "stats": {"atk": 16, "matk": 24, "def": 18, "mdef": 22, "hp": 62, "crit": 15, "pen": 18, "eva": 16, "acc": 20}, "descTh": "สกัดจุดเปิดเส้นปราณให้สหายลงมือคล่องตัว พร้อมสะกดจุดชีพจรศัตรู"}, {"id": "LEG_SUB_POISON_SIPHON", "nameTh": "ถ่ายพิษคืนสมดุล", "icon": "🧪", "el": "WOOD_LIFE", "el2": "WATER_ICE", "w": ["NEEDLE", "ROSARY"], "arm": ["ROBE"], "pSk": "MEDICINE", "sSk": "POISON", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "buff": "clarityLotus", "debuff": "poison", "stats": {"atk": 14, "matk": 25, "def": 18, "mdef": 23, "hp": 64, "crit": 14, "pen": 17, "eva": 14, "acc": 19}, "descTh": "ดึงไอพิษออกจากร่างสหายแล้วสะท้อนกลับเป็นพิษอ่อนกำลังใส่ศัตรู"}, {"id": "LEG_SUB_ESCORT_VIGIL", "nameTh": "ชีพจรคุ้มขบวน", "icon": "🛡️", "el": "EARTH_METAL", "el2": "WOOD_LIFE", "w": ["STAFF", "ROSARY"], "arm": ["HEAVY", "ROBE"], "pSk": "MEDICINE", "sSk": "ARRAY", "stance": "VAJRA_BASTION_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onStruck", "action": "BODHI_KARMA_AEGIS", "buff": "aegisWard", "debuff": "slow", "stats": {"atk": 15, "matk": 21, "def": 24, "mdef": 24, "hp": 72, "crit": 11, "pen": 14, "eva": 11, "acc": 18}, "descTh": "ตั้งแนวประคองขวัญและเกราะปราณให้คณะเดินทางฝ่าการซุ่มโจมตี"}, {"id": "LEG_SUB_FEVER_CALM", "nameTh": "ระงับธาตุไฟแทรก", "icon": "💧", "el": "WATER_ICE", "el2": "LIGHT_YANG", "w": ["FAN", "ROSARY"], "arm": ["ROBE"], "pSk": "MEDICINE", "sSk": "SCRIPTURE", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "buff": "clarityLotus", "debuff": "chill", "stats": {"atk": 12, "matk": 24, "def": 19, "mdef": 25, "hp": 66, "crit": 12, "pen": 15, "eva": 14, "acc": 19}, "descTh": "คลายความเครียดและระงับอาการปราณตีกลับของสหายกลางสมรภูมิ"}], "lore": {"eraTh": "ยุคที่ 11–14 (ศ.ท. 10,088–13,315) · วิบัติหมอกพิษมรกตและการสืบทอดสู่หมอสนามยุคหลัง", "regionId": "CENTRAL_HEARTLAND", "inventorTh": "แผ่นฝึกหายใจชั้นผู้น้อยที่ถูกคัดทิ้งจากหอพักโลกเบื้องบน", "adapterTh": "หมอสนามกองคุ้มกันที่ตัดทอนขั้นตอนเกินกำลังและเพิ่มท่ารับชีพจร", "competingAccountsTh": "สำนักแพทย์บางแห่งยกย่องว่าเป็นตำราเซียนโอสถ แต่บันทึกหอรักษาเก่าชี้ชัดว่าเริ่มต้นจากแผ่นฝึกหายใจคนรับใช้ที่ถูกดัดแปลงจนใช้งานได้จริงในโลกเบื้องล่าง", "discoverySources": ["สมุดเวรหอรักษา", "แผ่นฝึกหายใจคัดทิ้ง", "หมอสนามกองคุ้มกัน"]}, "kw": "KW_DAO_TRIAGE_PULSE"},
+    {"id": "LEG_STORM_CALLER_TEMPEST", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "nameTh": "วิถีจอมพายุบัญชาฟ้า", "shortTh": "จอมพายุบัญชาฟ้า", "icon": "⛈️", "color": "#60a5fa", "element": "LIGHTNING", "gaugeId": "STORM_FRONT", "gaugeNameTh": "แนวพายุสมรภูมิ", "statWeights": {"atk": 1.06, "matk": 1.32, "def": 1.14, "mdef": 1.22}, "resourceUsed": "บันทึกทิศลมฤดูกาล ศิลาประจุฟ้า และแผนภูมิความกดอากาศ", "coreMechanicTh": "ประสานปราณเข้ากับสภาพอากาศจริงในโลก เปลี่ยนแนวลมและสายฟ้าชั่วคราวกลางศึกโดยไม่อาจฝืนฤดูกาลทั้งทวีปได้", "supremeRiskTh": "หากสภาพอากาศจริงขัดแย้งกับแนวลมที่เรียกใช้ จะสิ้นเปลืองปราณมากกว่าปกติและระยะเวลาสั้นลง", "weapons": ["FAN", "STAFF", "SPEAR"], "armor": ["ROBE", "LIGHT"], "life": {"ARRAY": 0.34, "FAN": 0.3, "FISHING": 0.2}, "body": {"spiritualFoundation": 27, "meridianCapacity": 27, "dexterity": 24}, "stageNames": ["ขั้นที่ 1 • สดับเสียงลมเปลี่ยนทิศ", "ขั้นที่ 2 • เรียกหมอกฝนคลุมแนวรบ", "ขั้นที่ 3 • ชักนำประจุฟ้าลงปลายพัด", "ขั้นที่ 4 • พลิกแนวลมต้านศาสตราวุธ", "ขั้นที่ 5 • พายุอสนีลูกโซ่สามทิศ", "ขั้นที่ 6 • เนตรตาพายุสงบนิ่ง", "ขั้นที่ 7 • บัญชาเมฆาครามเก้าชั้น", "ขั้นที่ 8 • จอมพายุบัญชาฟ้าใต้หล้า"], "realmTraits": [{"stage": 2, "id": "TRAIT_SCT_S2", "nameTh": "สายลมหนุนก้าว", "trigger": "onWeatherSync", "action": "WEATHER_THUNDER_CALL", "grantBuff": "weatherConduct", "bonusStats": {"eva": 10, "cast": 8}, "descTh": "อาศัยทิศลมจริงเพิ่มความเร็วร่ายและหลบหลีก"}, {"stage": 4, "id": "TRAIT_SCT_S4", "nameTh": "ฟ้าคะนองลูกโซ่", "trigger": "onCast", "action": "WEATHER_THUNDER_CALL", "applyDebuff": "chill", "bonusStats": {"matkPct": 0.14, "pen": 14}, "descTh": "กระแสสายฟ้าชิ่งสู่ศัตรูใกล้เคียงเมื่อรวมกลุ่ม"}, {"stage": 6, "id": "TRAIT_SCT_S6", "nameTh": "กำแพงลมตัดธนู", "trigger": "onStruck", "action": "MASS_ABSORPTION", "grantBuff": "weatherConduct", "bonusStats": {"defPct": 0.12, "mdefPct": 0.16}, "descTh": "สายลมหมุนเบี่ยงเบนการโจมตีระยะไกล"}, {"stage": 8, "id": "TRAIT_SCT_S8", "nameTh": "ตาพายุสยบสมรภูมิ", "trigger": "onCrit", "action": "WEATHER_THUNDER_CALL", "applyDebuff": "stun", "bonusStats": {"matkPct": 0.22, "critDmg": 20}, "descTh": "ปลดปล่อยคลื่นอสนีและพายุฝนกดดันศัตรูทั้งแนว"}], "subs": [{"id": "LEG_SUB_MONSOON_HERALD", "nameTh": "ผู้เรียกลมมรสุม", "icon": "🌧️", "el": "WATER_ICE", "el2": "WIND", "w": ["FAN", "STAFF"], "arm": ["ROBE"], "pSk": "FAN", "sSk": "ARRAY", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onWeatherSync", "action": "WEATHER_THUNDER_CALL", "buff": "weatherConduct", "debuff": "slow", "stats": {"atk": 14, "matk": 26, "def": 17, "mdef": 22, "hp": 60, "crit": 15, "pen": 19, "eva": 15, "acc": 19}, "descTh": "สร้างแนวฝนลมลดความคล่องตัวของศัตรูและเสริมพลังธาตุวารี"}, {"id": "LEG_SUB_THUNDER_SQUALL", "nameTh": "พายุอสนีลูกโซ่", "icon": "⚡", "el": "LIGHTNING", "el2": "WIND", "w": ["FAN", "SPEAR"], "arm": ["LIGHT", "ROBE"], "pSk": "FAN", "sSk": "SPEAR", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onWeatherSync", "action": "WEATHER_THUNDER_CALL", "buff": "weatherConduct", "debuff": "stun", "stats": {"atk": 18, "matk": 27, "def": 15, "mdef": 19, "hp": 58, "crit": 18, "pen": 21, "eva": 15, "acc": 19}, "descTh": "ฟาดสายฟ้าชิ่งใส่ศัตรูที่ยืนเกาะกลุ่มอย่างรวดเร็ว"}, {"id": "LEG_SUB_FROST_FRONT", "nameTh": "แนวลมเหมันต์", "icon": "❄️", "el": "WATER_ICE", "el2": "LIGHTNING", "w": ["STAFF", "FAN"], "arm": ["ROBE"], "pSk": "ARRAY", "sSk": "FAN", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onWeatherSync", "action": "WEATHER_THUNDER_CALL", "buff": "weatherConduct", "debuff": "chill", "stats": {"atk": 13, "matk": 26, "def": 18, "mdef": 23, "hp": 62, "crit": 15, "pen": 20, "eva": 13, "acc": 19}, "descTh": "แผ่ลมหนาวแช่แข็งจังหวะการร่ายและการเคลื่อนไหวของศัตรู"}, {"id": "LEG_SUB_DROUGHT_MIST", "nameTh": "หมอกระอุกลางศึก", "icon": "🌫️", "el": "FIRE", "el2": "WIND", "w": ["FAN", "STAFF"], "arm": ["LIGHT", "ROBE"], "pSk": "FAN", "sSk": "ALCHEMY", "stance": "SHADOW_REAPER_STANCE", "mark": "bloodBrand", "fusion": "INFERNO_VORTEX", "trigger": "onWeatherSync", "action": "WEATHER_THUNDER_CALL", "buff": "weatherConduct", "debuff": "burn", "stats": {"atk": 16, "matk": 26, "def": 16, "mdef": 20, "hp": 60, "crit": 17, "pen": 20, "eva": 16, "acc": 18}, "descTh": "สร้างไอร้อนและหมอกควันบดบังสายตาพร้อมเผาผลาญปราณศัตรู"}, {"id": "LEG_SUB_CLEAR_SKY_EYE", "nameTh": "เนตรตาพายุ", "icon": "🌤️", "el": "WIND", "el2": "LIGHT_YANG", "w": ["FAN", "SPEAR"], "arm": ["LIGHT"], "pSk": "FAN", "sSk": "MOVEMENT", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onWeatherSync", "action": "BODHI_KARMA_AEGIS", "buff": "clarityLotus", "debuff": "blind", "stats": {"atk": 17, "matk": 23, "def": 19, "mdef": 22, "hp": 64, "crit": 15, "pen": 18, "eva": 18, "acc": 21}, "descTh": "รักษาความสงบกลางความโกลาหล ลบล้างหมอกพรางตาและเสริมความแม่นยำให้ทีม"}], "lore": {"eraTh": "ยุคที่ 18–22 (ศ.ท. 17,402–21,109) · ยุคเจ็ดกองเรือฝ่าทะเลหมอกและมรสุมเจ็ดปีแดนใต้", "regionId": "SOUTHERN_WATERS", "inventorTh": "กัปตันเรือเดินสมุทรและพรานยอดเขาที่ร่วมกันจดทิศลม", "adapterTh": "ศิษย์หอดูดาวชายฝั่งที่แปรวิชาอ่านเมฆเป็นเพลงพัดอสนี", "competingAccountsTh": "ชาวประมงถือว่าเป็นวิชาพยากรณ์คลื่นลม ขณะที่นักค่ายกลมองว่าเป็นการชักนำประจุฟ้าในวงแคบ", "discoverySources": ["บันทึกมรสุมเจ็ดปี", "หอเตือนพายุชายฝั่ง", "พรานยอดเขา"]}, "kw": "KW_DAO_FRONT_SHIFT"},
+    {"id": "LEG_JADE_CARAVAN_VOYAGER", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "nameTh": "วิถีจอมคาราวานหยก", "shortTh": "คาราวานหยก", "icon": "🐪", "color": "#f59e0b", "element": "EARTH_METAL", "gaugeId": "ROAD_MOMENTUM", "gaugeNameTh": "แรงเฉื่อยทางไกล", "statWeights": {"atk": 1.18, "matk": 1.12, "def": 1.24, "mdef": 1.18}, "resourceUsed": "สมุดบัญชีเส้นทาง เสบียงเดินทางจริง และเครื่องมือซ่อมบำรุงกลางสนาม", "coreMechanicTh": "แปรประสบการณ์การเดินทางจริงและเสบียงที่พกพาเป็นความคล่องตัว แบ่งปันผลของโอสถและเสบียงจริงให้ทั้งคณะโดยหักจากคลังตามจริง", "supremeRiskTh": "หากออกศึกโดยไม่เตรียมเสบียงหรือไม่ได้ออกเดินทางไกล พลังเสริมจากแรงเฉื่อยทางไกลจะลดลงอย่างเห็นได้ชัด", "weapons": ["ABACUS", "BLADE", "SPEAR", "WHIP"], "armor": ["LIGHT", "HEAVY"], "life": {"CRAFTING": 0.3, "BLADE": 0.26, "MOVEMENT": 0.28}, "body": {"toughness": 27, "dexterity": 26, "strength": 24}, "stageNames": ["ขั้นที่ 1 • จัดระเบียบสัมภาระและก้าวเท้า", "ขั้นที่ 2 • อ่านเส้นทางและหลบซุ่มโจมตี", "ขั้นที่ 3 • ซ่อมแซมศาสตราใต้แสงคบเพลิง", "ขั้นที่ 4 • ส่งต่อเสบียงกลางวงล้อม", "ขั้นที่ 5 • ขบวนเกวียนเหล็กไร้ช่องโหว่", "ขั้นที่ 6 • พันธะการค้าข้ามเก้าอาณาจักร", "ขั้นที่ 7 • ก้าวเดียวข้ามหุบเหวหมื่นลี้", "ขั้นที่ 8 • จอมคาราวานหยกผู้เชื่อมใต้หล้า"], "realmTraits": [{"stage": 2, "id": "TRAIT_JCV_S2", "nameTh": "แรงเฉื่อยทางไกล", "trigger": "onWayfarerStep", "action": "WEATHER_THUNDER_CALL", "grantBuff": "tacticalCommand", "bonusStats": {"eva": 10, "acc": 10}, "descTh": "ความคุ้นชินเส้นทางเพิ่มความคล่องตัวในสนามรบ"}, {"stage": 4, "id": "TRAIT_JCV_S4", "nameTh": "แบ่งเสบียงกลางศึก", "trigger": "onCast", "action": "BODHI_KARMA_AEGIS", "grantBuff": "aegisWard", "bonusStats": {"defPct": 0.12, "hpPct": 0.12}, "descTh": "เพิ่มประสิทธิภาพเสบียงและโอสถที่คณะพกพามาด้วย"}, {"stage": 6, "id": "TRAIT_JCV_S6", "nameTh": "เตาซ่อมกลางทาง", "trigger": "onStruck", "action": "MASS_ABSORPTION", "grantBuff": "leylineBastion", "bonusStats": {"defPct": 0.16, "mdefPct": 0.14}, "descTh": "ลดความเสียหายต่อเกราะและคงความทนทานในภารกิจยาวนาน"}, {"stage": 8, "id": "TRAIT_JCV_S8", "nameTh": "กองคาราวานหยกไร้พ่าย", "trigger": "onRoundStart", "action": "BODHI_KARMA_AEGIS", "grantBuff": "tacticalCommand", "bonusStats": {"atkPct": 0.16, "defPct": 0.18, "eva": 14}, "descTh": "ประสานกำลังคุ้มกันและเสบียงทั้งคณะให้ยืนหยัดได้ในทุกถิ่นทุรกันดาร"}], "subs": [{"id": "LEG_SUB_SALT_ROAD_GUARD", "nameTh": "ผู้คุ้มเส้นทางเกลือ", "icon": "🛡️", "el": "EARTH_METAL", "el2": "FIRE", "w": ["BLADE", "SPEAR"], "arm": ["HEAVY"], "pSk": "BLADE", "sSk": "BODY_REFINING", "stance": "VAJRA_BASTION_STANCE", "mark": "starSeal", "fusion": "INFERNO_VORTEX", "trigger": "onStruck", "action": "MASS_ABSORPTION", "buff": "leylineBastion", "debuff": "slow", "stats": {"atk": 22, "matk": 14, "def": 25, "mdef": 20, "hp": 72, "crit": 13, "pen": 17, "eva": 11, "acc": 18}, "descTh": "ชำนาญการตั้งขบวนคุ้มกันเกวียนและต้านทานการดักปล้นในหุบเขา"}, {"id": "LEG_SUB_FIELD_TINKER", "nameTh": "เตาหลอมซ่อมกลางทาง", "icon": "🔧", "el": "FIRE", "el2": "EARTH_METAL", "w": ["ABACUS", "BLADE"], "arm": ["HEAVY", "LIGHT"], "pSk": "FORGING", "sSk": "ALCHEMY", "stance": "VAJRA_BASTION_STANCE", "mark": "daoMark", "fusion": "INFERNO_VORTEX", "trigger": "onCast", "action": "BODHI_KARMA_AEGIS", "buff": "aegisWard", "debuff": "armorbreak", "stats": {"atk": 20, "matk": 20, "def": 22, "mdef": 20, "hp": 68, "crit": 14, "pen": 19, "eva": 12, "acc": 19}, "descTh": "ปรับแต่งและซ่อมแซมศาสตรากลางภารกิจ ลดความเสียหายเมื่อแผนผิดพลาด"}, {"id": "LEG_SUB_LEDGER_BROKER", "nameTh": "สมุดบัญชีหยก", "icon": "📒", "el": "EARTH_METAL", "el2": "ASTRAL", "w": ["ABACUS", "FAN"], "arm": ["ROBE", "LIGHT"], "pSk": "SCRIPTURE", "sSk": "ARRAY", "stance": "QIMEN_ARRAY_STANCE", "mark": "daoMark", "fusion": "STARFALL_COLLAPSE", "trigger": "onLiteratiEdict", "action": "IMPERIAL_INK_DECREE", "buff": "tacticalCommand", "debuff": "exposed", "stats": {"atk": 16, "matk": 24, "def": 18, "mdef": 22, "hp": 62, "crit": 15, "pen": 18, "eva": 14, "acc": 21}, "descTh": "คำนวณต้นทุนและช่องโหว่ของศัตรูด้วยความแม่นยำดุจลูกคิดทองคำ"}, {"id": "LEG_SUB_RELAY_COURIER", "nameTh": "ม้าเร็วส่งสาร", "icon": "🐎", "el": "WIND", "el2": "EARTH_METAL", "w": ["WHIP", "BLADE"], "arm": ["LIGHT"], "pSk": "MOVEMENT", "sSk": "WHIP", "stance": "SHADOW_REAPER_STANCE", "mark": "starSeal", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onWayfarerStep", "action": "IAI_ZERO_QI_SLASH", "buff": "fervorMight", "debuff": "slow", "stats": {"atk": 23, "matk": 15, "def": 17, "mdef": 17, "hp": 62, "crit": 17, "pen": 18, "eva": 20, "acc": 20}, "descTh": "เร่งความเร็วเดินทางและฉาบฉวยตัดกำลังแนวหลังของศัตรู"}, {"id": "LEG_SUB_FERRY_PACT", "nameTh": "พันธะท่าข้ามฟาก", "icon": "⛵", "el": "WATER_ICE", "el2": "WOOD_LIFE", "w": ["SPEAR", "ABACUS"], "arm": ["LIGHT", "ROBE"], "pSk": "FISHING", "sSk": "MEDICINE", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "buff": "bodhiGrace", "debuff": "weaken", "stats": {"atk": 18, "matk": 21, "def": 21, "mdef": 22, "hp": 68, "crit": 13, "pen": 16, "eva": 15, "acc": 19}, "descTh": "สืบทอดเจตนารมณ์ช่วยเหลือข้ามลำน้ำ ยามคับขันช่วยพาคณะถอนตัวได้อย่างปลอดภัย"}], "lore": {"eraTh": "ยุคที่ 54–59 (ศ.ท. 53,300–58,650) · ยุคสหพันธ์คาราวานหยกทองและน้ำหลากใหญ่ลุ่มน้ำหยุนเหอ", "regionId": "EASTERN_PLAINS", "inventorTh": "นายท่าเรือข้ามฟากและกองคาราวานจากตำนานเรือข้าวสามหนี้", "adapterTh": "หัวหน้ากองคุ้มกันเส้นทางเกลือที่พัฒนาท่ารับส่งเสบียงกลางศึก", "competingAccountsTh": "พงศาวดารเมืองหลวงอ้างว่าขุนนางผู้ตรวจการเป็นผู้คิดค้น แต่สมุดบัญชีด่านเก็บภาษีเก่าชี้ว่าเป็นผลงานของนายท่าสามัญชนสามคน", "discoverySources": ["สมุดบัญชีด่านภาษีเก่า", "กองคาราวานเส้นทางเกลือ", "ท่าข้ามฟากโบราณ"]}, "kw": "KW_DAO_PROVISION_SHARE"},
+    {"id": "LEG_OATH_JUDGE_WARDEN", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "nameTh": "วิถีผู้คุมสัตย์สาบาน", "shortTh": "ผู้คุมสัตย์สาบาน", "icon": "⚖️", "color": "#fbbf24", "element": "LIGHT_YANG", "gaugeId": "OATH_SCALE", "gaugeNameTh": "ตราชั่งสัตย์ยุทธภพ", "statWeights": {"atk": 1.18, "matk": 1.2, "def": 1.18, "mdef": 1.22}, "resourceUsed": "บันทึกคำสัตย์ พยานหลักฐาน และธรรมเนียมไกล่เกลี่ยยุทธภพ", "coreMechanicTh": "ตรวจสอบหนี้แค้นและคำสัตย์จริงของคู่ต่อสู้ เพิ่มอานุภาพต่อผู้ตระบัดสัตย์และสามารถไกล่เกลี่ยลดความขัดแย้งในสำนัก", "supremeRiskTh": "หากตนเองผิดสัตย์หรือใช้กำลังเกินกว่าเหตุต่อผู้บริสุทธิ์ อานุภาพตราชั่งจะลดลงและเกิดความขัดแย้งภายในใจ", "weapons": ["SWORD", "BRUSH", "STAFF", "ROSARY"], "armor": ["HEAVY", "ROBE"], "life": {"SCRIPTURE": 0.36, "SWORD": 0.28, "LEADERSHIP": 0.24}, "body": {"spiritualFoundation": 26, "toughness": 25, "strength": 24}, "stageNames": ["ขั้นที่ 1 • รับฟังคำให้การสองฝ่าย", "ขั้นที่ 2 • จุดโคมส่องรอยหลักฐาน", "ขั้นที่ 3 • ตราชั่งแยกผิดชอบ", "ขั้นที่ 4 • ประกาศตราตัดสินผู้ผิดสัตย์", "ขั้นที่ 5 • กระบี่เที่ยงธรรมทลายโล่ลวง", "ขั้นที่ 6 • ผู้ไกล่เกลี่ยศึกสองสำนัก", "ขั้นที่ 7 • กฎยุทธภพสะกดจิตสังหาร", "ขั้นที่ 8 • มหาตุลาการผู้คุมสัตย์ใต้หล้า"], "realmTraits": [{"stage": 2, "id": "TRAIT_OJW_S2", "nameTh": "โคมส่องรอยจริง", "trigger": "onLiteratiEdict", "action": "IMPERIAL_INK_DECREE", "grantBuff": "clarityLotus", "bonusStats": {"acc": 12, "mdefPct": 0.08}, "descTh": "มองทะลุกลลวงและจุดอ่อนของคู่ต่อสู้จากพยานหลักฐาน"}, {"stage": 4, "id": "TRAIT_OJW_S4", "nameTh": "ตราตัดสินหนี้เลือด", "trigger": "onHit", "action": "IMPERIAL_INK_DECREE", "applyDebuff": "exposed", "bonusStats": {"atkPct": 0.12, "matkPct": 0.12, "pen": 14}, "descTh": "ตีตราเป้าหมายที่มีความแค้นหรือทำลายเกราะปราณได้รุนแรงขึ้น"}, {"stage": 6, "id": "TRAIT_OJW_S6", "nameTh": "จิตมั่นคงไม่หวั่นไหว", "trigger": "onStruck", "action": "BODHI_KARMA_AEGIS", "grantBuff": "bodhiGrace", "bonusStats": {"defPct": 0.14, "mdefPct": 0.16}, "descTh": "ต้านทานการข่มขู่และลดโอกาสตื่นตระหนกของสหาย"}, {"stage": 8, "id": "TRAIT_OJW_S8", "nameTh": "คำพิพากษาเที่ยงธรรม", "trigger": "onCrit", "action": "BODHI_KARMA_AEGIS", "applyDebuff": "weaken", "bonusStats": {"atkPct": 0.18, "matkPct": 0.18, "pen": 18}, "descTh": "สยบขวัญศัตรูและเสริมความสามัคคีให้ทั้งคณะ"}], "subs": [{"id": "LEG_SUB_VOW_WITNESS", "nameTh": "พยานสัตย์สาบาน", "icon": "📜", "el": "LIGHT_YANG", "el2": "ASTRAL", "w": ["BRUSH", "SWORD"], "arm": ["ROBE", "LIGHT"], "pSk": "SCRIPTURE", "sSk": "SWORD", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onLiteratiEdict", "action": "IMPERIAL_INK_DECREE", "buff": "bodhiGrace", "debuff": "exposed", "stats": {"atk": 18, "matk": 23, "def": 19, "mdef": 23, "hp": 64, "crit": 14, "pen": 18, "eva": 13, "acc": 21}, "descTh": "ยืนหยัดเป็นพยานคำสัตย์ เสริมพลังแก่ผู้รักษาสัจจะและลงทัณฑ์ผู้ตระบัดสัตย์"}, {"id": "LEG_SUB_TRUTH_LANTERN", "nameTh": "โคมส่องรอยจริง", "icon": "🏮", "el": "LIGHT_YANG", "el2": "FIRE", "w": ["STAFF", "BRUSH"], "arm": ["ROBE"], "pSk": "SCRIPTURE", "sSk": "ARRAY", "stance": "QIMEN_ARRAY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onLiteratiEdict", "action": "IMPERIAL_INK_DECREE", "buff": "clarityLotus", "debuff": "blind", "stats": {"atk": 15, "matk": 25, "def": 18, "mdef": 23, "hp": 62, "crit": 15, "pen": 19, "eva": 14, "acc": 22}, "descTh": "สืบสาวหลักฐานจริงเพื่อทำลายกลลวงพรางกายและเตือนภัยล่วงหน้า"}, {"id": "LEG_SUB_BLOOD_DEBT_BAILIFF", "nameTh": "ตุลาการทวงหนี้เลือด", "icon": "⚔️", "el": "LIGHT_YANG", "el2": "EARTH_METAL", "w": ["SWORD", "STAFF"], "arm": ["HEAVY"], "pSk": "SWORD", "sSk": "LEADERSHIP", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onHit", "action": "IAI_ZERO_QI_SLASH", "buff": "fervorMight", "debuff": "armorbreak", "stats": {"atk": 25, "matk": 18, "def": 21, "mdef": 19, "hp": 68, "crit": 17, "pen": 22, "eva": 12, "acc": 20}, "descTh": "ไล่ล่าผู้ก่อเหตุร้ายและทลายเกราะปราณของศัตรูที่มีค่าความแค้นสูง"}, {"id": "LEG_SUB_TRUCE_MEDIATOR", "nameTh": "ผู้ไกล่เกลี่ยสงบศึก", "icon": "🕊️", "el": "WOOD_LIFE", "el2": "LIGHT_YANG", "w": ["ROSARY", "FAN"], "arm": ["ROBE"], "pSk": "LEADERSHIP", "sSk": "SCRIPTURE", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "buff": "bodhiGrace", "debuff": "weaken", "stats": {"atk": 14, "matk": 22, "def": 21, "mdef": 25, "hp": 68, "crit": 12, "pen": 15, "eva": 14, "acc": 20}, "descTh": "ลดความรุนแรงของความขัดแย้ง เกลี้ยกล่อมศัตรูสามัญที่อ่อนล้าให้ถอนตัว"}, {"id": "LEG_SUB_ARCHIVE_INQUISITOR", "nameTh": "ผู้ตรวจหอจดหมายเหตุ", "icon": "📖", "el": "ASTRAL", "el2": "LIGHT_YANG", "w": ["BRUSH", "ROSARY"], "arm": ["ROBE", "LIGHT"], "pSk": "SCRIPTURE", "sSk": "TALISMAN", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onLiteratiEdict", "action": "MERIDIAN_SEAL", "buff": "literatiDecree", "debuff": "meridianSeal", "stats": {"atk": 16, "matk": 25, "def": 18, "mdef": 22, "hp": 62, "crit": 16, "pen": 20, "eva": 13, "acc": 21}, "descTh": "ตรวจสอบประวัติคัมภีร์และปิดผนึกกระบวนท่าที่ขัดต่อธรรมเนียม"}], "lore": {"eraTh": "ยุคที่ 29–34 (ศ.ท. 28,515–33,772) · ยุคศาลธรรมนูญสัตย์สาบานหลังโศกนาฏกรรมอวี้จิง", "regionId": "CENTRAL_HEARTLAND", "inventorTh": "กลุ่มผู้เฒ่าและตุลาการพเนจรที่แยกตัวจากความขัดแย้งนองเลือด", "adapterTh": "หอจดหมายเหตุสำนักศึกษาไป๋ลู่ที่รวบรวมวิธีสืบพยานสองแหล่ง", "competingAccountsTh": "ฝ่ายธรรมะมองว่าเป็นศาลยุทธภพเที่ยงธรรม ขณะที่สำนักอิสระบางแห่งเกรงว่าถูกใช้เป็นเครื่องมือการเมือง", "discoverySources": ["หอจดหมายเหตุไป๋ลู่", "ศาลไกล่เกลี่ยยุทธภพ", "ศิลาจารึกคำสัตย์"]}, "kw": "KW_DAO_VERDICT_MARK"},
+    {"id": "LEG_ASHEN_KILN_ALCHEMY", "grade": "LEGENDARY", "originType": "LOCAL_LOWER_HISTORY", "nameTh": "วิถีเตาเถ้าคืนชีวิต", "shortTh": "เตาเถ้าคืนชีวิต", "icon": "🏺", "color": "#ea580c", "element": "FIRE", "gaugeId": "ASHEN_GLAZE", "gaugeNameTh": "เคลือบเถ้าปราณ", "statWeights": {"atk": 1.12, "matk": 1.24, "def": 1.24, "mdef": 1.18}, "resourceUsed": "กากโอสถที่หลอมพลาด เศษศิลาปราณร้าว และดินเถ้าจากซากสมรภูมิ", "coreMechanicTh": "แปรเศษกากโอสถและเกราะร้าวเป็นชั้นเคลือบเถ้าปราณคุ้มกาย เมื่อเกราะเคลือบแตกจากการโจมตีหนักจะสะท้อนคมเถ้าสวนกลับและหนุนการโจมตีถัดไป รวมถึงช่วยสำนักประหยัดทรัพยากรยามกลียุค", "supremeRiskTh": "ชั้นเคลือบเถ้าเปราะบางต่อการโจมตีเบาต่อเนื่องที่ค่อยๆ กะเทาะเกราะออกโดยไม่กระตุ้นแรงสะท้อน และต้องมีเศษวัตถุดิบจริงในคลัง", "weapons": ["STAFF", "FAN", "FIST", "NEEDLE"], "armor": ["HEAVY", "ROBE"], "life": {"ALCHEMY": 0.38, "FORGING": 0.3, "MEDICINE": 0.2}, "body": {"toughness": 27, "spiritualFoundation": 26, "strength": 23}, "stageNames": ["ขั้นที่ 1 • คัดแยกเถ้าถ่านและกากโอสถ", "ขั้นที่ 2 • หลอมดินเถ้าเคลือบผิวศาสตรา", "ขั้นที่ 3 • เกราะกระเบื้องปราณซับแรงกระแทก", "ขั้นที่ 4 • คมเถ้าแตกสะท้อนศัตรู", "ขั้นที่ 5 • เตาไฟถ่านมอดเลี้ยงชีพจร", "ขั้นที่ 6 • บูรณะซากศึกคืนกำลังสำนัก", "ขั้นที่ 7 • เครื่องเคลือบเพลิงนิรันดร์", "ขั้นที่ 8 • ปรมาจารย์เตาเถ้าคืนชีวิต"], "realmTraits": [{"stage": 2, "id": "TRAIT_AKA_S2", "nameTh": "เคลือบเถ้ากันกระแทก", "trigger": "onStruck", "action": "MASS_ABSORPTION", "grantBuff": "aegisWard", "bonusStats": {"defPct": 0.12, "hpPct": 0.08}, "descTh": "เคลือบผิวเกราะด้วยเถ้าปราณซับแรงปะทะแรก"}, {"stage": 4, "id": "TRAIT_AKA_S4", "nameTh": "คมกระเบื้องสะท้อนศึก", "trigger": "onStruck", "action": "MUDRA_EXPLOSIVE_SEAL", "applyDebuff": "burn", "bonusStats": {"matkPct": 0.12, "defPct": 0.12}, "descTh": "เมื่อเกราะเคลือบแตกร้าวจะสะท้อนสะเก็ดเพลิงใส่ผู้โจมตี"}, {"stage": 6, "id": "TRAIT_AKA_S6", "nameTh": "ถ่านมอดเลี้ยงปราณ", "trigger": "onCast", "action": "BODHI_KARMA_AEGIS", "grantBuff": "leylineBastion", "bonusStats": {"mdefPct": 0.14, "hpPct": 0.12}, "descTh": "ใช้ความร้อนคงค้างในเตาฟื้นฟูปราณอย่างสม่ำเสมอ"}, {"stage": 8, "id": "TRAIT_AKA_S8", "nameTh": "เตาเถ้าฟื้นคืนแผ่นดิน", "trigger": "onRoundStart", "action": "BODHI_KARMA_AEGIS", "grantBuff": "aegisWard", "bonusStats": {"matkPct": 0.18, "defPct": 0.18, "pen": 16}, "descTh": "แปรซากความเสียหายในสนามรบเป็นเกราะคุ้มกันและแรงสะท้อนให้ทั้งคณะ"}], "subs": [{"id": "LEG_SUB_DREG_REFINER", "nameTh": "กลั่นกากโอสถคืนฤทธิ์", "icon": "⚗️", "el": "FIRE", "el2": "WOOD_LIFE", "w": ["STAFF", "NEEDLE"], "arm": ["ROBE"], "pSk": "ALCHEMY", "sSk": "MEDICINE", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "INFERNO_VORTEX", "trigger": "onCast", "action": "BODHI_KARMA_AEGIS", "buff": "bodhiGrace", "debuff": "burn", "stats": {"atk": 14, "matk": 26, "def": 19, "mdef": 22, "hp": 64, "crit": 14, "pen": 18, "eva": 12, "acc": 19}, "descTh": "นำกากโอสถที่หลอมพลาดมากลั่นซ้ำเป็นยาพอกและไอเพลิงรักษาสหาย"}, {"id": "LEG_SUB_CRACKED_GLAZE_WARD", "nameTh": "เกราะเคลือบเถ้าแตกสะท้อน", "icon": "🏺", "el": "EARTH_METAL", "el2": "FIRE", "w": ["FIST", "STAFF"], "arm": ["HEAVY"], "pSk": "FORGING", "sSk": "BODY_REFINING", "stance": "VAJRA_BASTION_STANCE", "mark": "bloodBrand", "fusion": "INFERNO_VORTEX", "trigger": "onStruck", "action": "MASS_ABSORPTION", "buff": "aegisWard", "debuff": "armorbreak", "stats": {"atk": 20, "matk": 18, "def": 26, "mdef": 21, "hp": 74, "crit": 13, "pen": 18, "eva": 10, "acc": 18}, "descTh": "สร้างเกราะกระเบื้องเคลือบหนา เมื่อแตกจากการโจมตีหนักจะระเบิดสะเก็ดสวนกลับ"}, {"id": "LEG_SUB_RUIN_MASON", "nameTh": "ช่างบูรณะซากศึก", "icon": "🧱", "el": "EARTH_METAL", "el2": "WOOD_LIFE", "w": ["STAFF", "FIST"], "arm": ["HEAVY"], "pSk": "FORGING", "sSk": "ARRAY", "stance": "VAJRA_BASTION_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onRoundStart", "action": "BODHI_KARMA_AEGIS", "buff": "leylineBastion", "debuff": "slow", "stats": {"atk": 18, "matk": 19, "def": 25, "mdef": 22, "hp": 72, "crit": 12, "pen": 16, "eva": 10, "acc": 18}, "descTh": "ซ่อมแซมแนวรับและค่ายกลที่ชำรุด ลดความสูญเสียของสำนักในยามกลียุค"}, {"id": "LEG_SUB_CHARCOAL_BREATH", "nameTh": "ลมหายใจถ่านมอด", "icon": "🔥", "el": "FIRE", "el2": "YIN_SHADOW", "w": ["FAN", "FIST"], "arm": ["LIGHT", "ROBE"], "pSk": "ALCHEMY", "sSk": "FIST_PALM", "stance": "SHADOW_REAPER_STANCE", "mark": "bloodBrand", "fusion": "INFERNO_VORTEX", "trigger": "onHit", "action": "MUDRA_EXPLOSIVE_SEAL", "buff": "fervorMight", "debuff": "burn", "stats": {"atk": 22, "matk": 23, "def": 18, "mdef": 19, "hp": 64, "crit": 17, "pen": 21, "eva": 15, "acc": 19}, "descTh": "เก็บงำความร้อนใต้เถ้าถ่านไว้รอจังหวะปะทุรุนแรงเมื่อศึกยืดเยื้อ"}, {"id": "LEG_SUB_SCAR_KILN_FORGE", "nameTh": "เตาหลอมแผลศาสตรา", "icon": "⚒️", "el": "FIRE", "el2": "EARTH_METAL", "w": ["FIST", "STAFF"], "arm": ["HEAVY"], "pSk": "FORGING", "sSk": "ALCHEMY", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "INFERNO_VORTEX", "trigger": "onHit", "action": "IAI_ZERO_QI_SLASH", "buff": "fervorMight", "debuff": "exposed", "stats": {"atk": 24, "matk": 20, "def": 21, "mdef": 18, "hp": 68, "crit": 16, "pen": 22, "eva": 12, "acc": 19}, "descTh": "หลอมรอยบิ่นและเศษโลหะแตกหักให้กลายเป็นคมดาบเถ้าเพลิงที่เจาะเกราะได้"}], "lore": {"eraTh": "ยุคที่ 11–14 (ศ.ท. 10,088–13,315) · ยุคหุบเขาโอสถเตาเถ้าและศึกปิดล้อมเมืองเตาเผาสามฤดู", "regionId": "WESTERN_BADLANDS", "inventorTh": "ช่างปั้นเครื่องเคลือบและศิษย์หลอมโอสถที่ถูกขับออกจากสำนักใหญ่", "adapterTh": "ช่างบูรณะซากศึกประจำด่านชายแดนที่นำเถ้าถ่านมาหลอมเกราะฉุกเฉิน", "competingAccountsTh": "สำนักหลอมโอสถชั้นสูงดูแคลนว่าเป็นวิชาเก็บกากของเหลือ แต่เมืองชายแดนที่รอดพ้นการปิดล้อมต่างยกย่องว่าเป็นวิถีแห่งการเอาชีวิตรอด", "discoverySources": ["เตาเผาร้างหลังศึกปิดล้อม", "ตำรากลั่นกากโอสถ", "ช่างบูรณะซากกำแพงเมือง"]}, "kw": "KW_DAO_ASHEN_GLAZE"},
+    {"id": "TRANS_CONSTELLATION_RELAY", "grade": "TRANSCENDENT", "originType": "ASCENDED_LOWER_MASTER", "nameTh": "วิถีประสานปราณหมู่ดาว", "shortTh": "ประสานปราณหมู่ดาว", "icon": "✨", "color": "#a78bfa", "element": "ASTRAL", "gaugeId": "STAR_RELAY", "gaugeNameTh": "ข่ายปราณหมู่ดาว", "statWeights": {"atk": 1.08, "matk": 1.36, "def": 1.24, "mdef": 1.34}, "resourceUsed": "แผนภาพตำแหน่งดารา กระจกทองเหลืองรับแสง และความร่วมมือของสหายต่างตำแหน่ง", "coreMechanicTh": "เชื่อมโยงสหายที่สมัครใจเข้าเป็นข่ายปราณหมู่ดาว แบ่งเบาแรงปะทะหนักและส่งต่อการรักษาหรือการชำระล้างด้วยงบปราณเดียว", "supremeRiskTh": "ต้องอาศัยการจัดตำแหน่งและความร่วมมือของสหาย หากศัตรูแยกทีมออกห่างหรือใบ้ผู้เป็นหลักปราณ ข่ายดาราจะขาดสะบั้นทันที", "weapons": ["ASTROLABE", "ROSARY", "FAN", "STAFF"], "armor": ["ROBE", "LIGHT"], "life": {"MEDICINE": 0.36, "ARRAY": 0.32, "SCRIPTURE": 0.24}, "body": {"spiritualFoundation": 30, "meridianCapacity": 30, "dexterity": 26}, "stageNames": ["ขั้นที่ 1 • ปักหมุดแสงดาวสองตำแหน่ง", "ขั้นที่ 2 • ส่งต่อปราณข้ามแนวรบ", "ขั้นที่ 3 • ข่ายไตรดาราแบ่งเบาบาดแผล", "ขั้นที่ 4 • สายพิณประสานขวัญกำลังใจ", "ขั้นที่ 5 • ฟื้นฟูสะท้อนตำแหน่งสหาย", "ขั้นที่ 6 • ม่านดาราต้านคลื่นทำลาย", "ขั้นที่ 7 • โซ่แสงดาวเชื่อมเจ็ดทิศ", "ขั้นที่ 8 • มหาปรมาจารย์ประสานหมู่ดาว"], "realmTraits": [{"stage": 2, "id": "TRAIT_TCR_S2", "nameTh": "จุดเชื่อมไตรดารา", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "grantBuff": "bodhiGrace", "bonusStats": {"mdefPct": 0.12, "cast": 10}, "descTh": "เชื่อมปราณกับสหายใกล้เคียงเพื่อส่งต่อการฟื้นฟู"}, {"stage": 4, "id": "TRAIT_TCR_S4", "nameTh": "แบ่งเบาแรงปะทะ", "trigger": "onStruck", "action": "BODHI_KARMA_AEGIS", "grantBuff": "aegisWard", "bonusStats": {"defPct": 0.14, "hpPct": 0.12}, "descTh": "กระจายความเสียหายบางส่วนออกผ่านข่ายปราณหมู่ดาว"}, {"stage": 6, "id": "TRAIT_TCR_S6", "nameTh": "เสียงพิณปลอบประโลมใจ", "trigger": "onCast", "action": "BODHI_KARMA_AEGIS", "grantBuff": "clarityLotus", "bonusStats": {"matkPct": 0.16, "mdefPct": 0.16}, "descTh": "ลดความตื่นตระหนกและล้างสถานะอ่อนแรงให้สหายในข่าย"}, {"stage": 8, "id": "TRAIT_TCR_S8", "nameTh": "มหาข่ายดาราคุ้มคณะ", "trigger": "onRoundStart", "action": "BODHI_KARMA_AEGIS", "grantBuff": "tacticalCommand", "bonusStats": {"matkPct": 0.22, "mdefPct": 0.2, "cast": 16}, "descTh": "เชื่อมตำแหน่งทั้งคณะให้ประสานการรักษาและป้องกันอย่างลงตัว"}], "subs": [{"id": "TRANS_SUB_TRIAD_ANCHOR", "nameTh": "หลักปราณไตรดารา", "icon": "🔺", "el": "ASTRAL", "el2": "LIGHT_YANG", "w": ["ASTROLABE", "STAFF"], "arm": ["ROBE"], "pSk": "ARRAY", "sSk": "MEDICINE", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "buff": "bodhiGrace", "debuff": "weaken", "stats": {"atk": 14, "matk": 28, "def": 21, "mdef": 26, "hp": 70, "crit": 14, "pen": 16, "eva": 14, "acc": 21}, "descTh": "ปักหลักสามตำแหน่งแบ่งเบาความเสียหายหนักและส่งต่อเกราะปราณ"}, {"id": "TRANS_SUB_HEARTSTRING_CHORD", "nameTh": "สายพิณประสานใจ", "icon": "🎼", "el": "WIND", "el2": "LIGHT_YANG", "w": ["FAN", "ROSARY"], "arm": ["ROBE"], "pSk": "SCRIPTURE", "sSk": "MEDICINE", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onCast", "action": "BODHI_KARMA_AEGIS", "buff": "clarityLotus", "debuff": "blind", "stats": {"atk": 13, "matk": 28, "def": 19, "mdef": 27, "hp": 68, "crit": 15, "pen": 17, "eva": 16, "acc": 21}, "descTh": "แปรอารมณ์และความมุ่งมั่นจริงของสหายเป็นทำนองฟื้นฟูขวัญและลดความเครียด"}, {"id": "TRANS_SUB_TRIBULATION_CANOPY", "nameTh": "ม่านดาราต้านทัณฑ์", "icon": "🌌", "el": "ASTRAL", "el2": "EARTH_METAL", "w": ["ASTROLABE", "STAFF"], "arm": ["HEAVY", "ROBE"], "pSk": "ARRAY", "sSk": "BODY_REFINING", "stance": "VAJRA_BASTION_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onStruck", "action": "MASS_ABSORPTION", "buff": "aegisWard", "debuff": "slow", "stats": {"atk": 16, "matk": 25, "def": 26, "mdef": 26, "hp": 76, "crit": 12, "pen": 16, "eva": 12, "acc": 19}, "descTh": "กางม่านดาราคุ้มกันการโจมตีรุนแรงตามตำนานช่องเขาทัณฑ์ฟ้า"}, {"id": "TRANS_SUB_ECHO_MENDING", "nameTh": "ฟื้นฟูสะท้อนตำแหน่ง", "icon": "💫", "el": "WOOD_LIFE", "el2": "ASTRAL", "w": ["ROSARY", "ASTROLABE"], "arm": ["ROBE"], "pSk": "MEDICINE", "sSk": "ARRAY", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "buff": "bodhiGrace", "debuff": "weaken", "stats": {"atk": 13, "matk": 29, "def": 20, "mdef": 26, "hp": 70, "crit": 14, "pen": 16, "eva": 15, "acc": 20}, "descTh": "ส่งต่อผลของการรักษาจากหนึ่งเป้าหมายไปยังสหายที่เชื่อมข่ายอยู่ตามสัดส่วน"}, {"id": "TRANS_SUB_STAR_VIGIL_CHAIN", "nameTh": "โซ่ดาราเฝ้าระวัง", "icon": "⛓️", "el": "ASTRAL", "el2": "LIGHTNING", "w": ["ASTROLABE", "FAN"], "arm": ["LIGHT", "ROBE"], "pSk": "ARRAY", "sSk": "MOVEMENT", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onRoundStart", "action": "BODHI_KARMA_AEGIS", "buff": "tacticalCommand", "debuff": "exposed", "stats": {"atk": 18, "matk": 26, "def": 21, "mdef": 24, "hp": 68, "crit": 16, "pen": 19, "eva": 17, "acc": 22}, "descTh": "เชื่อมสายตาและจังหวะระวังภัยของทั้งทีม ป้องกันการลอบโจมตีจากมุมอับ"}], "lore": {"eraTh": "ยุคที่ 78–84 (ศ.ท. 77,140–83,520) · ยุคหอประสานปราณหมู่ดาวและช่องเขาทัณฑ์ฟ้าแดนเหนือ", "regionId": "NORTHERN_PEAKS", "inventorTh": "ปรมาจารย์หมอทัพผู้บรรลุจุดสูงสุดโลกเบื้องล่างและข้ามม่านฟ้าไปแล้ว", "adapterTh": "ศิษย์เอกที่เฝ้าช่องเขาคุ้มกันอาจารย์ระหว่างฟ้าทัณฑ์ครั้งสุดท้าย", "competingAccountsTh": "บันทึกสองสำนักขัดแย้งกันว่าแผนภาพไตรดาราหรือสายพิณประสานใจกันแน่ที่ช่วยศิษย์รอดจากฟ้าทัณฑ์ในวันนั้น", "discoverySources": ["แผนภาพด่านปฐมพยาบาลเก่า", "รอยจารึกช่องเขาทัณฑ์ฟ้า", "ครูฝึกกู้ภัยอาวุโส"]}, "kw": "KW_DAO_STAR_RELAY"},
+    {"id": "TRANS_FIELD_CLAUSE_SOVEREIGN", "grade": "TRANSCENDENT", "originType": "ASCENDED_LOWER_MASTER", "nameTh": "วิถีธรรมนูญฟ้าขีดเขต", "shortTh": "ธรรมนูญฟ้าขีดเขต", "icon": "🏛️", "color": "#e11d48", "element": "EARTH_METAL", "gaugeId": "FIELD_CHARTER", "gaugeNameTh": "ธรรมนูญสนามรบ", "statWeights": {"atk": 1.24, "matk": 1.26, "def": 1.28, "mdef": 1.26}, "resourceUsed": "ศิลาเขตแดน ธงบัญชาการ และตำราพิชัยสงครามโบราณ", "coreMechanicTh": "ประกาศกติกาเฉพาะจุดในสนามรบหนึ่งข้อที่มีผลต่อทั้งฝ่ายตนและศัตรูอย่างเท่าเทียม บีบให้คู่ต่อสู้ต้องปรับวิธีรบหรือเสียเปรียบตามเงื่อนไข", "supremeRiskTh": "ผู้ประกาศกติกาเองต้องอยู่ใต้เงื่อนไขเดียวกัน หากอ่านสถานการณ์ผิดหรือศัตรูปรับกระบวนท่าได้เร็วกว่าจะเสียเปรียบเอง", "weapons": ["SPEAR", "SWORD", "BRUSH", "ASTROLABE"], "armor": ["HEAVY", "ROBE"], "life": {"ARRAY": 0.34, "LEADERSHIP": 0.32, "SPEAR": 0.24}, "body": {"strength": 27, "toughness": 28, "spiritualFoundation": 27}, "stageNames": ["ขั้นที่ 1 • ปักธงกำหนดแนวรบ", "ขั้นที่ 2 • ขีดเส้นเขตห้ามล้ำ", "ขั้นที่ 3 • ธรรมนูญน้ำหนักศาสตรา", "ขั้นที่ 4 • วงแหวนห้ามร่ายซ้อน", "ขั้นที่ 5 • กติกาเสมอภาคกลางสมรภูมิ", "ขั้นที่ 6 • ประกาศเขตพักรบฉับพลัน", "ขั้นที่ 7 • บัญชาเขตแดนด้วยวาจาเดียว", "ขั้นที่ 8 • มหาธรรมนูญฟ้าขีดเขตใต้หล้า"], "realmTraits": [{"stage": 2, "id": "TRAIT_FCS_S2", "nameTh": "ธงปักเขตแดน", "trigger": "onRoundStart", "action": "IMPERIAL_INK_DECREE", "grantBuff": "tacticalCommand", "bonusStats": {"defPct": 0.1, "acc": 10}, "descTh": "กำหนดแนวรบชัดเจน เสริมวินัยและความแม่นยำ"}, {"stage": 4, "id": "TRAIT_FCS_S4", "nameTh": "กติกาสองฝ่ายเสมอภาค", "trigger": "onCast", "action": "IMPERIAL_INK_DECREE", "applyDebuff": "weaken", "bonusStats": {"atkPct": 0.14, "matkPct": 0.14}, "descTh": "ลดทอนความเสียหายคริติคอลพุ่งพรวดของทุกฝ่ายในเขตแดน"}, {"stage": 6, "id": "TRAIT_FCS_S6", "nameTh": "แนวป้องกันไม่สั่นคลอน", "trigger": "onStruck", "action": "MASS_ABSORPTION", "grantBuff": "leylineBastion", "bonusStats": {"defPct": 0.16, "mdefPct": 0.16}, "descTh": "ยึดมั่นพื้นที่ภายใต้ธรรมนูญ ลดแรงผลักและการทะลวงเกราะ"}, {"stage": 8, "id": "TRAIT_FCS_S8", "nameTh": "มหาธรรมนูญสยบศึก", "trigger": "onCrit", "action": "IMPERIAL_INK_DECREE", "applyDebuff": "armorbreak", "bonusStats": {"atkPct": 0.2, "matkPct": 0.2, "pen": 20}, "descTh": "ลงทัณฑ์ผู้ที่ฝ่าฝืนจังหวะกติกาในเขตแดนอย่างเด็ดขาด"}], "subs": [{"id": "TRANS_SUB_WEIGHT_OF_ARMS", "nameTh": "ธรรมนูญน้ำหนักศาสตรา", "icon": "⚔️", "el": "EARTH_METAL", "el2": "FIRE", "w": ["SPEAR", "SWORD"], "arm": ["HEAVY"], "pSk": "SPEAR", "sSk": "LEADERSHIP", "stance": "VAJRA_BASTION_STANCE", "mark": "starSeal", "fusion": "INFERNO_VORTEX", "trigger": "onHit", "action": "IAI_ZERO_QI_SLASH", "buff": "tacticalCommand", "debuff": "armorbreak", "stats": {"atk": 27, "matk": 18, "def": 24, "mdef": 21, "hp": 74, "crit": 16, "pen": 22, "eva": 12, "acc": 21}, "descTh": "เพิ่มน้ำหนักการปะทะซึ่งหน้า บีบให้ศัตรูสายหลบหลีกต้องรับแรงกดดัน"}, {"id": "TRANS_SUB_SILENT_RING", "nameTh": "เขตห้ามร่ายซ้อน", "icon": "🔕", "el": "ASTRAL", "el2": "EARTH_METAL", "w": ["BRUSH", "ASTROLABE"], "arm": ["ROBE", "HEAVY"], "pSk": "ARRAY", "sSk": "SCRIPTURE", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onCast", "action": "MERIDIAN_SEAL", "buff": "literatiDecree", "debuff": "meridianSeal", "stats": {"atk": 18, "matk": 28, "def": 21, "mdef": 25, "hp": 68, "crit": 16, "pen": 21, "eva": 14, "acc": 22}, "descTh": "จำกัดการร่ายท่าซ้ำต่อเนื่องในเขตแดน ตัดจังหวะสายปราณที่พึ่งพาท่าเดิม"}, {"id": "TRANS_SUB_EQUAL_GROUND", "nameTh": "ผืนดินเสมอภาค", "icon": "⚖️", "el": "EARTH_METAL", "el2": "LIGHT_YANG", "w": ["SPEAR", "BRUSH"], "arm": ["HEAVY"], "pSk": "LEADERSHIP", "sSk": "ARRAY", "stance": "VAJRA_BASTION_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onRoundStart", "action": "BODHI_KARMA_AEGIS", "buff": "leylineBastion", "debuff": "weaken", "stats": {"atk": 22, "matk": 22, "def": 26, "mdef": 25, "hp": 76, "crit": 14, "pen": 19, "eva": 12, "acc": 20}, "descTh": "ลดช่องว่างความได้เปรียบจากภูมิประเทศและบัฟพุ่งพรวด ชนะกันด้วยรากฐานจริง"}, {"id": "TRANS_SUB_BANNER_CHARTER", "nameTh": "กฎธงทัพ", "icon": "🚩", "el": "FIRE", "el2": "LIGHT_YANG", "w": ["SPEAR", "SWORD"], "arm": ["HEAVY"], "pSk": "LEADERSHIP", "sSk": "SPEAR", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onRoundStart", "action": "IMPERIAL_INK_DECREE", "buff": "tacticalCommand", "debuff": "exposed", "stats": {"atk": 26, "matk": 20, "def": 23, "mdef": 21, "hp": 72, "crit": 17, "pen": 21, "eva": 13, "acc": 21}, "descTh": "ปักธงบัญชาการเสริมระเบียบทัพและการประสานจังหวะโจมตีของสหาย"}, {"id": "TRANS_SUB_TRUCE_BOUNDARY", "nameTh": "เส้นเขตพักรบ", "icon": "🛡️", "el": "WATER_ICE", "el2": "LIGHT_YANG", "w": ["BRUSH", "STAFF"], "arm": ["ROBE", "HEAVY"], "pSk": "LEADERSHIP", "sSk": "MEDICINE", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onStruck", "action": "BODHI_KARMA_AEGIS", "buff": "aegisWard", "debuff": "slow", "stats": {"atk": 18, "matk": 24, "def": 25, "mdef": 26, "hp": 74, "crit": 13, "pen": 17, "eva": 14, "acc": 20}, "descTh": "ขีดแนวกันชนชั่วคราวเปิดโอกาสให้สหายบาดเจ็บถอนตัวและจัดขบวนใหม่"}], "lore": {"eraTh": "ปลายสมัยมหาจักรวรรดิเทียนกู่ (ก่อน ศ.ท.) และฟื้นฟูในยุคศาลธรรมนูญสัตย์สาบาน (ยุคที่ 29–34)", "regionId": "EASTERN_PLAINS", "inventorTh": "แม่ทัพนักกฎหมายยุคเทียนกู่ผู้ฝึกตนจนข้ามม่านฟ้าก่อนอาณาจักรแตก", "adapterTh": "ขุนศึกชายแดนที่นำกติกาสงบศึกเฉพาะจุดมาปรับใช้คุ้มกันขบวนถอนทัพ", "competingAccountsTh": "ราชสำนักตงหวงอ้างสิทธิ์สืบทอดสายตรง แต่นักค่ายกลอิสระพบหลักฐานเดียวกันสลักไว้บนศิลาด่านสองแห่งที่ไม่อยู่ในอำนาจราชสำนัก", "discoverySources": ["ศิลาธรรมนูญด่านโบราณ", "ตำราพิชัยสงครามเทียนกู่", "บันทึกการถอนทัพชายแดน"]}, "kw": "KW_DAO_FIELD_CLAUSE"},
+    {"id": "TRANS_TEMPO_SOVEREIGN", "grade": "TRANSCENDENT", "originType": "LOCAL_LOWER_HISTORY", "nameTh": "วิถีปรมาจารย์จังหวะกาล", "shortTh": "ปรมาจารย์จังหวะกาล", "icon": "🥁", "color": "#06b6d4", "element": "WIND", "gaugeId": "TEMPO_BANK", "gaugeNameTh": "คลังจังหวะสมรภูมิ", "statWeights": {"atk": 1.24, "matk": 1.28, "def": 1.22, "mdef": 1.26}, "resourceUsed": "นาฬิกาน้ำหอกลอง กระแสน้ำขึ้นลง และจังหวะการหายใจที่ฝึกฝนอย่างเคร่งครัด", "coreMechanicTh": "ยอมชะลอจังหวะลงมือเพื่อสะสมคลังจังหวะสำรอง แล้วจ่ายออกเพื่อเร่งการฟื้นตัวของสหายหรือยืดช่องว่างคูลดาวน์ของศัตรูโดยไม่ทำให้ศัตรูหมดสิทธิ์ลงมือถาวร", "supremeRiskTh": "ต้องจ่ายต้นทุนล่วงหน้าในรอบที่ยอมรอ หากสถานการณ์พลิกผันก่อนจังหวะที่วางไว้มาถึงอาจสูญเปล่า", "weapons": ["FAN", "SWORD", "SPEAR", "ASTROLABE"], "armor": ["LIGHT", "ROBE"], "life": {"MOVEMENT": 0.36, "ARRAY": 0.28, "SWORD": 0.24}, "body": {"dexterity": 30, "spiritualFoundation": 28, "meridianCapacity": 27}, "stageNames": ["ขั้นที่ 1 • สดับชีพจรสายน้ำ", "ขั้นที่ 2 • หน่วงจังหวะรอผล", "ขั้นที่ 3 • ตีกลองตัดช่องว่าง", "ขั้นที่ 4 • สะสมคลังจังหวะสามชั้น", "ขั้นที่ 5 • เร่งจังหวะฟื้นตัวสหาย", "ขั้นที่ 6 • ยืดช่องว่างกระบวนท่าศัตรู", "ขั้นที่ 7 • กระแสน้ำพลิกฤดูกาล", "ขั้นที่ 8 • มหาปรมาจารย์จังหวะกาล"], "realmTraits": [{"stage": 2, "id": "TRAIT_TTS_S2", "nameTh": "หน่วงจังหวะสะสมแรง", "trigger": "onWayfarerStep", "action": "TEMPORAL_SAND_REWIND", "grantBuff": "temporalHaste", "bonusStats": {"cast": 10, "eva": 10}, "descTh": "ควบคุมจังหวะลมหายใจเพิ่มความเร็วร่ายและหลบหลีก"}, {"stage": 4, "id": "TRAIT_TTS_S4", "nameTh": "ยืดช่องว่างศัตรู", "trigger": "onHit", "action": "TEMPORAL_SAND_REWIND", "applyDebuff": "slow", "bonusStats": {"atkPct": 0.14, "matkPct": 0.14}, "descTh": "ตีตัดจังหวะทำให้คู่ต่อสู้ฟื้นกระบวนท่าช้าลง"}, {"stage": 6, "id": "TRAIT_TTS_S6", "nameTh": "สายน้ำรอผลคืนกลับ", "trigger": "onStruck", "action": "TEMPORAL_SAND_REWIND", "grantBuff": "parryCounter", "bonusStats": {"defPct": 0.14, "mdefPct": 0.14, "eva": 12}, "descTh": "ปล่อยปราณที่เตรียมไว้ล่วงหน้าออกรับมือเมื่อถูกโจมตี"}, {"stage": 8, "id": "TRAIT_TTS_S8", "nameTh": "กลองศึกคุมกระแสสมรภูมิ", "trigger": "onRoundStart", "action": "TEMPORAL_SAND_REWIND", "grantBuff": "temporalHaste", "bonusStats": {"atkPct": 0.18, "matkPct": 0.18, "cast": 18}, "descTh": "กุมจังหวะรุกและรับของทั้งสมรภูมิอย่างแม่นยำ"}], "subs": [{"id": "TRANS_SUB_DEFERRED_CURRENT", "nameTh": "สายน้ำรอผล", "icon": "🌊", "el": "WATER_ICE", "el2": "WIND", "w": ["FAN", "ASTROLABE"], "arm": ["ROBE", "LIGHT"], "pSk": "ARRAY", "sSk": "MOVEMENT", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onCast", "action": "TEMPORAL_SAND_REWIND", "buff": "temporalHaste", "debuff": "slow", "stats": {"atk": 18, "matk": 28, "def": 20, "mdef": 24, "hp": 66, "crit": 17, "pen": 20, "eva": 17, "acc": 21}, "descTh": "เก็บปราณไว้ปลายกระแสแล้วปล่อยผลเมื่อเงื่อนไขในสนามเกิดขึ้นจริง"}, {"id": "TRANS_SUB_DRUM_CADENCE", "nameTh": "จังหวะกลองศึก", "icon": "🥁", "el": "WIND", "el2": "FIRE", "w": ["SPEAR", "FAN"], "arm": ["LIGHT", "HEAVY"], "pSk": "SPEAR", "sSk": "LEADERSHIP", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "INFERNO_VORTEX", "trigger": "onRoundStart", "action": "TEMPORAL_SAND_REWIND", "buff": "tacticalCommand", "debuff": "exposed", "stats": {"atk": 25, "matk": 21, "def": 22, "mdef": 20, "hp": 70, "crit": 17, "pen": 20, "eva": 16, "acc": 21}, "descTh": "กำหนดจังหวะรุกพร้อมเพรียงให้สหายเข้าโจมตีอย่างต่อเนื่อง"}, {"id": "TRANS_SUB_STILL_INTERVAL", "nameTh": "ช่องว่างระหว่างลมหายใจ", "icon": "🌬️", "el": "WIND", "el2": "ASTRAL", "w": ["SWORD", "FAN"], "arm": ["LIGHT"], "pSk": "MOVEMENT", "sSk": "SWORD", "stance": "SHADOW_REAPER_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onIaiDraw", "action": "IAI_ZERO_QI_SLASH", "buff": "temporalHaste", "debuff": "slow", "stats": {"atk": 26, "matk": 22, "def": 18, "mdef": 20, "hp": 64, "crit": 20, "pen": 22, "eva": 21, "acc": 22}, "descTh": "แทรกตัวเข้าโจมตีในเสี้ยววินาทีที่ศัตรูเปลี่ยนท่าหายใจ"}, {"id": "TRANS_SUB_COUNTER_BEAT", "nameTh": "ตีตัดจังหวะ", "icon": "⚡", "el": "LIGHTNING", "el2": "WIND", "w": ["SWORD", "SPEAR"], "arm": ["LIGHT"], "pSk": "SWORD", "sSk": "MOVEMENT", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onHit", "action": "TEMPORAL_SAND_REWIND", "buff": "parryCounter", "debuff": "meridianSeal", "stats": {"atk": 26, "matk": 22, "def": 20, "mdef": 20, "hp": 66, "crit": 18, "pen": 22, "eva": 18, "acc": 22}, "descTh": "ทำลายจังหวะร่ายท่าใหญ่ของศัตรูและยืดคูลดาวน์กระบวนท่า"}, {"id": "TRANS_SUB_SEASON_TIDE", "nameTh": "กระแสน้ำเปลี่ยนฤดู", "icon": "🌙", "el": "WATER_ICE", "el2": "ASTRAL", "w": ["ASTROLABE", "STAFF"], "arm": ["ROBE"], "pSk": "ARRAY", "sSk": "MEDICINE", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "buff": "temporalHaste", "debuff": "chill", "stats": {"atk": 16, "matk": 27, "def": 22, "mdef": 25, "hp": 70, "crit": 15, "pen": 18, "eva": 16, "acc": 20}, "descTh": "ปรับจังหวะการฟื้นฟูของคณะให้สอดคล้องกับกระแสศึกยาวนาน"}], "lore": {"eraTh": "ยุคที่ 39–44 (ศ.ท. 38,019–43,888) · ยุคหอกลองริมแม่น้ำและการประลองร้อยก้าวไร้เสียง", "regionId": "SOUTHERN_WATERS", "inventorTh": "นายกลองเรือรบและช่างนาฬิกาน้ำริมแม่น้ำใหญ่", "adapterTh": "ยอดฝีมือที่นำหลักการหน่วงกระแสน้ำมาประยุกต์เป็นจังหวะกระบวนท่า", "competingAccountsTh": "บางคนนึกว่าเป็นวิถีกาลเวลาจากแดนลับ แต่จารึกหอกลองเก่าพิสูจน์ว่าเกิดจากการจับจังหวะฝีพายและสายน้ำจริงในโลกเบื้องล่าง", "discoverySources": ["จารึกหอกลองริมแม่น้ำ", "บันทึกแผนสำรองกองเรือ", "ครูฝึกจังหวะกลองศึก"]}, "kw": "KW_DAO_TEMPO_BANK"},
+    {"id": "TRANS_SEALKEEPER_FORBIDDEN_KEY", "grade": "TRANSCENDENT", "originType": "LOWLY_UPPER_WORLD", "nameTh": "วิถีผู้ถือกุญแจผนึก", "shortTh": "ผู้ถือกุญแจผนึก", "icon": "🗝️", "color": "#7c3aed", "element": "YIN_SHADOW", "gaugeId": "SEAL_KEY", "gaugeNameTh": "กุญแจปมผนึก", "statWeights": {"atk": 1.16, "matk": 1.34, "def": 1.24, "mdef": 1.3}, "resourceUsed": "เชือกปมผนึกคลังสินค้า ยันต์ระบายไอพิษ และกุญแจทองเหลืองกักเก็บปราณ", "coreMechanicTh": "ใช้ปมผนึกควบคุมและกักเก็บพลังอันตราย ปิดกั้นท่าหลักของศัตรูชั่วคราว (จำกัด 1 ผนึกต่อเป้า) และบรรเทาแรงตีกลับของวิชาต้องห้ามในขอบเขตโลกเบื้องล่าง", "supremeRiskTh": "หากกักเก็บแรงสะท้อนเกินขีดจำกัดโดยไม่ระบายออกจะเกิดแรงดันย้อนกลับ และปมผนึกไม่อาจควบคุมม่านฟ้าหรือข้ามขีดจำกัดภพได้", "weapons": ["ABACUS", "BRUSH", "WHIP", "ROSARY"], "armor": ["ROBE", "HEAVY"], "life": {"TALISMAN": 0.38, "ARRAY": 0.3, "SCRIPTURE": 0.24}, "body": {"spiritualFoundation": 29, "meridianCapacity": 29, "toughness": 25}, "stageNames": ["ขั้นที่ 1 • ผูกปมเชือกกักไอปราณ", "ขั้นที่ 2 • แยกช่องระบายแรงสะท้อน", "ขั้นที่ 3 • ล็อกกระบวนท่าด้วยยันต์เดี่ยว", "ขั้นที่ 4 • กุญแจทองเหลืองสะกดชีพจร", "ขั้นที่ 5 • กรงผนึกศาสตราต้องห้าม", "ขั้นที่ 6 • เปลี่ยนแรงตีกลับเป็นเกราะคุม", "ขั้นที่ 7 • กุญแจสามชั้นปิดผนึกมาร", "ขั้นที่ 8 • มหาผู้ถือกุญแจผนึกใต้หล้า"], "realmTraits": [{"stage": 2, "id": "TRAIT_SFK_S2", "nameTh": "ปมผนึกกักแรงดัน", "trigger": "onCast", "action": "MERIDIAN_SEAL", "grantBuff": "aegisWard", "bonusStats": {"mdefPct": 0.12, "defPct": 0.08}, "descTh": "ดูดซับแรงสะท้อนปราณส่วนเกินมาเป็นเกราะบาง"}, {"stage": 4, "id": "TRAIT_SFK_S4", "nameTh": "กุญแจล็อกชีพจร", "trigger": "onHit", "action": "MERIDIAN_SEAL", "applyDebuff": "meridianSeal", "bonusStats": {"matkPct": 0.14, "pen": 16}, "descTh": "ปักปมผนึกชะลอการใช้ท่าไม้ตายของศัตรู"}, {"stage": 6, "id": "TRAIT_SFK_S6", "nameTh": "วาล์วระบายพิษสะท้อน", "trigger": "onStruck", "action": "BODHI_KARMA_AEGIS", "grantBuff": "clarityLotus", "bonusStats": {"defPct": 0.14, "mdefPct": 0.16}, "descTh": "ระบายดีบัฟและแรงตีกลับอย่างปลอดภัย"}, {"stage": 8, "id": "TRAIT_SFK_S8", "nameTh": "กรงผนึกเก้าปมสมบูรณ์", "trigger": "onCrit", "action": "MERIDIAN_SEAL", "applyDebuff": "silence", "bonusStats": {"matkPct": 0.22, "pen": 22, "acc": 16}, "descTh": "ปิดผนึกการโคจรปราณของศัตรูชั่วคราวอย่างแม่นยำ"}], "subs": [{"id": "TRANS_SUB_CARGO_KNOT", "nameTh": "ปมผนึกคลังโบราณ", "icon": "🪢", "el": "YIN_SHADOW", "el2": "EARTH_METAL", "w": ["WHIP", "ABACUS"], "arm": ["ROBE", "HEAVY"], "pSk": "TALISMAN", "sSk": "ARRAY", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onCast", "action": "MERIDIAN_SEAL", "buff": "aegisWard", "debuff": "meridianSeal", "stats": {"atk": 18, "matk": 27, "def": 23, "mdef": 25, "hp": 70, "crit": 15, "pen": 20, "eva": 14, "acc": 21}, "descTh": "ใช้ปมเชือกคลังโบราณดัดแปลงกักเก็บและสะกดกระบวนท่าศัตรูอย่างมั่นคง"}, {"id": "TRANS_SUB_VENTING_WARD", "nameTh": "ผนึกระบายไอพิษ", "icon": "💨", "el": "WIND", "el2": "YIN_SHADOW", "w": ["BRUSH", "FAN"], "arm": ["ROBE"], "pSk": "TALISMAN", "sSk": "MEDICINE", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onStruck", "action": "BODHI_KARMA_AEGIS", "buff": "clarityLotus", "debuff": "weaken", "stats": {"atk": 15, "matk": 27, "def": 21, "mdef": 26, "hp": 68, "crit": 15, "pen": 19, "eva": 16, "acc": 20}, "descTh": "เลือกปล่อยระบายแรงดันและไอพิษออกจากผนึกอย่างปลอดภัยเพื่อปกป้องสหาย"}, {"id": "TRANS_SUB_KEYBEARER_LOCK", "nameTh": "กุญแจล็อกกระบวน", "icon": "🗝️", "el": "ASTRAL", "el2": "YIN_SHADOW", "w": ["ABACUS", "BRUSH"], "arm": ["ROBE", "LIGHT"], "pSk": "TALISMAN", "sSk": "SCRIPTURE", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onHit", "action": "MERIDIAN_SEAL", "buff": "literatiDecree", "debuff": "silence", "stats": {"atk": 17, "matk": 29, "def": 19, "mdef": 24, "hp": 66, "crit": 18, "pen": 23, "eva": 15, "acc": 22}, "descTh": "สะกดจุดเชื่อมต่อท่าไม้ตายของคู่ต่อสู้ให้ใช้การไม่ได้ชั่วคราว"}, {"id": "TRANS_SUB_TABOO_DAMPER", "nameTh": "เกราะคุมวิชาต้องห้าม", "icon": "🛡️", "el": "YIN_SHADOW", "el2": "LIGHT_YANG", "w": ["ROSARY", "STAFF"], "arm": ["HEAVY", "ROBE"], "pSk": "TALISMAN", "sSk": "BODY_REFINING", "stance": "VAJRA_BASTION_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onStruck", "action": "MASS_ABSORPTION", "buff": "aegisWard", "debuff": "meridianSeal", "stats": {"atk": 19, "matk": 24, "def": 26, "mdef": 26, "hp": 74, "crit": 14, "pen": 18, "eva": 12, "acc": 20}, "descTh": "ลดทอนแรงตีกลับจากวิชาต้องห้ามและเปลี่ยนเป็นเกราะปราณคุ้มกาย"}, {"id": "TRANS_SUB_RELIC_CAGE", "nameTh": "กรงผนึกศาสตรา", "icon": "⛓️", "el": "EARTH_METAL", "el2": "YIN_SHADOW", "w": ["WHIP", "ROSARY"], "arm": ["HEAVY"], "pSk": "ARRAY", "sSk": "FORGING", "stance": "VAJRA_BASTION_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onHit", "action": "MERIDIAN_SEAL", "buff": "leylineBastion", "debuff": "armorbreak", "stats": {"atk": 22, "matk": 24, "def": 25, "mdef": 23, "hp": 72, "crit": 16, "pen": 22, "eva": 12, "acc": 20}, "descTh": "ตรึงอานุภาพศาสตราวิเศษของศัตรูให้แสดงฤทธิ์ได้ลดลงชั่วคราว"}], "lore": {"eraTh": "ยุคที่ 29–34 (ศ.ท. 28,515–33,772) · ยุคหอผู้ถือกุญแจผนึกทั้งเก้าและซากคลังโบราณ", "regionId": "WESTERN_BADLANDS", "inventorTh": "ปมเชือกผูกหีบสินค้าแตกหักง่ายของพนักงานคลังชั้นผู้น้อยในโลกเบื้องบน", "adapterTh": "นักยันต์โลกเบื้องล่างที่ตัดขั้นตอนใช้ปราณสูงออกแล้วดัดแปลงเป็นผนึกกักเก็บที่ควบคุมได้", "competingAccountsTh": "สองสำนักยันต์ถกเถียงกันไม่จบว่าควรถ่ายระบายไออันตรายในปมผนึกทิ้งกลางทางหรือถือไปส่งผู้เชี่ยวชาญ", "discoverySources": ["เศษป้ายคลังสินค้าโบราณ", "สำนักยันต์ผนึกชายแดน", "หอเก็บวัตถุต้องห้าม"]}, "kw": "KW_DAO_SEAL_KNOT"},
+    {"id": "TRANS_PRIMAL_VORTEX_MIRROR", "grade": "TRANSCENDENT", "originType": "ASCENDED_LOWER_MASTER", "nameTh": "วิถีกระจกสะท้อนหมื่นวิชา", "shortTh": "กระจกสะท้อนหมื่นวิชา", "icon": "🪞", "color": "#ec4899", "element": "ASTRAL", "gaugeId": "MIRROR_ECHO", "gaugeNameTh": "เงาสะท้อนวิชา", "statWeights": {"atk": 1.22, "matk": 1.32, "def": 1.22, "mdef": 1.28}, "resourceUsed": "กระจกทองแดงขัดเงา บันทึกเคล็ดวิชาข้ามรุ่น และสมาธิอันสงบนิ่ง", "coreMechanicTh": "สะท้อนส่วนหนึ่งของแรงปะทะที่รับได้กลับสู่ศัตรู (มีเพดานตามพลังตน) และจำลองคุณลักษณะธาตุของคู่ต่อสู้มาปรับสมดุลในศึก", "supremeRiskTh": "ไม่อาจสะท้อนความเสียหายทั้งหมดได้ หากรับแรงปะทะเกินขีดจำกัดกระจกจะแตกร้าวและต้องรอฟื้นฟูใหม่", "weapons": ["FAN", "SWORD", "BRUSH", "ASTROLABE"], "armor": ["ROBE", "LIGHT"], "life": {"SCRIPTURE": 0.38, "ARRAY": 0.28, "SWORD": 0.22}, "body": {"spiritualFoundation": 30, "dexterity": 28, "meridianCapacity": 28}, "stageNames": ["ขั้นที่ 1 • ขัดกระจกใจให้ไร้ฝุ่น", "ขั้นที่ 2 • จับเงาธาตุจากคมศาสตรา", "ขั้นที่ 3 • วังวนเบี่ยงกระแสปราณ", "ขั้นที่ 4 • สะท้อนแรงปะทะคืนเจ้าของ", "ขั้นที่ 5 • จำลองธาตุศัตรูต้านทาง", "ขั้นที่ 6 • บันทึกข้ามรุ่นผสานสองสาย", "ขั้นที่ 7 • กระจกแตกคืนรูปไร้รอยร้าว", "ขั้นที่ 8 • มหาปรมาจารย์กระจกหมื่นวิชา"], "realmTraits": [{"stage": 2, "id": "TRAIT_PVM_S2", "nameTh": "เงาสะท้อนปราณ", "trigger": "onStruck", "action": "MASS_ABSORPTION", "grantBuff": "parryCounter", "bonusStats": {"mdefPct": 0.12, "eva": 10}, "descTh": "เบี่ยงเบนแรงปะทะและเตรียมสะท้อนคืน"}, {"stage": 4, "id": "TRAIT_PVM_S4", "nameTh": "จำลองธาตุต้านทาง", "trigger": "onCast", "action": "IMPERIAL_INK_DECREE", "grantBuff": "clarityLotus", "bonusStats": {"matkPct": 0.14, "defPct": 0.1}, "descTh": "ปรับสมดุลธาตุของตนให้รับมือศัตรูได้ดีขึ้น"}, {"stage": 6, "id": "TRAIT_PVM_S6", "nameTh": "วังวนดูดซับกระแส", "trigger": "onHit", "action": "MASS_ABSORPTION", "applyDebuff": "exposed", "bonusStats": {"atkPct": 0.14, "matkPct": 0.16, "pen": 16}, "descTh": "ดึงจังหวะพลังของศัตรูมาเปิดช่องโหว่"}, {"stage": 8, "id": "TRAIT_PVM_S8", "nameTh": "กระจกนิ่งสะท้อนใต้หล้า", "trigger": "onStruck", "action": "IMPERIAL_INK_DECREE", "grantBuff": "parryCounter", "bonusStats": {"matkPct": 0.22, "mdefPct": 0.2, "crit": 12}, "descTh": "สะท้อนแรงโจมตีตามขอบเขตพลังตนและพลิกเกมจากฝ่ายรับเป็นรุก"}], "subs": [{"id": "TRANS_SUB_STILL_MIRROR", "nameTh": "กระจกนิ่งสะท้อนปราณ", "icon": "🪞", "el": "ASTRAL", "el2": "WATER_ICE", "w": ["FAN", "ASTROLABE"], "arm": ["ROBE"], "pSk": "SCRIPTURE", "sSk": "ARRAY", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onStruck", "action": "MASS_ABSORPTION", "buff": "parryCounter", "debuff": "exposed", "stats": {"atk": 17, "matk": 28, "def": 22, "mdef": 26, "hp": 68, "crit": 16, "pen": 20, "eva": 16, "acc": 21}, "descTh": "รักษาจิตใจให้นิ่งดั่งผิวน้ำเพื่อสะท้อนส่วนหนึ่งของแรงโจมตีกลับคืน"}, {"id": "TRANS_SUB_VORTEX_SIPHON", "nameTh": "วังวนเบี่ยงกระแส", "icon": "🌀", "el": "WATER_ICE", "el2": "WIND", "w": ["FAN", "SWORD"], "arm": ["LIGHT", "ROBE"], "pSk": "ARRAY", "sSk": "MOVEMENT", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onStruck", "action": "MASS_ABSORPTION", "buff": "massGuard", "debuff": "slow", "stats": {"atk": 20, "matk": 26, "def": 23, "mdef": 24, "hp": 70, "crit": 15, "pen": 19, "eva": 18, "acc": 20}, "descTh": "หมุนวนปราณเบี่ยงทิศทางแรงปะทะและฟื้นฟูปราณส่วนหนึ่งให้ตนเอง"}, {"id": "TRANS_SUB_LINEAGE_NOTE", "nameTh": "บันทึกวิถีข้ามรุ่น", "icon": "📚", "el": "ASTRAL", "el2": "LIGHT_YANG", "w": ["BRUSH", "ASTROLABE"], "arm": ["ROBE"], "pSk": "SCRIPTURE", "sSk": "LEADERSHIP", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onLiteratiEdict", "action": "IMPERIAL_INK_DECREE", "buff": "literatiDecree", "debuff": "weaken", "stats": {"atk": 16, "matk": 28, "def": 20, "mdef": 25, "hp": 66, "crit": 16, "pen": 20, "eva": 15, "acc": 22}, "descTh": "ต่อยอดบทเรียนจากผู้ฝึกต่างรุ่นให้ประสานงานกันได้เกินกว่ากำลังคนเดียว"}, {"id": "TRANS_SUB_ELEMENT_MIMIC", "nameTh": "จำลองธาตุศัตรู", "icon": "☯️", "el": "WOOD_LIFE", "el2": "FIRE", "w": ["FAN", "BRUSH"], "arm": ["ROBE", "LIGHT"], "pSk": "SCRIPTURE", "sSk": "ALCHEMY", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "INFERNO_VORTEX", "trigger": "onCast", "action": "IMPERIAL_INK_DECREE", "buff": "clarityLotus", "debuff": "exposed", "stats": {"atk": 19, "matk": 28, "def": 20, "mdef": 23, "hp": 66, "crit": 18, "pen": 22, "eva": 16, "acc": 21}, "descTh": "ปรับธาตุปราณตามการโจมตีล่าสุดที่พบเพื่อตอบโต้จุดอ่อนของศัตรู"}, {"id": "TRANS_SUB_SHATTER_GLASS", "nameTh": "กระจกแตกคืนรูป", "icon": "💎", "el": "EARTH_METAL", "el2": "ASTRAL", "w": ["SWORD", "FAN"], "arm": ["LIGHT"], "pSk": "SWORD", "sSk": "SCRIPTURE", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onCrit", "action": "IAI_ZERO_QI_SLASH", "buff": "fervorMight", "debuff": "armorbreak", "stats": {"atk": 25, "matk": 25, "def": 19, "mdef": 20, "hp": 64, "crit": 20, "pen": 23, "eva": 17, "acc": 21}, "descTh": "จงใจสลายเกราะกระจกที่สะสมไว้ให้แตกเป็นคมแสงเจาะเกราะศัตรู"}], "lore": {"eraTh": "ยุคที่ 63 (ศ.ท. 62,412) · ยุคชุมนุมหอคัมภีร์ห้าสำนักและคืนแตกสลายงานประมูลเจ็ดตะเกียง", "regionId": "EASTERN_PLAINS", "inventorTh": "อาลักษณ์พเนจรที่รวบรวมบันทึกวิชาต่างสำนักข้ามสามชั่วคนก่อนบรรลุและข้ามม่านฟ้า", "adapterTh": "ศิษย์หอคัมภีร์ที่นำเศษบันทึกไม่ครบชุดมาต่อเติมเป็นเคล็ดกระจกนิ่ง", "competingAccountsTh": "หอคัมภีร์หลายแห่งต่างถือเศษสำเนาคนละบทและโต้เถียงกันว่าบทใดคือต้นฉบับก่อนอาจารย์ขึ้นสู่เบื้องบน", "discoverySources": ["บันทึกข้ามรุ่นหอคัมภีร์", "กระจกทองแดงจารึกอักขระ", "ศิษย์อาลักษณ์พเนจร"]}, "kw": "KW_DAO_MIRROR_ECHO"},
+    {"id": "TRANS_DYNASTIC_MANDATE_WEAVER", "grade": "TRANSCENDENT", "originType": "LOCAL_LOWER_HISTORY", "nameTh": "วิถีทอชะตาแผ่นดิน", "shortTh": "ทอชะตาแผ่นดิน", "icon": "🧭", "color": "#d97706", "element": "LIGHT_YANG", "gaugeId": "MANDATE_THREAD", "gaugeNameTh": "เส้นใยชะตาแผ่นดิน", "statWeights": {"atk": 1.18, "matk": 1.32, "def": 1.26, "mdef": 1.3}, "resourceUsed": "พงศาวดารยุคสมัย แผนที่ดุลยภาพอาณาจักร และเจตจำนงประคองราษฎร์", "coreMechanicTh": "อ่านกระแสยุคสมัยจริงของอาณาจักรและสำนักในทวีป (ยุคทองหรือกลียุค) มาปรับท่วงท่ากลางศึก และเมื่อบรรลุขั้นสูงจะช่วยประคองขวัญสำนักกับเสถียรภาพอาณาจักรท้องถิ่นอย่างค่อยเป็นค่อยไป", "supremeRiskTh": "พลังผูกพันกับขวัญกำลังใจและระเบียบของคณะ หากทีมเสียขวัญหรือผู้ทอชะตาถูกแยกโดดเดี่ยว เส้นใยชะตาจะคลายตัวทันที", "weapons": ["BRUSH", "ASTROLABE", "SWORD", "FAN"], "armor": ["ROBE", "HEAVY"], "life": {"LEADERSHIP": 0.36, "SCRIPTURE": 0.34, "ARRAY": 0.22}, "body": {"spiritualFoundation": 30, "toughness": 27, "meridianCapacity": 28}, "stageNames": ["ขั้นที่ 1 • อ่านพงศาวดารยุคสมัย", "ขั้นที่ 2 • จับชีพจรความรุ่งเรืองและเสื่อมถอย", "ขั้นที่ 3 • ทอเส้นใยขวัญกำลังใจ", "ขั้นที่ 4 • ปรับกระบวนตามยุคทองและกลียุค", "ขั้นที่ 5 • ตราชั่งคานแรงกดดันมหาอำนาจ", "ขั้นที่ 6 • ศิลาฤกษ์ประคองสำนักและราษฎร์", "ขั้นที่ 7 • เชื่อมโยงชะตายุทธภพกับแผ่นดิน", "ขั้นที่ 8 • มหาปราชญ์ผู้ทอชะตาแผ่นดิน"], "realmTraits": [{"stage": 2, "id": "TRAIT_DMW_S2", "nameTh": "อ่านกระแสยุคสมัย", "trigger": "onLiteratiEdict", "action": "IMPERIAL_INK_DECREE", "grantBuff": "tacticalCommand", "bonusStats": {"acc": 12, "mdefPct": 0.1}, "descTh": "ปรับท่วงท่าตามสถานะยุคทองหรือกลียุคของอาณาจักร"}, {"stage": 4, "id": "TRAIT_DMW_S4", "nameTh": "เส้นใยขวัญกำลังใจ", "trigger": "onRoundStart", "action": "BODHI_KARMA_AEGIS", "grantBuff": "bodhiGrace", "bonusStats": {"defPct": 0.14, "matkPct": 0.14}, "descTh": "เชื่อมความสามัคคีของสหายเป็นเกราะป้องกันและความแม่นยำ"}, {"stage": 6, "id": "TRAIT_DMW_S6", "nameTh": "ผู้ประคองยามกลียุค", "trigger": "onStruck", "action": "BODHI_KARMA_AEGIS", "grantBuff": "aegisWard", "bonusStats": {"defPct": 0.16, "mdefPct": 0.16, "hpPct": 0.12}, "descTh": "ยืนหยัดคุ้มครองคณะและลดความตื่นตระหนกยามวิกฤต"}, {"stage": 8, "id": "TRAIT_DMW_S8", "nameTh": "ดุลยภาพใต้หล้า", "trigger": "onCast", "action": "IMPERIAL_INK_DECREE", "applyDebuff": "weaken", "bonusStats": {"atkPct": 0.18, "matkPct": 0.22, "pen": 18}, "descTh": "คลี่คลายแรงกดดันของศัตรูที่โถมบุกเกินกำลัง"}], "subs": [{"id": "TRANS_SUB_COURT_CHRONICLER", "nameTh": "อาลักษณ์ชะตาราชสำนัก", "icon": "📜", "el": "ASTRAL", "el2": "LIGHT_YANG", "w": ["BRUSH", "ASTROLABE"], "arm": ["ROBE"], "pSk": "SCRIPTURE", "sSk": "LEADERSHIP", "stance": "QIMEN_ARRAY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onLiteratiEdict", "action": "IMPERIAL_INK_DECREE", "buff": "literatiDecree", "debuff": "exposed", "stats": {"atk": 17, "matk": 29, "def": 20, "mdef": 26, "hp": 68, "crit": 16, "pen": 20, "eva": 14, "acc": 22}, "descTh": "บันทึกและวิเคราะห์ความเปลี่ยนแปลงของราชสำนัก เสริมความแม่นยำและการทูต"}, {"id": "TRANS_SUB_HEGEMON_BALANCE", "nameTh": "ตราชั่งคานมหาอำนาจ", "icon": "⚖️", "el": "EARTH_METAL", "el2": "LIGHT_YANG", "w": ["SWORD", "ASTROLABE"], "arm": ["HEAVY", "ROBE"], "pSk": "LEADERSHIP", "sSk": "SWORD", "stance": "STAR_SWORD_STANCE", "mark": "starSeal", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onHit", "action": "IAI_ZERO_QI_SLASH", "buff": "tacticalCommand", "debuff": "armorbreak", "stats": {"atk": 24, "matk": 24, "def": 24, "mdef": 23, "hp": 72, "crit": 17, "pen": 22, "eva": 13, "acc": 21}, "descTh": "ต้านทานศัตรูที่มีพลังเหนือกว่า ลดแรงกดดันจากฝ่ายที่บุกรุกเกินกำลัง"}, {"id": "TRANS_SUB_TURMOIL_SHEPHERD", "nameTh": "ผู้ประคองราษฎร์ยามกลียุค", "icon": "🏮", "el": "WOOD_LIFE", "el2": "LIGHT_YANG", "w": ["FAN", "BRUSH"], "arm": ["ROBE", "HEAVY"], "pSk": "MEDICINE", "sSk": "LEADERSHIP", "stance": "LOTUS_MERCY_STANCE", "mark": "daoMark", "fusion": "KARMIC_PURIFICATION_SMITE", "trigger": "onMeritLotus", "action": "BODHI_KARMA_AEGIS", "buff": "aegisWard", "debuff": "weaken", "stats": {"atk": 16, "matk": 26, "def": 24, "mdef": 27, "hp": 74, "crit": 13, "pen": 17, "eva": 14, "acc": 20}, "descTh": "ยิ่งแผ่นดินตกอยู่ในกลียุค ยิ่งเสริมความอึดและการคุ้มครองสหายได้แข็งแกร่ง"}, {"id": "TRANS_SUB_SECT_CORNERSTONE", "nameTh": "ศิลาฤกษ์สืบสำนัก", "icon": "🏯", "el": "EARTH_METAL", "el2": "WOOD_LIFE", "w": ["SWORD", "BRUSH"], "arm": ["HEAVY"], "pSk": "LEADERSHIP", "sSk": "ARRAY", "stance": "VAJRA_BASTION_STANCE", "mark": "daoMark", "fusion": "SUPERCONDUCT_SHATTER", "trigger": "onRoundStart", "action": "BODHI_KARMA_AEGIS", "buff": "leylineBastion", "debuff": "slow", "stats": {"atk": 21, "matk": 23, "def": 26, "mdef": 25, "hp": 76, "crit": 14, "pen": 19, "eva": 12, "acc": 20}, "descTh": "เป็นหลักยึดมั่นคงให้สำนัก ช่วยประคองขวัญและลดความแตกแยกภายใน"}, {"id": "TRANS_SUB_VEIL_WITNESS", "nameTh": "พยานขอบม่านฟ้า", "icon": "🌌", "el": "ASTRAL", "el2": "WIND", "w": ["ASTROLABE", "FAN"], "arm": ["ROBE", "LIGHT"], "pSk": "SCRIPTURE", "sSk": "ARRAY", "stance": "QIMEN_ARRAY_STANCE", "mark": "starSeal", "fusion": "STARFALL_COLLAPSE", "trigger": "onCast", "action": "IMPERIAL_INK_DECREE", "buff": "clarityLotus", "debuff": "meridianSeal", "stats": {"atk": 18, "matk": 29, "def": 21, "mdef": 26, "hp": 68, "crit": 18, "pen": 22, "eva": 16, "acc": 22}, "descTh": "เฝ้าสังเกตกฎเกณฑ์ขอบม่านฟ้าอย่างถ่อมตน เสริมสติปัญญาและเตรียมความพร้อมสู่ด่านทัณฑ์ฟ้า"}], "lore": {"eraTh": "ยุคที่ 29–34 และยุควัฏจักรผลัดแผ่นดินหลังมหาจักรวรรดิเทียนกู่", "regionId": "CENTRAL_HEARTLAND", "inventorTh": "บัณฑิตสันโดษผู้รอดชีวิตจากการล่มสลายของสามอาณาจักรยุคหลังเทียนกู่", "adapterTh": "อาลักษณ์ราชสำนักและผู้ประคองราษฎร์ที่แปรบทเรียนประวัติศาสตร์เป็นวิถีบำเพ็ญ", "competingAccountsTh": "ราชสำนักบางแห่งเกรงว่าผู้ฝึกวิถีนี้จะแทรกแซงการเมือง แต่บันทึกเดิมย้ำชัดว่าวิถีนี้เป็นเพียงการอ่านกระแสโลกและประคองผู้คนมิใช่การยึดครองบัลลังก์", "discoverySources": ["พงศาวดารสามราชวงศ์", "ศาลากลางเมืองยามกลียุค", "บันทึกอาลักษณ์สันโดษ"]}, "kw": "KW_DAO_MANDATE_THREAD"},
+    {
+      id: 'CORPSE_SOVEREIGN',
+      grade: 'ORDINARY',
+      nameTh: 'วิถีจอมคุมศพ',
+      shortTh: 'คุมศพ',
+      icon: '⚱️',
+      color: '#8d7b68',
+      element: 'YIN_SHADOW',
+      gaugeId: 'BODY_MEMORY',
+      gaugeNameTh: 'ความจำกายของศพ',
+      statWeights: { atk: 1.10, matk: 1.20, def: 1.14, mdef: 1.16 },
+      resourceUsed: 'ศพของผู้ฝึกตนและสัตว์อสูรที่ล้มลงจริงในสมรภูมิ ยันต์ตรึงร่าง ธูปหยินคงร่าง และศาสตราที่ผู้คุมศพสะสมไว้เอง',
+      coreMechanicTh: 'เก็บร่างของผู้ที่ล้มลงต่อหน้าจริงมาตรึงด้วยปราณหยิน ร่างยังจำกระบวนท่าที่เคยฝึกได้บางส่วน สวมศาสตราและเกราะที่ผู้คุมมอบให้ได้จริง ติดตามออกศึกข้ามวันข้ามเดือนจนกว่าร่างจะผุพัง',
+      supremeRiskTh: 'ร่างศพผุพังทุกวัน ต้องสิ้นเปลืองศิลาซื้อธูปคงร่าง หากร่างแหลกในศึกศาสตราที่สวมจะบิ่นเสียหาย และศิษย์ร่วมสำนักบางคนรังเกียจผู้ปลุกศพสหาย',
+      weapons: ['STAFF', 'WHIP', 'BRUSH', 'FOCUS'],
+      armor: ['ROBE', 'LIGHT'],
+      life: { TALISMAN: 0.32, SCRIPTURE: 0.26, CRAFTING: 0.24 },
+      body: { spiritualFoundation: 26, toughness: 24, dexterity: 25 },
+      kw: 'KW_DAO_BODY_MEMORY',
+      lore: {
+        eraTh: 'ยุคที่ 39–44 · ตำนานคณะกระดิ่งทองแดงต้อนศพข้ามขุนเขาเซียงซี',
+        regionId: 'WESTERN_BADLANDS',
+        inventorTh: 'นักพรตต้อนศพชายแดนที่นำศพศิษย์ร่วมทางกลับบ้านเกิดด้วยยันต์หยิน',
+        adapterTh: 'ปรมาจารย์สายหยินที่ดัดแปลงยันต์ตรึงร่างให้ปลุกความจำกายและสวมศาสตราออกศึก',
+        competingAccountsTh: 'สำนักธรรมะมองว่าเป็นการลบหลู่ผู้ล่วงลับ ขณะที่ผู้เฝ้าชายแดนถือว่าเป็นการให้ผู้ล้มลงได้ปกป้องแนวหลังต่อ',
+        discoverySources: ['สมุดยันต์ต้อนศพเซียงซี', 'โลงหยกโบราณ', 'บันทึกศึกชายแดน']
+      },
+      stageNames: [
+        'ขั้นที่ 1 • จุดธูปเรียกร่างให้ลืมตา',
+        'ขั้นที่ 2 • ตอกยันต์หยินตรึงหน้าผาก',
+        'ขั้นที่ 3 • สั่นกระดิ่งทองแดงต้อนศพข้ามเขา',
+        'ขั้นที่ 4 • ปลุกความจำกายในกระดูก',
+        'ขั้นที่ 5 • สวมเกราะให้ผู้ล่วงลับ',
+        'ขั้นที่ 6 • ขบวนศพเดินทัพกลางคืน',
+        'ขั้นที่ 7 • ร่างไร้ใจสืบวิชาเจ้าของเดิม',
+        'ขั้นที่ 8 • จอมคุมศพผู้บัญชาหมื่นร่าง'
+      ],
+      realmTraits: [
+        { stage: 2, id: 'TRAIT_CORPSE_S2_PIN', nameTh: 'ยันต์หยินตรึงร่าง', trigger: 'onStruck', action: 'MASS_ABSORPTION', grantBuff: 'qiBarrierShell', bonusStats: { defPct: 0.12, mdefPct: 0.10 }, descTh: 'ตรึงปราณหยินคุ้มร่างและบริวารศพ ลดความเสียหายที่ได้รับ' },
+        { stage: 4, id: 'TRAIT_CORPSE_S4_MEMORY', nameTh: 'ปลุกความจำกาย', trigger: 'onHit', action: 'TRUE_PIERCE_DMG', applyDebuff: 'armorbreak', bonusStats: { matkPct: 0.12, pen: 12 }, descTh: 'กระตุ้นความทรงจำในกระดูกศพให้ฟาดฟันทะลวงเกราะ' },
+        { stage: 6, id: 'TRAIT_CORPSE_S6_PROCESSION', nameTh: 'ขบวนศพเดินทัพ', trigger: 'onRoundStart', action: 'MASS_ABSORPTION', grantBuff: 'tacticalCommand', bonusStats: { defPct: 0.14, hpPct: 0.10 }, descTh: 'จัดขบวนศพประสานจังหวะรุกและรับร่วมกับผู้คุม' },
+        { stage: 8, id: 'TRAIT_CORPSE_S8_SOVEREIGN', nameTh: 'จอมคุมศพหมื่นร่าง', trigger: 'onKill', action: 'TRUE_PIERCE_DMG', applyDebuff: 'fear', bonusStats: { matkPct: 0.20, atkPct: 0.14, pen: 18 }, descTh: 'ทุกครั้งที่ศัตรูล้มลง ขบวนศพยิ่งกดดันขวัญคู่ต่อสู้ทั้งสนาม' }
+      ],
+      subs: [
+        { id: 'CORPSE_BELL_HERDER', nameTh: 'สายกระดิ่งต้อนศพ', icon: '🔔', el: 'YIN_SHADOW', el2: 'EARTH_METAL', w: ['STAFF', 'WHIP'], arm: ['ROBE'], pSk: 'TALISMAN', sSk: 'STAFF', stance: 'QIMEN_ARRAY_STANCE', mark: 'starSeal', fusion: 'STARFALL_COLLAPSE', trigger: 'onRoundStart', action: 'MASS_ABSORPTION', buff: 'tacticalCommand', debuff: 'slow', stats: { atk: 16, matk: 22, def: 20, mdef: 20, hp: 62, crit: 12, pen: 15, eva: 11, acc: 18 }, descTh: 'สั่นกระดิ่งทองแดงต้อนขบวนศพหลายร่างพร้อมกัน แต่ละร่างอ่อนกว่าปกติแลกกับจำนวนที่มากกว่า' },
+        { id: 'BEAST_CARCASS_RIDER', nameTh: 'สายขี่ซากอสูร', icon: '🦴', el: 'EARTH_METAL', el2: 'YIN_SHADOW', w: ['WHIP', 'SPEAR'], arm: ['LIGHT', 'HEAVY'], pSk: 'BEAST_TAMING', sSk: 'SPEAR', stance: 'BLOOD_ASURA_STANCE', mark: 'bloodBrand', fusion: 'INFERNO_VORTEX', trigger: 'onHit', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'bleed', stats: { atk: 24, matk: 14, def: 21, mdef: 16, hp: 70, crit: 15, pen: 19, eva: 11, acc: 17 }, descTh: 'ถนัดปลุกซากสัตว์อสูรที่ล่าได้จริง ร่างอสูรไร้วิญญาณแข็งแรงกว่าซากมนุษย์ แต่สวมได้เพียงเครื่องประดับผูกคอ' },
+        { id: 'JADE_COFFIN_WARDEN', nameTh: 'สายผู้เฝ้าโลงหยก', icon: '⚰️', el: 'YIN_SHADOW', el2: 'WATER_ICE', w: ['FOCUS', 'BRUSH'], arm: ['ROBE'], pSk: 'SCRIPTURE', sSk: 'TALISMAN', stance: 'VAJRA_BASTION_STANCE', mark: 'daoMark', fusion: 'SUPERCONDUCT_SHATTER', trigger: 'onStruck', action: 'MASS_ABSORPTION', buff: 'qiBarrierShell', debuff: 'chill', stats: { atk: 15, matk: 25, def: 22, mdef: 24, hp: 66, crit: 13, pen: 16, eva: 10, acc: 18 }, descTh: 'เก็บรักษาร่างเพียงร่างเดียวในโลงหยกเย็น ร่างนั้นคงวิชาของเจ้าของเดิมได้มากที่สุดและผุพังช้าที่สุด' },
+        { id: 'ARMORY_OF_THE_DEAD', nameTh: 'สายคลังศาสตราผู้ล่วงลับ', icon: '🗡️', el: 'EARTH_METAL', el2: 'FIRE', w: ['STAFF', 'BRUSH'], arm: ['HEAVY', 'ROBE'], pSk: 'CRAFTING', sSk: 'TALISMAN', stance: 'STAR_SWORD_STANCE', mark: 'starSeal', fusion: 'INFERNO_VORTEX', trigger: 'onHit', action: 'TRUE_PIERCE_DMG', buff: 'fervorMight', debuff: 'armorbreak', stats: { atk: 21, matk: 20, def: 20, mdef: 18, hp: 64, crit: 15, pen: 20, eva: 11, acc: 18 }, descTh: 'จัดสรรศาสตราและเกราะที่สะสมไว้ให้ร่างศพอย่างประณีต อุปกรณ์บนร่างศพจึงแสดงฤทธิ์ได้เต็มกว่าผู้คุมศพสายอื่น' }
+      ]
+    },
+    {
+      id: 'WRAITH_GRIEVANCE',
+      grade: 'ORDINARY',
+      nameTh: 'วิถีวิญญาณแค้น',
+      shortTh: 'วิญญาณแค้น',
+      icon: '👻',
+      color: '#7b8cde',
+      element: 'YIN_SHADOW',
+      gaugeId: 'GRIEVANCE_WEIGHT',
+      gaugeNameTh: 'น้ำหนักความแค้น',
+      statWeights: { atk: 0.98, matk: 1.30, def: 1.02, mdef: 1.26 },
+      resourceUsed: 'ดวงวิญญาณที่ยังค้างคาจากผู้ล้มลงจริงในศึก ทั้งสหายที่ถูกสังหารและศัตรูที่สิ้นใจ พร้อมบันทึกว่าใครคือผู้ลงมือ',
+      coreMechanicTh: 'วิญญาณไม่มีร่างให้สวมศาสตรา ไม่อาจถูกฟันให้ตาย แต่แบกความแค้นต่อผู้ที่สังหารตนไว้ เมื่อพบผู้นั้นหรือพวกพ้องของผู้นั้นในสนามรบ วิญญาณจะตามหลอนทะลุเกราะกายและกัดกินปราณอย่างรุนแรง ครั้นความแค้นจางลงผู้ฝึกต้องเลือกเองว่าจะส่งวิญญาณไปสู่สุคติหรือกลืนกินเป็นตบะ',
+      supremeRiskTh: 'การกลืนวิญญาณเพิ่มจิตมาร การปล่อยวิญญาณทำให้เสียกำลังรบ และวิญญาณที่ศัตรูไม่ใช่ผู้ก่อแค้นให้ผลเพียงเล็กน้อย',
+      weapons: ['ROSARY', 'FAN', 'ZITHER', 'NEEDLE'],
+      armor: ['ROBE'],
+      life: { SCRIPTURE: 0.34, MEDICINE: 0.22, TALISMAN: 0.24 },
+      body: { spiritualFoundation: 28, meridianCapacity: 26, dexterity: 22 },
+      kw: 'KW_DAO_GRIEVANCE_MATCH',
+      lore: {
+        eraTh: 'ยุคที่ 29–34 · หอบัญชีความแค้นหลังศึกนองเลือดหุบเขาหมอก',
+        regionId: 'SOUTHERN_WATERS',
+        inventorTh: 'นักพรตหญิงผู้จดชื่อผู้ก่อเหตุร้ายลงสมุดดำเพื่อทวงความยุติธรรมให้สหาย',
+        adapterTh: 'ผู้ถือประคำและคนทรงที่แยกวิถีส่งวิญญาณออกจากวิถีเลี้ยงผีหิว',
+        competingAccountsTh: 'สายส่งวิญญาณมุ่งปลดปล่อยหนี้แค้นสู่สุคติ ส่วนสายสมุดดำและผีหิวมุ่งทวงแค้นหรือกลืนกินตบะ',
+        discoverySources: ['สมุดบัญชีดำริมแม่น้ำ', 'ป้ายวิญญาณไร้ชื่อ', 'บันทึกคนทรงคำสั่งเสีย']
+      },
+      stageNames: [
+        'ขั้นที่ 1 • ได้ยินเสียงร่ำไห้ในลมหนาว',
+        'ขั้นที่ 2 • เปิดหอวิญญาณในทะเลจิต',
+        'ขั้นที่ 3 • จดชื่อผู้ก่อแค้นลงสมุดดำ',
+        'ขั้นที่ 4 • ปล่อยวิญญาณตามหลอนศัตรู',
+        'ขั้นที่ 5 • ชั่งน้ำหนักความแค้นด้วยใจ',
+        'ขั้นที่ 6 • ส่งวิญญาณข้ามสะพานลืมเลือน',
+        'ขั้นที่ 7 • ขบวนวิญญาณร่ำไห้ทวงหนี้เลือด',
+        'ขั้นที่ 8 • ผู้ถือบัญชีความแค้นแห่งยุทธภพ'
+      ],
+      realmTraits: [
+        { stage: 2, id: 'TRAIT_WRAITH_S2_LEECH', nameTh: 'เสียงครวญสูบปราณ', trigger: 'onHit', action: 'GU_SOUL_LEECH', applyDebuff: 'guLeech', bonusStats: { matkPct: 0.12, acc: 10 }, descTh: 'วิญญาณค้างคาแทรกซึมกัดกินปราณของเป้าหมาย' },
+        { stage: 4, id: 'TRAIT_WRAITH_S4_SEAL', nameTh: 'สมุดดำสะกดชีพจร', trigger: 'onCast', action: 'MERIDIAN_SEAL', applyDebuff: 'meridianSeal', bonusStats: { mdefPct: 0.12, pen: 12 }, descTh: 'ชี้ตัวผู้ก่อแค้นและปิดกั้นการโคจรปราณชั่วคราว' },
+        { stage: 6, id: 'TRAIT_WRAITH_S6_CLARITY', nameTh: 'จิตนิ่งกลางเสียงร่ำไห้', trigger: 'onStruck', action: 'SONIC_TEMPO_BREAK', grantBuff: 'clarityLotus', bonusStats: { mdefPct: 0.16, eva: 10 }, descTh: 'ประคองทะเลจิตไม่ให้หวั่นไหวแม้รายล้อมด้วยความแค้น' },
+        { stage: 8, id: 'TRAIT_WRAITH_S8_LEDGER', nameTh: 'ทวงหนี้เลือดพันวิญญาณ', trigger: 'onCrit', action: 'TRUE_PIERCE_DMG', applyDebuff: 'silence', bonusStats: { matkPct: 0.22, pen: 18, crit: 12 }, descTh: 'วิญญาณแค้นประสานเสียงปิดกั้นวิชาของศัตรู' }
+      ],
+      subs: [
+        { id: 'GRIEVANCE_LEDGER_KEEPER', nameTh: 'สายสมุดบัญชีแค้น', icon: '📓', el: 'YIN_SHADOW', el2: 'ASTRAL', w: ['FAN', 'NEEDLE'], arm: ['ROBE'], pSk: 'SCRIPTURE', sSk: 'TALISMAN', stance: 'QIMEN_ARRAY_STANCE', mark: 'daoMark', fusion: 'STARFALL_COLLAPSE', trigger: 'onHit', action: 'TRUE_PIERCE_DMG', buff: 'literatiDecree', debuff: 'exposed', stats: { atk: 13, matk: 27, def: 15, mdef: 22, hp: 58, crit: 16, pen: 22, eva: 13, acc: 20 }, descTh: 'จดจำชื่อและตระกูลของผู้ก่อแค้นทุกรายอย่างละเอียด เมื่อพบตัวผู้ลงมือหรือพวกพ้อง วิญญาณจะทวงหนี้รุนแรงกว่าสายอื่น' },
+        { id: 'HUNGRY_GHOST_STEWARD', nameTh: 'สายผู้เลี้ยงผีหิว', icon: '🕯️', el: 'YIN_SHADOW', el2: 'BLOOD_DEMON', w: ['ROSARY', 'NEEDLE'], arm: ['ROBE'], pSk: 'SCRIPTURE', sSk: 'POISON', stance: 'BLOOD_ASURA_STANCE', mark: 'bloodBrand', fusion: 'INFERNO_VORTEX', trigger: 'onKill', action: 'GU_SOUL_LEECH', buff: 'fervorMight', debuff: 'guLeech', stats: { atk: 16, matk: 26, def: 14, mdef: 18, hp: 56, crit: 18, pen: 21, eva: 13, acc: 18 }, descTh: 'เลี้ยงดูวิญญาณหิวโหยด้วยเครื่องเซ่น ครั้นถึงเวลากลับเลือกกลืนกินวิญญาณเป็นตบะมากกว่าส่งไปสุคติ แลกกับจิตมารที่หนักขึ้น' },
+        { id: 'LAST_WISH_MEDIUM', nameTh: 'สายร่างทรงคำสั่งเสีย', icon: '🪷', el: 'WATER_ICE', el2: 'LIGHT_YANG', w: ['ROSARY', 'ZITHER'], arm: ['ROBE'], pSk: 'MEDICINE', sSk: 'SCRIPTURE', stance: 'LOTUS_MERCY_STANCE', mark: 'daoMark', fusion: 'KARMIC_PURIFICATION_SMITE', trigger: 'onCast', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'weaken', stats: { atk: 12, matk: 23, def: 18, mdef: 25, hp: 66, crit: 12, pen: 15, eva: 14, acc: 19 }, descTh: 'รับฟังคำสั่งเสียของผู้ล่วงลับแล้วส่งวิญญาณไปสู่สุคติ การปล่อยวิญญาณแต่ละครั้งชำระจิตมารและหนุนขวัญสำนักมากกว่าสายอื่น' },
+        { id: 'WAILING_CHORUS', nameTh: 'สายคณะวิญญาณร่ำไห้', icon: '🎐', el: 'YIN_SHADOW', el2: 'WIND', w: ['ZITHER', 'FAN'], arm: ['ROBE'], pSk: 'SCRIPTURE', sSk: 'ZITHER', stance: 'SHADOW_REAPER_STANCE', mark: 'starSeal', fusion: 'SUPERCONDUCT_SHATTER', trigger: 'onHit', action: 'SONIC_TEMPO_BREAK', buff: 'windStride', debuff: 'fear', stats: { atk: 14, matk: 25, def: 15, mdef: 20, hp: 58, crit: 15, pen: 18, eva: 15, acc: 19 }, descTh: 'ปล่อยวิญญาณหลายดวงร่ำไห้พร้อมกัน หลอนศัตรูได้หลายรายในคราวเดียวแต่แต่ละรายเบาลง' }
+      ]
+    },
+    {
+      id: 'DEATHLESS_CADAVER',
+      grade: 'ORDINARY',
+      nameTh: 'วิถีกายไร้ชีพ',
+      shortTh: 'กายไร้ชีพ',
+      icon: '🩻',
+      color: '#9c6644',
+      element: 'BLOOD_DEMON',
+      gaugeId: 'NECROSIS',
+      gaugeNameTh: 'ไอมรณะแทรกกาย',
+      statWeights: { atk: 1.24, matk: 0.96, def: 1.22, mdef: 1.04 },
+      resourceUsed: 'อายุขัยของผู้ฝึกเอง ไอมรณะจากบาดแผลปางตาย และพิษเย็นที่ซึมเข้าไขกระดูก',
+      coreMechanicTh: 'ไม่ปลุกศพผู้อื่นและไม่กักวิญญาณ แต่ค่อยๆ เปลี่ยนร่างของตนให้เป็นศพที่ยังเดินได้ เมื่อถูกโจมตีถึงตายร่างจะลุกขึ้นสู้ต่ออีกชั่วครู่โดยแลกด้วยอายุขัยจริง พิษและไอเน่าบางชนิดกลับหล่อเลี้ยงร่าง และความแก่ชราเดินช้าลง',
+      supremeRiskTh: 'ทุกครั้งที่ฝืนลุกขึ้นจากความตายจะเผาอายุขัยถาวรและเพิ่มจิตมาร ร่างไร้ชีพยังตายได้เมื่อฝืนเกินขีด',
+      weapons: ['FIST', 'CLAW', 'BLADE', 'SPEAR'],
+      armor: ['HEAVY', 'LIGHT'],
+      life: { BODY_REFINING: 0.36, MEDICINE: 0.22, POISON: 0.22 },
+      body: { toughness: 28, strength: 26, vitality: 24 },
+      kw: 'KW_DAO_LIFE_INVERSION',
+      lore: {
+        eraTh: 'ยุคที่ 11–14 · บันทึกหมอพิษและนักพรตผู้กลั้นหายใจผ่านภัยหนาวเจ็ดปี',
+        regionId: 'NORTHERN_PEAKS',
+        inventorTh: 'ผู้รอดชีวิตจากสุสานน้ำแข็งที่ชะลอชีพจรจนรอดพ้นความตาย',
+        adapterTh: 'จอมยุทธ์สายหลอมกายที่ผสานพิษเย็นเข้ากับไขกระดูกจนฝืนความตายในสนามรบ',
+        competingAccountsTh: 'สำนักแพทย์ถือว่าเป็นโรคชีพจรกลับขั้ว แต่ผู้ฝึกสายนี้มองว่าเป็นการปลดพันธนาการของสังขาร',
+        discoverySources: ['บันทึกสุสานน้ำแข็ง', 'ตำราชีพจรกลับขั้ว', 'ร่องรอยบาดแผลปางตาย']
+      },
+      stageNames: [
+        'ขั้นที่ 1 • กลั้นลมหายใจจนชีพจรเย็น',
+        'ขั้นที่ 2 • ไขกระดูกรับไอมรณะ',
+        'ขั้นที่ 3 • เลือดหยุดไหลแต่กายยังเดิน',
+        'ขั้นที่ 4 • พิษเย็นกลายเป็นน้ำเลี้ยง',
+        'ขั้นที่ 5 • หัวใจเต้นเพียงวันละครั้ง',
+        'ขั้นที่ 6 • ลุกจากความตายด้วยใจดื้อดึง',
+        'ขั้นที่ 7 • กายเน่าไม่ผุร้อยปี',
+        'ขั้นที่ 8 • อมตะไร้ชีพผู้เย้ยยมทูต'
+      ],
+      realmTraits: [
+        { stage: 2, id: 'TRAIT_CADAVER_S2_FRAME', nameTh: 'โครงกระดูกฝืนตาย', trigger: 'onStruck', action: 'MASS_ABSORPTION', grantBuff: 'aegisWard', bonusStats: { defPct: 0.12, hpPct: 0.10 }, descTh: 'แข็งขืนต่อแรงปะทะแม้บาดเจ็บสาหัส' },
+        { stage: 4, id: 'TRAIT_CADAVER_S4_ROT', nameTh: 'ไอพิษแทรกกรงเล็บ', trigger: 'onHit', action: 'DEVOUR_ESSENCE_BITE', applyDebuff: 'poison', bonusStats: { atkPct: 0.12, pen: 12 }, descTh: 'ฝากไอเน่าและพิษเย็นไว้ในบาดแผลของคู่ต่อสู้' },
+        { stage: 6, id: 'TRAIT_CADAVER_S6_STILL', nameTh: 'ชีพจรหยุดนิ่ง', trigger: 'onStruck', action: 'MASS_ABSORPTION', grantBuff: 'leylineBastion', bonusStats: { defPct: 0.16, mdefPct: 0.12 }, descTh: 'ชะลอการไหลของโลหิต ลดความเสียหายต่อเนื่อง' },
+        { stage: 8, id: 'TRAIT_CADAVER_S8_REVENANT', nameTh: 'กายไร้ชีพเย้ยยมทูต', trigger: 'onKill', action: 'DEVOUR_ESSENCE_BITE', applyDebuff: 'fear', bonusStats: { atkPct: 0.22, critDmg: 20, pen: 16 }, descTh: 'ร่างที่ล้มไม่ลงสร้างความหวาดกลัวแก่ศัตรูทั้งสมรภูมิ' }
+      ],
+      subs: [
+        { id: 'UNDYING_FRAME', nameTh: 'สายกายไม่ล้ม', icon: '🛡️', el: 'EARTH_METAL', el2: 'BLOOD_DEMON', w: ['FIST', 'SPEAR'], arm: ['HEAVY'], pSk: 'BODY_REFINING', sSk: 'SPEAR', stance: 'VAJRA_BASTION_STANCE', mark: 'bloodBrand', fusion: 'INFERNO_VORTEX', trigger: 'onStruck', action: 'MASS_ABSORPTION', buff: 'leylineBastion', debuff: 'weaken', stats: { atk: 22, matk: 10, def: 26, mdef: 18, hp: 78, crit: 12, pen: 16, eva: 8, acc: 16 }, descTh: 'ฝึกร่างให้ทนทานยิ่งกว่าศพทั่วไป เมื่อลุกขึ้นจากความตายจะยืนหยัดได้นานกว่าสายอื่น' },
+        { id: 'ROT_BLOOM_HOST', nameTh: 'สายร่างเพาะบุปผาเน่า', icon: '🍄', el: 'WOOD_LIFE', el2: 'BLOOD_DEMON', w: ['CLAW', 'FIST'], arm: ['LIGHT'], pSk: 'POISON', sSk: 'FIST_PALM', stance: 'SHADOW_REAPER_STANCE', mark: 'venomSeed', fusion: 'INFERNO_VORTEX', trigger: 'onHit', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'poison', stats: { atk: 24, matk: 14, def: 18, mdef: 16, hp: 66, crit: 16, pen: 20, eva: 12, acc: 17 }, descTh: 'ปล่อยให้ไอเน่าในกายผลิบานเป็นเห็ดราพิษ ทุกการโจมตีฝากไอเน่ากลืนชีพไว้บนร่างศัตรู' },
+        { id: 'MARROW_STILLNESS_SAGE', nameTh: 'สายไขกระดูกนิ่งงัน', icon: '🧊', el: 'WATER_ICE', el2: 'YIN_SHADOW', w: ['SPEAR', 'BLADE'], arm: ['LIGHT', 'HEAVY'], pSk: 'MEDICINE', sSk: 'BODY_REFINING', stance: 'LOTUS_MERCY_STANCE', mark: 'daoMark', fusion: 'SUPERCONDUCT_SHATTER', trigger: 'onRoundStart', action: 'BODHI_KARMA_AEGIS', buff: 'clarityLotus', debuff: 'chill', stats: { atk: 18, matk: 18, def: 22, mdef: 22, hp: 70, crit: 11, pen: 14, eva: 10, acc: 17 }, descTh: 'หยุดความเปลี่ยนแปลงในไขกระดูกจนความแก่ชราเดินช้ามาก ได้อายุขัยยืนยาวกว่าสายอื่นแต่ไม่ดุดันในศึก' },
+        { id: 'COLD_PULSE_REVENANT', nameTh: 'สายผีดิบชีพจรเย็น', icon: '🧟', el: 'BLOOD_DEMON', el2: 'YIN_SHADOW', w: ['BLADE', 'CLAW'], arm: ['HEAVY', 'LIGHT'], pSk: 'BODY_REFINING', sSk: 'BLADE', stance: 'BLOOD_ASURA_STANCE', mark: 'bloodBrand', fusion: 'INFERNO_VORTEX', trigger: 'onHit', action: 'TRUE_PIERCE_DMG', buff: 'atavismFrenzy', debuff: 'bleed', stats: { atk: 25, matk: 12, def: 22, mdef: 15, hp: 72, crit: 15, pen: 19, eva: 10, acc: 17 }, descTh: 'ชีพจรกลับขั้วจนพิษและไอเน่าที่ควรกัดกินกลับหล่อเลี้ยงร่าง ยิ่งถูกวางพิษยิ่งฟื้นตัว' }
+      ]
     }
   ];
 
@@ -50755,6 +51001,10 @@ JD.ITEMS.items.forEach(it => {
       realmTraits: pSpec.realmTraits.slice(),
       stages,
       subPaths: [],
+      grade: pSpec.grade || 'ORDINARY',
+      originType: pSpec.originType || 'LOCAL_LOWER_HISTORY',
+      lore: pSpec.lore || null,
+      signatureKw: pSpec.kw || null,
       v200: true
     };
 
@@ -50859,7 +51109,7 @@ JD.ITEMS.items.forEach(it => {
         icon: sp.icon,
         resourceTh: pSpec.resourceUsed,
         strengthTh: sp.descTh,
-        weaknessTh: 'ต้องควบคุมเกจประจำวิถี (' + pSpec.gaugeNameTh + ') และอาวุธประจำสายให้สอดคล้องกัน',
+        weaknessTh: 'ต้องรักษาสมดุลตบะของ「' + sp.nameTh + '」และหนุนเนื่อง' + pSpec.gaugeNameTh + 'ไม่ให้ขาดช่วง มิฉะนั้นจังหวะกระบวนท่าจะเปิดช่องว่าง',
         combatBonus: +(0.96 + Math.max(0.05, Math.min(0.32, offScale * 0.25))).toFixed(2),
         defenseBonus: +(0.93 + Math.max(0.02, Math.min(0.34, defScale * 0.25))).toFixed(2),
         breakthroughMod: 1.04,
@@ -50876,6 +51126,8 @@ JD.ITEMS.items.forEach(it => {
         signatureBuff: sp.buff,
         signatureDebuff: sp.debuff,
         descTh: sp.descTh,
+        grade: pSpec.grade || 'ORDINARY',
+        signatureKw: pSpec.kw || null,
         v200: true
       };
 
@@ -51290,7 +51542,8 @@ JD.ITEMS.items.forEach(it => {
     D.v200Techniques.push(baseTech);
 
     // 2 Passive Grand Dao Techniques per new path
-    for (let k = 0; k < 2; k++) {
+    const _pasMax = (pSpec.grade === 'LEGENDARY' || pSpec.grade === 'TRANSCENDENT') ? 4 : 2;
+    for (let k = 0; k < _pasMax; k++) {
       const pasId = 'TECH_V200_' + pSpec.id + '_PAS_0' + (k + 1);
       const sp = pSpec.subs[k];
       const tier = k === 0 ? 3 : 5;
@@ -51674,19 +51927,51 @@ JD.ITEMS.items.forEach(it => {
     v200Recipes.push({
       id: procRecId,
       nameTh: 'แม่พิมพ์หลอม · ' + ws.nameTh + 'แปรผัน',
+      outNameTh: ws.nameTh + 'หลอมปราณ',
       outItemId: procItemId,
       out: 'EQUIPMENT',
+      outType: 'EQUIPMENT',
+      craft: 'FORGING',
       slot: 'WEAPON',
       gearType: ws.type,
+      proceduralOut: true,
       proceduralSlot: 'WEAPON',
       proceduralGearType: ws.type,
-      tier: 3,
+      tier: 1,
+      minStage: 1,
+      minMastery: 12,
+      facilityLevel: 1,
+      compatiblePath: 'ANY',
       station: 'FORGE',
       procedural: true,
       element: ws.el,
       inputs: [
         { matId: procMatOre, count: 2 },
         { matId: procMatShard, count: 1 }
+      ],
+      slotOptions: [
+        {
+          slotIndex: 0,
+          role: 'core',
+          nameTh: 'แร่โครงสร้างหลัก (กำหนดเพดานขั้น T1–T4 และฐานคุณภาพ)',
+          options: [
+            { matId: 'MAT_ORE_BLACK_IRON_1', count: 2, tierCap: 2, tierShift: 0.0, qShift: 0.00, elementBias: 'EARTH_METAL' },
+            { matId: 'MAT_ORE_COLD_STEEL_2', count: 2, tierCap: 3, tierShift: 0.7, qShift: 0.05, elementBias: 'WATER_ICE' },
+            { matId: 'MAT_ORE_STAR_COPPER_3', count: 2, tierCap: 4, tierShift: 1.4, qShift: 0.10, elementBias: 'ASTRAL' },
+            { matId: 'MAT_ORE_VOID_SILVER_4', count: 2, tierCap: 4, tierShift: 2.2, qShift: 0.16, elementBias: 'ASTRAL' }
+          ]
+        },
+        {
+          slotIndex: 1,
+          role: 'secondary',
+          nameTh: 'แก่นอสูร/ผลึกธาตุเสริม (กำหนดธาตุแฝงและโอกาสสุ่มออปชั่น)',
+          options: [
+            { matId: 'MAT_BP_WOLF_FANG_1', count: 1, qShift: 0.02, affixShift: 0.10, elementBias: 'WIND', statBias: 'atk' },
+            { matId: 'MAT_BP_SERPENT_GALL_2', count: 1, qShift: 0.06, affixShift: 0.22, elementBias: 'YIN_SHADOW', statBias: 'pen' },
+            { matId: 'MAT_V234_005', count: 1, qShift: 0.12, affixShift: 0.40, elementBias: ws.el, statBias: 'matk' },
+            { matId: 'MAT_BP_EARTH_CORE_4', count: 1, qShift: 0.20, affixShift: 0.60, elementBias: 'EARTH_METAL', statBias: 'def' }
+          ]
+        }
       ],
       discoverable: true,
       obtainSources: ['SECT_WORKSHOP'],
@@ -51724,7 +52009,7 @@ JD.ITEMS.items.forEach(it => {
         'PAGODA_TRIAL:' + pid,
         'ANCIENT_RUIN_EXPEDITION'
       ],
-      sourceInfoTh: 'พ่อค้าคาราวานแดนไกล · บรรณาการสำนักบริวาร · รางวัลชนะศึกสำนัก · หอเจดีย์ 27 วิถี · โบราณสถานแดนลับ',
+      sourceInfoTh: 'พ่อค้าคาราวานแดนไกล · บรรณาการสำนักบริวาร · รางวัลชนะศึกสำนัก · มหาเจดีย์ 43 วิถี · โบราณสถานแดนลับ',
       descTh: 'มหาคัมภีร์รากฐานฉบับสมบูรณ์ของ「' + pObj.nameTh + '」เมื่อบริจาคเข้าหอคัมภีร์วิถีสำนัก จะปลดล็อกให้ศิษย์และปุถุชนในสำนักศึกษาวิถีนี้ได้เป็นการถาวร',
       v200: true
     };
@@ -51772,23 +52057,23 @@ JD.ITEMS.items.forEach(it => {
   // ============================================================================
 
   const V230_MATERIALS = [
-    { id: 'MAT_V230_001', nameTh: 'แร่เหล็กทามาฮากาเนะพันทบ', icon: '🪨', tier: 3, cat: 'ORE', el: 'EARTH_METAL', price: 95, station: 'FORGE', mods: { tierShift: 0.35, qShift: 0.08, elementBiases: ['EARTH_METAL', 'WIND'] }, sources: ['WILD_GATHER:mountain', 'EXPEDITION_LOOT', 'CARAVAN_MERCHANT'] },
-    { id: 'MAT_V230_002', nameTh: 'โลหะจักระเงาเร้นคุโรอิ', icon: '🌑', tier: 3, cat: 'ORE', el: 'DARK_YIN', price: 100, station: 'FORGE', mods: { tierShift: 0.35, qShift: 0.09, elementBiases: ['DARK_YIN', 'LIGHTNING'] }, sources: ['WILD_GATHER:cave', 'EXPEDITION_LOOT', 'CARAVAN_MERCHANT'] },
-    { id: 'MAT_V230_003', nameTh: 'ชาดอาคมขอมโบราณพันปี', icon: '🩸', tier: 4, cat: 'TALISMAN_MAT', el: 'FIRE', price: 145, station: 'TALISMAN', mods: { tierShift: 0.45, qShift: 0.10, elementBiases: ['FIRE', 'EARTH_METAL'] }, sources: ['ANCIENT_RUIN_EXPEDITION', 'CARAVAN_MERCHANT', 'PAGODA_TRIAL:OCCULT_MAGE'] },
+    { id: 'MAT_V230_001', nameTh: 'แร่เหล็กพับพันทบเงาบูรพา', icon: '🪨', tier: 3, cat: 'ORE', el: 'EARTH_METAL', price: 95, station: 'FORGE', mods: { tierShift: 0.35, qShift: 0.08, elementBiases: ['EARTH_METAL', 'WIND'] }, sources: ['WILD_GATHER:mountain', 'EXPEDITION_LOOT', 'CARAVAN_MERCHANT'] },
+    { id: 'MAT_V230_002', nameTh: 'โลหะทมิฬดูดกลืนเงาเร้นลับ', icon: '🌑', tier: 3, cat: 'ORE', el: 'DARK_YIN', price: 100, station: 'FORGE', mods: { tierShift: 0.35, qShift: 0.09, elementBiases: ['DARK_YIN', 'LIGHTNING'] }, sources: ['WILD_GATHER:cave', 'EXPEDITION_LOOT', 'CARAVAN_MERCHANT'] },
+    { id: 'MAT_V230_003', nameTh: 'ชาดอาถรรพ์บึงทมิฬโบราณ', icon: '🩸', tier: 4, cat: 'TALISMAN_MAT', el: 'FIRE', price: 145, station: 'TALISMAN', mods: { tierShift: 0.45, qShift: 0.10, elementBiases: ['FIRE', 'EARTH_METAL'] }, sources: ['ANCIENT_RUIN_EXPEDITION', 'CARAVAN_MERCHANT', 'PAGODA_TRIAL:OCCULT_MAGE'] },
     { id: 'MAT_V230_004', nameTh: 'เถ้ากระดูกบรรพชนสุสานมรณะ', icon: '🦴', tier: 4, cat: 'CATALYST', el: 'DARK_YIN', price: 150, station: 'FORGE', mods: { tierShift: 0.45, qShift: 0.10, elementBiases: ['DARK_YIN', 'BLOOD_DEMON'] }, sources: ['ANCIENT_RUIN_EXPEDITION', 'PAGODA_TRIAL:NETHER_GRAVE', 'SECT_GRAVEYARD_RITE'] },
     { id: 'MAT_V230_005', nameTh: 'หัวใจอสูรกลายพันธุ์บรรพกาล', icon: '🫀', tier: 5, cat: 'BEAST_PART', el: 'BLOOD_DEMON', price: 240, station: 'ALCHEMY', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['BLOOD_DEMON', 'FIRE'] }, sources: ['BEAST_HUNT:apex', 'EXPEDITION_LOOT', 'PAGODA_TRIAL:DEVOURING_FLESH'] },
-    { id: 'MAT_V230_006', nameTh: 'ทองคำเทวโลกสุวรรณภูมิ', icon: '✨', tier: 6, cat: 'ORE', el: 'LIGHT_YANG', price: 380, station: 'FORGE', mods: { tierShift: 0.80, qShift: 0.15, elementBiases: ['LIGHT_YANG', 'ASTRAL'] }, sources: ['HIGHER_REALM_SHRINE', 'PAGODA_TRIAL:DIVINE_SUMMONER', 'CARAVAN_RARE_MERCHANT'] },
+    { id: 'MAT_V230_006', nameTh: 'ทองคำเทวโลกป่าหิมพานต์', icon: '✨', tier: 6, cat: 'ORE', el: 'LIGHT_YANG', price: 380, station: 'FORGE', mods: { tierShift: 0.80, qShift: 0.15, elementBiases: ['LIGHT_YANG', 'ASTRAL'] }, sources: ['HIGHER_REALM_SHRINE', 'PAGODA_TRIAL:DIVINE_SUMMONER', 'CARAVAN_RARE_MERCHANT'] },
     { id: 'MAT_V230_007', nameTh: 'หยาดทิพย์หิมพานต์นิรันดร์', icon: '💧', tier: 6, cat: 'HERB', el: 'WOOD_LIFE', price: 390, station: 'ALCHEMY', mods: { tierShift: 0.80, qShift: 0.15, elementBiases: ['WOOD_LIFE', 'WATER_ICE'] }, sources: ['HIGHER_REALM_SHRINE', 'PAGODA_TRIAL:SPIRIT_HUSBANDRY', 'MYRIAD_WORLD:spiritforest'] },
     { id: 'MAT_V230_008', nameTh: 'ผลึกสุญตานอกมิติบิดเบี้ยว', icon: '🔮', tier: 7, cat: 'ARTIFACT_MAT', el: 'ASTRAL', price: 620, station: 'FORGE', mods: { tierShift: 1.0, qShift: 0.18, elementBiases: ['ASTRAL', 'DARK_YIN'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:VOID_HERETIC_PACT', 'APEX_DAO_TRIAL'] },
     { id: 'MAT_V230_009', nameTh: 'ไม้โพธิ์ทองคำพันปี', icon: '🌳', tier: 5, cat: 'HERB', el: 'LIGHT_YANG', price: 250, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['LIGHT_YANG', 'WOOD_LIFE'] }, sources: ['WILD_GATHER:forest', 'PAGODA_TRIAL:BUDDHA_DHARMA', 'CARAVAN_MERCHANT'] },
     { id: 'MAT_V230_010', nameTh: 'เขี้ยวราชันพยัคฆ์โลหิต', icon: '🦷', tier: 5, cat: 'BEAST_PART', el: 'BLOOD_DEMON', price: 255, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['BLOOD_DEMON', 'EARTH_METAL'] }, sources: ['BEAST_HUNT:tiger', 'PAGODA_TRIAL:PRIMORDIAL_SHIFTER', 'EXPEDITION_LOOT'] },
     { id: 'MAT_V230_011', nameTh: 'ไหมพิษแมงมุมแม่ม่ายสวรรค์', icon: '🕸️', tier: 5, cat: 'BEAST_PART', el: 'WOOD_LIFE', price: 260, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['WOOD_LIFE', 'DARK_YIN'] }, sources: ['BEAST_HUNT:venom', 'PAGODA_TRIAL:VENOM_GU', 'EXPEDITION_LOOT'] },
-    { id: 'MAT_V230_012', nameTh: 'ขนนกการเวก वายุสวรรค์', icon: '🪶', tier: 5, cat: 'BEAST_PART', el: 'WIND', price: 265, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['WIND', 'LIGHTNING'] }, sources: ['BEAST_HUNT:sky', 'PAGODA_TRIAL:CELESTIAL_WEATHER', 'EXPEDITION_LOOT'] },
+    { id: 'MAT_V230_012', nameTh: 'ขนนกการเวกวายุสวรรค์', icon: '🪶', tier: 5, cat: 'BEAST_PART', el: 'WIND', price: 265, station: 'FORGE', mods: { tierShift: 0.60, qShift: 0.12, elementBiases: ['WIND', 'LIGHTNING'] }, sources: ['BEAST_HUNT:sky', 'PAGODA_TRIAL:CELESTIAL_WEATHER', 'EXPEDITION_LOOT'] },
     { id: 'MAT_V230_013', nameTh: 'หยกดาราจักรหลัวผานโบราณ', icon: '🧭', tier: 6, cat: 'ARTIFACT_MAT', el: 'ASTRAL', price: 410, station: 'ARRAY', mods: { tierShift: 0.85, qShift: 0.15, elementBiases: ['ASTRAL', 'EARTH_METAL'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:ASTRO_DIVINATION', 'ANCIENT_RUIN_EXPEDITION'] },
     { id: 'MAT_V230_014', nameTh: 'ไข่มุกทองคำคำนวณชะตา', icon: '🟡', tier: 6, cat: 'ARTIFACT_MAT', el: 'EARTH_METAL', price: 415, station: 'FORGE', mods: { tierShift: 0.85, qShift: 0.15, elementBiases: ['EARTH_METAL', 'LIGHT_YANG'] }, sources: ['CARAVAN_RARE_MERCHANT', 'PAGODA_TRIAL:MERCANTILE_DAO', 'SECT_TREASURY_AUCTION'] },
     { id: 'MAT_V230_015', nameTh: 'ศิลาแรงโน้มถ่วงดารายุบตัว', icon: '☄️', tier: 6, cat: 'ORE', el: 'EARTH_METAL', price: 420, station: 'FORGE', mods: { tierShift: 0.85, qShift: 0.16, elementBiases: ['EARTH_METAL', 'ASTRAL'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:GRAVITY_DAO', 'EXPEDITION_LOOT'] },
     { id: 'MAT_V230_016', nameTh: 'ทรายกาลเวลาบรรพกาล', icon: '⏳', tier: 7, cat: 'CATALYST', el: 'ASTRAL', price: 640, station: 'ARRAY', mods: { tierShift: 1.0, qShift: 0.18, elementBiases: ['ASTRAL', 'WATER_ICE'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:CHRONO_EPOCH', 'APEX_DAO_TRIAL'] },
-    { id: 'MAT_V230_017', nameTh: 'หมึกสวรรค์ปราชญ์ขงจื๊อ', icon: '🖋️', tier: 5, cat: 'TALISMAN_MAT', el: 'LIGHT_YANG', price: 270, station: 'TALISMAN', mods: { tierShift: 0.65, qShift: 0.12, elementBiases: ['LIGHT_YANG', 'WIND'] }, sources: ['PAGODA_TRIAL:INK_LITERATI', 'PAGODA_TRIAL:LORE_ARCHIVIST', 'CARAVAN_MERCHANT'] },
+    { id: 'MAT_V230_017', nameTh: 'หมึกสวรรค์มหาปราชญ์บรรพกาล', icon: '🖋️', tier: 5, cat: 'TALISMAN_MAT', el: 'LIGHT_YANG', price: 270, station: 'TALISMAN', mods: { tierShift: 0.65, qShift: 0.12, elementBiases: ['LIGHT_YANG', 'WIND'] }, sources: ['PAGODA_TRIAL:INK_LITERATI', 'PAGODA_TRIAL:LORE_ARCHIVIST', 'CARAVAN_MERCHANT'] },
     { id: 'MAT_V230_018', nameTh: 'ด้ายวิญญาณเชิดหุ่นพันปี', icon: '🧵', tier: 5, cat: 'ARTIFACT_MAT', el: 'DARK_YIN', price: 275, station: 'FORGE', mods: { tierShift: 0.65, qShift: 0.12, elementBiases: ['DARK_YIN', 'ASTRAL'] }, sources: ['PAGODA_TRIAL:SOUL_PUPPETRY', 'ANCIENT_RUIN_EXPEDITION', 'EXPEDITION_LOOT'] },
     { id: 'MAT_V230_019', nameTh: 'แก่นปราณโกลาหลหุ่นตุ้น', icon: '🌀', tier: 7, cat: 'CATALYST', el: 'ASTRAL', price: 680, station: 'ALCHEMY', mods: { tierShift: 1.0, qShift: 0.20, elementBiases: ['ASTRAL', 'FIRE', 'WATER_ICE'] }, sources: ['MYRIAD_WORLD:astralvoid', 'PAGODA_TRIAL:PRIMORDIAL_CHAOS', 'APEX_DAO_TRIAL'] },
     { id: 'MAT_V230_020', nameTh: 'ปะการังสมุทรดาราเจ็ดคาบสมุทร', icon: '🪸', tier: 4, cat: 'HERB', el: 'WATER_ICE', price: 160, station: 'ALCHEMY', mods: { tierShift: 0.45, qShift: 0.10, elementBiases: ['WATER_ICE', 'WIND'] }, sources: ['WILD_GATHER:river', 'PAGODA_TRIAL:TIDE_VOYAGER', 'EXPEDITION_LOOT'] },
@@ -51834,9 +52119,9 @@ JD.ITEMS.items.forEach(it => {
       { tier: 7, nameTh: 'มหาประคำจักรวาลพระไวโรจนะ', path: 'BUDDHA_DHARMA', mat1: 'MAT_V230_006', mat2: 'MAT_V230_019', legendary: true }
     ],
     CLAW: [
-      { tier: 2, nameTh: 'กรงเล็บเหล็กดำคุโระนินจา', path: 'NINPO_SHADOW', mat1: 'MAT_V230_002', mat2: 'MAT_V234_002' },
+      { tier: 2, nameTh: 'กรงเล็บเหล็กดำทมิฬเร้นเงา', path: 'NINPO_SHADOW', mat1: 'MAT_V230_002', mat2: 'MAT_V234_002' },
       { tier: 3, nameTh: 'กรงเล็บกระดูกผีดิบดูดเลือด', path: 'DEVOURING_FLESH', mat1: 'MAT_V230_004', mat2: 'MAT_V230_005' },
-      { tier: 4, nameTh: 'กรงเล็บพยัคฆ์สมิงอาคมขอม', path: 'OCCULT_MAGE', mat1: 'MAT_V230_003', mat2: 'MAT_V230_010' },
+      { tier: 4, nameTh: 'กรงเล็บพยัคฆ์สมิงไสยเวทย์บรรพกาลบึงทมิฬทักษิณ', path: 'OCCULT_MAGE', mat1: 'MAT_V230_003', mat2: 'MAT_V230_010' },
       { tier: 5, nameTh: 'กรงเล็บราชันอสูรฉีกวิญญาณ', path: 'PRIMORDIAL_SHIFTER', mat1: 'MAT_V230_010', mat2: 'MAT_V230_005' },
       { tier: 6, nameTh: 'กรงเล็บครุฑายุทธเทวโลก', path: 'DIVINE_POSSESSION', mat1: 'MAT_V230_006', mat2: 'MAT_V230_010' },
       { tier: 7, nameTh: 'มหากรงเล็บกลืนสวรรค์อสูรบรรพกาล', path: 'DEVOURING_FLESH', mat1: 'MAT_V230_005', mat2: 'MAT_V230_008', legendary: true }
@@ -51850,7 +52135,7 @@ JD.ITEMS.items.forEach(it => {
       { tier: 7, nameTh: 'มหาเข็มเทวะชี้ชะตาอมตะ', path: 'SOUL_PUPPETRY', mat1: 'MAT_V230_018', mat2: 'MAT_V230_008', legendary: true }
     ],
     FAN: [
-      { tier: 2, nameTh: 'พัดเหล็กนินจาคาถาเพลิง', path: 'NINPO_ELEMENTAL', mat1: 'MAT_V230_002', mat2: 'MAT_V230_012' },
+      { tier: 2, nameTh: 'พัดเหล็กมุทราคาถาเพลิง', path: 'NINPO_ELEMENTAL', mat1: 'MAT_V230_002', mat2: 'MAT_V230_012' },
       { tier: 3, nameTh: 'พัดปะการังคลื่นสมุทรคราม', path: 'TIDE_VOYAGER', mat1: 'MAT_V230_020', mat2: 'MAT_V230_012' },
       { tier: 4, nameTh: 'พัดจารึกพงศาวดารปราชญ์', path: 'LORE_ARCHIVIST', mat1: 'MAT_V230_017', mat2: 'MAT_V230_012' },
       { tier: 5, nameTh: 'พัดสายลมคีตเวทย์สวรรค์', path: 'SONIC_HARMONY', mat1: 'MAT_V230_012', mat2: 'MAT_V230_017' },
@@ -51862,7 +52147,7 @@ JD.ITEMS.items.forEach(it => {
       { tier: 3, nameTh: 'จานเสี่ยงทายชะตาฟ้าดิน', path: 'FORTUNE_GAMBLER', mat1: 'MAT_V230_021', mat2: 'MAT_V230_013' },
       { tier: 4, nameTh: 'จานหลัวผานชีพจรมังกรทอง', path: 'DRAGON_VEIN_GEOMANCY', mat1: 'MAT_V230_013', mat2: 'MAT_V230_015' },
       { tier: 5, nameTh: 'จานแรงโน้มถ่วงดาราถล่ม', path: 'GRAVITY_DAO', mat1: 'MAT_V230_015', mat2: 'MAT_V230_013' },
-      { tier: 6, nameTh: 'จานทวยเทพโอลิมปัสดาราจักร', path: 'DIVINE_SUMMONER', mat1: 'MAT_V230_006', mat2: 'MAT_V230_013' },
+      { tier: 6, nameTh: 'จานทวยเทพเทวสภาดาราจักร', path: 'DIVINE_SUMMONER', mat1: 'MAT_V230_006', mat2: 'MAT_V230_013' },
       { tier: 7, nameTh: 'มหาจานกาลเวลาหมื่นกัปนิรันดร์', path: 'CHRONO_EPOCH', mat1: 'MAT_V230_016', mat2: 'MAT_V230_019', legendary: true }
     ],
     ABACUS: [
@@ -51957,6 +52242,38 @@ JD.ITEMS.items.forEach(it => {
     }
   }
 
+
+  // JS2 v3.7.0b: Ensure dedicated Legendary & Transcendent Support paths have real heal/harmonize skills & accessible subpath tiers
+  for (const _t of (D.v200Techniques || [])) {
+    if (!_t) continue;
+    if ((_t.path === 'LEG_TRIAGE_MERIDIAN' || _t.path === 'TRANS_CONSTELLATION_RELAY') && _t.kind !== 'passive' && (/_ACT_0[12]$/.test(_t.id) || /^INNATE_V200_(LEG_SUB_WARD_PHYSICIAN|TRANS_SUB_TRIAD_ANCHOR|TRANS_SUB_ECHO_MENDING)/.test(_t.id))) {
+      const isRelay = _t.path === 'TRANS_CONSTELLATION_RELAY';
+      const supArch = isRelay ? 'harmonize' : 'heal';
+      const supHeal = isRelay ? 0.20 : 0.24;
+      const supShield = isRelay ? 0.14 : 0.08;
+      _t.arch = supArch;
+      _t.combatArch = supArch;
+      _t.heal = supHeal;
+      _t.shield = supShield;
+      if (isRelay) _t.team = true;
+      if (Array.isArray(_t.moveDefs)) {
+        for (let mi = 0; mi < _t.moveDefs.length; mi++) {
+          const mv = _t.moveDefs[mi];
+          if (!mv) continue;
+          mv.arch = supArch;
+          mv.heal = +(supHeal * (1 + mi * 0.12)).toFixed(3);
+          mv.shield = +(supShield * (1 + mi * 0.12)).toFixed(3);
+          mv.targetSelector = isRelay ? 'ALL_ALLIES' : 'LOWEST_HP_ALLY';
+          mv.aiRole = 'healer';
+          if (isRelay) mv.team = true;
+        }
+      }
+    }
+    if ((_t.path && (_t.path.startsWith('LEG_') || _t.path.startsWith('TRANS_'))) && /_ACT_0[45]$/.test(_t.id) && (_t.tier || 0) > 4) {
+      _t.tier = 4;
+    }
+  }
+
   // 3. Add 31 Tier-7 Legendary Apex Techniques (LEG_V230_<PATH>) + 31 Tier-7 Legendary Path Relics (REL_V230_<PATH>)
   //    + 64 Era-5 Pillar Techniques (Qinggong, Defense, Support, Forbidden) for the 16 v2.2.0 Paths
   const QINGGONG_BY_NEW_PATH = {
@@ -51975,7 +52292,22 @@ JD.ITEMS.items.forEach(it => {
     LORE_ARCHIVIST: 'WATER_LOTUS_DRIFT',
     FORTUNE_GAMBLER: 'SWIFT_STRIDE',
     SPIRIT_HUSBANDRY: 'LEAP_BOUND',
-    ARENA_GLORY: 'LEAP_BOUND'
+    ARENA_GLORY: 'LEAP_BOUND',
+    LEG_READ_FORM_BLADE: 'sig_iai_crimson_moon_slash',
+    LEG_TRIAGE_MERIDIAN: 'sig_jade_nirvana_lotus',
+    LEG_STORM_CALLER_TEMPEST: 'sig_thunder_god_halberd',
+    LEG_JADE_CARAVAN_VOYAGER: 'sig_eight_directions_palm',
+    LEG_OATH_JUDGE_WARDEN: 'sig_golden_buddha_bell',
+    LEG_ASHEN_KILN_ALCHEMY: 'sig_shinobi_mudra_firestorm',
+    TRANS_CONSTELLATION_RELAY: 'sig_heavens_sound_requiem',
+    TRANS_FIELD_CLAUSE_SOVEREIGN: 'sig_taiji_yin_yang_crush',
+    TRANS_TEMPO_SOVEREIGN: 'sig_void_spatial_slash',
+    TRANS_SEALKEEPER_FORBIDDEN_KEY: 'sig_myriad_puppet_barrage',
+    TRANS_PRIMAL_VORTEX_MIRROR: 'sig_nine_suns_eye',
+    TRANS_DYNASTIC_MANDATE_WEAVER: 'sig_pantheon_deity_descent',
+    CORPSE_SOVEREIGN: 'SHADOW_BLINK',
+    WRAITH_GRIEVANCE: 'SHADOW_BLINK',
+    DEATHLESS_CADAVER: 'LEAP_BOUND'
   };
   const DEF_ARCH_BY_NEW_PATH = {
     SHADOW_SAMURAI: 'SWORD_CURTAIN_WARD',
@@ -51993,7 +52325,10 @@ JD.ITEMS.items.forEach(it => {
     LORE_ARCHIVIST: 'TAIJI_SOFT_REDIRECTION',
     FORTUNE_GAMBLER: 'MIRAGE_CICADA_SHELL',
     SPIRIT_HUSBANDRY: 'TAIJI_SOFT_REDIRECTION',
-    ARENA_GLORY: 'IRON_VAJRA_CARAPACE'
+    ARENA_GLORY: 'IRON_VAJRA_CARAPACE',
+    CORPSE_SOVEREIGN: 'ELEMENTAL_THORN_ARMOR',
+    WRAITH_GRIEVANCE: 'ELEMENTAL_THORN_ARMOR',
+    DEATHLESS_CADAVER: 'ELEMENTAL_THORN_ARMOR'
   };
   const SUP_ARCH_BY_NEW_PATH = {
     SHADOW_SAMURAI: 'QIMEN_BATTLE_BANNER',
@@ -52011,7 +52346,10 @@ JD.ITEMS.items.forEach(it => {
     LORE_ARCHIVIST: 'DIVINATION_STAR_GUIDANCE',
     FORTUNE_GAMBLER: 'DIVINATION_STAR_GUIDANCE',
     SPIRIT_HUSBANDRY: 'ACUPOINT_MERIDIAN_THERAPY',
-    ARENA_GLORY: 'QIMEN_BATTLE_BANNER'
+    ARENA_GLORY: 'QIMEN_BATTLE_BANNER',
+    CORPSE_SOVEREIGN: 'ALCHEMICAL_INCENSE_MIST',
+    WRAITH_GRIEVANCE: 'ALCHEMICAL_INCENSE_MIST',
+    DEATHLESS_CADAVER: 'ACUPOINT_MERIDIAN_THERAPY'
   };
   const FORB_ARCH_BY_NEW_PATH = {
     SHADOW_SAMURAI: 'MERIDIAN_REVERSE_BURST',
@@ -52029,7 +52367,10 @@ JD.ITEMS.items.forEach(it => {
     LORE_ARCHIVIST: 'LIFESPAN_HEAVEN_DEFIANCE',
     FORTUNE_GAMBLER: 'CORPSE_PUPPET_NECROMANCY',
     SPIRIT_HUSBANDRY: 'BLOOD_ESSENCE_IGNITION',
-    ARENA_GLORY: 'MERIDIAN_REVERSE_BURST'
+    ARENA_GLORY: 'MERIDIAN_REVERSE_BURST',
+    CORPSE_SOVEREIGN: 'SOUL_DEVOURING_ABYSS',
+    WRAITH_GRIEVANCE: 'SOUL_DEVOURING_ABYSS',
+    DEATHLESS_CADAVER: 'BLOOD_ESSENCE_IGNITION'
   };
   const SIG_VFX_BY_NEW_PATH = {
     ASTRO_DIVINATION: 'sig_nine_suns_eye',
@@ -52062,7 +52403,10 @@ JD.ITEMS.items.forEach(it => {
     LORE_ARCHIVIST: 'sig_immortal_crane_feather_storm',
     FORTUNE_GAMBLER: 'sig_eight_directions_palm',
     SPIRIT_HUSBANDRY: 'sig_immortal_crane_feather_storm',
-    ARENA_GLORY: 'sig_blazing_dragon_wave'
+    ARENA_GLORY: 'sig_blazing_dragon_wave',
+    CORPSE_SOVEREIGN: 'sig_myriad_puppet_barrage',
+    WRAITH_GRIEVANCE: 'sig_nether_grave_soul_eruption',
+    DEATHLESS_CADAVER: 'sig_blood_lotus_apocalypse'
   };
 
   for (let pIdx = 0; pIdx < V200_NEW_PATHS.length; pIdx++) {
@@ -52072,6 +52416,13 @@ JD.ITEMS.items.forEach(it => {
     const sigVfx = SIG_VFX_BY_NEW_PATH[pSpec.id] || 'sig_void_spatial_slash';
 
     // 3A. Tier-7 Legendary Apex Technique for each of the 31 paths
+    if (pSpec && (pSpec.grade === 'LEGENDARY' || pSpec.grade === 'TRANSCENDENT' || pSpec.id === 'CORPSE_SOVEREIGN' || pSpec.id === 'WRAITH_GRIEVANCE' || pSpec.id === 'DEATHLESS_CADAVER')) {
+      const _sigVfx370 = SIG_VFX_BY_NEW_PATH[pSpec.id] || 'sig_void_spatial_slash';
+      for (const _t of (D.v200Techniques || [])) {
+        if (_t && _t.path === pSpec.id && _t.kind !== 'passive' && (_t.tier || 0) !== 3 && !_t.signatureVfx) _t.signatureVfx = _sigVfx370;
+      }
+      continue;
+    }
     const legTechId = 'LEG_V230_' + pSpec.id;
     const legTech = {
       id: legTechId,
@@ -52207,6 +52558,8 @@ JD.ITEMS.items.forEach(it => {
       slot: 'WEAPON',
       subType: wpn0,
       gearType: wpn0,
+      visualKey: ({SWORD:'vis_yitian_sword',BLADE:'vis_tulong_saber',SPEAR:'vis_overlord_spear',STAFF:'vis_dagou_jade_staff',FIST:'vis_wrathful_tiger_gauntlets',BOW:'vis_condor_meteor_bow',FOCUS:'vis_peacock_plume_focus',ZITHER:'vis_jiuxiao_phoenix_zither',BRUSH:'vis_chunqiu_judgment_brush',WHIP:'vis_tiancan_fate_whip',ROSARY:'vis_bodhi_nirvana_rosary',CLAW:'vis_taotie_devouring_claw',NEEDLE:'vis_baihua_soul_needle',FAN:'vis_bajiao_tempest_fan',ASTROLABE:'vis_hetu_luoshu_astrolabe',ABACUS:'vis_caishen_golden_abacus'})[wpn0] || 'vis_yitian_sword',
+      compatiblePath: [pSpec.id, 'ANY'],
       path: pSpec.id,
       bonusPath: pSpec.id,
       bonusSubpath: sp0.id,
@@ -52493,39 +52846,55 @@ JD.ITEMS.items.forEach(it => {
   const v240SingleWeaponAndLegendarySpecs = [
     // 2 Missing Path Legendaries (GOD & CRAFT_CREATION)
     { id: 'LEG_V240_GOD', nameTh: 'มหาเทวโองการสวรรค์เก้าชั้นฟ้าพิพากษาภพ', path: 'GOD', sub: 'WAR_DEITY', tier: 7, legendary: true, wt: 'SPEAR', el: 'LIGHT_YANG', arch: 'burst', action: 'SUMMON_DEITY_PROJECTION', buff: 'divineResonance', debuff: 'stun', kw: ['KW_SHATTER_ARMOR', 'KW_AURA_PULSE', 'KW_EXECUTE_CULL'] },
-    { id: 'LEG_V240_CRAFT_CREATION', nameTh: 'มหาคัมภีร์เตาหลอมสวรรค์รังสรรค์หมื่นศาสตรา', path: 'CRAFT_CREATION', sub: 'DIVINE_FORGE_ARTISAN', tier: 7, legendary: true, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MASS_ABSORPTION', buff: 'qiBarrierShell', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_SHATTER_ARMOR', 'KW_ABSORB_RELEASE'] },
+    { id: 'LEG_V240_CRAFT_CREATION', nameTh: 'มหาคัมภีร์เตาหลอมสวรรค์รังสรรค์หมื่นศาสตรา', path: 'CRAFT_CREATION', sub: 'HEAVENLY_ANVIL_SMITH', tier: 7, legendary: true, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MASS_ABSORPTION', buff: 'qiBarrierShell', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_SHATTER_ARMOR', 'KW_ABSORB_RELEASE'] },
+    // JS2 v3.7.0c: 12 Canonical Tier-7 Legendary Apex Techniques for all 12 Legendary & Transcendent Daos (55/55 full parity)
+    { id: 'LEG_V370_LEG_READ_FORM_BLADE', nameTh: 'มหาคมกระบี่อ่านช่องฟ้าสะบั้นจุดตาย', path: 'LEG_READ_FORM_BLADE', sub: 'LEG_SUB_CLOSING_BLADE', tier: 7, legendary: true, wt: 'SWORD', el: 'WIND', arch: 'burst', action: 'TRUE_PIERCE_DMG', buff: 'clarityLotus', debuff: 'armorbreak', kw: ['KW_DAO_SEAM_READ', 'KW_CRIT_BREAK', 'KW_ARMOR_READ'] },
+    { id: 'LEG_V370_LEG_TRIAGE_MERIDIAN', nameTh: 'มหาเข็มชีพจรประคองสหายคืนชีวิต', path: 'LEG_TRIAGE_MERIDIAN', sub: 'LEG_SUB_WARD_PHYSICIAN', tier: 7, legendary: true, wt: 'NEEDLE', el: 'WOOD_LIFE', arch: 'heal', heal: 0.28, shield: 0.12, action: 'BODHI_KARMA_AEGIS', buff: 'clarityLotus', debuff: 'weaken', kw: ['KW_DAO_TRIAGE_PULSE', 'KW_OVERHEAL_BARRIER', 'KW_AURA_PULSE'] },
+    { id: 'LEG_V370_LEG_STORM_CALLER_TEMPEST', nameTh: 'มหาอสนีบัญชาพายุเจ็ดคาบสมุทร', path: 'LEG_STORM_CALLER_TEMPEST', sub: 'LEG_SUB_MONSOON_HERALD', tier: 7, legendary: true, wt: 'FAN', el: 'LIGHTNING', arch: 'burst', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'paralyze', kw: ['KW_DAO_TEMPEST_EYE', 'KW_PULL_VORTEX', 'KW_AURA_PULSE'] },
+    { id: 'LEG_V370_LEG_JADE_CARAVAN_VOYAGER', nameTh: 'มหาด่านคาราวานหยกพิทักษ์หมื่นลี้', path: 'LEG_JADE_CARAVAN_VOYAGER', sub: 'LEG_SUB_SALT_ROAD_GUARD', tier: 7, legendary: true, wt: 'SPEAR', el: 'EARTH_METAL', arch: 'strike', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'slow', kw: ['KW_DAO_CARAVAN_GUARD', 'KW_ARMOR_READ', 'KW_ABSORB_RELEASE'] },
+    { id: 'LEG_V370_LEG_OATH_JUDGE_WARDEN', nameTh: 'มหาตราตุลาการสัตย์สาบานสะกดยุทธภพ', path: 'LEG_OATH_JUDGE_WARDEN', sub: 'LEG_SUB_VOW_WITNESS', tier: 7, legendary: true, wt: 'STAFF', el: 'LIGHT_YANG', arch: 'burst', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'silence', kw: ['KW_DAO_OATH_BIND', 'KW_REFLECT_CONSOLIDATE', 'KW_SHATTER_ARMOR'] },
+    { id: 'LEG_V370_LEG_ASHEN_KILN_ALCHEMY', nameTh: 'มหาเตาเถ้าคืนชีวิตหลอมโอสถนิรันดร์', path: 'LEG_ASHEN_KILN_ALCHEMY', sub: 'LEG_SUB_DREG_REFINER', tier: 7, legendary: true, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MASS_ABSORPTION', buff: 'qiBarrierShell', debuff: 'burn', kw: ['KW_DAO_ASHEN_RECLAIM', 'KW_DELAYED_DETONATION', 'KW_ABSORB_RELEASE'] },
+    { id: 'LEG_V370_TRANS_CONSTELLATION_RELAY', nameTh: 'มหาค่ายประสานปราณหมู่ดาวค้ำฟ้า', path: 'TRANS_CONSTELLATION_RELAY', sub: 'TRANS_SUB_TRIAD_ANCHOR', tier: 7, legendary: true, wt: 'ZITHER', el: 'ASTRAL', arch: 'harmonize', heal: 0.24, shield: 0.18, team: true, action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'weaken', kw: ['KW_DAO_CONSTELLATION_LINK', 'KW_OVERHEAL_BARRIER', 'KW_AURA_PULSE'] },
+    { id: 'LEG_V370_TRANS_FIELD_CLAUSE_SOVEREIGN', nameTh: 'มหาธรรมนูญฟ้าขีดเขตบัญญัติพิภพ', path: 'TRANS_FIELD_CLAUSE_SOVEREIGN', sub: 'TRANS_SUB_WEIGHT_OF_ARMS', tier: 7, legendary: true, wt: 'BRUSH', el: 'ASTRAL', arch: 'burst', action: 'IMPERIAL_INK_DECREE', buff: 'literatiDecree', debuff: 'silence', kw: ['KW_DAO_FIELD_CLAUSE', 'KW_MARKSMAN_FOCUS', 'KW_TEMPO_STEAL'] },
+    { id: 'LEG_V370_TRANS_TEMPO_SOVEREIGN', nameTh: 'มหาจังหวะกาลตัดห้วงลมหายใจฟ้า', path: 'TRANS_TEMPO_SOVEREIGN', sub: 'TRANS_SUB_DEFERRED_CURRENT', tier: 7, legendary: true, wt: 'BLADE', el: 'WIND', arch: 'burst', action: 'TRUE_PIERCE_DMG', buff: 'clarityLotus', debuff: 'slow', kw: ['KW_DAO_TEMPO_SEVER', 'KW_TEMPO_STEAL', 'KW_CRIT_OVERFLOW'] },
+    { id: 'LEG_V370_TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'มหากุญแจผนึกต้องห้ามสะกดหมื่นมาร', path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', sub: 'TRANS_SUB_CARGO_KNOT', tier: 7, legendary: true, wt: 'ROSARY', el: 'YIN_SHADOW', arch: 'burst', action: 'MERIDIAN_SEAL', buff: 'bodhiGrace', debuff: 'meridianSeal', kw: ['KW_DAO_FORBIDDEN_KEY', 'KW_STATUS_TRANSFER', 'KW_SHATTER_ARMOR'] },
+    { id: 'LEG_V370_TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'มหากระจกวนปราณสะท้อนหมื่นสรรพวิชา', path: 'TRANS_PRIMAL_VORTEX_MIRROR', sub: 'TRANS_SUB_STILL_MIRROR', tier: 7, legendary: true, wt: 'FAN', el: 'WATER_ICE', arch: 'burst', action: 'MASS_ABSORPTION', buff: 'clarityLotus', debuff: 'exposed', kw: ['KW_DAO_VORTEX_MIRROR', 'KW_REFLECT_CONSOLIDATE', 'KW_ABSORB_RELEASE'] },
+    { id: 'LEG_V370_TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'มหาตราโองการทอชะตาแผ่นดินนิรันดร์', path: 'TRANS_DYNASTIC_MANDATE_WEAVER', sub: 'TRANS_SUB_COURT_CHRONICLER', tier: 7, legendary: true, wt: 'ABACUS', el: 'LIGHT_YANG', arch: 'burst', action: 'IMPERIAL_INK_DECREE', buff: 'tacticalCommand', debuff: 'armorbreak', kw: ['KW_DAO_MANDATE_WEAVE', 'KW_AURA_PULSE', 'KW_ARMOR_READ'] },
+    { id: 'LEG_V397_CORPSE_SOVEREIGN', nameTh: 'มหาขบวนศพหมื่นร่างข้ามขุนเขาเซียงซี', path: 'CORPSE_SOVEREIGN', sub: 'CORPSE_BELL_HERDER', tier: 7, legendary: true, wt: 'STAFF', el: 'YIN_SHADOW', arch: 'burst', action: 'MASS_ABSORPTION', buff: 'tacticalCommand', debuff: 'fear', kw: ['KW_DAO_BODY_MEMORY', 'KW_ARMOR_READ', 'KW_ABSORB_RELEASE'] },
+    { id: 'LEG_V397_WRAITH_GRIEVANCE', nameTh: 'มหาบัญชีหนี้เลือดเก้าพันวิญญาณทวงแค้น', path: 'WRAITH_GRIEVANCE', sub: 'GRIEVANCE_LEDGER_KEEPER', tier: 7, legendary: true, wt: 'FAN', el: 'YIN_SHADOW', arch: 'burst', action: 'GU_SOUL_LEECH', buff: 'literatiDecree', debuff: 'silence', kw: ['KW_DAO_GRIEVANCE_MATCH', 'KW_TEMPO_STEAL', 'KW_STATUS_TRANSFER'] },
+    { id: 'LEG_V397_DEATHLESS_CADAVER', nameTh: 'มหากายอมตะไร้ชีพเย้ยยมทูตร้อยครา', path: 'DEATHLESS_CADAVER', sub: 'UNDYING_FRAME', tier: 7, legendary: true, wt: 'FIST', el: 'BLOOD_DEMON', arch: 'burst', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'poison', kw: ['KW_DAO_LIFE_INVERSION', 'KW_LAST_BREATH', 'KW_ABSORB_RELEASE'] },
     // BRUSH (3 strict single-weapon techniques: 0 -> 3)
-    { id: 'TECH_V240_BRUSH_01', nameTh: 'พู่กันหยกตวัดอักษรสะกดวิญญาณ', path: 'INK_LITERATI', sub: 'IMPERIAL_DECREE_CALLIGRAPHER', tier: 3, wt: 'BRUSH', el: 'ASTRAL', arch: 'pierce', action: 'IMPERIAL_INK_DECREE', buff: 'literatiDecree', debuff: 'silence', kw: ['KW_MARKSMAN_FOCUS', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_BRUSH_01', nameTh: 'พู่กันหยกตวัดอักษรสะกดวิญญาณ', path: 'INK_LITERATI', sub: 'IMPERIAL_EDICT_CALLIGRAPHER', tier: 3, wt: 'BRUSH', el: 'ASTRAL', arch: 'pierce', action: 'IMPERIAL_INK_DECREE', buff: 'literatiDecree', debuff: 'silence', kw: ['KW_MARKSMAN_FOCUS', 'KW_TEMPO_STEAL'] },
     { id: 'TECH_V240_BRUSH_02', nameTh: 'พู่กันหมึกสวรรค์จารึกค่ายกลแปดทิศ', path: 'HEART_SOUL', sub: 'CALLIGRAPHY_PAINTING_SAGE', tier: 5, wt: 'BRUSH', el: 'LIGHT_YANG', arch: 'strike', action: 'IMPERIAL_INK_DECREE', buff: 'clarityLotus', debuff: 'weaken', kw: ['KW_FOCUS_WINDOW', 'KW_STATUS_TRANSFER'] },
-    { id: 'TECH_V240_BRUSH_03', nameTh: 'พู่กันชุนชิวพิพากษาชะตาดารา', path: 'INK_LITERATI', sub: 'GRAND_HISTORIAN_SCHOLAR', tier: 6, wt: 'BRUSH', el: 'ASTRAL', arch: 'burst', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_MARKSMAN_FOCUS', 'KW_CRIT_OVERFLOW', 'KW_DELAYED_DETONATION'] },
+    { id: 'TECH_V240_BRUSH_03', nameTh: 'พู่กันชุนชิวพิพากษาชะตาดารา', path: 'INK_LITERATI', sub: 'HISTORIANS_DESTINY_QUILL', tier: 6, wt: 'BRUSH', el: 'ASTRAL', arch: 'burst', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_MARKSMAN_FOCUS', 'KW_CRIT_OVERFLOW', 'KW_DELAYED_DETONATION'] },
     // ABACUS (3 strict single-weapon techniques: 3 -> 6)
     { id: 'TECH_V240_ABACUS_01', nameTh: 'ลูกคิดเหล็กคำนวณจุดตายร้อยก้าว', path: 'MERCANTILE_DAO', sub: 'GOLDEN_ABACUS_ARBITER', tier: 3, wt: 'ABACUS', el: 'EARTH_METAL', arch: 'strike', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_CRIT_BREAK'] },
-    { id: 'TECH_V240_ABACUS_02', nameTh: 'ลูกคิดหยกดีดเม็ดทองทลายค่ายกล', path: 'STRATEGY_GOVERNANCE', sub: 'GRAND_STRATEGIST', tier: 5, wt: 'ABACUS', el: 'EARTH_METAL', arch: 'pierce', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'contractDefault', kw: ['KW_ARMOR_READ', 'KW_TEMPO_STEAL'] },
-    { id: 'TECH_V240_ABACUS_03', nameTh: 'มหาลูกคิดไฉ่ซิงชั่งตวงบุญบาปสวรรค์', path: 'MERCANTILE_DAO', sub: 'TREASURY_SOVEREIGN', tier: 6, wt: 'ABACUS', el: 'LIGHT_YANG', arch: 'burst', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_CRIT_OVERFLOW', 'KW_SHATTER_ARMOR'] },
+    { id: 'TECH_V240_ABACUS_02', nameTh: 'ลูกคิดหยกดีดเม็ดทองทลายค่ายกล', path: 'STRATEGY_GOVERNANCE', sub: 'BATTLEFIELD_STRATEGIST', tier: 5, wt: 'ABACUS', el: 'EARTH_METAL', arch: 'pierce', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'contractDefault', kw: ['KW_ARMOR_READ', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_ABACUS_03', nameTh: 'มหาลูกคิดไฉ่ซิงชั่งตวงบุญบาปสวรรค์', path: 'MERCANTILE_DAO', sub: 'GOLDEN_ABACUS_ARBITER', tier: 6, wt: 'ABACUS', el: 'LIGHT_YANG', arch: 'burst', action: 'CONTRACT_FORECLOSURE', buff: 'tacticalCommand', debuff: 'armorbreak', kw: ['KW_ARMOR_READ', 'KW_CRIT_OVERFLOW', 'KW_SHATTER_ARMOR'] },
     // ROSARY (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_ROSARY_01', nameTh: 'ประคำโพธิ์ร้อยแปดเม็ดสยบมาร', path: 'KARMA_SAMSARA', sub: 'BODHI_SALVATION_MONK', tier: 4, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'strike', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'weaken', kw: ['KW_OVERHEAL_BARRIER', 'KW_AURA_PULSE'] },
-    { id: 'TECH_V240_ROSARY_02', nameTh: 'มหาประคำวัชระสะท้อนกรรมเก้าภพ', path: 'KARMA_SAMSARA', sub: 'SAMSARA_WHEEL_ARBITER', tier: 6, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'burst', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'silence', kw: ['KW_ABSORB_RELEASE', 'KW_REFLECT_CONSOLIDATE', 'KW_OVERHEAL_BARRIER'] },
+    { id: 'TECH_V240_ROSARY_01', nameTh: 'ประคำโพธิ์ร้อยแปดเม็ดสยบมาร', path: 'KARMA_SAMSARA', sub: 'BODHI_VOW_GUARDIAN', tier: 4, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'strike', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'weaken', kw: ['KW_OVERHEAL_BARRIER', 'KW_AURA_PULSE'] },
+    { id: 'TECH_V240_ROSARY_02', nameTh: 'มหาประคำวัชระสะท้อนกรรมเก้าภพ', path: 'KARMA_SAMSARA', sub: 'GOLDEN_WHEEL_ARBITER', tier: 6, wt: 'ROSARY', el: 'LIGHT_YANG', arch: 'burst', action: 'BODHI_KARMA_AEGIS', buff: 'bodhiGrace', debuff: 'silence', kw: ['KW_ABSORB_RELEASE', 'KW_REFLECT_CONSOLIDATE', 'KW_OVERHEAL_BARRIER'] },
     // CLAW (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_CLAW_01', nameTh: 'กรงเล็บอสูรโลหิตฉีกกระชากหัวใจ', path: 'DEVOURING_FLESH', sub: 'BLOOD_MARROW_DEVOURER', tier: 4, wt: 'CLAW', el: 'BLOOD_DEMON', arch: 'pierce', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'bleed', kw: ['KW_EXECUTE_CULL', 'KW_SHATTER_ARMOR'] },
+    { id: 'TECH_V240_CLAW_01', nameTh: 'กรงเล็บอสูรโลหิตฉีกกระชากหัวใจ', path: 'DEVOURING_FLESH', sub: 'BEAST_FLESH_CONSUMER', tier: 4, wt: 'CLAW', el: 'BLOOD_DEMON', arch: 'pierce', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'bleed', kw: ['KW_EXECUTE_CULL', 'KW_SHATTER_ARMOR'] },
     { id: 'TECH_V240_CLAW_02', nameTh: 'กรงเล็บเทาเที่ยกลืนกินดารา', path: 'BEAST_SOVEREIGN', sub: 'TIGER_SOVEREIGN', tier: 6, wt: 'CLAW', el: 'BLOOD_DEMON', arch: 'burst', action: 'DEVOUR_ESSENCE_BITE', buff: 'atavismFrenzy', debuff: 'armorbreak', kw: ['KW_EXECUTE_CULL', 'KW_LAST_BREATH', 'KW_CRIT_BREAK'] },
     // NEEDLE (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_NEEDLE_01', nameTh: 'เข็มเงินเก้าดาราสะกดจุดตันเถียน', path: 'SAGE_SUPPORT', sub: 'DIVINE_PHYSICIAN_HEALER', tier: 4, wt: 'NEEDLE', el: 'WOOD_LIFE', arch: 'pierce', action: 'MERIDIAN_SEAL', buff: 'clarityLotus', debuff: 'meridianSeal', kw: ['KW_MARKSMAN_FOCUS', 'KW_STATUS_TRANSFER'] },
-    { id: 'TECH_V240_NEEDLE_02', nameTh: 'เข็มบุปผาพิษเร้นเงาสังหารไร้เสียง', path: 'VENOM_GU', sub: 'MYRIAD_POISON_APOTHECARY', tier: 6, wt: 'NEEDLE', el: 'DARK_YIN', arch: 'burst', action: 'GU_SOUL_LEECH', buff: 'shadowClone', debuff: 'poison', kw: ['KW_MARKSMAN_FOCUS', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] },
+    { id: 'TECH_V240_NEEDLE_01', nameTh: 'เข็มเงินเก้าดาราสะกดจุดตันเถียน', path: 'SAGE_SUPPORT', sub: 'GOLDEN_NEEDLE_SAINT', tier: 4, wt: 'NEEDLE', el: 'WOOD_LIFE', arch: 'pierce', action: 'MERIDIAN_SEAL', buff: 'clarityLotus', debuff: 'meridianSeal', kw: ['KW_MARKSMAN_FOCUS', 'KW_STATUS_TRANSFER'] },
+    { id: 'TECH_V240_NEEDLE_02', nameTh: 'เข็มบุปผาพิษเร้นเงาสังหารไร้เสียง', path: 'VENOM_GU', sub: 'MYRIAD_VENOM_APOTHECARY', tier: 6, wt: 'NEEDLE', el: 'DARK_YIN', arch: 'burst', action: 'GU_SOUL_LEECH', buff: 'shadowClone', debuff: 'poison', kw: ['KW_MARKSMAN_FOCUS', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] },
     // FAN (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_FAN_01', nameTh: 'พัดขนนกเมฆาโบกสะบัดพายุหมุน', path: 'CELESTIAL_WEATHER', sub: 'GALE_CLOUD_CONDUCTOR', tier: 4, wt: 'FAN', el: 'WIND', arch: 'strike', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TEMPO_STEAL'] },
-    { id: 'TECH_V240_FAN_02', nameTh: 'พัดเทวะสี่ฤดูพลิกผันฟ้าดิน', path: 'CELESTIAL_WEATHER', sub: 'THUNDER_MONSOON_SOVEREIGN', tier: 6, wt: 'FAN', el: 'LIGHTNING', arch: 'burst', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_DELAYED_DETONATION', 'KW_AURA_PULSE'] },
+    { id: 'TECH_V240_FAN_01', nameTh: 'พัดขนนกเมฆาโบกสะบัดพายุหมุน', path: 'CELESTIAL_WEATHER', sub: 'TYPHOON_GALE_SOVEREIGN', tier: 4, wt: 'FAN', el: 'WIND', arch: 'strike', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TEMPO_STEAL'] },
+    { id: 'TECH_V240_FAN_02', nameTh: 'พัดเทวะสี่ฤดูพลิกผันฟ้าดิน', path: 'CELESTIAL_WEATHER', sub: 'THUNDER_CLOUD_CALLER', tier: 6, wt: 'FAN', el: 'LIGHTNING', arch: 'burst', action: 'WEATHER_THUNDER_CALL', buff: 'weatherConduct', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_DELAYED_DETONATION', 'KW_AURA_PULSE'] },
     // ASTROLABE (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_ASTROLABE_01', nameTh: 'จานดาราเจ็ดดาวเหนือล็อกชะตา', path: 'ASTRO_DIVINATION', sub: 'STARLIGHT_ASTROLOGER', tier: 4, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'pierce', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_MARKSMAN_FOCUS'] },
-    { id: 'TECH_V240_ASTROLABE_02', nameTh: 'มหาจานสวรรค์เหอถูลั่วซูบิดเบือนกาล', path: 'CHRONO_EPOCH', sub: 'EPOCH_HOURGLASS_KEEPER', tier: 6, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'burst', action: 'TEMPORAL_SAND_REWIND', buff: 'temporalHaste', debuff: 'entropyDecay', kw: ['KW_FOCUS_WINDOW', 'KW_TEMPO_STEAL', 'KW_TETHER_LINK'] },
+    { id: 'TECH_V240_ASTROLABE_01', nameTh: 'จานดาราเจ็ดดาวเหนือล็อกชะตา', path: 'ASTRO_DIVINATION', sub: 'POLARIS_FATE_WEAVER', tier: 4, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'pierce', action: 'STAR_FATE_REVERSAL', buff: 'starDestinyWard', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_MARKSMAN_FOCUS'] },
+    { id: 'TECH_V240_ASTROLABE_02', nameTh: 'มหาจานสวรรค์เหอถูลั่วซูบิดเบือนกาล', path: 'CHRONO_EPOCH', sub: 'HOURGLASS_SAND_REAPER', tier: 6, wt: 'ASTROLABE', el: 'ASTRAL', arch: 'burst', action: 'TEMPORAL_SAND_REWIND', buff: 'temporalHaste', debuff: 'entropyDecay', kw: ['KW_FOCUS_WINDOW', 'KW_TEMPO_STEAL', 'KW_TETHER_LINK'] },
     // WHIP (2 strict single-weapon techniques: 3 -> 5)
-    { id: 'TECH_V240_WHIP_01', nameTh: 'แส้ไหมเหล็กพันธนาการเงาอสรพิษ', path: 'SOUL_PUPPETRY', sub: 'SPIRIT_THREAD_PUPPETEER', tier: 4, wt: 'WHIP', el: 'DARK_YIN', arch: 'strike', action: 'MARIONETTE_SOUL_SWAP', buff: 'marionetteLink', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK'] },
-    { id: 'TECH_V240_WHIP_02', nameTh: 'แส้เทวะเทียนฉานกระชากวิญญาณเก้าชั้นฟ้า', path: 'BEAST_SOVEREIGN', sub: 'BLOOD_DRAGON', tier: 6, wt: 'WHIP', el: 'LIGHTNING', arch: 'burst', action: 'SONIC_TEMPO_BREAK', buff: 'windStride', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK', 'KW_SHATTER_ARMOR'] },
+    { id: 'TECH_V240_WHIP_01', nameTh: 'แส้ไหมเหล็กพันธนาการเงาอสรพิษ', path: 'SOUL_PUPPETRY', sub: 'PHANTOM_SILK_PUPPETEER', tier: 4, wt: 'WHIP', el: 'DARK_YIN', arch: 'strike', action: 'MARIONETTE_SOUL_SWAP', buff: 'marionetteLink', debuff: 'slow', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK'] },
+    { id: 'TECH_V240_WHIP_02', nameTh: 'แส้เทวะเทียนฉานกระชากวิญญาณเก้าชั้นฟ้า', path: 'BEAST_SOVEREIGN', sub: 'ABYSSAL_DRAGON_TOTEM', tier: 6, wt: 'WHIP', el: 'LIGHTNING', arch: 'burst', action: 'SONIC_TEMPO_BREAK', buff: 'windStride', debuff: 'paralyze', kw: ['KW_PULL_VORTEX', 'KW_TETHER_LINK', 'KW_SHATTER_ARMOR'] },
     // ZITHER (2 strict single-weapon techniques: 4 -> 6)
     { id: 'TECH_V240_ZITHER_01', nameTh: 'พิณหยกเจ็ดสายบรรเลงคลื่นสยบมาร', path: 'XIAN', sub: 'SOUND_ZITHER', tier: 4, wt: 'ZITHER', el: 'WIND', arch: 'strike', action: 'SONIC_TEMPO_BREAK', buff: 'clarityLotus', debuff: 'weaken', kw: ['KW_AURA_PULSE', 'KW_TEMPO_STEAL'] },
     { id: 'TECH_V240_ZITHER_02', nameTh: 'มหาพิณหงส์สวรรค์เก้าชั้นฟ้าสะท้านวิญญาณ', path: 'HEART_SOUL', sub: 'DREAM_ILLUSION_WEAVER', tier: 6, wt: 'ZITHER', el: 'ASTRAL', arch: 'burst', action: 'SONIC_TEMPO_BREAK', buff: 'starDestinyWard', debuff: 'silence', kw: ['KW_AURA_PULSE', 'KW_FOCUS_WINDOW', 'KW_DELAYED_DETONATION'] },
     // FOCUS (2 strict single-weapon techniques: 4 -> 6)
-    { id: 'TECH_V240_FOCUS_01', nameTh: 'ศาสตราอาคมผนึกค่ายกลดาราผูกวิญญาณ', path: 'ARRAY_TALISMAN', sub: 'GRAND_FORMATION_ARCHITECT', tier: 4, wt: 'FOCUS', el: 'ASTRAL', arch: 'pierce', action: 'VOID_POCKET_DEFENSE', buff: 'qiBarrierShell', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_TETHER_LINK'] },
-    { id: 'TECH_V240_FOCUS_02', nameTh: 'มหาตราประทับเทวะบัญชาห้าธาตุบรรพกาล', path: 'OCCULT_MAGE', sub: 'ELEMENTAL_GRIMOIRE_SAGE', tier: 6, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MUDRA_EXPLOSIVE_SEAL', buff: 'divineResonance', debuff: 'burn', kw: ['KW_FOCUS_WINDOW', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] }
+    { id: 'TECH_V240_FOCUS_01', nameTh: 'ศาสตราอาคมผนึกค่ายกลดาราผูกวิญญาณ', path: 'ARRAY_TALISMAN', sub: 'EARTH_VEIN_WARDEN', tier: 4, wt: 'FOCUS', el: 'ASTRAL', arch: 'pierce', action: 'VOID_POCKET_DEFENSE', buff: 'qiBarrierShell', debuff: 'exposed', kw: ['KW_FOCUS_WINDOW', 'KW_TETHER_LINK'] },
+    { id: 'TECH_V240_FOCUS_02', nameTh: 'มหาตราประทับเทวะบัญชาห้าธาตุบรรพกาล', path: 'OCCULT_MAGE', sub: 'SACRED_GOLEM_TAMER', tier: 6, wt: 'FOCUS', el: 'FIRE', arch: 'burst', action: 'MUDRA_EXPLOSIVE_SEAL', buff: 'divineResonance', debuff: 'burn', kw: ['KW_FOCUS_WINDOW', 'KW_DELAYED_DETONATION', 'KW_CRIT_OVERFLOW'] }
   ];
 
   for (const sp of v240SingleWeaponAndLegendarySpecs) {
@@ -52546,6 +52915,8 @@ JD.ITEMS.items.forEach(it => {
       power: sp.tier * 55 + 40,
       legendary: false,
       apexPathArt: !!sp.legendary,
+      signatureVfx: sp.signatureVfx || (sp.id === 'LEG_V397_CORPSE_SOVEREIGN' ? 'sig_myriad_puppet_barrage' : sp.id === 'LEG_V397_WRAITH_GRIEVANCE' ? 'sig_nether_grave_soul_eruption' : sp.id === 'LEG_V397_DEATHLESS_CADAVER' ? 'sig_blood_lotus_apocalypse' : undefined),
+      fxKind: sp.fxKind || undefined,
       rarity: sp.legendary ? 'Legendary' : (sp.tier >= 6 ? 'Mythic' : 'Epic'),
       element: sp.el,
       elementalRole: 'ELEMENTAL',
@@ -52587,13 +52958,78 @@ JD.ITEMS.items.forEach(it => {
           action: sp.action,
           grantBuff: sp.buff,
           rider: sp.debuff,
-          aiRole: sp.arch === 'burst' ? 'finisher' : 'core'
+          heal: sp.heal || 0,
+          shield: sp.shield || 0,
+          team: !!sp.team,
+          aiRole: (sp.arch === 'heal' || sp.arch === 'harmonize') ? 'healer' : (sp.arch === 'burst' ? 'finisher' : 'core')
         }
       ],
       moves: ['กระบวนท่าที่ 1 • ' + sp.nameTh],
-      v240: true
+      v240: !sp.id.startsWith('LEG_V370_') && !sp.id.startsWith('LEG_V397_'),
+      v370c: sp.id.startsWith('LEG_V370_')
     };
     if (!JD.TECH.techniques.some(x => x.id === sp.id)) JD.TECH.techniques.push(tObj);
+  }
+  const necroUniSpecs = [
+    { id: 'TECH_NECRO_UNI_01', nameTh: 'ฝ่ามือตะปูหยินตรึงร่าง', tier: 3, grade: 'Rare', el: 'YIN_SHADOW', arch: 'dot', type: 'p', M: 1.35, hits: 1, cd: 12, wind: 4, costPct: 4, rider: 'necroRot', aiRole: 'core', descTh: 'เคล็ดวิชาหยินที่ผู้ฝึกทุกวิถีใช้ได้ ฝากไอเน่ากลืนชีพไว้ในร่างศัตรู และเสริมพลังเมื่อใช้ร่วมกับวิถีจอมคุมศพ' },
+    { id: 'TECH_NECRO_UNI_02', nameTh: 'เพลงขลุ่ยเรียกวิญญาณคืนถิ่น', tier: 4, grade: 'Rare', el: 'YIN_SHADOW', arch: 'soul', type: 'm', M: 1.5, hits: 1, cd: 13, wind: 4, costPct: 5, rider: 'soulHaunt', aiRole: 'core', descTh: 'ทำนองเรียกวิญญาณที่ผู้ฝึกทุกวิถีใช้ได้ ทำให้ศัตรูถูกวิญญาณตามหลอน และเสริมพลังเมื่อใช้ร่วมกับวิถีวิญญาณแค้น' },
+    { id: 'TECH_NECRO_UNI_03', nameTh: 'เคล็ดกลั้นลมหายใจสุดท้าย', tier: 5, grade: 'Exceptional', el: 'BLOOD_DEMON', arch: 'buff', type: 'b', M: 0, hits: 0, cd: 30, wind: 3, costPct: 6, grantBuff: 'deathlessFrame', aiRole: 'sustain', descTh: 'เคล็ดกลั้นปราณฝืนสังขารที่ผู้ฝึกทุกวิถีใช้ได้ เพิ่มพลังโจมตีชั่วคราว และเสริมพลังเมื่อใช้ร่วมกับวิถีกายไร้ชีพ' }
+  ];
+  for (const ns of necroUniSpecs) {
+    if (!JD.TECH.techniques.some(x => x.id === ns.id)) {
+      const uNecro = {
+        id: ns.id,
+        nameTh: ns.nameTh,
+        path: 'ANY',
+        compatiblePaths: ['CORPSE_SOVEREIGN', 'WRAITH_GRIEVANCE', 'DEATHLESS_CADAVER'],
+        requiresWeapon: false,
+        cat: 'COMBAT_TECHNIQUE',
+        role: 'ACTIVE',
+        combatArch: ns.arch,
+        tier: ns.tier,
+        reqTier: Math.max(1, ns.tier - 1),
+        grade: ns.grade,
+        power: ns.tier * 52 + 35,
+        element: ns.el,
+        elementalRole: 'INTRINSIC',
+        elementProfile: { mode: 'INTRINSIC_SINGLE', primary: ns.el, weights: { [ns.el]: 1 } },
+        weaponTypes: [],
+        armorTypes: ['ROBE', 'LIGHT', 'HEAVY'],
+        obtainSources: ['SECT_LIBRARY'],
+        sourceInfoTh: 'หอคัมภีร์สำนัก · ผู้ฝึกวิถีหยินมรณะจารึกไว้',
+        descTh: ns.descTh,
+        stages: [
+          { stage: 1, id: ns.id + '_S1', nameTh: 'ขั้นที่ 1 • พื้นฐานเที่ยงแท้', reqMastery: 0, reqCultStage: Math.max(1, ns.tier - 1), mult: 1.0 },
+          { stage: 2, id: ns.id + '_S2', nameTh: 'ขั้นที่ 2 • พลิกแพลงไร้ลักษณ์', reqMastery: 35, reqCultStage: ns.tier, mult: 1.18 }
+        ],
+        moveDefs: [
+          {
+            id: ns.id + '_M1',
+            parentId: ns.id,
+            stageReq: 1,
+            reqMastery: 0,
+            nameTh: 'กระบวนท่าที่ 1 • ' + ns.nameTh,
+            arch: ns.arch,
+            type: ns.type,
+            M: ns.M,
+            mult: ns.M,
+            hits: ns.hits,
+            cd: ns.cd,
+            wind: ns.wind,
+            costPct: ns.costPct,
+            qiCost: ns.costPct * 4,
+            targetSelector: ns.type === 'b' ? 'SELF' : 'SINGLE_ENEMY',
+            grantBuff: ns.grantBuff || undefined,
+            rider: ns.rider || undefined,
+            aiRole: ns.aiRole
+          }
+        ],
+        moves: ['กระบวนท่าที่ 1 • ' + ns.nameTh],
+        v200: true
+      };
+      JD.TECH.techniques.push(uNecro);
+      D.v200Techniques.push(uNecro);
+    }
   }
   for (const it of v200Items) {
     if (!JD.ITEMS.items.some(x => x.id === it.id)) JD.ITEMS.items.push(it);
@@ -52622,3 +53058,285 @@ JD.ITEMS.items.forEach(it => {
 
 
 })(typeof globalThis!=='undefined'?globalThis:this);
+
+
+// Category 04 & 05 Equipment Tag & Stage Normalization (v2.6.0)
+(function normalizeMartialEquipment0405() {
+  const gObj = typeof globalThis !== 'undefined' ? globalThis : window;
+  const items = (gObj.JD && gObj.JD.ITEMS && gObj.JD.ITEMS.items) || [];
+  for (const it of items) {
+    if (!it || !it.id) continue;
+    if ((it.out === 'EQUIPMENT' || it.slot) && (it.tier || 1) >= 4 && !it.minStage) {
+      it.minStage = Math.max(1, Math.min(6, (it.tier || 4) - 1));
+    }
+  }
+  const procDagger = items.find(x => x && x.id === 'ITEM_PROC_DAGGER');
+  if (procDagger) procDagger.visualSubtype = 'DAGGER';
+})();
+
+
+// System-Wide Thai Naming Polish & Cosmology Lore Canon Sync (Doc 15, 16A, 16B, LORE_02A-02D)
+(function applyV260NamingAndLoreCanonSync() {
+  const gObj = typeof globalThis !== "undefined" ? globalThis : window;
+  const JD = gObj.JD || {};
+  const PATH_NAMES = {"XIAN":"วิถีเซียน","BODY":"วิถีกายา","GOD":"วิถีเทพศรัทธา","DEMON":"วิถีมาร","HEART_SOUL":"วิถีจิตเซน","MECH_PUPPET":"วิถีหุ่นกลไก","KARMA_SAMSARA":"วิถีสังสารวัฏ","BEAST_SOVEREIGN":"วิถีราชันอสูร","SAGE_SUPPORT":"วิถีปราชญ์โอสถ","CRAFT_CREATION":"วิถีหลอมสร้าง","ARRAY_TALISMAN":"วิถีค่ายกลยันต์","STRATEGY_GOVERNANCE":"วิถีพิชัยยุทธ์","ASTRO_DIVINATION":"วิถีโหราดารา","BUDDHA_DHARMA":"วิถีพุทธธรรม","VOID_SPACE":"วิถีมิติเร้น","SONIC_HARMONY":"วิถีคีตยุทธ์","VENOM_GU":"วิถีพิษกู่","PRIMORDIAL_SHIFTER":"วิถีจำแลงอสูร","CELESTIAL_WEATHER":"วิถีบัญชาฟ้าฝน","WANDERING_DAO":"วิถีคนจร","MERCANTILE_DAO":"วิถีวาณิชย์","DRAGON_VEIN_GEOMANCY":"วิถีชีพจรมังกร","GRAVITY_DAO":"วิถีถ่วงดารา","CHRONO_EPOCH":"วิถีกาลเวลา","INK_LITERATI":"วิถีอักษรปราชญ์","SOUL_PUPPETRY":"วิถีเชิดเงา","PRIMORDIAL_CHAOS":"วิถีโกลาหล","SHADOW_SAMURAI":"วิถีดาบไร้ปราณ","NINPO_SHADOW":"วิถีเร้นเงา","NINPO_ELEMENTAL":"วิถีมุทราธาตุ","DIVINE_SUMMONER":"วิถีอัญเชิญเทวะ","DIVINE_POSSESSION":"วิถีร่างทรงเทวะ","DIVINE_CHANNELER":"วิถีสื่อเทวบัญญัติ","VOID_HERETIC_PACT":"วิถีพันธะสุญตา","OCCULT_MAGE":"วิถีไสยเวทย์","DEVOURING_FLESH":"วิถีกลืนสรีระ","NETHER_GRAVE":"วิถีสุสานยมโลก","ANCESTRAL_RITUAL":"วิถีบรรพชน","TIDE_VOYAGER":"วิถีจ้าวสมุทร","LORE_ARCHIVIST":"วิถีอาลักษณ์","FORTUNE_GAMBLER":"วิถีเดิมพันชะตา","SPIRIT_HUSBANDRY":"วิถีพฤกษาปราณ","ARENA_GLORY":"วิถีสังเวียนยุทธ์","LEG_READ_FORM_BLADE":"วิถีกระบี่อ่านช่องฟ้า","LEG_TRIAGE_MERIDIAN":"วิถีชีพจรประคองสหาย","LEG_STORM_CALLER_TEMPEST":"วิถีจอมพายุบัญชาฟ้า","LEG_JADE_CARAVAN_VOYAGER":"วิถีจอมคาราวานหยก","LEG_OATH_JUDGE_WARDEN":"วิถีผู้คุมสัตย์สาบาน","LEG_ASHEN_KILN_ALCHEMY":"วิถีเตาเถ้าคืนชีวิต","TRANS_CONSTELLATION_RELAY":"วิถีประสานปราณหมู่ดาว","TRANS_FIELD_CLAUSE_SOVEREIGN":"วิถีธรรมนูญฟ้าขีดเขต","TRANS_TEMPO_SOVEREIGN":"วิถีปรมาจารย์จังหวะกาล","TRANS_SEALKEEPER_FORBIDDEN_KEY":"วิถีผู้ถือกุญแจผนึก","TRANS_PRIMAL_VORTEX_MIRROR":"วิถีกระจกสะท้อนหมื่นวิชา","TRANS_DYNASTIC_MANDATE_WEAVER":"วิถีทอชะตาแผ่นดิน","CORPSE_SOVEREIGN":"วิถีจอมคุมศพ","WRAITH_GRIEVANCE":"วิถีวิญญาณแค้น","DEATHLESS_CADAVER":"วิถีกายไร้ชีพ"};
+  const SUB_NAMES = {"SWORD_IMMORTAL":"กระบี่สวรรค์","FIVE_ELEMENTS":"เบญจธาตุสมดุล","ELIXIR_DAO":"โอสถอมฤต","ASTRAL_ARRAY":"ค่ายกลดารา","BLOOD_DEMON":"ปราณโลหิตแดง","PHANTOM_SOUL":"วิญญาณมายา","TIME_VOID":"กาลมิติเร้น","SOUND_ZITHER":"พิณสะกดจิต","YIN_YANG_HARMONY":"หยินหยางไร้ลักษณ์","FROST_MOON_IMMORTAL":"จันทราเหมันต์","STAR_ARCHER":"เซียนศรดารา","CLOUD_DRAGON_SPEAR":"ทวนมังกรเมฆา","PURE_SWORD_SAINT":"กระบี่ไร้ลักษณ์","CELESTIAL_STAR_SWORD":"กระบี่ผ่าดารา","KUNLUN_JADE_CAULDRON":"หม้อหยกกลั่นปราณ","NINE_HEAVENS_THUNDER_SEAL":"ตราอสนีเก้าฟ้า","TIGER_SOVEREIGN":"พยัคฆ์คลั่ง","BLOOD_DRAGON":"มังกรโลหิต","VAJRA_BODHI":"กายาวัชระ","DEVOURING_FIEND":"อสูรกลืนปราณ","SOLAR_FORGE":"เพลิงสุริยัน","THUNDER_BODY":"กายาอสนีบาต","JADE_IMMORTAL_BODY":"กายาหยกพิสุทธิ์","TITAN_MOUNTAIN_BODY":"ยักษ์แบกขุนเขา","WOOD_SPRING_BODY":"กายาพฤกษา","STAFF_GUARD":"พลองเหล็กพิทักษ์","WAR_SPEAR_SOVEREIGN":"ทวนศึกทลายทัพ","IRON_BOW_SENTINEL":"เกาทัณฑ์ศิลาเหล็ก","OVERLORD_HEAVY_BLADE":"จอมดาบผ่าผา","METEOR_IRON_FIST":"หมัดเหล็กดาวตก","NINE_SUNS_FURNACE_BODY":"เตาหลอมเก้าตะวัน","ABYSSAL_LEVIATHAN_BONE":"กระดูกมังกรบาดาล","WAR_DEITY":"เทพสงคราม","MERCY_DEITY":"เทพเมตตา","FATE_ORACLE":"เทพพยากรณ์","TOTEM_BEAST_GOD":"เทพอสูรบรรพกาล","UNDERWORLD_JUDGE":"ตุลาการยมโลก","OCEAN_SOVEREIGN":"เทพเจ้าสมุทร","HARVEST_EARTH_GOD":"เทพบิดรพืชพรรณ","MEDICINE_BODHI_GOD":"เทพโอสถเมตตา","SUN_BOW_DEITY":"เทพศรสุริยัน","GOLDEN_ARHAT_STAFF":"พลองทองพิทักษ์","SOLAR_CHARIOT_SOVEREIGN":"ราชรถสุริยัน","STYX_FERRYMAN_JUDGE":"คนแจวเรือข้ามแม่น้ำลืมเลือน","STORM_THUNDER_EMPEROR":"เทพพายุสายฟ้า","SHADOW_ASSASSIN":"นักฆ่าไร้เงา","VENOM_GU_SOVEREIGN":"จอมราชันย์หมื่นพิษกู่","NETHER_GHOST_KING":"ราชันภูตผี","HEAVEN_DEVOURING_DEMON":"จอมมารกลืนสวรรค์","SHADOW_ARCHER":"ศรเงาปลิดชีพ","BLOOD_SPEAR_ASURA":"ทวนโลหิตอสูร","ASHURA_SLAUGHTER_BLADE":"ดาบมารไร้ปรานี","CRIMSON_MOON_EXECUTIONER":"เพชฌฆาตจันทร์เลือด","MYRIAD_MIASMA_ALCHEMIST":"หมอกพิษมรณะ","ABYSSAL_SOUL_EATER":"มารกลืนวิญญาณ","ZEN_VOID_MIND":"จิตเซนสุญตา","CALLIGRAPHY_PAINTING_SAGE":"พู่กันภาพมายา","DREAM_ILLUSION_WEAVER":"ทอมายาสุบิน","MIND_SWORD_TELEKINESIS":"กระบี่จิตไร้รูป","ZITHER_HEART_BOW":"ศรพิณสะกดจิต","HEART_BLADE_MEDITATION":"มีดบินประสานใจ","VOID_SPEAR_MIND":"ทวนจิตสุญตา","CELESTIAL_CHESS_SCHOLAR":"หมากล้อมบัญชาจิต","SEVEN_EMOTIONS_ZITHER":"พิณมารเจ็ดอารมณ์สะกดจิต","VOID_LOTUS_CONTEMPLATOR":"ปทุมแก้วส่องจิต","HEAVENLY_GOLEM":"หุ่นศิลาเทวะ","THOUSAND_THREAD_ASSASSIN":"ใยไหมสังหาร","BEAST_CHIMERA_MECH":"พยัคฆ์กลเหล็ก","CELESTIAL_BALLISTA":"หน้าไม้กลดารา","SOUL_VESSEL_AVATAR":"หุ่นกายทิพย์","FLYING_BLADE_ORBITER":"กงล้อพันกระบี่","ASTRAL_CLOCKWORK_PRIME":"เฟืองดาราคำนวณ","THUNDER_CORE_ARTILLERY":"ท่ออสนีถล่มค่าย","JADE_SPIDER_WEAVER":"หุ่นแมงมุมหยก","SOLAR_BRONZE_COLOSSUS":"หุ่นยักษ์สำริด","REVERSED_RETRIBUTION":"วิบากย้อนกรรม","SIX_PATHS_WHEEL":"กงล้อหกภพ","FATE_SEVERING_THREAD":"ด้ายตัดวาสนา","LOTUS_MERCY_PURIFIER":"ปทุมชำระบาป","ASURA_JUDGMENT_BLADE":"ดาบทัณฑ์อสูร","PAST_LIFE_MIRROR":"กระจกชาติภพ","BODHI_VOW_GUARDIAN":"ปณิธานคุ้มภพ","CAUSE_EFFECT_LEDGER":"สมุดบัญชีกรรม","NETHER_RIVER_REAPER":"โซ่ยมทูตลืมเลือน","GOLDEN_WHEEL_ARBITER":"กงล้อทองตัดสิน","MYRIAD_BEAST_PACK":"จ้าวฝูงหมื่นอสูร","PRIMORDIAL_BLOOD_MUTATOR":"ปลุกเลือดบรรพกาล","SYMBIOTIC_BEAST_WARRIOR":"นักรบผสานอสูร","COLOSSUS_SHIELD_TAMER":"อสูรยักษ์คุ้มด่าน","SWARM_GU_HIVE_MASTER":"จ้าวฝูงแมลงพิษ","CELESTIAL_ASTRAL_FAIRY_TAMER":"พันธะภูตพฤกษา","ABYSSAL_DRAGON_TOTEM":"มังกรสมุทรอัสนี","KUNPENG_WIND_RIDER":"ขี่พญาคุนเผิง","QILIN_THUNDER_HERALD":"กิเลนอสนี","NINE_NETHER_SERPENT_LORD":"อสรพิษเก้ายมโลก","GOLDEN_NEEDLE_SAINT":"ปราชญ์เข็มทอง","CELESTIAL_ZITHER_ENVOY":"พิณทิพย์ชูใจ","DIVINE_NECTAR_APOTHECARY":"หมอนํ้าค้างทิพย์","QIMEN_TALISMAN_PATRON":"ยันต์ฉีเหมินคุ้มทัพ","SOUL_LANTERN_SHEPHERD":"โคมวิญญาณคุ้มชีพ","WAR_BANNER_CHORISTER":"ธงศึกปลุกขวัญ","WOOD_SPIRIT_SYMBIONT":"ปราณพฤกษาชุบชีพ","IMMORTAL_PEACH_APOTHECARY":"โอสถท้อต่อชะตา","EIGHT_TRIGRAMS_BANNER_SAGE":"ธงแปดทิศหนุนทัพ","CELESTIAL_INK_CHRONICLER":"หมึกทองจารึกคุณ","PILL_FURNACE_IMMORTAL":"เตาโอสถเก้าทวาร","POISON_VENOM_CAULDRON":"หม้อหลอมร้อยพิษ","HEAVENLY_ANVIL_SMITH":"ทั่งเหล็กร้อยหลอม","SPIRIT_SWORD_ARTIFICER":"ช่างกระบี่วิญญาณ","RUNE_ARRAY_ENGRAVER":"สลักอักขระศาสตรา","DIVINE_FLAME_SMELTER":"อัคคีหลอมแร่","SPIRIT_FEAST_HEALER":"ครัวทิพย์ฟื้นชีวา","JADE_MEAL_PREPARER":"สำรับหยกบำเพ็ญ","CELESTIAL_ARMOR_ARTISAN":"ช่างเกราะไหมเหล็ก","STAR_METEOR_WEAPONSMITH":"ช่างเหล็กดาวตก","NINE_REVOLUTIONS_ALCHEMIST":"โอสถเก้าวัฏจักร","PUPPET_RELIC_ARTIFICER":"ช่างหลอมของวิเศษ","EARTH_VEIN_WARDEN":"ค่ายกลชีพจรดิน","SEAL_SCRIPT_EXORCIST":"ยันต์ผนึกปราบมาร","THUNDER_TALISMAN_ADEPT":"ยันต์อสนีทลายทัพ","MIRAGE_ARRAY_WEAVER":"ค่ายกลพรางเงา","ASTRAL_STARFALL_ARRAY":"ค่ายกลดาวตก","VERMILION_SEAL_TALISMAN":"ยันต์ชาดสุริยัน","LABYRINTH_MIST_FORMATION":"ค่ายกลหมอกวงกต","BATTLEFIELD_STRATEGIST":"กุนซือธงศึก","SECT_STEWARD":"พ่อบ้านดูแลสำนัก","DIPLOMATIC_ENVOY":"ทูตประสานไมตรี","CARAVAN_QUARTERMASTER":"พลาธิการคาราวาน","CIVIL_TEACHING_MENTOR":"อาจารย์อบรมศิษย์","IMPERIAL_SEAL_CHANCELLOR":"เสนาบดีตราหยก","SHADOW_INTELLIGENCE_MARSHAL":"ข่าวกรองเงาจันทร์","GRAND_LOGISTICS_COMMANDER":"ส่งบำรุงหมื่นลี้","STAR_CHART_PROPHET":"พยากรณ์ผังดาว","POLARIS_FATE_WEAVER":"ทอชะตาดาวเหนือ","ECLIPSE_DOOM_SEER":"เนตรสุริยคราส","METEOR_OMEN_CALLER":"เพรียกดาวตก","QIMEN_EIGHT_GATES_DIVINER":"ฉีเหมินแปดประตู","BIG_DIPPER_LONGEVITY_SAGE":"กระบวยดาราต่อชะตาฟ้า","VAJRA_WRATH_GUARDIAN":"ธรรมบาลวัชระพิโรธปราบมาร","GOLDEN_LOTUS_CHAN":"ฌานบัวทอง","SUTRA_CHANT_ARHAT":"อรหันต์สวดมนต์","THOUSAND_PALM_BODHISATTVA":"มหาเมตตาโพธิสัตว์พันกร","RELIC_PAGODA_KEEPER":"พิทักษ์เจดีย์ธาตุ","KARMA_FIRE_ASCETIC":"เพลิงกัลป์เผาวิบาก","DIMENSIONAL_BLADE_REAPER":"คมดาบตัดมิติ","VOID_BLINK_STRIDER":"ก้าวพริบตาข้ามว่าง","POCKET_REALM_ARCHITECT":"เนรมิตมิติย่อย","SINGULARITY_COLLAPSE_MAGE":"หลุมดำกลืนมิติ","PHASE_MIRAGE_ASSASSIN":"เร้นเงาเหลื่อมภพ","SPATIAL_BARRIER_WARDEN":"ม่านกระจกมิติ","SEVEN_STRINGS_ANNIHILATION":"พิณเจ็ดสายสังหาร","JADE_FLUTE_SOUL_CHARMER":"ขลุ่ยหยกสะกดจิต","WAR_DRUM_TEMPEST_HERALD":"กลองศึกสะท้านภพ","RESONANT_BELL_EXORCIST":"กระดิ่งสลายมาร","SILENT_WAVE_ASSASSIN":"คลื่นเสียงไร้รูป","CELESTIAL_CHOIR_CONDUCTOR":"จ้าวทำนองประสาน","GOLDEN_SILKWORM_GU_LORD":"ราชันกู่ไหมทอง","MYRIAD_VENOM_APOTHECARY":"หมอพิษหมื่นบุปผา","BLOOD_PARASITE_HEXER":"กู่โลหิตสูบชีพ","CORROSIVE_MIASMA_WEAVER":"หมอกพิษกัดเกราะ","SCORPION_CLAW_EXECUTIONER":"กรงเล็บแมงป่องพิษ","IMMORTAL_NECTAR_TOXIN_SAGE":"หัตถ์พิษแปรเปลี่ยนเป็นน้ำอมฤต","AZURE_DRAGON_SCALE_SHIFTER":"เกล็ดมังกรคราม","WHITE_TIGER_FANG_RAVAGER":"เขี้ยวพยัคฆ์ขาว","VERMILION_PHOENIX_WING_ASCENDANT":"ปีกหงส์เพลิงคืนชีพ","BLACK_TORTOISE_SHELL_COLOSSUS":"กระดองเต่าดำ","FIEND_APE_TITAN_MORPH":"พญาวานรทลายผา","NINE_TAIL_MIRAGE_SHIFTER":"จิ้งจอกเก้าหาง","THUNDER_CLOUD_CALLER":"เมฆาอสนีบาต","MONSOON_RAIN_WEAVER":"พิรุณสลายเพลิง","BLIZZARD_FROST_HERALD":"พายุหิมะเยือกแข็ง","TYPHOON_GALE_SOVEREIGN":"พายุคลั่งกวาดทัพ","MIRAGE_FOG_SHROUDER":"หมอกทึบพรางสัมผัส","SOLAR_ZENITH_INVOKER":"แสงสุริยันแผดเผา","HORIZON_WIND_WALKER":"คนจรสุดขอบฟ้า","RUIN_PATHFINDER_SAGE":"บุกเบิกซากโบราณ","CARAVAN_ESCORT_VANGUARD":"คุ้มภัยคาราวาน","WILDERNESS_BEAST_TRACKER":"พรานแกะรอยอสูร","CLOUD_STEP_HERMIT":"ฤๅษีเหยียบเมฆา","REALM_MAPPER_CHRONICLER":"วาดแผนที่หมื่นลี้","GOLDEN_ABACUS_ARBITER":"ลูกคิดทองคำ","BLOOD_CONTRACT_NOTARY":"พันธสัญญาโลหิต","CARAVAN_SYNDICATE_MAGNATE":"เจ้าสัวคาราวาน","TREASURE_APPRAISER_SAGE":"ปราชญ์ดูของวิเศษ","DEBT_FORECLOSURE_ENFORCER":"ผู้คุมกฎทวงหนี้","EQUITY_SHIELD_CHANCELLOR":"ตราชั่งคลังสมดุล","LUOPAN_GEOMANCER_SAGE":"หลัวผานชี้มงคล","MOUNTAIN_SPINE_ANCHOR":"ตรึงสันหลังขุนเขา","LEYLINE_WARD_ARCHITECT":"ผังค่ายชีพจรดิน","EARTH_DRAGON_AWAKENER":"ปลุกชีพมังกรดิน","JADE_FAULT_CRUSHER":"รอยเลื่อนทลายด่าน","SANCTUARY_PEAK_CUSTODIAN":"พิทักษ์ยอดเขาเซียน","HEAVY_STAR_CRUSHER":"ดาราหนักหมื่นชั่ง","ZERO_GRAVITY_DRIFTER":"กายาเบาเหินหาว","ORBITAL_REPULSION_WARDEN":"ม่านผลักศาสตรา","SINGULARITY_WELL_CONTROLLER":"เขตแดนถ่วงทัพ","METEOR_WEIGHT_STRIKER":"หมัดศิลาถ่วงหนัก","TIDAL_LOCK_ARBITER":"แรงดึงตรึงคู่ศึก","SUNDIAL_EPOCH_CHRONICLER":"เงาตะวันจารึกยุค","HOURGLASS_SAND_REAPER":"ทรายเวลาพรากชีพ","REWIND_SPRING_HEALER":"ย้อนวสันต์คืนชีพ","ACCELERATED_BLADE_FLASH":"ดาบเร่งพริบตา","STASIS_SEAL_WARDEN":"ผนึกหยุดเวลา","PAST_FUTURE_MIRROR_SAGE":"กระจกอดีตอนาคต","IMPERIAL_EDICT_CALLIGRAPHER":"พู่กันราชโองการสวรรค์","LANDSCAPE_SCROLL_PAINTER":"ภาพวาดขุนเขานํ้า","SWORD_POEM_IMMORTAL":"กวีกระบี่ร่ายมนตร์","CLASSICS_LAW_ARBITER":"บัญญัติมณเฑียรบาล","VERMILION_CRITIQUE_CENSOR":"หมึกชาดสลายวิชา","HISTORIANS_DESTINY_QUILL":"พู่กันพงศาวดาร","PHANTOM_SILK_PUPPETEER":"เชิดเงาไหมล่องหน","SOUL_STITCH_NEEDLE_MASTER":"เข็มเย็บวิญญาณ","PAPER_EFFIGY_CONJURER":"หุ่นกระดาษรับเคราะห์","CORPSE_FLAME_MARIONETTE":"หุ่นเชิดเพลิงผี","MIRROR_SHADOW_TWIN":"เงาแฝดกระจก","FATE_STRING_CONDUCTOR":"ชักใยด้ายชะตา","HUN_DUN_ORIGIN_DEVOURER":"กลืนกินปฐมโกลาหลหุ่นตุ้น","YIN_YANG_MILLSTONE_SAGE":"โม่หินหยินหยาง","FIVE_PHASE_INVERSION_ADEPT":"ย้อนทวนเบญจธาตุ","ENTROPY_FLAME_SOVEREIGN":"เพลิงโกลาหล","GENESIS_LOTUS_CREATOR":"บัวกำเนิดปราณ","ABYSSAL_CHAOS_HALBERD":"ทวนผ่าโกลาหล","IAI_FLASH_SLICER":"เพลงดาบชักฝักสะบั้นพริบตา","MURAMASA_BLOOD_EDGE":"ดาบปีศาจกระหายโลหิตสังหาร","UNBROKEN_IRON_STANCE":"ปราการดาบเหล็กจิตไม่สั่นคลอน","KENJUTSU_SWORD_SAINT":"คมดาบตัดวิญญาณ","CLONE_MIRAGE_WEAVER":"แยกร่างเงามายา","SMOKE_MIST_ASSASSIN":"หมอกควันปลิดชีพ","CONCEALED_WEAPON_STRIKER":"ซัดดาวอาวุธลับ","SHADOW_BIND_STRATEGIST":"ตรึงเงาสะกดร่าง","EXPLOSIVE_TAG_TRAPPER":"กับดักยันต์ระเบิด","FIVE_SEAL_ELEMENTALIST":"มุทราเบญจธาตุ","SUBSTITUTION_ESCAPE":"สลับร่างท่อนไม้","CHAKRA_SCROLL_SEALER":"ม้วนผนึกอาคม","CELESTIAL_BEAST_HERALD":"อัญเชิญสัตว์เทวะ","WAR_DEITY_CONVOKER":"อัญเชิญขุนพลฟ้า","NETHER_GATE_CALLER":"เพรียกประตูนรก","PANTHEON_CHOIR_CONDUCTOR":"โองการชุมนุมเทพ","SOLAR_AVATAR_VESSEL":"ร่างทรงสุริยเทพ","STORM_WRATH_MEDIUM":"ร่างทรงเทพอสนี","VAJRA_EARTH_ANCHOR":"ร่างทรงเทพปฐพี","MAHADEVA_DESTROYER":"ร่างทรงเทพผลาญภพ","JUDGMENT_SCALE_BORROWER":"ตราชั่งชั่งวิญญาณ","THUNDERBOLT_WIELDER":"ศาสตราอสนีเทพ","THIRD_EYE_INSIGHT":"เนตรทิพย์สามภพ","SERPENT_GRACE_BORROWER":"บารมีนาคราช","MADNESS_WHISPERER":"สาวกเสียงกระซิบโพ้นม่านฟ้า","FLESH_MUTATION_ADEPT":"ผลัดเนื้ออสูรว่าง","VOID_WARPING_HERETIC":"ฉีกบิดห้วงสุญตา","SANITY_SACRIFICE_WARLOCK":"สังเวยจิตแลกฤทธิ์","YANTRA_IRON_SKIN":"ยันต์คงกระพัน","BLACK_ARTS_HEXER":"คุณไสยมนต์ดำ","PHRAY_SPIRIT_WHISPER":"พรายกระซิบเตือน","SACRED_GOLEM_TAMER":"พยนต์อาคม","IRON_BONE_DEVOURER":"กลืนแร่กระดูกเหล็ก","BEAST_FLESH_CONSUMER":"กลืนเลือดอสูร","INTERNAL_ORGAN_REFINER":"หลอมอวัยวะมาร","PRIMORDIAL_STOMACH_TITAN":"เตาหลอมเลือดเนื้อกลืนหมื่นอสูร","ANCESTRAL_GRAVE_KEEPER":"เฝ้าสุสานโบราณ","BONE_PUPPET_REFINER":"หุ่นกระดูกวัชระ","SOUL_SIPHON_REAPER":"สูบวิญญาณชิงชีพ","CORPSE_EXPLOSION_ACOLYTE":"ระเบิดซากศพ","MARROW_HERITAGE_SHAMAN":"ปลุกเลือดบรรพชน","ANCESTRAL_TABLET_CHANTER":"สวดป้ายบูรพาจารย์","HEROIC_SPIRIT_SPEARMAN":"ทวนวิญญาณวีรชน","CHRONICLE_TOTEM_GUARDIAN":"เสาหลักวงศ์ตระกูล","ABYSSAL_TIDE_SPEAR":"ทวนคลื่นบาดาล","FROST_MAELSTROM_CALLER":"นํ้าวนเหมันต์","DRAGON_SHIP_NAVIGATOR":"นายท้ายสำเภามังกร","DEEP_PEARL_APOTHECARY":"ไข่มุกสมุทร","ANCIENT_RUBBING_DECODER":"ถอดศิลาจารึก","SUTRA_COMPILER_SAGE":"สังคายนาคัมภีร์","TECHNIQUE_MIRROR_SCHOLAR":"เนตรกระจกสะท้อนหมื่นวิชา","FORBIDDEN_SCROLL_CUSTODIAN":"เฝ้าหอต้องห้าม","JADE_DICE_HIGH_ROLLER":"เต๋าหยกท้าชะตา","FATE_COIN_FLIPPER":"เหรียญพลิกเป็นตาย","KARMA_ROULETTE_DEALER":"กงล้อเสี่ยงทาย","ALL_IN_DESPERADO_BLADE":"เดิมพันชะตาฟ้าแลกชีวิต","IMMORTAL_HERB_PLANTER":"ปลูกสมุนไพรเซียน","IRON_THORN_VINE_WEAVER":"เถาวัลย์หนามเหล็ก","SPIRIT_GRAIN_SOVEREIGN":"รวงข้าววิญญาณ","PARASITIC_SPORE_CULTIVATOR":"เกสรกลืนปราณ","GRAND_TOURNEY_CHAMPION":"เจ้ายุทธเจ็ดศาสตรา","DUELIST_HONOR_BLADE":"ดาบดวลเกียรติยศ","CROWD_ROAR_BRAWLER":"หมัดก้องสังเวียน","BANNER_GLORY_MARSHAL":"ธงชัยเกียรติยุทธ์","CORPSE_BELL_HERDER":"สายกระดิ่งต้อนศพ","BEAST_CARCASS_RIDER":"สายขี่ซากอสูร","JADE_COFFIN_WARDEN":"สายผู้เฝ้าโลงหยก","ARMORY_OF_THE_DEAD":"สายคลังศาสตราผู้ล่วงลับ","GRIEVANCE_LEDGER_KEEPER":"สายสมุดบัญชีแค้น","HUNGRY_GHOST_STEWARD":"สายผู้เลี้ยงผีหิว","LAST_WISH_MEDIUM":"สายร่างทรงคำสั่งเสีย","WAILING_CHORUS":"สายคณะวิญญาณร่ำไห้","UNDYING_FRAME":"สายกายไม่ล้ม","ROT_BLOOM_HOST":"สายร่างเพาะบุปผาเน่า","MARROW_STILLNESS_SAGE":"สายไขกระดูกนิ่งงัน","COLD_PULSE_REVENANT":"สายผีดิบชีพจรเย็น"};
+  const ELEM_TH = {
+    FIRE: "เพลิง", WATER_ICE: "น้ำแข็ง", LIGHTNING: "อสนี", EARTH_METAL: "ดินโลหะ",
+    WOOD_LIFE: "พฤกษา", WIND: "วายุ", ASTRAL: "ดารา", YIN_SHADOW: "หยินเงา",
+    DARK_YIN: "หยินเงา", LIGHT_YANG: "หยางแสง", BLOOD_DEMON: "โลหิตมาร", NEUTRAL: "ไร้ธาตุ"
+  };
+  const SCRIPTURE_NAMES = {
+    LEG_V230_ASTRO_DIVINATION: "คัมภีร์ดาราพยากรณ์ทอชะตาเก้าสวรรค์",
+    LEG_V230_BUDDHA_DHARMA: "มหาไวโรจนสูตรบัวทองนิพพาน",
+    LEG_V230_VOID_SPACE: "คัมภีร์ผ่าสุญตาทะลวงพันพิภพ",
+    LEG_V230_SONIC_HARMONY: "ลำนำสวรรค์เก้าทำนองสะท้านวิญญาณ",
+    LEG_V230_VENOM_GU: "คัมภีร์ราชันย์กู่หมื่นพิษกลืนสวรรค์",
+    LEG_V230_PRIMORDIAL_SHIFTER: "คัมภีร์อสูรบรรพกาลคืนสายเลือดแท้",
+    LEG_V230_CELESTIAL_WEATHER: "คัมภีร์บัญชาสี่ฤดูเรียกพายุอสนี",
+    LEG_V230_WANDERING_DAO: "บันทึกย่างก้าวคนจรท่องหมื่นขุนเขา",
+    LEG_V230_MERCANTILE_DAO: "คัมภีร์ตราชั่งทองคำชั่งตวงวาสนา",
+    LEG_V230_DRAGON_VEIN_GEOMANCY: "ตำราผนึกชีพจรมังกรเคลื่อนขุนเขา",
+    LEG_V230_GRAVITY_DAO: "คัมภีร์ดารายุบตัวหนักหมื่นขุนเขา",
+    LEG_V230_CHRONO_EPOCH: "คัมภีร์วัฏจักรกาลเวลาย้อนอดีตภพ",
+    LEG_V230_INK_LITERATI: "คัมภีร์อักษรสวรรค์หนึ่งขีดชี้เป็นตาย",
+    LEG_V230_SOUL_PUPPETRY: "คัมภีร์ไหมวิญญาณเชิดเงาร้อยชะตา",
+    LEG_V230_PRIMORDIAL_CHAOS: "มหาคัมภีร์ปฐมโกลาหลบุกเบิกฟ้าดิน",
+    LEG_V230_SHADOW_SAMURAI: "คัมภีร์ดาบไร้ใจหนึ่งตวัดสะบั้นเงา",
+    LEG_V230_NINPO_SHADOW: "คัมภีร์พันเงามายาไร้ร่องรอยสังหาร",
+    LEG_V230_NINPO_ELEMENTAL: "คัมภีร์มุทราห้าธาตุยันต์เพลิงกัมปนาท",
+    LEG_V230_DIVINE_SUMMONER: "มหาโองการอัญเชิญเงาทวยเทพข้ามม่านฟ้า",
+    LEG_V230_DIVINE_POSSESSION: "คัมภีร์ภาชนะเทวะประทับร่างสะท้านภพ",
+    LEG_V230_DIVINE_CHANNELER: "คัมภีร์สื่อศาสตราสวรรค์ยืมกฎสายฟ้า",
+    LEG_V230_VOID_HERETIC_PACT: "คัมภีร์เสียงกระซิบวิปลาสโพ้นสุญตา",
+    LEG_V230_OCCULT_MAGE: "คัมภีร์มหาอาคมเจ็ดป่าช้าคงกระพันชาตรี",
+    LEG_V230_DEVOURING_FLESH: "คัมภีร์เตาหลอมเลือดเนื้อกลืนหมื่นอสูร",
+    LEG_V230_NETHER_GRAVE: "คัมภีร์โองการยมโลกปลุกทัพหมื่นสุสาน",
+    LEG_V230_ANCESTRAL_RITUAL: "คัมภีร์สังเวยโลหิตปลุกวิญญาณบรรพชน",
+    LEG_V230_TIDE_VOYAGER: "คัมภีร์จ้าวสมุทรแหวกคลื่นหมื่นโยชน์",
+    LEG_V230_LORE_ARCHIVIST: "สารานุกรมสวรรค์ส่องทะลุหมื่นเคล็ดวิชา",
+    LEG_V230_FORTUNE_GAMBLER: "คัมภีร์เต๋าสวรรค์พลิกชะตาเดิมพันชีวิต",
+    LEG_V230_SPIRIT_HUSBANDRY: "คัมภีร์สวนอมฤตเพาะเลี้ยงพฤกษาหมื่นปี",
+    LEG_V230_ARENA_GLORY: "คัมภีร์ราชันย์สังเวียนไร้พ่ายร้อยศึก",
+    LEG_V240_GOD: "มหาคัมภีร์ศรัทธาหมื่นราษฎร์หลอมเทวรูปทอง",
+    LEG_V240_CRAFT_CREATION: "มหาคัมภีร์เตาหลอมฟ้าดินเนรมิตศาสตราเทพ",
+    MP_BOW_ASTRAL_GALAXY_T7: "มหาคัมภีร์ศรธารดาราทะลวงพิภพ",
+    TECH_V200_SONIC_HARMONY_ACT_06: "เคล็ดวิชาจ้าวสังคีตประสานทำนองฟ้า"
+  };
+  const RELIC_NAMES = {
+    REL_V230_ASTRO_DIVINATION: "จานดาราจักรทอชะตาฟ้าดิน",
+    REL_V230_BUDDHA_DHARMA: "ประคำโพธิสัตว์พันกรสยบมาร",
+    REL_V230_VOID_SPACE: "เข็มไร้รูปผ่าม่านสุญตา",
+    REL_V230_SONIC_HARMONY: "พิณหยกเก้าสวรรค์กล่อมสามภพ",
+    REL_V230_VENOM_GU: "เข็มกระดูกกู่ราชันย์หมื่นพิษ",
+    REL_V230_PRIMORDIAL_SHIFTER: "กรงเล็บราชันย์อสูรทลายบรรพต",
+    REL_V230_CELESTIAL_WEATHER: "พัดขนนกเมฆาอสนีบัญชาฟ้า",
+    REL_V230_WANDERING_DAO: "พลองไม้ไผ่หยกท่องหมื่นลี้",
+    REL_V230_MERCANTILE_DAO: "ลูกคิดทองคำชั่งกรรมหมื่นตำลึง",
+    REL_V230_DRAGON_VEIN_GEOMANCY: "จานหลัวผานผนึกชีพจรมังกร",
+    REL_V230_GRAVITY_DAO: "จานดาราเหล็กนิลถ่วงดาราหมื่นชั่ง",
+    REL_V230_CHRONO_EPOCH: "จานทรายกาลเวลาหมุนย้อนยุคสมัย",
+    REL_V230_INK_LITERATI: "พู่กันหยกขาวจารึกราชโองการฟ้า",
+    REL_V230_SOUL_PUPPETRY: "แส้ไหมวิญญาณร้อยด้ายเชิดชะตา",
+    REL_V230_PRIMORDIAL_CHAOS: "กรงเล็บปฐมโกลาหลแยกหยินหยาง",
+    REL_V230_SHADOW_SAMURAI: "ดาบเงาจันทร์เสี้ยวไร้ปราณ",
+    REL_V230_NINPO_SHADOW: "เข็มเงาจันทร์เร้นลับปลิดวิญญาณ",
+    REL_V230_NINPO_ELEMENTAL: "เข็มอัคคีมุทราห้าธาตุถล่มค่าย",
+    REL_V230_DIVINE_SUMMONER: "จานดาราทองคำอัญเชิญเงาเทวสภา",
+    REL_V230_DIVINE_POSSESSION: "ทวนศึกประทับเงามหาเทพสงคราม",
+    REL_V230_DIVINE_CHANNELER: "กระบี่ศิลาสื่อสายฟ้าทัณฑ์เทวราช",
+    REL_V230_VOID_HERETIC_PACT: "ตราอาคมกระดูกดำจารึกสัญญานอกภพ",
+    REL_V230_OCCULT_MAGE: "ลูกประคำอาคมเขาควายธนูสะกดวิญญาณ",
+    REL_V230_DEVOURING_FLESH: "กรงเล็บเขี้ยวอสูรกลืนกินเลือดเนื้อ",
+    REL_V230_NETHER_GRAVE: "พลองโซ่ตรวนยมทูตล่ามวิญญาณ",
+    REL_V230_ANCESTRAL_RITUAL: "พลองกระดูกบรรพชนค้ำชูตระกูล",
+    REL_V230_TIDE_VOYAGER: "ทวนสมอเกล็ดมังกรสมุทรแหวกคลื่น",
+    REL_V230_LORE_ARCHIVIST: "พู่กันปราชญ์คัดลอกหมื่นคัมภีร์",
+    REL_V230_FORTUNE_GAMBLER: "พัดหยกพนันชะตาพลิกฟ้าคว่ำดิน",
+    REL_V230_SPIRIT_HUSBANDRY: "พลองพฤกษาทิพย์เร่งผลิสวนเซียน",
+    REL_V230_ARENA_GLORY: "ทวนศึกราชันย์สังเวียนพิชิตหล้า"
+  };
+  const PROTOTYPE_OWNERS = {
+    WANDERING_DAO: "พญาวานรคนจร ซูเหยียน (#17)",
+    VOID_HERETIC_PACT: "มหาเทวราชครู เสิ่นเทียนจุน (#28)",
+    FORTUNE_GAMBLER: "เซียนพนันเก้าชะตา ไป๋อวี้ (#35)",
+    OCCULT_MAGE: "จอมขมังเวทย์บรรพกาล ปู่เจ้าสมิงพราย (#40)",
+    SHADOW_SAMURAI: "นักดาบไร้เงา เคนชิน (#41)"
+  };
+
+  // 1. Update Paths & Subpaths in JD.CULT.paths and JD.MARTIAL.subPaths
+  if (JD.CULT && JD.CULT.paths) {
+    for (const [pid, p] of Object.entries(JD.CULT.paths)) {
+      if (PATH_NAMES[pid]) {
+        p.nameTh = PATH_NAMES[pid];
+        p.shortTh = PATH_NAMES[pid];
+      }
+      if (Array.isArray(p.realmTraits)) {
+        for (const rt of p.realmTraits) {
+          if (rt.stage === 2) rt.nameTh = "รากฐาน" + p.nameTh;
+          else if (rt.stage === 4) rt.nameTh = "แก่นแท้" + p.nameTh;
+          else if (rt.stage === 6) rt.nameTh = "เขตแดน" + p.nameTh;
+          else if (rt.stage === 8) rt.nameTh = "ปรมาจารย์" + p.nameTh;
+          rt.descTh = "เสริมรากฐานและตบะประจำ" + p.nameTh;
+        }
+      }
+      if (Array.isArray(p.subPaths)) {
+        for (const sp of p.subPaths) {
+          if (SUB_NAMES[sp.id]) sp.nameTh = SUB_NAMES[sp.id];
+          if (Array.isArray(sp.subpathTraits)) {
+            for (const st of sp.subpathTraits) {
+              if (st.realm === 3) { st.nameTh = "เปิดมรรคา · " + sp.nameTh; st.descTh = "ปลดล็อกเคล็ดลับขั้นต้นของ " + sp.nameTh; }
+              else if (st.realm === 6) { st.nameTh = "ชำนาญศึก · " + sp.nameTh; st.descTh = "ยกระดับความเชี่ยวชาญของ " + sp.nameTh; }
+              else if (st.realm === 9) { st.nameTh = "บรรลุสัจธรรม · " + sp.nameTh; st.descTh = "เข้าถึงแก่นแท้สูงสุดของ " + sp.nameTh; }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (JD.MARTIAL && JD.MARTIAL.subPaths) {
+    for (const [sid, sp] of Object.entries(JD.MARTIAL.subPaths)) {
+      if (SUB_NAMES[sid]) sp.nameTh = SUB_NAMES[sid];
+      if (Array.isArray(sp.subpathTraits)) {
+        for (const st of sp.subpathTraits) {
+          if (st.realm === 3) { st.nameTh = "เปิดมรรคา · " + sp.nameTh; st.descTh = "ปลดล็อกเคล็ดลับขั้นต้นของ " + sp.nameTh; }
+          else if (st.realm === 6) { st.nameTh = "ชำนาญศึก · " + sp.nameTh; st.descTh = "ยกระดับความเชี่ยวชาญของ " + sp.nameTh; }
+          else if (st.realm === 9) { st.nameTh = "บรรลุสัจธรรม · " + sp.nameTh; st.descTh = "เข้าถึงแก่นแท้สูงสุดของ " + sp.nameTh; }
+        }
+      }
+    }
+  }
+  if (JD.MARTIAL && Array.isArray(JD.MARTIAL.SYNERGIES)) {
+    for (const syn of JD.MARTIAL.SYNERGIES) {
+      if (syn && syn.subpath && SUB_NAMES[syn.subpath] && String(syn.id || "").startsWith("SYN_V234_")) {
+        syn.nameTh = "สอดประสานมรรคา · " + SUB_NAMES[syn.subpath];
+        syn.descTh = "สอดประสานอาวุธและชุดเกราะประจำสายย่อย「" + SUB_NAMES[syn.subpath] + "」เพิ่มอานุภาพวิชาและปฏิกิริยาธาตุ";
+      }
+    }
+  }
+
+  // 2. Update Techniques & Legendary Scriptures
+  const allTechs = [
+    ...((JD.TECH && JD.TECH.techniques) || []),
+    ...((JD.TECH && JD.TECH.mantras) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.techniques) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.v200Techniques) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.legendaryTechniques) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.legendaryMantras) || []),
+    ...((JD.MARTIAL && JD.MARTIAL.innateTechniques) || [])
+  ];
+  for (const t of allTechs) {
+    if (!t || !t.id) continue;
+    if (SCRIPTURE_NAMES[t.id]) {
+      t.nameTh = SCRIPTURE_NAMES[t.id];
+      if (t.id.startsWith("LEG_V240_") && Array.isArray(t.moveDefs) && t.moveDefs[0]) {
+        t.moveDefs[0].nameTh = "กระบวนท่าที่ 1 • " + t.nameTh;
+        t.moves = [t.moveDefs[0].nameTh];
+      }
+    }
+    if (t.id.startsWith("INNATE_V234_") && t.sub && SUB_NAMES[t.sub]) {
+      const sName = SUB_NAMES[t.sub];
+      t.nameTh = "วิชาเฉพาะสาย · " + sName;
+      t.sourceInfoTh = "วิชาติดตัวเฉพาะสายย่อย「" + sName + "」ปลดล็อกอัตโนมัติเมื่อเลือกสายย่อย";
+      t.descTh = "วิชาต้นกำเนิดประจำสายย่อย「" + sName + "」เปิดท่วงท่าประจำตัว ฝังตราประทับ และจุดระเบิดปฏิกิริยาธาตุ";
+    }
+    if (t.id.startsWith("LEG_V230_")) {
+      const pid = t.id.replace(/^LEG_V230_/, "");
+      const pName = PATH_NAMES[pid] || pid;
+      if (pid === "DIVINE_SUMMONER" || pid === "DIVINE_POSSESSION" || pid === "DIVINE_CHANNELER") {
+        t.descTh = "คัมภีร์ชั้นสูงสุดของ「" + pName + "」ที่มหาเทวราชครู เสิ่นเทียนจุน (#28) รวบรวมจากเศษใบปลิวบทสวดคนรับใช้หน้าประตูวัดชั้นนอกที่ปลิวตกจากรอยแยกม่านกั้นภพ หอคัมภีร์โลกล่างขนานนามด้วยความหลงลำพองว่าเป็นมหาคัมภีร์พิชิตสวรรค์ ทั้งที่แท้จริงเป็นเพียงเคล็ดขยายชีพจรรับเศษเสี้ยวเงาพลัง 1%–5% จากเทวสภาเบื้องบน";
+      } else {
+        t.descTh = "สุดยอดคัมภีร์ระดับ 7 แห่งโลกเบื้องล่างประจำ「" + pName + "」ซึ่งหอคัมภีร์มนุษย์จัดไว้ในชั้นสูงสุด (ระดับพิชิตสวรรค์ของปุถุชนใต้แผ่นฟ้า) สำแดงอานุภาพสูงสุดของมรรคาในแดนมนุษย์";
+      }
+    }
+    if (t.id === "LEG_V240_CRAFT_CREATION") {
+      t.descTh = "มหาคัมภีร์หลอมศาสตราสูงสุดของโลกเบื้องล่างที่ปรมาจารย์ตีเหล็ก โอวหยางเหยียน (#14) รจนาขึ้นจากการควบแน่นไฟแก่นพิภพจำลองความร้อนตามจินตนาการถึงเตาหลอมสวรรค์";
+    }
+    if (t.id === "LEG_V240_GOD") {
+      t.descTh = "มหาคัมภีร์ศรัทธาสูงสุดของโลกเบื้องล่าง รวบรวมแรงอธิษฐานและควันธูปจากปวงชนชาวบ้านแปรเป็นกายทิพย์เทวรูปทองคุ้มครองแผ่นดินมนุษย์";
+    }
+    if (t.id === "LEG_FORB_BLOOD_LOTUS_SACRIFICE") {
+      t.descTh = "วิชาต้องห้ามสูงสุดของแม่ทัพหญิง มู่หรงเสวี่ย (#7) ที่เผาผลาญอายุขัยและแก่นโลหิตทั้งหมดระเบิดทำลายร่างทรงผู้ตรวจการจากโลกเบื้องบนซึ่งลักลอบส่งเศษเสี้ยวจิต 0.1% ลงมาสถิตในร่างแม่ทัพศัตรู ทหารมนุษย์ที่เห็นร่างทรงเทวะหลั่งเลือดเป็นครั้งแรกจึงขนานนามว่าบงกชโลหิตสังหารเทพ";
+    }
+    if (t.id === "LEG_COMBAT_FEIXIAN_ONE_SWORD") {
+      t.descTh = "สุดยอดเพลงกระบี่ที่เซียนกระบี่เมามาย จิ้วเจี้ยนเซียน (#39) บัญญัติขึ้นในโลกเบื้องล่าง ยามแทงกระบี่ขึ้นสู่ดวงจันทร์เหนือซากอุทยานสวรรค์หลวง รวดเร็วและบริสุทธิ์จนผู้คนนึกว่าเซียนเหินลงมาจากนอกนภา แม้ปลายคมกระบี่จะเพียงสะกิดผิวม่านกั้นภพเป็นรูเข็มเสี้ยววินาทีก็ตาม";
+    }
+    if (t.id === "LEG_MANTRA_CELESTIAL_MANDATE_CANON") {
+      t.descTh = "คัมภีร์ที่ซือหม่าชุน (#4) คัดลอกจากแผ่นหยกร้าวของเสมียนตรวจส่วยชั้นปลายแถวบนโลกเบื้องบนที่ตบะแตกสลายในยุคสงคราม เดิมเป็นเพียงสมุดระเบียบคุมทะเบียนแรงงานส่วยและป้ายคำสัตย์ชั้นนอก แต่เมื่อนำมาดัดแปลงในโลกเบื้องล่างกลับกลายเป็นมหาคัมภีร์โองการสวรรค์คู่ราชสำนักตงหวง";
+    }
+    if (t.id === "LEG_MANTRA_TAIXUAN_SCRIPTURE") {
+      t.descTh = "จารึกปริศนาบนเกาะร้างที่คนโลกล่างยกย่องเป็นคัมภีร์เซียน แท้จริงคือแผ่นหินการบ้านคัดลายมือที่เด็กชายวัยหกขวบบนโลกเบื้องบนขีดเขียนบิดเบี้ยวแล้วขว้างทิ้งลงเหวเมฆ ผู้ที่ยึดติดกับตำราเดิมเกินไปจึงตีความไม่ออก แต่ผู้ไร้กรอบกลับบรรลุถึงรากฐานปราณอันเรียบง่าย";
+    }
+    if (t.id === "LEG_PASS_NINE_YANG_MERIDIAN") {
+      t.descTh = "เคล็ดวิชาที่แกะรอยจากบทเพลงกล่อมเด็กฝึกหายใจกันแดดเก้าตะวัน ซึ่งปักอยู่บนเศษผ้าอ้อมขาดๆ จากโลกเบื้องบนที่ตกลงมาในโพรงหินตาน้ำอุ่น สำหรับทารกแดนบนเป็นเพียงเพลงกันลมแดด แต่สำหรับผู้ฝึกตนโลกล่างคือสุดยอดคัมภีร์ปราณหยางนิรันดร์";
+    }
+    if (t.id === "LEG_MANTRA_EIGHT_DESOLATIONS_GOD") {
+      t.descTh = "เคล็ดวิชาที่สลักไว้ในวิหารปฏิทินศิลาแปดทิศ แท้จริงมีที่มาจากแผ่นพับท่ายืดเส้นและเดินลมหายใจก่อนเข้ากะของคนงานแบกหินชายขอบสวรรค์ที่ปลิวตกผ่านรอยแยกม่านฟ้า แม้เป็นเพียงท่าบริหารกายของแรงงานเบื้องบน แต่กลับช่วยให้ร่างกายปุถุชนโลกล่างผลัดเซลล์คืนความเยาว์วัยได้อย่างอัศจรรย์";
+    }
+    if (t.id === "LEG_LIGHT_KUNPENG_ASTRAL_WINGS") {
+      t.descTh = "สุดยอดวิชาตัวเบาของโลกเบื้องล่างที่บูรพาจารย์บัญญัติขึ้นจากการเฝ้ามองพญาวาฬมังกรสมุทร (#3 Beast King) กระโจนทะยานขึ้นจากทะเลหมอกบูรพาเพื่อเลียนแบบบรรพชนคุนเผิงในสายเลือด";
+    }
+  }
+
+  // 3. Update Items & Recipes (MANUAL_PATH_*, CRYSTAL_PATH_*, MAT_V230_*, REL_V230_*, REC_REL_V230_*)
+  const items = (JD.ITEMS && JD.ITEMS.items) || [];
+  const recipes = (JD.ITEMS && JD.ITEMS.recipes) || [];
+  for (const it of items) {
+    if (!it || !it.id) continue;
+    if (it.id.startsWith("MANUAL_PATH_")) {
+      const pid = it.id.replace(/^MANUAL_PATH_/, "");
+      const pName = PATH_NAMES[pid] || (it.path && PATH_NAMES[it.path]);
+      if (pName) {
+        it.nameTh = "มหาคัมภีร์ต้นกำเนิด · " + pName;
+        it.sourceInfoTh = "พ่อค้าคาราวานแดนไกล · บรรณาการสำนักบริวาร · รางวัลชนะศึกสำนัก · มหาเจดีย์ 43 วิถี · โบราณสถานแดนลับ";
+        it.descTh = "มหาคัมภีร์รากฐานฉบับสมบูรณ์ของ「" + pName + "」เมื่อบริจาคเข้าหอคัมภีร์วิถีสำนัก จะปลดล็อกให้ศิษย์และปุถุชนในสำนักศึกษาวิถีนี้ได้เป็นการถาวร";
+      }
+    } else if (it.id.startsWith("CRYSTAL_PATH_")) {
+      const pid = it.id.replace(/^CRYSTAL_PATH_/, "");
+      const pName = PATH_NAMES[pid] || (it.path && PATH_NAMES[it.path]);
+      if (pName) {
+        it.nameTh = "ผลึกมรรคาสำเร็จรูป · " + pName;
+        it.descTh = "ผลึกปราณบรรจุเศษเสี้ยวสัจธรรมของ「" + pName + "」(ใช้ครั้งเดียวแล้วสลาย) มอบให้ศิษย์หรือปุถุชนเพียง 1 คนเพื่อเปิดชีพจรเข้าสู่วิถีนี้ได้ทันทีแม้หอคัมภีร์สำนักจะยังไม่มีคัมภีร์วิถีนี้";
+      }
+    } else if (it.id.startsWith("MAT_V230_")) {
+      const elTh = ELEM_TH[it.element] || "ปราณ";
+      if (it.id === "MAT_V230_006") {
+        it.descTh = "วัตถุดิบระดับ " + it.tier + " (ธาตุ" + elTh + ") ตะกรันขี้โลหะก้นเบ้าหลอมจากโรงงานชั้นนอกบนโลกเบื้องบนที่ไร้ปราณต้นกำเนิดจึงร่วงผ่านรอยแยกม่านกั้นภพลงมา ช่างหลอมโลกล่างผู้ไม่เคยเห็นโลหะเซียนแท้จริงต่างยกย่องว่าเป็นทองคำเทวโลก";
+      } else if (it.id === "MAT_V230_007") {
+        it.descTh = "วัตถุดิบระดับ " + it.tier + " (ธาตุ" + elTh + ") น้ำค้างปราณโลกียะที่ควบแน่นรอบแท่นสักการะโบราณในป่าลึก ล้ำค่าอย่างยิ่งสำหรับปรุงโอสถชั้นสูงของมนุษย์";
+      } else if (it.id === "MAT_V230_008") {
+        it.descTh = "วัตถุดิบระดับ " + it.tier + " (ธาตุ" + elTh + ") เศษผลึกมิติที่สูญเสียปราณต้นกำเนิดจนม่านกั้นภพปล่อยผ่าน ใช้เป็นแกนหลอมศาสตราจำลองระดับสูงสุดของโลกเบื้องล่าง";
+      } else {
+        it.descTh = "วัตถุดิบระดับ " + it.tier + " (ธาตุ" + elTh + ") สำหรับหลอมศาสตรา โอสถ และค่ายกลชั้นสูงในโลกเบื้องล่าง";
+      }
+    } else if (RELIC_NAMES[it.id]) {
+      it.nameTh = RELIC_NAMES[it.id];
+      const pid = it.id.replace(/^REL_V230_/, "");
+      const pName = PATH_NAMES[pid] || pid;
+      const legTechName = SCRIPTURE_NAMES["LEG_V230_" + pid] || ("LEG_V230_" + pid);
+      if (pid === "DIVINE_SUMMONER" || pid === "DIVINE_POSSESSION" || pid === "DIVINE_CHANNELER") {
+        it.descTh = it.nameTh + " — ศาสตราสื่อสัญญาณธูปสังเวยระดับ 7 ประจำ「" + pName + "」ที่ช่างมนุษย์ตีขึ้นเลียนแบบรูปเคารพเพื่อดึงเศษเสี้ยวพลัง 0.1%–1% ที่รั่วซึมผ่านม่านกั้นภพ สำแดงวิชา「" + legTechName + "」";
+      } else if (PROTOTYPE_OWNERS[pid]) {
+        it.descTh = it.nameTh + " — ศาสตราประจำ「" + pName + "」(ศาสตราต้นกำเนิดคู่ชีพปฐมปรมาจารย์อยู่ที่ " + PROTOTYPE_OWNERS[pid] + " ส่วนชิ้นที่โรงหลอมสำนักสร้างขึ้นคือศาสตราจำลองภาชนะมรรคาขั้นสูงสุดของโลกเบื้องล่าง) สำแดงวิชา「" + legTechName + "」";
+      } else {
+        it.descTh = it.nameTh + " — ศาสตราจำลองภาชนะมรรคาระดับ 7 ขั้นสูงสุดของโลกเบื้องล่างประจำ「" + pName + "」เมื่อสวมใส่จะสามารถสำแดงวิชาตำนาน「" + legTechName + "」";
+      }
+    }
+  }
+  for (const rc of recipes) {
+    if (!rc || !rc.id) continue;
+    if (rc.id.startsWith("REC_REL_V230_")) {
+      const relId = rc.outItemId || rc.id.replace(/^REC_/, "");
+      if (RELIC_NAMES[relId]) {
+        rc.nameTh = "ตำราหลอมศาสตราจำลอง · " + RELIC_NAMES[relId];
+        rc.outNameTh = RELIC_NAMES[relId];
+      }
+    } else if (rc.id === "REC_V230_WPN_CLAW_01") {
+      rc.nameTh = "ตำราหลอม · กรงเล็บเหล็กดำทมิฬเร้นเงา";
+    } else if (rc.id === "REC_V230_WPN_FAN_01") {
+      rc.nameTh = "ตำราหลอม · พัดเหล็กมุทราคาถาเพลิง";
+    } else if (rc.id === "REC_V230_WPN_ASTROLABE_05") {
+      rc.nameTh = "ตำราหลอม · จานทวยเทพเทวสภาดาราจักร";
+    }
+  }
+})();

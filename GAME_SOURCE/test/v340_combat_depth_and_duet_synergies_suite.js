@@ -35,7 +35,7 @@ console.log('===================================================================
 // Phase 0: Core Architectural Invariants & Version Lock (3.4.0)
 console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Lock (3.4.0)...');
 {
-  check(['3.4.0', '3.5.0', '3.6.0', '4.0.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be '3.4.0' (got ${SIM.PATCH_VERSION})`);
+  check(['3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0a', '3.9.5', '3.9.6', '3.6.0', '4.0.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0', '3.0.0', '3.1.0', '3.2.0', '3.3.0'].includes(SIM.PATCH_VERSION), `SIM.PATCH_VERSION must be '3.4.0' (got ${SIM.PATCH_VERSION})`);
   check(HC.FINGERPRINT === '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
   const hcBytes = fs.readFileSync(path.resolve(__dirname, '../js/human_core.js'));
   const hcSha = crypto.createHash('sha256').update(hcBytes).digest('hex');
@@ -47,7 +47,7 @@ console.log('▶ [Phase 0] Verifying Core Architectural Invariants & Version Loc
 console.log('▶ [Phase 1 / PROP-03] Testing Path-Specific Secondary Combat Gauges & Finishers...');
 {
   const W = SIM.create('v340-path-gauges');
-  check(Object.keys(CULT.PATH_GAUGES).length === 43, 'All 12 cultivation paths have dedicated secondary combat gauges');
+  check(Object.keys(CULT.PATH_GAUGES).length === 58, 'All 12 cultivation paths have dedicated secondary combat gauges');
 
   const hero = W.npcs[0];
   hero.cult.path = 'XIAN';
@@ -226,7 +226,7 @@ console.log('▶ [Phase 7 / PROP-32] Testing Ancestral Pavilion, Founder Phantom
 
   // Verify UI buttons exist in UI.rSect(W)
   const sectHtml = UI.rSect(W);
-  check(sectHtml.includes('data-do="recharge-elemental-barrier"') && sectHtml.includes('data-do="invoke-founder-phantom"'), 'UI.rSect includes v3.4.0 barrier & founder phantom buttons');
+  check(!sectHtml.includes('data-do="recharge-elemental-barrier"') && !sectHtml.includes('data-do="invoke-founder-phantom"'), 'Observer UI excludes v3.4.0 barrier & founder phantom buttons');
 
   // Save/Load Round-Trip verification
   W.fights = []; W.foes = [];

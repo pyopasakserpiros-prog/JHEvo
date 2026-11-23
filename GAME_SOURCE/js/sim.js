@@ -6,11 +6,14 @@
   const clamp = U.clamp;
   const SIM = {
     VERSION: '1.10.11',
-    PATCH_VERSION: '2.6.0',
-    SUPPORTED_PATCHES: ['3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
-    SAVE_SCHEMA_VERSION: '2.6.0-living-chronicle-and-reporting',
+    PATCH_VERSION: '3.9.6',
+    SUPPORTED_PATCHES: ['3.9.5', '3.9.4', '3.9.3', '3.9.2', '3.9.1', '3.9.0', '3.0.0', '3.1.0', '3.1.1', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.5.0', '3.6.0a', '3.6.0b', '3.6.0c', '3.7.0', '3.7.0a', '3.7.0b', '3.7.0c', '3.8.0', '3.8.1', '3.8.2', '3.8.3', '3.8.4', '3.8.5', '3.6.0', '4.0.0', '4.1.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0', '5.4.0', '5.5.0', '5.6.0', '5.7.0', '5.8.0', '2.0.0', '2.1.0', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0'],
+    SAVE_SCHEMA_VERSION: '3.9.6-deep-gameplay-integration',
+    DAY_FACTOR: 1.5,
+    CALENDAR_MINS_PER_DAY: 1440,
+    WORK_STEPS_PER_DAY: 2160,
     MIN_PER_YEAR: 360 * 1440,
-    TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_hasActiveDefSupportAura', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence'])
+    TRANSIENT_CACHE_KEYS: new Set(['_c', '_d', '_cs', '_csBase', '_csStatic', '_cultRateBase', '_nd', '_hpMaxCache', '_qiMaxCache', '_mDer', '_condCache', '_wsBase', '_qgUnlockCache', '_qgTickCache', '_hasActiveDefSupportAura', '_skRateCache', '_dwVer', '_dwDay', '_alivePop', 'jianghuSects', 'inventoryIntelligence', 'castFx'])
   };
   const E = (n, p) => HC.eff(n, p);
 
@@ -65,14 +68,87 @@
   });
 
   const SEASON_TH = ['ฤดูใบไม้ผลิ', 'ฤดูร้อน', 'ฤดูใบไม้ร่วง', 'ฤดูหนาว'];
+  const MONTH_NAMES_TH = Object.freeze([
+    'เดือนอ้ายวสันต์', 'เดือนยี่บุปผา', 'เดือนสามวสันต์ปลาย',
+    'เดือนสี่คิมหันต์แรก', 'เดือนห้าสุริยัน', 'เดือนหกพิรุณร้อน',
+    'เดือนเจ็ดสารทแรก', 'เดือนแปดใบไม้ร่วง', 'เดือนเก้าสารทปลาย',
+    'เดือนสิบเหมันต์แรก', 'เดือนสิบเอ็ดน้ำค้างแข็ง', 'เดือนสิบสองเหมันต์ลึก'
+  ]);
   SIM.SEASON_TH = SEASON_TH;
-  SIM.calendar = t => { const day = Math.floor(t / 1440), yd = ((day % 360) + 360) % 360; return { day, year: Math.floor(day / 360) + 1, month: Math.floor(yd / 30) + 1, dom: (yd % 30) + 1, season: Math.floor(yd / 90), hour: Math.floor((t % 1440) / 60), minute: t % 60 }; };
-  SIM.dateText = t => { const c = SIM.calendar(t); return 'ปี ' + c.year + ' เดือน ' + c.month + ' วัน ' + c.dom + ' · ' + U.pad2(c.hour) + ':' + U.pad2(c.minute) + ' · ' + SEASON_TH[c.season]; };
+  SIM.CALENDAR = Object.freeze({
+    ERA_CODE_TH: 'ศ.ท.',
+    ERA_NAME_TH: 'ศักราชหลังเทียนกู่ล่มสลาย (Post-Tiangu Era)',
+    PREHISTORY_CODE_TH: 'ก่อน ศ.ท.',
+    PREHISTORY_NAME_TH: 'มหายุคก่อนประวัติศาสตร์ (ก่อนมหาจักรวรรดิเทียนกู่ล่มสลาย)',
+    EPOCH_ZERO_EVENT_TH: 'คืนประตูมิติหลวงแตกและวันล่มสลายของมหาจักรวรรดิเทียนกู่ (ยุคที่ 0 ปีที่ 0)',
+    YEARS_PER_EPOCH: 1000,
+    START_EPOCH: 101,
+    START_YEAR_IN_EPOCH: 1,
+    START_WORLD_YEAR: 100001,
+    START_DAY_OFFSET: 360,
+    DAYS_PER_MONTH: 30,
+    MONTHS_PER_YEAR: 12,
+    DAYS_PER_YEAR: 360,
+    MONTH_NAMES_TH,
+    SEASON_NAMES_TH: Object.freeze(SEASON_TH.slice())
+  });
+  SIM.splitWorldYear = y => {
+    const n = Math.trunc(Number(y) || 0);
+    if (n <= 0) return { worldYear: n, isPrehistory: n < 0, epoch: 0, yearInEpoch: n };
+    const ype = SIM.CALENDAR.YEARS_PER_EPOCH;
+    return {
+      worldYear: n,
+      isPrehistory: false,
+      epoch: Math.floor((n - 1) / ype) + 1,
+      yearInEpoch: ((n - 1) % ype) + 1
+    };
+  };
+  SIM.worldYearFromEpoch = (epoch, yearInEpoch) => {
+    const ep = Math.trunc(Number(epoch) || 1);
+    const yr = Math.trunc(Number(yearInEpoch) || 1);
+    return (ep - 1) * SIM.CALENDAR.YEARS_PER_EPOCH + yr;
+  };
+  SIM.formatWorldYear = (y, compact) => {
+    const n = Math.trunc(Number(y) || 0);
+    if (n === 0) return compact ? 'ยุค 0 ปี 0' : 'ยุคที่ 0 ปีที่ 0 (คืนประตูมิติหลวงแตก)';
+    if (n < 0) return compact ? ('ก่อนยุค ' + Math.abs(n) + ' ปี') : ('มหายุคก่อนประวัติศาสตร์ (ก่อน ศ.ท. ' + Math.abs(n).toLocaleString('en-US') + ' ปี)');
+    const p = SIM.splitWorldYear(n);
+    return compact ? ('ยุค ' + p.epoch + ' ปี ' + p.yearInEpoch) : ('ยุคที่ ' + p.epoch + ' ปีที่ ' + p.yearInEpoch);
+  };
+  SIM.worldYearFromYearsAgo = (yearsAgo, refYear) => (refYear != null ? refYear : SIM.CALENDAR.START_WORLD_YEAR) - Math.trunc(Number(yearsAgo) || 0);
+  SIM.yearsAgoFromWorldYear = (worldYear, refYear) => (refYear != null ? refYear : SIM.CALENDAR.START_WORLD_YEAR) - Math.trunc(Number(worldYear) || 0);
+  SIM.calendar = t => {
+    const day = Math.floor(t / 1440);
+    const elapsedDay = Math.max(0, day - (SIM.CALENDAR.START_DAY_OFFSET || 0));
+    const yd = ((elapsedDay % 360) + 360) % 360;
+    const year = Math.floor(elapsedDay / 360) + 1;
+    const month = Math.floor(yd / 30) + 1;
+    const dom = (yd % 30) + 1;
+    const season = Math.floor(yd / 90);
+    const hour = Math.floor((t % 1440) / 60);
+    const minute = t % 60;
+    const worldYear = (SIM.CALENDAR.START_WORLD_YEAR - 1) + year;
+    const ep = SIM.splitWorldYear(worldYear);
+    const monthNameTh = MONTH_NAMES_TH[month - 1] || ('เดือน ' + month);
+    return {
+      day, year, sectYear: year, worldYear, epoch: ep.epoch, yearInEpoch: ep.yearInEpoch,
+      eraCodeTh: SIM.CALENDAR.ERA_CODE_TH,
+      month, monthNameTh, dom, season, seasonNameTh: SEASON_TH[season], hour, minute
+    };
+  };
+  SIM.dateText = t => {
+    const c = SIM.calendar(t);
+    return 'ยุคที่ ' + c.epoch + ' ปีที่ ' + c.yearInEpoch + ' เดือน ' + c.month + ' (' + c.monthNameTh + ') วันที่ ' + c.dom + ' · ' + U.pad2(c.hour) + ':' + U.pad2(c.minute) + ' · ' + SEASON_TH[c.season];
+  };
 
   /* ---------- สร้างตัวละคร ---------- */
   SIM.buildNpc = (W, rng, o) => {
+    if (CULT.EXPERIENCE_TRAITS.installSystemHooks) CULT.EXPERIENCE_TRAITS.installSystemHooks();
     HC.nowDay = W.day;
     const npc = HC.generate(rng, { id: o.id, day: W.day, sex: o.sex, ageYears: o.ageYears, quality: o.quality || 0, archetype: o.archetype, rootGrade: o.rootGrade, _fromTierRoll: !!o._fromTierRoll, skillExp: o.skillExp, trainedness: o.trainedness, traitCount: o.traitCount, customRoots: o.customRoots, forceRootCount: o.forceRootCount, forceElements: o.forceElements, forceGrades: o.forceGrades });
+    if (CULT && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits) {
+      CULT.EXPERIENCE_TRAITS.stripBirthIneligibleTraits(npc);
+    }
     if (npc && npc.h && npc.h.name && npc.h.genome) {
       const gm = Math.abs(npc.h.genome | 0);
       if ((gm % 3) !== 0) {
@@ -88,11 +164,11 @@
     if (o.archetypeKey && g.SECT && g.SECT.ARCHETYPE_WEAPON) {
       const wInfo = g.SECT.ARCHETYPE_WEAPON[o.archetypeKey];
       if (wInfo) {
-        if (o.founderIndex === 0) {
+        if (o.isFounderMaster || o.founderIndex === 0) {
           npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 70);
           const wItem = g.ECO && (g.ECO.itemById[wInfo.masterWeapon] || g.ECO.itemById[wInfo.starterWeapon]);
           if (wItem) npc.equip.WEAPON = g.ECO.mintGear(W, wItem, 1.15);
-        } else if (o.founderIndex != null && o.founderIndex > 0) {
+        } else if (!o.isFounderMaster && o.founderIndex != null && o.founderIndex > 0) {
           npc.h.skills[wInfo.skill] = Math.max(npc.h.skills[wInfo.skill] || 0, 35);
           const wItem = g.ECO && g.ECO.itemById[wInfo.starterWeapon];
           if (wItem) npc.equip.WEAPON = g.ECO.mintGear(W, wItem, 1.0);
@@ -107,6 +183,8 @@
     }
     npc.h.state.hp = CULT.hpMax(npc);
     npc.h.state.qi = CULT.qiMax(npc);
+    CULT.EXPERIENCE_TRAITS.ensureState(npc);
+    if(g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS)g.COMBAT.ACTION_MASTERY_TRAITS.ensureHistory(npc);
     return npc;
   };
   SIM.awaken = (W, rng, npc, stage, o) => {
@@ -125,8 +203,20 @@
         ? g.CULT.PATHS[primaryPath].subPaths.map(s => s.id)
         : archDef.subs;
       const validPool = samePathSubs.length ? samePathSubs : fallbackPathSubs;
-      const subIdx = (o.founderIndex != null ? o.founderIndex : 0) % validPool.length;
-      const chosenSub = validPool[subIdx] || validPool[0];
+      const scoreRows = (g.CULT && g.CULT.pathScores) ? g.CULT.pathScores(npc).filter(r => r.path === primaryPath && validPool.includes(r.sub)) : [];
+      let chosenSub = validPool[0];
+      if (scoreRows.length) {
+        if (o.founderIndex === 0) {
+          chosenSub = scoreRows[0].sub;
+        } else {
+          const topBand = scoreRows.slice(0, Math.min(3, scoreRows.length));
+          const picked = (rng && rng.weighted) ? rng.weighted(topBand, r => Math.exp(Math.max(-20, (r.score - topBand[0].score) / 6))) : topBand[0];
+          chosenSub = (picked && picked.sub) || topBand[0].sub;
+        }
+      } else {
+        const subIdx = (o.founderIndex != null ? o.founderIndex : 0) % validPool.length;
+        chosenSub = validPool[subIdx] || validPool[0];
+      }
       const memberPath = primaryPath;
       const mant = CULT.bestMantra(memberPath, 1, npc);
       npc.cult = { path: memberPath, sub: chosenSub, stage: 1, prog: 0, mantra: mant ? mant.id : null, techs: [], learning: null, toxic: 0, lifeBonus: 0, since: W.day, attempts: 0, secl: null, rate: 0, pillT: 0 };
@@ -198,7 +288,8 @@
     if (archKey) {
       opts.archetypeKey = archKey;
       opts.isFounder = true;
-      opts.founderIndex = 0;
+      opts.isFounderMaster = true;
+      opts.founderIndex = Number.isInteger(i) ? i : 0;
     }
     return { r, o: opts };
   };
@@ -219,20 +310,21 @@
 
   /* ---------- สร้างโลก ---------- */
   SIM.create = (seed, opts) => {
+    if (g.CULT && g.CULT.EXPERIENCE_TRAITS.installSystemHooks) g.CULT.EXPERIENCE_TRAITS.installSystemHooks();
     opts = opts || {};
     if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems();
     const rng = new U.RNG(String(seed) + ':world');
-    const W = { _founding: true, v: SIM.VERSION, seed: String(seed), rng, t: 360 + 360 * 1440, speed: 1, npcs: [], byId: {}, logs: [], logSeq: 0, seqN: 0, fights: [], foes: [], foeById: {}, duelQueue: [], graveyard: [], gone: [], deaths: 0, avgSat: 60, avgMood: 10, weather: { kind: 'clear', t: 0 }, season: 0, day: 0, createdAt: 0 };
+    const W = { _founding: true, workSteps: 0, timePhase: 0, v: SIM.VERSION, seed: String(seed), rng, t: 360 + 360 * 1440, speed: 1, npcs: [], byId: {}, logs: [], logSeq: 0, seqN: 0, fights: [], foes: [], foeById: {}, duelQueue: [], graveyard: [], gone: [], deaths: 0, avgSat: 60, avgMood: 10, weather: { kind: 'clear', t: 0 }, season: 0, day: 0, createdAt: 0 };
     if (g.STATS) g.STATS.now = W.t;
     if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
-    if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
-    const cal = SIM.calendar(W.t); W.day = cal.day; W.season = cal.season; HC.nowDay = W.day;
+    const cal = SIM.calendar(W.t); W.day = cal.day; W.season = cal.season; HC.nowDay = W.day; HC.nowSeason = W.season;
     W.map = MAP.create(W.seed);
     W.market = ECO.newMarket(rng);
     W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta);
     W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); };
     W.makeNpc = o => SIM.addNpc(W, o);
     W.sect = { name: opts.sectName || 'สำนักเมฆาหยกสวรรค์', masterId: null, deputyId: null, posts: {}, policy: null, stock: {}, gear: [], stones: 1000, ledger: [], recipeTier: 2, library: [], fame: 12, cd: {}, lastDuty: {}, orders: {}, suspicion: 0, festival: null, tournament: null, guardRoster: [], buyList: [], efficiency: 0, produced: 0, fallen: [], research: null, stipendOk: true, policyShift: W.day, reserveDirectives: null, shortageDirectives: [], welfareHistory: [], assemblyHistory: [], trackedNpcIds: [] };
+    if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
     SECT.POST_IDS.forEach(p => W.sect.posts[p] = null);
     EXPED.initWorld(W); EXPLORE.init(W);
     // ---- ห้องสมุด/คลัง/ตำรับ และ Archetype ----
@@ -275,7 +367,9 @@
       const n = SIM.buildNpc(W, rng, discOpts);
       SIM.register(W, n);
       n.mentor = master.id;
+      n.mentorId = master.id;
       master.h.life.family.disciples.push(n.id);
+      master.apprenticeIds = master.h.life.family.disciples.slice();
       n.h.life.family.master = master.id;
     }
     W._founding = false;
@@ -290,7 +384,7 @@
     if (ECO && ECO.ensureUniqueGearUids) ECO.ensureUniqueGearUids(W);
     const pl = W.map.byId.plaza; W.npcs.forEach(n => SIM.placeNear(W, n, pl.x + pl.w / 2, pl.y + pl.h / 2, 12));
     W.logs.length = 0; W.logSeq = 0;
-    W.log('system', 'ก่อตั้ง「' + S.name + '」 โดยเจ้าสำนัก ' + HC.fullName(master), [master.id]);
+    W.log('system', 'เปิดศักราชยุคที่ 101 — เจ้าสำนักรุ่นที่ ' + (S.masterGeneration || 7) + ' ' + HC.fullName(master) + ' สืบทอดและฟื้นฟู「' + S.name + '」', [master.id]);
     if (g.SECT && g.SECT.ensureCompanionsAndBloodlines) g.SECT.ensureCompanionsAndBloodlines(W);
     if (g.SECT && g.SECT.FENG_SHUI) g.SECT.FENG_SHUI.ensure(W);
     if (g.SECT && g.SECT.CARAVAN_AUCTION) g.SECT.CARAVAN_AUCTION.ensure(W);
@@ -364,6 +458,7 @@
       subNameTh: (subEntry && subEntry.sub && subEntry.sub.nameTh) || prev.subNameTh || subId || null,
       stage: n.cult ? n.cult.stage : (prev.stage || 0),
       stageNameTh: stgNameTh,
+      origin: n.ext?.world?.originPublic ? Object.assign({}, n.ext.world) : null,
       dead: !!n.dead,
       exiled: !!n.exiled,
       deathDay: n.deathDay != null ? n.deathDay : (prev.deathDay != null ? prev.deathDay : null),
@@ -383,7 +478,21 @@
     W.sect.historicalPeople[n.id] = snap;
     return snap;
   };
-  SIM.register = (W, n) => { n.n = ++W.seqN; W.npcs.push(n); W.byId[n.id] = n; SIM.snapshotPerson(W, n); return n; };
+  SIM.register = (W, n) => {
+    EXPED.assignHometown(W, n);
+    n.n = ++W.seqN;
+    if (W && W.sect && W.sect.totemPillars && Array.isArray(W.sect.totemPillars.activeTotems) && W.sect.totemPillars.activeTotems.length) {
+      n.sectTotems = W.sect.totemPillars.activeTotems.slice();
+      n._sectTotems = n.sectTotems;
+    }
+    if (n && n.inv && Number.isFinite(n.inv.stones) && n.personalStones == null) {
+      n.personalStones = n.inv.stones;
+    }
+    W.npcs.push(n);
+    W.byId[n.id] = n;
+    SIM.snapshotPerson(W, n);
+    return n;
+  };
   SIM.addNpc = (W, o) => {
     o = o || {};
     const id = 'n' + (W.seqN + 1) + '_' + W.rng.int(100, 999);
@@ -427,12 +536,27 @@
       };
     }
     n.joinDay = W.day; n.sat = 70;
-    if (o.queue) { n.n = ++W.seqN; return n; }
+    if (o.queue) { EXPED.assignHometown(W,n); n.n = ++W.seqN; return n; }
     SIM.register(W, n);
+    if (!W._founding && W.npcs && W.npcs.length >= 10 && n.x === 0 && n.y === 0) {
+      if (W.map && W.map.byId && W.map.byId.plaza) {
+        const pl = W.map.byId.plaza;
+        n.x = pl.x + (n.n % Math.max(1, pl.w)) + 0.5;
+        n.y = pl.y + (Math.floor(n.n / Math.max(1, pl.w)) % Math.max(1, pl.h)) + 0.5;
+        n.px = n.x;
+        n.py = n.y;
+      }
+      if (n.act && n.act.id === 'idle' && n.act.left === 0) {
+        n.act.left = (n.n * 5) % 220;
+      }
+      if (HC && HC.derived) HC.derived(n);
+      if (CULT && CULT.rate && n.cult) CULT.rate(n, 1);
+    }
     return n;
   };
 
   SIM.log = (W, type, text, ids, meta) => {
+    if (W._expeditionLocation && !meta?.location) meta = Object.assign({},meta,{location:W._expeditionLocation});
     const cleanIds = (ids || []).filter(Boolean);
     const actorSnaps = [];
     const names = cleanIds.map((id, idx) => {
@@ -485,6 +609,7 @@
       if (meta.txKind) e.txKind = meta.txKind;
       if (meta.storyThreadId) e.storyThreadId = meta.storyThreadId;
       if (meta.severity) e.severity = meta.severity;
+      if (meta.location?.nodeId) e.location = Object.assign({}, meta.location);
       e.meta = Object.assign({}, meta);
     }
     const isRoutineTraining = (type === "breakthrough" && /ฝึกประจำวัน/.test(text));
@@ -516,6 +641,7 @@
           t: e.t,
           day: e.day,
           type: e.type,
+          location: e.location || null,
           text: e.text,
           ids: cleanIds.slice(),
           names: names.slice(),
@@ -570,11 +696,27 @@
 
   /* ---------- วงจรจำลอง ---------- */
   SIM.tick = W => {
-    g.STATS.now = W.t;
     if (g.SECT && g.SECT.PEAKS) g.SECT.PEAKS._activeWorld = W;
-    W.t++;
-    const d = Math.floor(W.t / 1440);
-    if (d !== W.day) { W.day = d; HC.nowDay = d; SIM.dailyUpdate(W); }
+    W.workSteps = (W.workSteps || 0) + 1;
+    // 1.5x Day Length Contract: 3 work-steps = 2 calendar minutes (2160 work-steps = 1440 calendar minutes = 1 calendar day)
+    W.timePhase = (W.timePhase || 0) + 2;
+    let advancedCalendarMinute = false;
+    if (W.timePhase >= 3) {
+      W.timePhase -= 3;
+      W.t++;
+      advancedCalendarMinute = true;
+    }
+    W._isNewCalendarMinute = advancedCalendarMinute;
+    g.STATS.now = W.t;
+    if (advancedCalendarMinute) {
+      const d = Math.floor(W.t / 1440);
+      if (d !== W.day && W._lastDailyUpdateDay !== d) {
+        W.day = d;
+        W._lastDailyUpdateDay = d;
+        HC.nowDay = d;
+        SIM.dailyUpdate(W);
+      }
+    }
     const npcs = W.npcs;
     if (true) {
       let ap = 0;
@@ -590,12 +732,68 @@
       if (n.away) continue;
       AI.step(W, n);
     }
+    if (W.wildlife && Array.isArray(W.wildlife.beasts)) {
+      for (let bi = 0; bi < W.wildlife.beasts.length; bi++) {
+        const b = W.wildlife.beasts[bi];
+        if (b) { b._px = b.x; b._py = b.y; }
+      }
+    }
+    if (Array.isArray(W.foes)) {
+      for (let fi = 0; fi < W.foes.length; fi++) {
+        const f = W.foes[fi];
+        if (f) { f._px = f.x; f._py = f.y; }
+      }
+    }
+    if (W.world && Array.isArray(W.world.visitors)) {
+      for (let vi = 0; vi < W.world.visitors.length; vi++) {
+        const v = W.world.visitors[vi];
+        if (v) { v._px = v.x; v._py = v.y; }
+      }
+    }
     if (g.WILD) g.WILD.tick(W);
     if (g.WILD_RES) g.WILD_RES.tick(W);
     if (W.foes.length) EXPED.raidTick(W);
     if (g.WILD) g.WILD.clampCombat(W);
+    if (W.sect && Array.isArray(W.sect.activeTribulations) && W.sect.activeTribulations.length > 0 && CULT.TRIBULATION && CULT.TRIBULATION.tickAll) {
+      CULT.TRIBULATION.tickAll(W);
+    }
     COMBAT.tick(W);
-    if (W.t % 60 === 0) SIM.hourly(W);
+    if (advancedCalendarMinute && W.t % 60 === 0 && W._lastHourlyUpdateT !== W.t) {
+      W._lastHourlyUpdateT = W.t;
+      SIM.hourly(W);
+    }
+  };
+  SIM.cleanupDepartedNpcRefs = (W, n) => {
+    if (!W || !n || !n.id) return;
+    if (W.sect && W.sect.peaks && W.sect.peaks.byId) {
+      Object.values(W.sect.peaks.byId).forEach(pObj => {
+        if (!pObj) return;
+        if (Array.isArray(pObj.memberIds)) pObj.memberIds = pObj.memberIds.filter(id => id !== n.id);
+        if (pObj.masterId === n.id) { pObj.masterId = null; pObj.masterNameTh = null; }
+        if (pObj.deputyId === n.id) { pObj.deputyId = null; pObj.deputyNameTh = null; }
+      });
+    }
+    if (W.sect && W.sect.leylineGrid && W.sect.leylineGrid.anchors) {
+      Object.values(W.sect.leylineGrid.anchors).forEach(a => {
+        if (a && a.guardNpcId === n.id) a.guardNpcId = null;
+      });
+    }
+    if (W.sect && W.sect.outposts && W.sect.outposts.byNodeId) {
+      Object.values(W.sect.outposts.byNodeId).forEach(op => {
+        if (op && Array.isArray(op.garrisonNpcIds)) {
+          op.garrisonNpcIds = op.garrisonNpcIds.filter(id => id !== n.id);
+        }
+      });
+    }
+    if (Array.isArray(W.npcs)) {
+      W.npcs.forEach(o => {
+        if (!o || o.id === n.id) return;
+        if (o.closedDoorSeclusion) {
+          if (o.closedDoorSeclusion.protectorId === n.id) o.closedDoorSeclusion.protectorId = null;
+          if (o.closedDoorSeclusion.companionId === n.id) o.closedDoorSeclusion.companionId = null;
+        }
+      });
+    }
   };
   SIM.retire = (W, n) => {
     AI.cancelAct(W, n); AI.freeBed(W, n); if (n.post) { W.sect.posts[n.post] = null; n.post = null; }
@@ -610,7 +808,7 @@
         W.sect.spawnedPills[k] = (W.sect.spawnedPills[k] || 0) + n.inv.spawnedPills[k];
       }
     }
-    if (g.MARTIAL) g.MARTIAL.returnKnowledge(W, n);
+    if (!n.exiled && g.MARTIAL) g.MARTIAL.returnKnowledge(W, n);
     for (const k of Object.keys((n.inv && n.inv.mats) || {})) {
       ECO.add(W, k, n.inv.mats[k]);
       if (n.inv.spawnedMats && n.inv.spawnedMats[k] > 0) {
@@ -618,15 +816,38 @@
         W.sect.spawnedMats[k] = (W.sect.spawnedMats[k] || 0) + n.inv.spawnedMats[k];
       }
     }
-    for (const id of ((n.inv && n.inv.techs) || [])) if (CULT.tech(id) && !W.sect.library.includes(id)) W.sect.library.push(id);
-    for (const id of ((n.inv && n.inv.recipes) || [])) if (ECO.recipeById[id] && !W.sect.knownRecipes.includes(id)) { W.sect.knownRecipes.push(id); if (W.world && W.world.contentMetrics) W.world.contentMetrics.formulas++; }
-    if (n.inv) { n.inv.pills = {}; n.inv.mats = {}; n.inv.techs = []; n.inv.recipes = []; }
+    if (!n.exiled) {
+      for (const id of ((n.inv && n.inv.techs) || [])) if (CULT.tech(id) && !W.sect.library.includes(id)) W.sect.library.push(id);
+      for (const id of ((n.inv && n.inv.recipes) || [])) if (ECO.recipeById[id] && !W.sect.knownRecipes.includes(id)) { W.sect.knownRecipes.push(id); if (W.world && W.world.contentMetrics) W.world.contentMetrics.formulas++; }
+    }
+    const heldStones = Math.max(0, Math.round((n.inv && n.inv.stones) || 0));
+    if (heldStones > 0) {
+      if (!n.exiled) {
+        ECO.earn(W, heldStones, 'ส่งคืนศิลาส่วนตัวของ ' + (n.h && n.h.name ? n.h.name.given : n.id), { internalTransfer: true });
+      } else if (W.world && W.world.resourcePool && Number.isFinite(W.world.resourcePool.stones)) {
+        W.world.resourcePool.stones += heldStones;
+      }
+    }
+    if (Array.isArray(n.pets) && n.pets.length > 0) {
+      W.sect.reservePets = W.sect.reservePets || [];
+      while (n.pets.length > 0) {
+        const pt = n.pets.shift();
+        if (pt && !pt.dead) {
+          pt.active = false;
+          pt.formerOwnerId = n.id;
+          W.sect.reservePets.push(pt);
+        }
+      }
+    }
+    if (n.inv) { n.inv.stones = 0; n.inv.pills = {}; n.inv.mats = {}; n.inv.techs = []; n.inv.recipes = []; }
+    n.personalStones = 0;
+    SIM.cleanupDepartedNpcRefs(W, n);
     SIM.snapshotPerson(W, n, n.exiled ? "ถูกขับไล่/ออกจากสำนัก" : "ออกจากสำนักแล้ว");
     n.retired = true;
     const i = W.npcs.indexOf(n);
     if (i >= 0) W.npcs.splice(i, 1);
     if (W.byId && W.byId[n.id] === n) delete W.byId[n.id];
-    W.gone.push(n.id);
+    if (!W.gone.includes(n.id)) W.gone.push(n.id);
     if (n.id === W.sect.deputyId) W.sect.deputyId = null;
     if (W.sect && W.sect.successorId === n.id) W.sect.successorId = null;
     if (g.COG && g.COG.syncOfficeAuthority) g.COG.syncOfficeAuthority(W);
@@ -666,6 +887,7 @@
         AI.healTick(W, n);
         g.STATS.recover(n);
         g.CPE.autoUse(W, n);
+        if (CULT && CULT.evaluateAutonomousPostures) CULT.evaluateAutonomousPostures(W, n, { trigger: 'hourly' });
         if (n.equip) {
           for (const k in n.equip) {
             const it = n.equip[k];
@@ -681,17 +903,63 @@
               if (ECO && ECO.wearGear) ECO.wearGear(it, 0.5, W, n);
               else it.dur = Math.max(0, it.dur - 0.5);
             }
-            if (it.procedural && n.act.id !== 'fight') {
-              if (it.retired || (it.dur <= 0 && (it.maxDur || 100) <= 20)) {
+            const hasPatina = Array.isArray(it.combatKeywords) && it.combatKeywords.some(k => k.kw === 'KW_PATINA_WEAR');
+            const repairThreshold = hasPatina ? 0.28 : 0.45;
+            if (n.act.id !== 'fight') {
+              if (it.procedural && (it.retired || (it.dur <= 0 && (it.maxDur || 100) <= 20))) {
                 if (ECO && ECO.retireGear) ECO.retireGear(W, n, it);
-              } else if ((it.dur <= 0 || it.dur <= (it.maxDur || 100) * 0.45) && (it.maxDur || 100) > 20 && ECO && ECO.repairGear) {
-                ECO.repairGear(W, it, null, n);
+              } else if ((it.dur <= 0 || it.dur <= (it.maxDur || 100) * repairThreshold) && (it.maxDur || 100) > 20 && ECO && ECO.repairGear) {
+                const hasPersonalStone = n.inv && n.inv.mats && Object.keys(ECO.REPAIR_STONES || {}).some(sid => (n.inv.mats[sid] || 0) > 0);
+                if (!n.away || hasPersonalStone) ECO.repairGear(W, it, null, n);
               }
+            }
+            const hrNow = Math.floor((W.t || 0) / 60);
+            if (!n.away && n.act.id !== 'fight' && it.maxCharges > 0 && (it.charges || 0) <= 0 && ECO && ECO.rechargeGear && hrNow % 24 === 0) {
+              ECO.rechargeGear(W, it, n, { quiet: true });
+            }
+            if (ECO && ECO.recordGearLineage && hrNow % 24 === 0 && (it.provenanceLoreId || (it.combatKeywords && it.combatKeywords.some(k => k && (k.kw === 'KW_SOUL_SCAR_ECHO' || k.id === 'KW_SOUL_SCAR_ECHO'))))) {
+              ECO.recordGearLineage(W, it, n);
             }
           }
         }
       }
     });
+    const _simHr = Math.floor((W.t || 0) / 60);
+    if (W._isNewCalendarMinute && W.t % 1440 === 0 && g.CULT) {
+      for (const n of W.npcs) {
+        if (!n || n.dead) continue;
+        if (g.CULT.MARTIAL_VOWS && g.CULT.MARTIAL_VOWS.evaluateAutonomousAdoption) {
+          g.CULT.MARTIAL_VOWS.evaluateAutonomousAdoption(W, n);
+        }
+        if (g.CULT.SIX_PATH_MASTERY && g.CULT.SIX_PATH_MASTERY.syncDaily) {
+          g.CULT.SIX_PATH_MASTERY.syncDaily(W, n);
+        }
+      }
+      if (g.EXPED && g.EXPED.EXTERNAL_WORLD_EVENTS && g.EXPED.EXTERNAL_WORLD_EVENTS.tickDaily) {
+        g.EXPED.EXTERNAL_WORLD_EVENTS.tickDaily(W);
+      }
+      if (g.EXPED && g.EXPED.LIVING_SECTS && g.EXPED.LIVING_SECTS.tickMonthly) {
+        g.EXPED.LIVING_SECTS.tickMonthly(W);
+      }
+      if (g.EXPED && g.EXPED.LIVING_POLITIES && g.EXPED.LIVING_POLITIES.tickMonthly) {
+        g.EXPED.LIVING_POLITIES.tickMonthly(W);
+      if (typeof CULT !== 'undefined' && CULT.LEGENDARY_DAO && CULT.LEGENDARY_DAO.tickMonthlyDiscoveryAndRipples) CULT.LEGENDARY_DAO.tickMonthlyDiscoveryAndRipples(W);
+      if (g.EXPED && g.EXPED.POLITICAL_LIVES) { g.EXPED.POLITICAL_LIVES.tickDaily(W); g.EXPED.POLITICAL_LIVES.tickMonthly(W); }
+      if (g.EXPED && g.EXPED.LIVING_INSTITUTIONS && g.EXPED.LIVING_INSTITUTIONS.tickDaily) { g.EXPED.LIVING_INSTITUTIONS.tickDaily(W); }
+      if (g.EXPED && g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.tickDaily) { g.EXPED.WITNESSES_AND_SHARDS.tickDaily(W); }
+      }
+    }
+    if (_simHr % 72 === 0 && ECO && ECO.maintainUpkeepGear) {
+      for (const n of W.npcs) {
+        if (n && !n.dead && !n.away) ECO.maintainUpkeepGear(W, n);
+      }
+    }
+    if (_simHr % 24 === 0 && g.SECT && g.SECT.FORBIDDEN_VAULT && g.SECT.FORBIDDEN_VAULT.evaluateAutonomousSectVault) {
+      g.SECT.FORBIDDEN_VAULT.evaluateAutonomousSectVault(W);
+    }
+    if (_simHr % 12 === 0 && g.CULT && g.CULT.SUPPORT_ARTS && g.CULT.SUPPORT_ARTS.evaluateAutonomousEmergencySupport) {
+      g.CULT.SUPPORT_ARTS.evaluateAutonomousEmergencySupport(W);
+    }
     W.map.buildings.forEach(b => { if (b.building && W.t >= b.building.until) SIM.finishBuilding(W, b); });
     if (W.map && W.map.buildings && g.SECT && g.SECT.ensureFacilityDemand) {
       g.SECT.ensureFacilityDemand(W);
@@ -719,6 +987,7 @@
       });
     }
     EXPED.hourly(W);
+    SECT.OUTPOSTS_LOGISTICS?.settleSupplyConvoys(W);
     if (W.sect.gear.length && W.t % 360 === 0) SIM.distributeGear(W);
     W.npcs.forEach(n => { if (!n.dead && !n.away && n.inj && n.inj.length && n.h.state.hp < CULT.hpMax(n) * 0.5) { for (const k of Object.keys(W.sect.stock)) { const info = ECO.isPill(k) ? ECO.pillInfo(k) : null; if (info && k.startsWith('P:BASIC_') && (info.effect.healHealth || info.effect.healInjury) && W.sect.stock[k] > 0 && n.rank >= 1) { ECO.usePill(W, n, k); break; } } } });
   };
@@ -790,8 +1059,11 @@
         const s0 = list[i % list.length];
         let x = s0.x, y = s0.y;
         if (!s0.inside) {
-          const f = MAP.nearestFree(M, s0.x + 1 + (i % 3), s0.y + 1 + ((i >> 1) % 2));
-          if (f && (!MAP.findPath || MAP.findPath(M, MAP.GATE_IN.x, MAP.GATE_IN.y, f.x, f.y))) {
+          const maxYardY = b.y + b.h + Math.max(1, (b.yard || 2) - 1);
+          const candX = Math.min(b.x + b.w - 1, Math.max(b.x, s0.x + (i % 3) - 1));
+          const candY = Math.min(maxYardY, Math.max(b.y + b.h, s0.y + ((i >> 1) % 2)));
+          const f = MAP.nearestFree(M, candX, candY);
+          if (f && f.y <= maxYardY && (!MAP.findPath || MAP.findPath(M, MAP.GATE_IN.x, MAP.GATE_IN.y, f.x, f.y))) {
             x = f.x;
             y = f.y;
           }
@@ -811,7 +1083,7 @@
 
   /* ---------- รายวัน ---------- */
   SIM.dailyUpdate = (W, silent) => {
-    const rng = W.rng; const cal = SIM.calendar(W.t); W.season = cal.season; HC.nowDay = W.day;
+    const rng = W.rng; const cal = SIM.calendar(W.t); W.season = cal.season; HC.nowDay = W.day; HC.nowSeason = W.season;
     if (g.CULT && g.CULT.TRIBULATION && g.CULT.TRIBULATION.tickAll) g.CULT.TRIBULATION.tickAll(W);
       for (let i = 0; i < W.npcs.length; i++) {
       const n = W.npcs[i];
@@ -850,7 +1122,7 @@
     W.avgMood = W.npcs.length ? W.npcs.reduce((s, n) => s + (n.dead ? 0 : n.h.state.mood), 0) / Math.max(1, W.npcs.filter(n => !n.dead).length) : 0;
     if (silent) return;
     W.npcs.forEach(n => { if (n.dead) return; const age = HC.ageYears(n), life = n.lifespanMax || CULT.lifespan(n); if (age > life * 0.92) { const p = clamp((age - life * 0.92) / (life * 0.08), 0, 1) * 0.06; if (rng.chance(p)) AI.kill(W, n, 'ชราภาพ'); } });
-    for (let i = W.npcs.length - 1; i >= 0; i--) { const n = W.npcs[i]; if (n.dead && W.day - n.deathDay > 4) { SIM.snapshotPerson(W, n, "เสียชีวิตและฝังในสุสานสำนัก"); W.npcs.splice(i, 1); W.graveyard.push(n.id); } }
+    for (let i = W.npcs.length - 1; i >= 0; i--) { const n = W.npcs[i]; if (n.dead && W.day - n.deathDay > 4) { SIM.snapshotPerson(W, n, "เสียชีวิตและฝังในสุสานสำนัก"); W.npcs.splice(i, 1); if (W.byId && W.byId[n.id] === n) delete W.byId[n.id]; if (!W.graveyard.includes(n.id)) W.graveyard.push(n.id); } }
     if (!W.byId[W.sect.masterId] || W.byId[W.sect.masterId].dead) {
       if (SECT.resolvePlayerSuccessionCrisis) SECT.resolvePlayerSuccessionCrisis(W, 'เจ้าสำนักเดิมถึงแก่อนิจกรรม');
       else SECT.succession(W, 'เจ้าสำนักว่าง');
@@ -860,15 +1132,22 @@
     if (CULT.tickClosedDoorSeclusion) CULT.tickClosedDoorSeclusion(W);
     SECT.daily(W);
     if (g.COG && g.COG.syncOfficeAuthority) g.COG.syncOfficeAuthority(W);
-    W.npcs.forEach(n => { if (!n.dead && !n.away && g.COG && g.COG.reconcileLoadout) g.COG.reconcileLoadout(W, n); });
-    EXPED.daily(W); EXPLORE.daily(W); BN.daily(W); CPE.daily(W); g.CONTENT.daily(W); if (g.EXT) g.EXT.daily(W); if (g.FISHING) g.FISHING.daily(W);
+    W.npcs.forEach(n => {
+      if (!n.dead && !n.away) {
+        if (g.COG && g.COG.reconcileLoadout) g.COG.reconcileLoadout(W, n);
+        if (CULT && CULT.EXPERIENCE_TRAITS && CULT.EXPERIENCE_TRAITS.evaluateDaily) CULT.EXPERIENCE_TRAITS.evaluateDaily(W, n);
+        if (COMBAT && COMBAT.ACTION_MASTERY_TRAITS && COMBAT.ACTION_MASTERY_TRAITS.reconcileActiveMasteries) COMBAT.ACTION_MASTERY_TRAITS.reconcileActiveMasteries(W,n);
+      }
+    });
+    if (g.CULT && g.CULT.menagerieTick) g.CULT.menagerieTick(W);
+    EXPED.daily(W); EXPLORE.daily(W); BN.daily(W); CPE.daily(W); g.CONTENT.daily(W); if (g.EXT) g.EXT.daily(W); if (g.FISHING) g.FISHING.daily(W); if (g.NECRO) g.NECRO.daily(W);
     W.npcs.forEach(n => {
       if (n.dead) {
         if (Array.isArray(n.pets) && n.pets.length > 0) {
           W.sect.reservePets = W.sect.reservePets || [];
           while (n.pets.length > 0) {
             const orphan = n.pets.shift();
-            if (orphan) { orphan.active = false; W.sect.reservePets.push(orphan); }
+            if (orphan) { orphan.active = false; orphan.formerOwnerId = n.id; W.sect.reservePets.push(orphan); }
           }
         }
         return;
@@ -895,10 +1174,31 @@
         if (gate.ok) CULT.trackBreakthrough(W, n);
       }
     });
+    CULT.tickSovereignNursery(W);
     SIM.researchTick(W);
     if (cal.dom === 1) SIM.monthly(W);
     const pop = W.npcs.filter(n => !n.dead).length;
-    if (ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3 < pop * 1.5 && W.sect.stones > 200 && !W.threat.roadBlocked) { const n = Math.round(pop * 4); const c = Math.round(ECO.price(W, 'grain') * 1.3 * n); if (W.sect.stones >= c) { ECO.pay(W, c, 'ซื้อข้าวฉุกเฉิน'); ECO.add(W, 'grain', n); W.log('finance', 'เสบียงใกล้หมด หอคลังซื้อข้าวฉุกเฉิน ' + n + ' หน่วย', [], { txKind: 'purchase', itemId: 'grain', qty: n }); } }
+    if (Array.isArray(W.sect.reservePets) && W.sect.reservePets.length > 0) {
+      for (let rpi = W.sect.reservePets.length - 1; rpi >= 0; rpi--) {
+        const rPet = W.sect.reservePets[rpi];
+        if (!rPet || rPet.dead) { W.sect.reservePets.splice(rpi, 1); continue; }
+        const adopter = W.npcs.find(cand => cand && !cand.dead && !cand.exiled && !cand.away && (!Array.isArray(cand.pets) || cand.pets.length === 0) && (
+          (rPet.formerOwnerId && (cand.mentor === rPet.formerOwnerId || cand.mentorId === rPet.formerOwnerId || cand.companionId === rPet.formerOwnerId)) ||
+          (cand.cult && ['BEAST_SOVEREIGN', 'PRIMORDIAL_SHIFTER', 'SPIRIT_HUSBANDRY', 'WILDERNESS_RANGER'].includes(cand.cult.path)) ||
+          ((cand.h && cand.h.skills && (cand.h.skills.BEAST_TAMING || 0) >= 25))
+        ));
+        if (adopter) {
+          W.sect.reservePets.splice(rpi, 1);
+          rPet.active = true;
+          rPet.ownerId = adopter.id;
+          adopter.pets = Array.isArray(adopter.pets) ? adopter.pets : [];
+          adopter.pets.push(rPet);
+          adopter.pet = rPet;
+          W.log('craft', adopter.h.name.given + ' รับสืบทอดสัตว์วิญญาณสำรอง「' + (rPet.nameTh || rPet.name || 'สัตว์อสูร') + '」มาดูแลต่อ', [adopter.id]);
+        }
+      }
+    }
+    if (ECO.count(W, 'meal') + ECO.count(W, 'grain') * 3 < pop * 1.5 && W.sect.stones > 200 && !W.threat.roadBlocked) { const n = Math.round(pop * 4); const c = Math.round(ECO.price(W, 'grain') * 1.3 * n); if (W.sect.stones >= c) { ECO.pay(W, c, 'ซื้อข้าวฉุกเฉิน', { toPool: true }); ECO.add(W, 'grain', n); W.log('finance', 'เสบียงใกล้หมด หอคลังซื้อข้าวฉุกเฉิน ' + n + ' กระสอบ', [], { txKind: 'purchase', itemId: 'grain', qty: n }); } }
     if (W.day % 30 === 15) W.npcs.forEach(n => { if (!n.dead) n.h.state.novelty = Math.max(0, n.h.state.novelty - 3); });
     if (g.EXPED && g.EXPED.dailyChronicleDigestTick) g.EXPED.dailyChronicleDigestTick(W);
   };
@@ -928,6 +1228,29 @@
     if (CULT && CULT.tickMonthlyWorldHooks) {
       CULT.tickMonthlyWorldHooks(W);
     }
+    if (Array.isArray(W.npcs) && (Array.isArray(W.graveyard) || Array.isArray(W.gone))) {
+      const deadSet = new Set([...(W.graveyard || []).map(x => typeof x === 'string' ? x : (x && x.id)), ...(W.gone || [])]);
+      if (deadSet.size > 0) {
+        for (let ni = 0; ni < W.npcs.length; ni++) {
+          const u = W.npcs[ni];
+          const rels = u && u.h && u.h.mind && u.h.mind.relations;
+          if (!rels) continue;
+          const fam = (u.h.life && u.h.life.family) || {};
+          for (const rid of Object.keys(rels)) {
+            if (!deadSet.has(rid)) continue;
+            const r = rels[rid];
+            if (!r || r.bond) continue;
+            if (u.companionId === rid || u.mentorId === rid || u.mentor === rid || fam.spouse === rid || fam.master === rid) continue;
+            if (Array.isArray(fam.parents) && fam.parents.includes(rid)) continue;
+            if (Array.isArray(fam.children) && fam.children.includes(rid)) continue;
+            if (Array.isArray(fam.disciples) && fam.disciples.includes(rid)) continue;
+            if (Math.abs(r.a || 0) < 25 && (r.v || 0) < 25 && (r.l || 0) < 25 && (r.n || 0) <= 3) {
+              delete rels[rid];
+            }
+          }
+        }
+      }
+    }
   };
   SIM.guardRoster = W => {
     const pop = W.npcs.filter(n => !n.dead).length; const k = 2 + Math.floor(pop / 14);
@@ -946,14 +1269,15 @@
   };
   SIM.researchTick = W => {
     const S = W.sect; if (!S.research) return; const head = W.byId[S.research.lead];
-    const r = (head && !head.dead ? (E(head, 'intellect.comprehension') + (head.h.skills.SCRIPTURE || 0) + (head.h.skills.ALCHEMY || 0)) / 10 : 4) * (1 + 0.1 * (W.map.byId.scripture.level - 1)) * (1 + S.policy.focus.scholar);
+    const bestCraftSk = head && !head.dead ? Math.max(head.h.skills.ALCHEMY || 0, head.h.skills.FORGING || 0, head.h.skills.ARRAY || 0, head.h.skills.TALISMAN || 0) : 0;
+    const r = (head && !head.dead ? (E(head, 'intellect.comprehension') + (head.h.skills.SCRIPTURE || 0) + bestCraftSk) / 10 : 4) * (1 + 0.1 * (W.map.byId.scripture.level - 1)) * (1 + S.policy.focus.scholar);
     S.research.progress += r;
     if (S.research.progress >= S.research.need) { S.recipeTier = S.research.tier; W.log('research', 'หอคัมภีร์วิจัยตำรับระดับ ' + S.recipeTier + ' สำเร็จ! หอโอสถและโรงหลอมผลิตของใหม่ได้', head ? [head.id] : []); W.fame(2); if (head) { head.merit += 30; HC.experience(head, 'craft_success', 1); } S.research = null; }
   };
 
   /* ---------- บันทึก/โหลด ---------- */
   SIM.serialize = W => {
-    if (W && Array.isArray(W.npcs)) { for (let i = 0; i < W.npcs.length; i++) { if (W.npcs[i]) { W.npcs[i]._cultRateBase = null; W.npcs[i]._wsBase = null; } } }
+    if (W && Array.isArray(W.npcs)) { for (let i = 0; i < W.npcs.length; i++) { if (W.npcs[i]) { W.npcs[i]._cultRateBase = null; W.npcs[i]._autoWalkRateC = null; W.npcs[i]._mantraResCache = null; W.npcs[i]._qgTickCache = null; W.npcs[i]._wsBase = null; W.npcs[i]._c = null; W.npcs[i]._d = null; if (g.CULT && g.CULT.ELEM && g.CULT.ELEM.invalidateNpcCache) g.CULT.ELEM.invalidateNpcCache(W.npcs[i]); } } }
     const M = W.map;
     const snap = {
       ...(W._saveExtras || {}),
@@ -969,6 +1293,8 @@
       hc: HC.FINGERPRINT,
       seed: W.seed,
       t: W.t,
+      workSteps: W.workSteps || 0,
+      timePhase: W.timePhase || 0,
       speed: W.speed,
       rng: W.rng.getState(),
       seqN: W.seqN,
@@ -991,10 +1317,10 @@
       foes: W.foes,
       foeSeq: W.foeSeq,
       fightSeq: W.fightSeq,
-      map: { extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
+      map: { mapW: M.W, mapH: M.H, extra: M.extraSt || [], buildings: M.buildings.map(b => ({ id: b.id, level: b.level, hp: b.hp, building: b.building || null })) }
     };
     const transientSet = SIM.TRANSIENT_CACHE_KEYS;
-    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil']);
+    const PERSISTED_UNDERSCORE_KEYS = new Set(['_ver', '_stSig', '_btBonusPct', '_dantianBonusPct', '_saveExtras', '_divineStrain', '_studyHrsAcc', '_gatherHrsAcc', '_gravityFieldCdUntil', '_duetCdUntil', '_ccImmuneUntil', '_itemEfxCds', '_beastFusedUntil', '_lastGearSwapAt', '_lastExchangeDay', '_lastCaravanDay', '_lastTemperDay', '_stockSeq', '_officeOrderSeq', '_activeStance', '_combatStance', '_kwAdaptiveStacks', '_kwAdaptiveElem', '_kwAdaptiveUntil', '_absorbReleaseStored', '_statusTransferCd', '_tempoStealCd', '_lastHarvestedDay', '_lastSeasonalHarvestPeriod', '_fromRuneSocket', '_fromTierRoll', '_modVer', '_origFigureId', '_recruitedFromSectTh', '_renegadeTitleTh', '_phoenixClauseReady', '_phoenixClauseUsed', '_phoenixRebirthUsed', '_signalJamActiveUntil', '_emergencyBeaconActiveUntil', '_veinAnchoredUntil', '_beastSpiritPossessedUntil', '_possessedPetSnapshot', '_initChronicleDone', '_raidEndProcessed', '_hasCatalysts', '_marksmanFocus', '_lastBreathUsedFightId', '_temporalRewindCdUntil', '_aegisInterceptCdUntil', '_elemAuras', '_poiseGauge', '_ccDrStacks', '_ccDrUntil', '_shadowClones', '_boneArmorHp', '_supHealIcd', '_cheatDeathSavesCount', '_cheatDeathFightId', '_salvaged', '_lastStepTick', '_lastSupportBlessAt', '_lastUrgentBnAt', '_lastAegisInterceptTick', '_lastDodgeOrParryAt', '_lastTacLogAt', '_roundStartFired', '_lastTabooCostTick', '_lastAttackElement', '_unitFirstStrikeDone', '_closedOnBy', '_gapClosedOn', '_traitCds', '_lastSovCutInTick', '_cocoonUsedInFight', '_cocoonStasisUntil', '_lastChronoRewindTick', '_pendingChronoEcho', '_tcmbFlow', '_woundLedgerPool', '_chronoBookmarks', '_castCounter', '_basePreTranscendent', '_lastSpiritBeastCrucibleGain', '_necroFallen', '_necroSynced', '_necroSnap', '_necroHauntAt']);
     return JSON.stringify(snap, (k, v) => (transientSet.has(k) || (k[0] === '_' && !PERSISTED_UNDERSCORE_KEYS.has(k))) ? undefined : v);
   };
   SIM.deserialize = str => {
@@ -1005,6 +1331,34 @@
     if (s.hc && s.hc !== HC.FINGERPRINT) throw new Error('เซฟนี้สร้างจากแกนมนุษย์คนละเวอร์ชัน (' + s.hc + ' ≠ ' + HC.FINGERPRINT + ')');
     const SUPPORTED_SAVE_SCHEMAS = new Set([
       SIM.SAVE_SCHEMA_VERSION,
+      '3.9.5-witnesses-and-12shards',
+      '3.9.4-living-institutions-and-cycles',
+      '3.9.3-grand-lore-canon-104books',
+      '3.9.2-grand-lore-unification-96books',
+      '3.9.1-audit-hardening-and-90book-ui',
+      '3.9.0-political-lives-and-external-institutions',
+      '3.8.6-90book-grand-lore-archive',
+      '3.8.5-lore-continuity-canon-hardening',
+      '3.8.4-grand-lore-44books',
+      '3.8.3-grand-lore-chronicles',
+      '3.8.2-chaos-era-lore-archive',
+      '3.8.1-world-calendar-epoch',
+      '3.8.0-master-lore-compendium',
+      '3.7.0c-final-polish',
+      '3.7.0b-p1-realism-polish',
+      '3.7.0a-p0-audit-fixes',
+      '3.7.0-legendary-dao',
+      '3.6.0c-living-world-audit',
+      '3.6.0b-living-polities',
+      '3.6.0a-living-sects',
+      '3.5.0c-release-polish',
+      '3.5.0b-p1-hardening',
+      '3.5.0a-p0-hardening',
+      '3.4.0-world-events',
+      '3.3.0-tactical-sixpaths',
+      '3.2.0-equipment-expansion',
+      '3.1.0-living-lore',
+      '3.0.0-living-continent',
       '2.6.0-living-chronicle-and-reporting',
       '2.5.0-pathbound-visuals-and-item-art',
       '2.4.0-tactical-composable-grand-dao',
@@ -1036,7 +1390,7 @@
       }
     }
     if (s.patchVersion != null) {
-      if (typeof s.patchVersion !== 'string' || !SIM.SUPPORTED_PATCHES.includes(s.patchVersion)) {
+      if (typeof s.patchVersion !== 'string' || (s.patchVersion !== SIM.PATCH_VERSION && !SIM.SUPPORTED_PATCHES.includes(s.patchVersion))) {
         throw new Error('ไฟล์เซฟสร้างจาก Patch เวอร์ชันที่ใหม่กว่าหรือไม่รองรับ (' + s.patchVersion + ' > ' + SIM.PATCH_VERSION + ') ไม่สามารถโหลดได้');
       }
     }
@@ -1072,15 +1426,16 @@
       npcIds.add(n.id);
     });
     if (s.npcs.length > 0 && s.sect.masterId != null) {
-      const inGrave = Array.isArray(s.graveyard) && s.graveyard.some(g2 => g2 && g2.id === s.sect.masterId);
+      const inGrave = Array.isArray(s.graveyard) && s.graveyard.some(g2 => (typeof g2 === 'string' ? g2 === s.sect.masterId : g2 && g2.id === s.sect.masterId));
       if (typeof s.sect.masterId !== 'string' || (!npcIds.has(s.sect.masterId) && !inGrave)) invalid('sect.masterId');
     }
     const hadDay = Object.prototype.hasOwnProperty.call(HC, 'nowDay'), dayBefore = HC.nowDay;
+    const hadSeason = Object.prototype.hasOwnProperty.call(HC, 'nowSeason'), seasonBefore = HC.nowSeason;
     const stats = g.STATS, hadStatsTime = stats && Object.prototype.hasOwnProperty.call(stats, 'now'), statsTimeBefore = stats && stats.now;
     const prevBoundWorld = ECO ? ECO._boundWorld : null;
     try {
       const W = SIM.create(s.seed, { masterIdx: 0 });
-      W.rng.setState(s.rng); W.t = s.t; if (g.STATS) g.STATS.now = W.t; W.day = Math.floor(W.t / 1440); W.season = SIM.calendar(W.t).season; HC.nowDay = W.day; W.speed = s.speed == null ? 1 : s.speed; W.seqN = s.seqN; W.logSeq = s.logSeq; W.deaths = s.deaths; W.avgSat = s.avgSat; W.avgMood = s.avgMood; W.weather = s.weather; W.market = s.market; W.sect = s.sect; if (W.sect && !Array.isArray(W.sect.trackedNpcIds)) W.sect.trackedNpcIds = []; W.world = s.world;
+      W.rng.setState(s.rng); W.t = s.t; if (g.STATS) g.STATS.now = W.t; W.day = Math.floor(W.t / 1440); W.season = SIM.calendar(W.t).season; HC.nowDay = W.day; HC.nowSeason = W.season; W.speed = s.speed == null ? 1 : s.speed; W.seqN = s.seqN; W.logSeq = s.logSeq; W.deaths = s.deaths; W.avgSat = s.avgSat; W.avgMood = s.avgMood; W.weather = s.weather; W.market = s.market; W.sect = s.sect; if (W.sect && !Array.isArray(W.sect.trackedNpcIds)) W.sect.trackedNpcIds = []; W.world = s.world;
       if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
       W.chronicle = W.world.chronicles; W.threat = s.threat; if (s.explore) W.explore = s.explore; W.graveyard = s.graveyard; W.gone = s.gone; W.logs = s.logs; W.duelQueue = s.duelQueue || []; W.fights = s.fights || []; W.foes = s.foes || []; W.foeSeq = s.foeSeq; W.fightSeq = s.fightSeq;
       W.foeById = {}; W.foes.forEach(u => W.foeById[u.id] = u);
@@ -1089,7 +1444,7 @@
       if (s.wildResources) W.wildResources = s.wildResources;
       if (s.fishing) W.fishing = s.fishing;
       W.npcs = s.npcs.map(n => {
-        const base = { id: n.id, h: n.h, mods: n.mods || [], ext: n.ext || {}, _ver: n._ver || 1, _c: null, _d: null };
+        const base = { id: n.id, h: n.h, mods: n.mods || [], ext: n.ext || {}, _ver: (n._ver != null ? n._ver : 1), _c: null, _d: null };
         for (const k of Object.keys(n)) {
           if (!(k in base) && !SIM.TRANSIENT_CACHE_KEYS.has(k)) base[k] = n[k];
         }
@@ -1101,15 +1456,17 @@
       s.map.extra.forEach(e => { if (!object(e)) invalid('map.extra'); const b = M.buildings.find(x => x.n === e.bid); if (!b) invalid('map.extra.bid'); const st = { id: M.stations.length, bid: e.bid, bkey: b.id, kind: e.kind, x: e.x, y: e.y, inside: e.inside, occ: null, n: b.stations.length }; M.stations.push(st); b.stations.push(st.id); M.extraSt.push(e); });
       M.stations.forEach(st => { st.occ = null; if (st.owner != null) st.owner = null; });
       M.buildings.forEach(b => { b.inside = []; });
-      W.npcs.forEach(n => { n.px = n.x; n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
+      W.npcs.forEach(n => { if (!Number.isFinite(n.px)) n.px = n.x; if (!Number.isFinite(n.py)) n.py = n.y; if (n.bed != null && M.stations[n.bed]) M.stations[n.bed].owner = n.id; if (n.act && n.act.st != null && M.stations[n.act.st]) { M.stations[n.act.st].occ = n.id; if (M.stations[n.act.st].inside) { M.buildings[M.stations[n.act.st].bid].inside.push(n.id); } } });
+      EXPED.initContinent(W);
+      (W.npcs || []).forEach(n => EXPED.assignHometown(W,n));
       W.log = (type, text, ids, meta) => SIM.log(W, type, text, ids, meta); W.fame = v => { W.sect.fame = Math.max(0, (W.sect.fame || 0) + v); }; W.makeNpc = o => SIM.addNpc(W, o);
-      const knownKeys = new Set(['v', 'schemaVersion', 'patchVersion', 'celestialAlignment', 'celestialEvent', 'hc', 'seed', 't', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
+      const knownKeys = new Set(['v', 'schemaVersion', 'patchVersion', 'celestialAlignment', 'celestialEvent', 'hc', 'seed', 't', 'workSteps', 'timePhase', '_lastWildTickT', '_lastHourlyUpdateT', '_lastDailyUpdateDay', 'speed', 'rng', 'seqN', 'logSeq', 'deaths', 'avgSat', 'avgMood', 'weather', 'market', 'sect', 'world', 'threat', 'explore', 'npcs', 'graveyard', 'gone', 'logs', 'duelQueue', 'fights', 'foes', 'foeSeq', 'fightSeq', 'map', 'runtimeTiming', 'wildlife', 'wildResources', 'fishing']);
       if (s.celestialAlignment) W.celestialAlignment = s.celestialAlignment;
       if (s.celestialEvent) W.celestialEvent = s.celestialEvent;
       W._saveExtras = Object.fromEntries(Object.entries(s).filter(([k]) => !knownKeys.has(k)));
       if (s.runtimeTiming && typeof s.runtimeTiming === 'object') {
         W.runtimeTiming = Object.assign({}, s.runtimeTiming, {
-          pendingTicks: clamp(typeof s.runtimeTiming.pendingTicks === 'number' && Number.isFinite(s.runtimeTiming.pendingTicks) ? s.runtimeTiming.pendingTicks : 0, 0, 100800)
+          pendingTicks: Math.max(0, typeof s.runtimeTiming.pendingTicks === 'number' && Number.isFinite(s.runtimeTiming.pendingTicks) ? s.runtimeTiming.pendingTicks : 0)
         });
       }
       const legacyContent = !s.sect.contentVersion;
@@ -1131,7 +1488,18 @@
       if (g.SECT && g.SECT.ensureFacilityDemand) g.SECT.ensureFacilityDemand(W);
       if (g.ECO && g.ECO.ensureStockTracker) g.ECO.ensureStockTracker(W);
       if (g.CPE && g.CPE.S) g.CPE.S(W);
-      g.CONTENT.ensure(W); W._founding = false; g.MARTIAL.restore(W); if (g.FISHING) g.FISHING.ensure(W);
+      g.CONTENT.ensure(W); W._founding = false;
+      if (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length > 0) {
+        if (Array.isArray(W.world.sects)) {
+          const byId = new Map(W.world.allSects.map(sc => [sc && sc.id, sc]));
+          for (let si = 0; si < W.world.sects.length; si++) {
+            const sc = W.world.sects[si];
+            if (sc && sc.id && byId.has(sc.id)) W.world.sects[si] = byId.get(sc.id);
+          }
+        }
+        W.world.jianghuSects = W.world.allSects;
+      }
+      g.MARTIAL.restore(W); if (g.FISHING) g.FISHING.ensure(W);
       if (g.SECT && g.SECT.PATH_LIBRARY) g.SECT.PATH_LIBRARY.ensure(W);
       if (g.SECT && g.SECT.INFERNAL_SHRINE) g.SECT.INFERNAL_SHRINE.ensure(W);
       if (g.CULT && g.CULT.GRAND_DAO_MECHANICS) g.CULT.GRAND_DAO_MECHANICS.ensureWorldState(W);
@@ -1157,7 +1525,7 @@
       if (W.sect && Array.isArray(W.sect.queue) && g.SECT && g.SECT.sanitizeQueue) g.SECT.sanitizeQueue(W);
       if (W.sect && Array.isArray(W.sect.queue)) W.sect.queue.forEach(a => { if (g.ELEM) g.ELEM.ensureNpcElementalState(a); if (HC.touch) HC.touch(a); });
       if (W.sect && Array.isArray(W.sect.beasts) && g.CULT && g.CULT.ensureMenagerie) g.CULT.ensureMenagerie(W);
-      W.npcs.forEach(n => { if (g.ELEM) g.ELEM.ensureNpcElementalState(n); if ((Array.isArray(n.pets) || n.pet) && g.CULT && g.CULT.ensurePets) g.CULT.ensurePets(n); if (HC.touch) HC.touch(n); });
+      W.npcs.forEach(n => { if (g.ELEM) g.ELEM.ensureNpcElementalState(n); if ((Array.isArray(n.pets) || n.pet) && g.CULT && g.CULT.ensurePets) g.CULT.ensurePets(n); if (g.CULT && g.CULT.HIGHER_REALMS_PANTHEON && g.CULT.HIGHER_REALMS_PANTHEON.healPact) g.CULT.HIGHER_REALMS_PANTHEON.healPact(n); if (HC.touch) HC.touch(n); });
       if (ECO && ECO.ensureUniqueGearUids) ECO.ensureUniqueGearUids(W);
       if (g.SECT && g.SECT.ensureCompanionsAndBloodlines) g.SECT.ensureCompanionsAndBloodlines(W);
       if (g.SECT && g.SECT.FENG_SHUI && !W.sect.fengShui) g.SECT.FENG_SHUI.ensure(W);
@@ -1170,6 +1538,15 @@
     if (g.SECT && g.SECT.ELEMENTAL_BARRIER) g.SECT.ELEMENTAL_BARRIER.ensure(W);
     if (g.MAP && g.MAP.syncPeakSanctuaries) g.MAP.syncPeakSanctuaries(W);
       if (g.SECT && g.SECT.ensureDungeon) g.SECT.ensureDungeon(W);
+      if (g.SECT && g.SECT.ensureJurisdictionLog) g.SECT.ensureJurisdictionLog(W);
+      if (g.SECT && g.SECT.TOTEMS_BLOODLINES) g.SECT.TOTEMS_BLOODLINES.ensure(W);
+      if (g.SECT && g.SECT.CELESTIAL_ALIGNMENTS) g.SECT.CELESTIAL_ALIGNMENTS.ensure(W);
+      if (g.SECT && g.SECT.DESTINY_KARMA) g.SECT.DESTINY_KARMA.ensure(W);
+      if (g.SECT && g.SECT.LEYLINE_GRID) g.SECT.LEYLINE_GRID.ensure(W);
+      if (g.SECT && g.SECT.TRIBUNAL) g.SECT.TRIBUNAL.ensure(W);
+      if (g.SECT && g.SECT.AUTOMATION) g.SECT.AUTOMATION.ensure(W);
+      if (g.SECT && g.SECT.ensureDefectorPursuit) g.SECT.ensureDefectorPursuit(W);
+      if (g.SECT && g.SECT.ANCESTRAL_PAVILION) g.SECT.ANCESTRAL_PAVILION.ensure(W);
       if (g.SECT && g.SECT.OUTPOSTS_LOGISTICS) g.SECT.OUTPOSTS_LOGISTICS.ensure(W);
       if (g.SECT && g.SECT.CHARTER_DOCTRINE) g.SECT.CHARTER_DOCTRINE.ensure(W);
       if (g.SECT && g.SECT.STRATEGIC_COUNCIL) g.SECT.STRATEGIC_COUNCIL.ensure(W);
@@ -1182,6 +1559,7 @@
 
       if (W.world && Array.isArray(W.world.wanderingFigures) && g.EXPED && g.EXPED.ensureWanderingFigures) g.EXPED.ensureWanderingFigures(W);
       if (W.world) {
+        if (!W.world.resourcePool || typeof W.world.resourcePool !== "object") W.world.resourcePool = { stones: 50000, herbs: 5000, ores: 5000 };
         if (!Array.isArray(W.world.chronicles)) W.world.chronicles = Array.isArray(W.chronicle) ? W.chronicle : [];
         W.chronicle = W.world.chronicles;
       }
@@ -1196,6 +1574,424 @@
     }
   };
 
+
+  /* ---------- Deterministic Literary Prose Composer (14A/14B/14C — Zero W.rng) ---------- */
+  SIM.PROSE = {
+    pick(seedInt, variants) {
+      if (!Array.isArray(variants) || !variants.length) return '';
+      return variants[Math.abs(seedInt | 0) % variants.length];
+    },
+    actorLabel(W, n) {
+      if (!n || !n.h) return 'ผู้ไร้นาม';
+      const full = (g.HC && g.HC.fullName) ? g.HC.fullName(n) : ((n.h.name.family || '') + (n.h.name.given || ''));
+      if (W && W.sect && W.sect.masterId === n.id) return 'เจ้าสำนัก ' + full;
+      if (n.post && g.SECT && g.SECT.POSTS && g.SECT.POSTS[n.post]) {
+        return g.SECT.POSTS[n.post].nameTh + ' ' + full;
+      }
+      const rkTitle = (g.SECT && g.SECT.RANKS && g.SECT.RANKS[n.rank]) ? g.SECT.RANKS[n.rank].nameTh : 'ศิษย์';
+      return rkTitle + ' ' + full;
+    },
+    atmospherePrefix(W, seedInt) {
+      const cal = SIM.calendar((W && W.t) || 0);
+      const wKind = (W && W.weather && (W.weather.kind || W.weather)) || 'clear';
+      const isNight = cal.hour >= 20 || cal.hour < 5;
+      const isDawn = cal.hour >= 5 && cal.hour < 8;
+      const seasonTh = (SIM.SEASON_TH && SIM.SEASON_TH[cal.season]) || 'วสันตฤดู';
+      if (wKind === 'snow') return isNight ? 'ท่ามกลางหิมะโปรยปรายในคืนเหน็บหนาว ' : 'ใต้ละอองหิมะขาวเหนือยอดเขา ';
+      if (wKind === 'rain') return isNight ? 'ท่ามกลางสายฝนพรำและเสียงฟ้าร้องยามวิกาล ' : 'ใต้สายฝนฉ่ำชื้นที่โปรยอาบอาราม ';
+      if (wKind === 'fog') return 'ท่ามกลางม่านหมอกหนาที่ปกคลุมหุบเขา ';
+      if (isDawn) return 'รับแสงอรุณแรกแห่ง' + seasonTh + ' ';
+      if (isNight) return 'ภายใต้แสงจันทร์เงียบสงัดยามรัตติกาล ';
+      return this.pick(seedInt, [
+        'ณ ยามสายลมปราณพัดผ่านยอดเขา ',
+        'ท่ามกลางบรรยากาศอันคึกคักของ' + seasonTh + ' ',
+        'ภายใต้ท้องฟ้ากระจ่างเหนือขุนเขา '
+      ]);
+    },
+    oddsDramaPhrase(ok, chancePct) {
+      const pct = Number.isFinite(chancePct) ? Math.round(chancePct) : 50;
+      if (ok) {
+        if (pct <= 30) return 'ฝืนชะตาฟ้าสำเร็จราวปาฏิหาริย์ ทั้งที่มีโอกาสเพียงริบหรี่ (' + pct + '%)';
+        if (pct <= 55) return 'กัดฟันฝ่าวิกฤตห้าสิบห้าสิบไปได้อย่างหวุดหวิด (โอกาส ' + pct + '%)';
+        if (pct >= 85) return 'ทะลวงผ่านอย่างมั่นคงไร้ข้อกังขาสมดังที่เตรียมการไว้พร้อมสรรพ (โอกาส ' + pct + '%)';
+        return 'โคจรปราณฝ่าด่านสำเร็จลุล่วง (โอกาส ' + pct + '%)';
+      } else {
+        if (pct >= 78) return 'เกิดเหตุพลิกผันน่าตกตะลึง พลาดท่าล้มเหลวทั้งที่มีโอกาสสูงถึง ' + pct + '%!';
+        if (pct <= 35) return 'ไม่อาจฝืนกำแพงคอขวดอันสูงชันไปได้ตามคาด (โอกาสเพียง ' + pct + '%)';
+        return 'ปราณสะดุดกลางคันจนด่านตบะตีกลับ (โอกาส ' + pct + '%)';
+      }
+    },
+    pathFamily(pathId) {
+      const p = String(pathId || 'XIAN');
+      if (['XIAN', 'CELESTIAL_WEATHER', 'TIDE_VOYAGER', 'SPIRIT_HUSBANDRY'].includes(p)) return 'QI_IMMORTAL';
+      if (['BODY', 'ARENA_GLORY', 'PRIMORDIAL_SHIFTER'].includes(p)) return 'BODY_CRUCIBLE';
+      if (['GOD', 'DIVINE_SUMMONER', 'DIVINE_POSSESSION', 'DIVINE_CHANNELER', 'ANCESTRAL_RITUAL'].includes(p)) return 'DIVINE_FAITH';
+      if (['DEMON', 'VENOM_GU', 'DEVOURING_FLESH', 'NETHER_GRAVE', 'VOID_HERETIC_PACT', 'OCCULT_MAGE', 'CORPSE_SOVEREIGN', 'WRAITH_GRIEVANCE', 'DEATHLESS_CADAVER'].includes(p)) return 'DEMON_ABYSS';
+      if (['BUDDHA_DHARMA', 'HEART_SOUL', 'KARMA_SAMSARA', 'SOUL_PUPPETRY'].includes(p)) return 'DHARMA_SOUL';
+      if (['INK_LITERATI', 'LORE_ARCHIVIST', 'SONIC_HARMONY', 'STRATEGY_GOVERNANCE', 'MERCANTILE_DAO', 'FORTUNE_GAMBLER', 'WANDERING_DAO'].includes(p)) return 'SCHOLAR_HARMONY';
+      if (['SHADOW_SAMURAI', 'NINPO_SHADOW', 'NINPO_ELEMENTAL'].includes(p)) return 'BUSHIDO_SHINOBI';
+      if (['CRAFT_CREATION', 'MECH_PUPPET', 'ARRAY_TALISMAN', 'SAGE_SUPPORT', 'BEAST_SOVEREIGN'].includes(p)) return 'ARTIFICER_SAGE';
+      return 'COSMIC_LAW';
+    },
+    awakenProse(W, n, pathNameTh) {
+      const seed = ((n && n.n) || 1) + ((W && W.t) || 0);
+      const atm = this.atmospherePrefix(W, seed);
+      const lbl = this.actorLabel(W, n);
+      const fam = this.pathFamily(n && n.cult && n.cult.path);
+      const pName = pathNameTh || 'วิถีเซียน';
+      if (fam === 'BODY_CRUCIBLE') {
+        return atm + 'เสียงกระดูกและเส้นเอ็นของ ' + lbl + ' ลั่นสะท้านดั่งสายธนูตึงตัว! เลือดลมในกายเดือดพล่านหลอมรวมเป็นปราณโลหิต ก้าวพ้นสังขารคนสามัญเข้าสู่วิถี「' + pName + '」สำเร็จ!';
+      }
+      if (fam === 'BUSHIDO_SHINOBI') {
+        return atm + 'แม้ไร้จุดตันเถียนกักปราณเยี่ยงเซียนทั่วไป แต่ ' + lbl + ' ตวัดคมดาบซ้ำแล้วซ้ำเล่าจนจิตสังหารและลมหายใจรวมเป็นหนึ่งเดียว ก้าวเข้าสู่วิถี「' + pName + '」ด้วยเจตจำนงเหล็กกล้าสำเร็จ!';
+      }
+      if (fam === 'DHARMA_SOUL' || fam === 'SCHOLAR_HARMONY') {
+        return atm + 'ทะเลสำนึกของ ' + lbl + ' พลันสว่างกระจ่างดั่งกระจกไร้ฝุ่น ตื่นรู้สัจธรรมเบื้องต้นและเบิกเนตรวิญญาณเข้าสู่วิถี「' + pName + '」สำเร็จ!';
+      }
+      if (fam === 'DEMON_ABYSS') {
+        return atm + 'กลิ่นอายเย็นเยียบแผ่ซ่านออกจากร่างของ ' + lbl + ' ดวงตาฉายประกายอำมหิตหลังกลืนกินปราณหยินเปิดชีพจรต้องห้าม ก้าวเข้าสู่วิถี「' + pName + '」สำเร็จ!';
+      }
+      return atm + lbl + ' ชักนำปราณฟ้าดินสายแรกทะลวงจุดตันเถียนที่ปิดตายมาแต่กำเนิดได้สำเร็จ! ไอขุ่นปุถุชนถูกขับออกทางรูขุมขน ก้าวเท้าเข้าสู่ทำเนียบผู้บำเพ็ญ「' + pName + '」อย่างเต็มภาคภูมิ';
+    },
+    breakthroughProse(W, n, ok, chancePct, stageNameTh, died) {
+      const seed = ((n && n.n) || 1) + ((W && W.t) || 0);
+      const atm = this.atmospherePrefix(W, seed);
+      const lbl = this.actorLabel(W, n);
+      const fam = this.pathFamily(n && n.cult && n.cult.path);
+      const drama = this.oddsDramaPhrase(ok, chancePct);
+      const stg = stageNameTh || 'ขั้นถัดไป';
+      if (ok) {
+        const mapOk = {
+          QI_IMMORTAL: lbl + ' ชักนำกระแสปราณฟ้าดินหมุนวนเก้ารอบ ทะลวงสู่ ' + stg + ' สำเร็จ! กลิ่นอายปราณบริสุทธิ์พวยพุ่งเหนือยอดเขา — ' + drama,
+          BODY_CRUCIBLE: lbl + ' คำรามก้องฟ้า ใช้เลือดเนื้อรับแรงบดขยี้จนกระดูกผลัดเปลี่ยนสีทองคำ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          DIVINE_FAITH: lbl + ' อาบแสงควันธูปและเสียงกังวานจากฟากฟ้า ขยายภาชนะวิญญาณ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          DEMON_ABYSS: lbl + ' กลืนกินไออาฆาตและเสียงกระซิบมืดมิด ฉีกกระชากโซ่ตรวนคอขวด ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          DHARMA_SOUL: lbl + ' สยบมารในใจจนนิ่งสงบดั่งสระบัวไร้ระลอกคลื่น บรรลุญาณทัศนะ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          SCHOLAR_HARMONY: lbl + ' ร้อยเรียงสัจธรรมแห่งโลกหล้าเข้าเป็นหนึ่งเดียว ทะลวงสู่ ' + stg + ' สำเร็จ! ท่ามกลางเสียงกังวานแห่งมรรคา — ' + drama,
+          BUSHIDO_SHINOBI: lbl + ' นั่งขัดสมาธิสงบนิ่งก่อนชักดาบผ่าอากาศสะบั้นความลังเลในใจ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          ARTIFICER_SAGE: lbl + ' ประสานเพลิงปราณและผังค่ายกลเข้ากับชีพจรตนเอง ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama,
+          COSMIC_LAW: lbl + ' สัมผัสระลอกคลื่นกฎฟ้าดินใต้ผืนม่านภพ บิดเกลียวปราณ ทะลวงสู่ ' + stg + ' สำเร็จ! — ' + drama
+        };
+        return atm + (mapOk[fam] || mapOk.QI_IMMORTAL);
+      } else {
+        const injSuffix = 'บาดเจ็บ' + (died ? ' ถึงแก่ชีวิต' : '');
+        const mapFail = {
+          QI_IMMORTAL: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') กระแสปราณในตันเถียนปั่นป่วนตีกลับจนกระอักโลหิต ' + injSuffix,
+          BODY_CRUCIBLE: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') เส้นเอ็นและกล้ามเนื้อปริแตกจากแรงอัดปราณโลหิตเกินพิกัด ' + injSuffix,
+          DIVINE_FAITH: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') กายเนื้อรับแรงกดดันเทวานุภาพไม่ไหวจนวิญญาณสั่นคลอน ' + injSuffix,
+          DEMON_ABYSS: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') พิษมารและจิตคลุ้มคลั่งย้อนกัดกินอวัยวะภายใน ' + injSuffix,
+          DHARMA_SOUL: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') ภาพมายาและวิบากในใจปะทุขึ้นรบกวนสมาธิจนทะเลสำนึกร้าวฉาน ' + injSuffix,
+          SCHOLAR_HARMONY: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') คำนวณจังหวะฟ้าดินคลาดเคลื่อนไปเพียงเสี้ยวลมหายใจ ' + injSuffix,
+          BUSHIDO_SHINOBI: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') จังหวะลมหายใจสะดุดกลางคันจนคมเจตจำนงย้อนบาดตนเอง ' + injSuffix,
+          ARTIFICER_SAGE: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') สมดุลธาตุติดขัดตีกลับเข้าสู่เส้นชีพจร ' + injSuffix,
+          COSMIC_LAW: lbl + ' ทะลวงขั้นล้มเหลว (' + drama + ') แรงบีบอัดของกฎมิติและชีพจรดินสะท้อนกลับบดขยี้ร่าง ' + injSuffix
+        };
+        return atm + (mapFail[fam] || mapFail.QI_IMMORTAL);
+      }
+    },
+    deathEulogy(W, n, why) {
+      const lbl = this.actorLabel(W, n);
+      const wStr = String(why || 'สิ้นอายุขัย');
+      const stg = (n && n.cult && n.cult.stage) || 0;
+      let closeFriends = 0, affSum = 0, affCnt = 0;
+      const hasComp = !!(n && n.companionId);
+      if (W && Array.isArray(W.npcs) && n) {
+        for (let i = 0; i < W.npcs.length; i++) {
+          const o = W.npcs[i];
+          if (!o || o.dead || o.id === n.id || !o.h || !o.h.mind || !o.h.mind.relations) continue;
+          const r = o.h.mind.relations[n.id];
+          if (!r) continue;
+          if (typeof r.a === 'number') {
+            affSum += r.a;
+            affCnt++;
+            if (r.a >= 55) closeFriends++;
+          }
+        }
+      }
+      const avgAff = affCnt > 0 ? (affSum / affCnt) : 0;
+      const condolence = (hasComp || closeFriends >= 3)
+        ? 'ท่ามกลางเสียงร่ำไห้ปิ่มว่าจะขาดใจของคู่บำเพ็ญและศิษย์ผู้ใกล้ชิด'
+        : (affCnt >= 2 && avgAff < -20)
+        ? 'ทิ้งไว้เพียงความเงียบงันและถอนหายใจโล่งอกของผู้คนที่เคยถูกข่มเหง'
+        : 'ท่ามกลางความอาลัยของศิษย์ร่วมสำนัก';
+
+      if (wStr === 'ชราภาพ' || wStr.includes('ชราภาพ') || wStr.includes('อายุขัย')) {
+        if (stg >= 5) {
+          return lbl + ' นั่งขัดสมาธิหลับตาละสังขารอย่างสงบเมื่อสิ้นอายุขัย (' + wStr + ') ทิ้งตำนานแห่งยุคไว้ให้ศิษย์รุ่นหลังก้มกราบ';
+        }
+        return lbl + ' ตะเกียงชีวิตมอดดับลงอย่างสงบตามกฎสังสารวัฏ (' + wStr + ') ' + condolence;
+      }
+      if (wStr.includes('ทะลวง') || wStr.includes('ฟ้าทัณฑ์') || wStr.includes('ตบะแตก')) {
+        return lbl + ' ฝืนชะตาทะลวงด่านแต่ปราณแตกซ่านย้อนทำลายชีพจรจนสิ้นชีพคาแท่นปิดด่าน (' + wStr + ') เสียงสายฟ้าและกลิ่นคาวโลหิตสะเทือนใจผู้คนทั้งหุบเขา';
+      }
+      if (wStr === 'อดอยาก' || wStr.includes('อดอยาก')) {
+        return 'โศกนาฏกรรมยามข้าวยากหมากแพง! ' + lbl + ' สิ้นไร้เรี่ยวแรงล้มตายลงเพราะความอดอยาก (' + wStr + ') สร้างความตื่นตระหนกและสะเทือนขวัญไปทั่วทั้งสำนัก!';
+      }
+      if (wStr.includes('ดวล') || wStr.includes('ประหาร')) {
+        return lbl + ' จบชีวิตลงท่ามกลางคมศาสตราแห่งความบาดหมาง (' + wStr + ') ปิดฉากหนี้แค้นด้วยเลือดเนื้อ — ' + condolence;
+      }
+      if (wStr.includes('ศึก') || wStr.includes('สังหาร') || wStr.includes('ปกป้อง') || wStr.includes('สละชีพ') || wStr.includes('บาดเจ็บ') || wStr.includes('อาการทรุด')) {
+        return lbl + ' ยืนหยัดหลั่งเลือดหยดสุดท้ายจนสิ้นลมหายใจกลางสมรภูมิ (' + wStr + ') เลือดนักรบย้อมผืนดินสำนักไม่ยอมถอยแม้ครึ่งก้าว! — ' + condolence;
+      }
+      return lbl + ' เสียชีวิตลง (' + wStr + ') ' + condolence;
+    }
+  };
+  SIM.proseName = (W, n) => SIM.PROSE.actorLabel(W, n);
+
   g.SIM = SIM;
   if (typeof module === 'object' && module.exports) module.exports = SIM;
+/* === LIVING_JIANGHU_EPITHETS_SIM_HOOK_V260 === */
+
+  const _origSimCreateEp = SIM.create;
+  SIM.create = (seed, opts) => {
+    const W = _origSimCreateEp(seed, opts);
+    if (W && g.CULT && g.CULT.EPITHETS) {
+      g.CULT.EPITHETS.ensureWorldCrowns(W);
+      g.CULT.EPITHETS.ensureCollectiveGroups(W);
+      (W.npcs || []).forEach(n => {
+        g.CULT.EPITHETS.ensureNpcEpithets(n);
+        g.CULT.EPITHETS.ensureDeedStats(n);
+      });
+      g.CULT.EPITHETS.refreshLineageTitles(W);
+      g.CULT.EPITHETS.reconcileUniqueCrowns(W, { immediatePublic: true });
+    }
+    return W;
+  };
+
+  const _origSnapshotPersonEp = SIM.snapshotPerson;
+  SIM.snapshotPerson = (W, n, statusOverride) => {
+    const snap = _origSnapshotPersonEp(W, n, statusOverride);
+    if (snap && n && g.CULT && g.CULT.EPITHETS) {
+      const ep = g.CULT.EPITHETS.peekNpcEpithets(n);
+      snap.epithetSnapshot = {
+        primaryId: ep.primaryId || null,
+        primaryTextTh: ep.primaryTextTh || null,
+        campusId: ep.campusId || null,
+        campusTextTh: ep.campusTextTh || null,
+        daoNameTh: ep.daoNameTh || null,
+        lineageTitleTh: ep.lineageTitleTh || null,
+        groupTitleTh: ep.groupTitleTh || null,
+        crownIds: Array.isArray(ep.crownIds) ? ep.crownIds.slice() : [],
+        posthumousId: ep.posthumousId || null,
+        posthumousTitleTh: ep.posthumousTitleTh || null,
+        fullDisplayTitleTh: g.CULT.EPITHETS.formatDisplayTitle(n, { includeDaoName: true, includePosthumous: true })
+      };
+      snap.epithetAtEventTh = ep.primaryTextTh || ep.daoNameTh || ep.campusTextTh || null;
+      if (ep.posthumousTitleTh) snap.posthumousTitleTh = ep.posthumousTitleTh;
+    }
+    return snap;
+  };
+
+  const _origSimDailyEp = SIM.dailyUpdate;
+  SIM.dailyUpdate = (W, silent) => {
+    const res = typeof _origSimDailyEp === 'function' ? _origSimDailyEp(W, silent) : undefined;
+    if (!silent && W && g.CULT && g.CULT.EPITHETS && g.CULT.EPITHETS.onDailyTick) {
+      g.CULT.EPITHETS.onDailyTick(W);
+    }
+    return res;
+  };
+
+  const _origSimMonthlyEp = SIM.monthly;
+  SIM.monthly = W => {
+    const res = _origSimMonthlyEp(W);
+    if (W && g.CULT && g.CULT.EPITHETS && g.CULT.EPITHETS.onMonthlyAudit) {
+      g.CULT.EPITHETS.onMonthlyAudit(W);
+    }
+    return res;
+  };
+
+  const _origSimDeserializeEp = SIM.deserialize;
+  SIM.deserialize = str => {
+    const rawSnap = JSON.parse(str);
+    const isLegacy240Map = !rawSnap.map || !rawSnap.map.mapW || rawSnap.map.mapW < 360;
+    const W = _origSimDeserializeEp(str);
+    if (W) {
+      W.workSteps = Number.isSafeInteger(rawSnap.workSteps) && rawSnap.workSteps >= 0 ? rawSnap.workSteps : Math.round((W.t || 0) * (SIM.DAY_FACTOR || 1.5));
+      W.timePhase = Number.isInteger(rawSnap.timePhase) && rawSnap.timePhase >= 0 && rawSnap.timePhase < 3 ? rawSnap.timePhase : 0;
+      W._lastDailyUpdateDay = W.day;
+      W._lastWildTickT = W.t;
+      if (W.t % 60 === 0 && (W.timePhase || 0) > 0) W._lastHourlyUpdateT = W.t;
+      if (isLegacy240Map && W.map) {
+        const dx = 62, dy = 42;
+        const shiftEntity = u => {
+          if (!u || typeof u !== 'object') return;
+          if (Number.isFinite(u.x)) u.x = clamp(u.x + dx, 3.5, W.map.W - 3.5);
+          if (Number.isFinite(u.y)) u.y = clamp(u.y + dy, 3.5, W.map.H - 3.5);
+          if (Number.isFinite(u.px)) u.px = u.x;
+          if (Number.isFinite(u.py)) u.py = u.y;
+          if (u.path) u.path = null;
+          if (W.map && MAP.blocked && MAP.nearestFree && Number.isFinite(u.x) && Number.isFinite(u.y) && !u.hidden && MAP.blocked(W.map, u.x, u.y)) {
+            const nf = MAP.nearestFree(W.map, u.x, u.y);
+            if (nf) { u.x = nf.x + 0.5; u.y = nf.y + 0.5; u.px = u.x; u.py = u.y; }
+          }
+        };
+        (W.npcs || []).forEach(shiftEntity);
+        (W.foes || []).forEach(shiftEntity);
+        if (W.world && Array.isArray(W.world.visitors)) W.world.visitors.forEach(shiftEntity);
+        if (W.wildlife && Array.isArray(W.wildlife.beasts)) W.wildlife.beasts.forEach(shiftEntity);
+        if (W.wildResources && Array.isArray(W.wildResources.nodes)) {
+          W.wildResources.nodes.forEach(nd => {
+            if (!nd) return;
+            nd.x = clamp(Math.floor((nd.x || 100) + dx), 4, W.map.W - 5);
+            nd.y = clamp(Math.floor((nd.y || 140) + dy), 4, W.map.H - 5);
+            if (MAP.blocked(W.map, nd.x, nd.y)) {
+              const nf = MAP.nearestFree(W.map, nd.x, nd.y);
+              if (nf) { nd.x = nf.x; nd.y = nf.y; }
+            }
+          });
+        }
+      }
+      if (g.WILD && g.WILD.init) g.WILD.init(W);
+      (W.npcs || []).forEach(n => {
+        if (g.CULT && g.CULT.EPITHETS) {
+          g.CULT.EPITHETS.ensureNpcEpithets(n);
+          g.CULT.EPITHETS.ensureDeedStats(n);
+        }
+        if (g.CULT && g.CULT.EXPERIENCE_TRAITS) {
+          g.CULT.EXPERIENCE_TRAITS.ensureState(n);
+        }
+        if (g.COMBAT && g.COMBAT.ACTION_MASTERY_TRAITS) {
+          g.COMBAT.ACTION_MASTERY_TRAITS.ensureHistory(n);
+        }
+      });
+      if (g.CULT && g.CULT.EPITHETS) {
+        g.CULT.EPITHETS.ensureWorldCrowns(W);
+        g.CULT.EPITHETS.ensureCollectiveGroups(W);
+      }
+    }
+    return W;
+  };
+
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* === CARBON_COMPENDIA_SIM_HOOKS_V260 === */
+(function initCarbonSimHooks(g) {
+  const SIM = g.SIM, SECT = g.SECT, CULT = g.CULT, ECO = g.ECO;
+  if (!SIM) return;
+
+  const _origSimCreateCarbon = SIM.create;
+  SIM.create = (seed, opts) => {
+    const W = _origSimCreateCarbon(seed, opts);
+    if (W && W.sect) {
+      if (SECT && SECT.ensurePreHistoryLineage) SECT.ensurePreHistoryLineage(W);
+      if (SECT && SECT.PATRIARCH_REGALIA) SECT.PATRIARCH_REGALIA.ensure(W);
+      if (SECT && SECT.TRANSCENDENT_PANTHEON) SECT.TRANSCENDENT_PANTHEON.ensureWorldState(W);
+      if (CULT && CULT.LOW_TIER_DISTRIBUTION) CULT.LOW_TIER_DISTRIBUTION.seedStarterSectLibrary(W, 7);
+    }
+    return W;
+  };
+
+  const _origAddNpcCarbon = SIM.addNpc;
+  if (typeof _origAddNpcCarbon === 'function') {
+    SIM.addNpc = (W, opts) => {
+      const n = _origAddNpcCarbon(W, opts);
+      if (n && W && W.sect) {
+        if (!Number.isFinite(n.sectGeneration)) {
+          n.sectGeneration = (n.id === W.sect.masterId) ? (W.sect.masterGeneration || 7) : ((W.sect.masterGeneration || 7) + 1);
+        }
+        if (!(opts && opts.grantMundaneLowArt === false) && CULT && CULT.LOW_TIER_DISTRIBUTION) {
+          CULT.LOW_TIER_DISTRIBUTION.grantRecruitMundaneArt(W, n);
+        }
+      }
+      return n;
+    };
+  }
+
+  const _origDeserializeCarbon = SIM.deserialize;
+  if (typeof _origDeserializeCarbon === 'function') {
+    SIM.deserialize = raw => {
+      const W = _origDeserializeCarbon(raw);
+      if (W && W.sect) {
+        if (SECT && SECT.ensurePreHistoryLineage) SECT.ensurePreHistoryLineage(W);
+        if (SECT && SECT.PATRIARCH_REGALIA) SECT.PATRIARCH_REGALIA.ensure(W);
+        if (SECT && SECT.TRANSCENDENT_PANTHEON) SECT.TRANSCENDENT_PANTHEON.ensureWorldState(W);
+        if (ECO && ECO.resetDynamicItems) ECO.resetDynamicItems(W);
+      }
+      return W;
+    };
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+
+/* === LIVING_LORE_SIM_HOOKS_V310 === */
+(function initLivingLoreSimHooks(g) {
+  'use strict';
+  const SIM = g.SIM;
+  if (!SIM) return;
+
+  const _origSimCreateLore = SIM.create;
+  SIM.create = (seed, opts) => {
+    const W = _origSimCreateLore(seed, opts);
+    if (W && g.EXPED && g.EXPED.initLivingLore) {
+      g.EXPED.initLivingLore(W);
+    }
+    return W;
+  };
+
+  const _origAddNpcLore = SIM.addNpc;
+  if (typeof _origAddNpcLore === 'function') {
+    SIM.addNpc = (W, opts) => {
+      const n = _origAddNpcLore(W, opts);
+      if (n && W && g.EXPED && g.EXPED.seedNpcInitialLore) {
+        if (g.EXPED.assignHometown && (!n.ext || !n.ext.world || !n.ext.world.hometownNodeId)) {
+          g.EXPED.assignHometown(W, n);
+        }
+        g.EXPED.seedNpcInitialLore(W, n);
+      }
+      return n;
+    };
+  }
+
+  const _origDeserializeLore = SIM.deserialize;
+  if (typeof _origDeserializeLore === 'function') {
+    SIM.deserialize = raw => {
+      const W = _origDeserializeLore(raw);
+      if (W && g.EXPED && g.EXPED.initLivingLore) {
+        g.EXPED.initLivingLore(W);
+      }
+      return W;
+    };
+  }
+
+  /* === JS2_V390_SIM_HOOKS === */
+  const _origCreatePL = SIM.create;
+  if (typeof _origCreatePL === 'function') {
+    SIM.create = (...args) => {
+      const W = _origCreatePL(...args);
+      if (W && g.EXPED && g.EXPED.POLITICAL_LIVES && g.EXPED.POLITICAL_LIVES.ensure) {
+        g.EXPED.POLITICAL_LIVES.ensure(W);
+      }
+      if (W && g.EXPED && g.EXPED.LIVING_INSTITUTIONS && g.EXPED.LIVING_INSTITUTIONS.ensure) {
+        g.EXPED.LIVING_INSTITUTIONS.ensure(W);
+      }
+      if (W && g.EXPED && g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.ensure) {
+        g.EXPED.WITNESSES_AND_SHARDS.ensure(W);
+      }
+      return W;
+    };
+  }
+  const _origAddNpcPL = SIM.addNpc;
+  if (typeof _origAddNpcPL === 'function') {
+    SIM.addNpc = (W, o) => {
+      const n = _origAddNpcPL(W, o);
+      if (W && n && o && o.fromApplicant && g.EXPED && g.EXPED.POLITICAL_LIVES && g.EXPED.POLITICAL_LIVES.rollApplicantClanHeritage) {
+        g.EXPED.POLITICAL_LIVES.rollApplicantClanHeritage(W, n);
+        if (g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.rollApplicantFolkTrait) g.EXPED.WITNESSES_AND_SHARDS.rollApplicantFolkTrait(W, n);
+      }
+      return n;
+    };
+  }
+  const _origDeserializePL = SIM.deserialize;
+  if (typeof _origDeserializePL === 'function') {
+    SIM.deserialize = raw => {
+      const W = _origDeserializePL(raw);
+      if (W && g.EXPED && g.EXPED.POLITICAL_LIVES && g.EXPED.POLITICAL_LIVES.ensure) {
+        g.EXPED.POLITICAL_LIVES.ensure(W);
+        if (g.EXPED.LIVING_INSTITUTIONS && g.EXPED.LIVING_INSTITUTIONS.ensure) g.EXPED.LIVING_INSTITUTIONS.ensure(W);
+        if (g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.ensure) g.EXPED.WITNESSES_AND_SHARDS.ensure(W);
+      }
+      return W;
+    };
+  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);

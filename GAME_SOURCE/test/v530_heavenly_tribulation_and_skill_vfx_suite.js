@@ -113,9 +113,9 @@ require(path.join(ROOT, 'js/ui.js'));
     'human_core.js SHA-256 must remain 100% byte-identical'
   );
   assert.strictEqual(g.HC.FINGERPRINT, '155:2f9c9dd7', 'HC.FINGERPRINT must remain 155:2f9c9dd7');
-  assert.ok(['2.5.0', '2.6.0'].includes(g.SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 5.3.0');
+  assert.ok(['2.5.0', '2.6.0', '3.0.0', '3.1.0', '3.2.0', '3.3.0', '3.4.0', '3.5.0a', '3.5.0b', '3.5.0c', '3.6.0a', '3.9.5', '3.9.6'].includes(g.SIM.PATCH_VERSION), 'SIM.PATCH_VERSION must be 5.3.0');
   assert.ok(
-    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting'].includes(g.SIM.SAVE_SCHEMA_VERSION),
+    ['2.4.0-tactical-composable-grand-dao', '2.6.0-living-chronicle-and-reporting', '3.0.0-living-continent', '3.4.0-world-events', '3.5.0a-p0-hardening', '3.5.0b-p1-hardening', '3.5.0c-release-polish', '3.6.0a-living-sects', '3.9.6-deep-gameplay-integration'].includes(g.SIM.SAVE_SCHEMA_VERSION),
     'SIM.SAVE_SCHEMA_VERSION must be 5.8.0-forbidden-arts-passive-awakening-and-blood-altar'
   );
 
@@ -280,7 +280,9 @@ require(path.join(ROOT, 'js/ui.js'));
   assert.ok(ePetHtml.includes('set-edit-pet-subtab') && ePetHtml.includes('MECH_KARMA') && ePetHtml.includes('FACILITIES'), 'UI.rEdit (pet) must render sub-tabs');
 
   // Test UI tribulation ritual & preview-signature-vfx actions
-  UI.doAction('start-tribulation-ritual', W.sect.masterId);
+  assert.strictEqual(UI.doAction('start-tribulation-ritual', W.sect.masterId),false);
+  assert(!W.byId[W.sect.masterId].tribulationState?.active,'Player ritual command is blocked');
+  CULT.TRIBULATION.start(W,W.byId[W.sect.masterId],{prep:0.25,totalTicks:15,announce:true,standaloneRitual:true});
   assert.ok(W.byId[W.sect.masterId].tribulationState && W.byId[W.sect.masterId].tribulationState.active, 'start-tribulation-ritual must activate tribulationState');
   UI.tab = 'over';
   UI.sectSubTab = 'CORE';

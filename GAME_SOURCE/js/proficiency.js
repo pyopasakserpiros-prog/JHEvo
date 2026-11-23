@@ -123,7 +123,7 @@ M.pathSkillAffinity=(n,path,sub)=>{
 };
 M.weaponSkill=(n,type)=>M.skillRead(n,({FIST:'FIST_PALM'}[type||M.equippedType(n)]||type||M.equippedType(n)));
 M.skillEffects=n=>{
- const eqW=n.equip&&n.equip.WEAPON,cPath=n.cult&&n.cult.path,cSub=n.cult&&n.cult.sub,sk=n.h.skills,sec=n._skillEffectsCache;
+ const eqW=n.equip&&n.equip.WEAPON,cPath=n.cult&&n.cult.path,cSub=n.cult&&n.cult.sub,sk=(n.h&&n.h.skills)||{},sec=n._skillEffectsCache;
  const skSig=((sk.ritual||0)*4|0)+((sk.SCRIPTURE||0)*4|0)*2+((sk.SOUL_DIVINE||0)*4|0)*3+((sk.MOVEMENT||0)*4|0)*5+((sk.BODY_REFINING||0)*4|0)*7+((sk.POISON||0)*4|0)*11+((sk.MEDICINE||0)*4|0)*13+((sk.BEAST_TAMING||0)*4|0)*17+((sk.SWORD||0)*4|0)*19+((sk.BLADE||0)*4|0)*23+((sk.SPEAR||0)*4|0)*29+((sk.FIST_PALM||0)*4|0)*31+((sk.BOW||0)*4|0)*37+((sk.STAFF||0)*4|0)*41+((sk.FOCUS||0)*4|0)*43+((sk.ALCHEMY||0)*4|0)*47+((sk.FORGING||0)*4|0)*53+((sk.ARRAY||0)*4|0)*59+((sk.TALISMAN||0)*4|0)*61+((sk.cooking||0)*4|0)*67+((sk.ZITHER||0)*4|0)*71+((sk.BRUSH||0)*4|0)*73+((sk.WHIP||0)*4|0)*79+((sk.ROSARY||0)*4|0)*97+((sk.CLAW||0)*4|0)*101+((sk.NEEDLE||0)*4|0)*103+((sk.FAN||0)*4|0)*107+((sk.ASTROLABE||0)*4|0)*109+((sk.ABACUS||0)*4|0)*113+((sk.stealth||0)*4|0)*83+((sk.arts||0)*4|0)*89;
  const cSt=n.cult&&n.cult.stage;if(sec&&sec.eqW===eqW&&sec.cPath===cPath&&sec.cSub===cSub&&sec.cSt===cSt&&sec.skSig===skSig)return sec.out;
  const v=id=>((M.skillRead(n,id)*4)|0)*0.25,weapon=((M.weaponSkill(n)*4)|0)*0.25,isCraft=cPath==='CRAFT_CREATION',alc=v('ALCHEMY'),frg=v('FORGING'),arr=v('ARRAY'),tal=v('TALISMAN');
@@ -142,7 +142,7 @@ M.activeTechs=n=>{
  const out=c.techs.filter(id=>{
   const t=CULT.tech(id);
   if(!t||M.isInnateTech(t)||(t.reqTier||t.tier)>effSt)return false;
-  if(t.legendary)return true;
+  if(t.legendary||t.transcendent)return true;
   const isExcl=CULT.isExclusiveSubpathTech?CULT.isExclusiveSubpathTech(t):(t.id.startsWith('MP_')||((t.passive||t.cat==='PASSIVE')&&!!t.sub));
   const pathOk=t.path==='ANY'||t.path===c.path||(!isExcl&&(t.legendary||!t.id.startsWith('MP_')));
   const subOk=CULT.isSubCompatible?CULT.isSubCompatible(t,c.sub,false):(!t.sub||t.sub===c.sub);
@@ -186,7 +186,7 @@ M.pickSkillPractice=(W,n)=>{
  }
  let best=null,score=-Infinity;
  const eqRaw=M.equippedType(n),eqWpnSkill=eqRaw==='FIST'?'FIST_PALM':eqRaw,profSk=profession&&profession.skill;
- const allIds=bnMap.WATER_ICE?M.SKILL_IDS.concat(['WATER_ICE']):bnMap.WOOD_LIFE?M.SKILL_IDS.concat(['WOOD_LIFE']):M.SKILL_IDS;
+ const allIds=M.SKILL_IDS.slice();if(bnMap.WATER_ICE)allIds.push('WATER_ICE');if(bnMap.WOOD_LIFE)allIds.push('WOOD_LIFE');
  for(let i=0;i<allIds.length;i++){
   const id=allIds[i],info=M.SKILL_INFO[id]||elemGateSkills[id],interest=HC.eff(n,'interests.'+info.interest),need=(100-M.skillRead(n,id))*.25,role=(n.post==='healer'&&id==='MEDICINE'||n.post==='steward'&&id==='construction'||n.post==='treasury'&&id==='administration')?20:0;
   const eqBonus=(id===eqWpnSkill&&groups.weapon.includes(id))?18:0;
