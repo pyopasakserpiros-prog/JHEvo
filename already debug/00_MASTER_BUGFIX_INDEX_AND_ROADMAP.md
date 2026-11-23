@@ -275,4 +275,4 @@
 
 ## สถานะการดำเนินการ (อัปเดต 2026-11-22 — เสร็จสมบูรณ์บน `JS2-v3.9.7`)
 - **Phase 1 (Foundation), Phase 2 (Tracks A–E), และ Phase 3 (UI, Observer Policy, Regression Suite `v397_comprehensive_audit_bugfix_suite.js`, & All Node.js Suites):** ✅ **เสร็จสมบูรณ์**
-- ดูรายงานผลการแก้ไขเชิงลึก ข้อจำกัด และการตัดสินใจปฏิเสธ/ปรับแก้ได้ที่: [`01_BUGFIX_EXECUTION_REPORT_JS2_V3_9_7.md`](./01_BUGFIX_EXECUTION_REPORT_JS2_V3_9_7.md) และ [`PATCH_REPORTS/COMPREHENSIVE_BUGFIX_AUDIT_JS2_V3_9_7.md`](../../PATCH_REPORTS/COMPREHENSIVE_BUGFIX_AUDIT_JS2_V3_9_7.md)
+- ดูรายงานผลการแก้ไขเชิงลึก ข้อจำกัด และการตัดสินใจปฏิเสธ/ปรับแก้ได้ที่: [`01_BUGFIX_EXECUTION_REPORT_JS2_V3_9_7.md`](./01_BUGFIX_EXECUTION_REPORT_JS2_V3_9_7.md) และ [`PATCH_REPORTS/COMPREHENSIVE_BUGFIX_AUDIT_JS2_V3_9_7.md`](../PATCH_REPORTS/COMPREHENSIVE_BUGFIX_AUDIT_JS2_V3_9_7.md)

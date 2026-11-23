@@ -2,7 +2,7 @@
 
 **Version:** `JianghuSect 2 v3.9.7` (`main-debug`)  
 **Date:** 2026-11-22  
-**Full Detailed Report:** See [01_BUGFIX_EXECUTION_REPORT_JS2_V3_9_7.md](file:///data/data/com.termux/files/home/workspaces/JHEvo-AGY/bug%20reports/2026-11-22_two_latest_upload_commits/01_BUGFIX_EXECUTION_REPORT_JS2_V3_9_7.md) and [00_MASTER_BUGFIX_INDEX_AND_ROADMAP.md](file:///data/data/com.termux/files/home/workspaces/JHEvo-AGY/bug%20reports/2026-11-22_two_latest_upload_commits/00_MASTER_BUGFIX_INDEX_AND_ROADMAP.md).
+**Full Detailed Report:** See [01_BUGFIX_EXECUTION_REPORT_JS2_V3_9_7.md](file:///data/data/com.termux/files/home/workspaces/JHEvo-AGY/already%20debug/01_BUGFIX_EXECUTION_REPORT_JS2_V3_9_7.md) and [00_MASTER_BUGFIX_INDEX_AND_ROADMAP.md](file:///data/data/com.termux/files/home/workspaces/JHEvo-AGY/already%20debug/00_MASTER_BUGFIX_INDEX_AND_ROADMAP.md).
 
 ## Summary of Changes
 1. **Foundation & Schema (`Phase 1`):** Normalized 352 legacy `elementProfile` objects + added `ELEM.ALIAS_MAP` and legacy normalizer in `cultivation.js` (0 invalid profiles); added `cat: 'MANTRA'` + finite `power` to `MANTRA_V234_*`; generalized `bestMantra` across all 58 paths; fixed `C.runLegendaryDaoProc` dynamic `ST`; added `support.kind` debuff whitelist in `SK.moveProfile`; handled `@TR:` wildcards in `economy.js`; preserved `_stSig` & `W.world.sects` aliasing in `sim.js`.
