@@ -7630,7 +7630,7 @@
     if (effectiveTierId === 'UNCOMMON_MANUAL') {
       const maxT = Math.min(5, 3 + floor);
       const manualPool = (JD.TECH.techniques || []).filter(t =>
-        t && !t.legendary && !t.innateOnly && !(g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t)) &&
+        t && !t.legendary && (!t.year10Locked || (g.CULT && g.CULT.isPathUnlocked && g.CULT.isPathUnlocked('FALLEN_STAR_DEFIANCE', W))) && !t.innateOnly && !(g.MARTIAL && g.MARTIAL.isInnateTech && g.MARTIAL.isInnateTech(t)) &&
         !/FORBIDDEN/.test(t.cat || '') && (t.tier || 1) >= 3 && (t.tier || 1) <= maxT &&
         ['Refined', 'Rare', 'Exceptional'].includes(t.grade || '') &&
         !isManualOwned(t.id)

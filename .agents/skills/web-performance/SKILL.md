@@ -163,7 +163,7 @@ main.js frame มี budget12ms; draw96ที่20fps, >=32ที่30fps, >=16�
 
 The atlas starts from a single square painting and progressively renders visible detail tiles in the browser canvas from 2.8×. Keep the tile cache bounded to 96, use the frame budget to catch up after pan/zoom, reuse the cached output across sheet redraws, and keep these resources out of the saved world. Each texture sample aligns to the same geographic grid. Source asset URLs and single-file embedded data URLs must both work.
 
-## JS2 v3.15.1 Baseline Sync (2026-11-24)
-- Current production release: **`JS2 v3.15.1`** (58 paths / 358 subpaths, 105 Lore Books / 742 events, 40 `<script>` tags, `JianghuSect_single.html` 23,877 KB).
+## JS2 v3.16.6 Baseline Sync (2026-11-24)
+- Current production release: **`JS2 v3.16.6`** (59 paths / 364 subpaths, 106 Lore Books / 742 events, 40 `<script>` tags, `JianghuSect_single.html` 24,002 KB).
 - Key active systems since `v3.9.6`: Chronicle & Reporting Overhaul (`v3.10.0`), Interactive Biography & Era Timeline (`v3.11.0`), World-Symmetric Emergent Longevity (`v3.12.0–v3.12.1`), Seven-Hall Neutral Federation & Black Ledger (`v3.13.0`), 12 Annual Festivals (`v3.14.0`), Lore Book #105 & 6 Grand Periodic Festivals (`v3.15.0`), and Audit Bugfix Hardening (`v3.15.1`).
 - Always preserve `AGENTS.md` and `human_core.js` SHA-256 locks and run `v3100`–`v3151` suites alongside `core_lock.js` and `standalone.js`.

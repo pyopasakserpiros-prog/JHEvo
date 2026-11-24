@@ -2042,6 +2042,7 @@
     const edPath = body.querySelector('#editCultPath');
     if (edPath) edPath.onchange = () => { UI.collectEditDraftFromDom(); UI.render(); };
     body.querySelectorAll('.edit-live-input').forEach(inp => {
+      if (inp.id === 'editCultPath' || inp.id === 'editRootCount') return;
       inp.onchange = () => { UI.collectEditDraftFromDom(); UI.updateEditPreviewDom(); };
       inp.oninput = () => { UI.collectEditDraftFromDom(); UI.updateEditPreviewDom(); };
     });
@@ -5599,6 +5600,9 @@
         ['⚖️ ประเพณีเศรษฐกิจและจารีตระบบสำนัก', D.SYSTEM_TRADITIONS_AND_RITES],
         ['🏮 12 เทศกาลประจำปี', D.TWELVE_MONTHLY_FESTIVALS],
         ['🌠 มหาเทศกาลหกคาบเวลา (10 ปี – 10 ยุค)', D.GRAND_FESTIVALS],
+        ['🌑 สองเงาข้ามกาลเวลา (ยุคที่ 101 ปีที่ 1–9)', D.SHADOW_OPERATIVES_E101],
+        ['⚔️ ทำเนียบศาสตราและหลักฐานมรดกโศกนาฏกรรม', D.RELICS_AND_EVIDENCE],
+        ['🌌 พิมพ์เขียวมหาวิถีที่ 59: วิถีดาราคล้อยทวนชะตา (6 สายย่อย)', D.PATH_59_PREVIEW],
         ['🤝 รหัสลับและมารยาทยุทธภพ', D.MARTIAL_ETIQUETTE_AND_SECRET_CODES],
         ['🍶 โรงเตี๊ยมในตำนาน', D.LEGENDARY_TAVERNS],
         ['🍲 สุราเซียนและอาหารทิพย์', D.SPIRIT_DISHES_AND_WINES],
@@ -5973,7 +5977,7 @@
           h += '</div><div class="subcat-pane" data-subcat="LEGENDS"' + ((subTab === 'ALL' || subTab === 'LEGENDS' || subTab === 'FACTIONS') ? '' : ' style="display:none"') + '><h3>🧭 ทำเนียบยอดคนอิสระไร้สังกัดแบบสุ่มอุบัติ (' + wFigs.length + ' คน)</h3><div class="card">';
           h += '<div class="muted" style="margin-bottom:6px">จอมยุทธ์พเนจร หมอยาเทวดาเร้นกาย จอมโจรคุณธรรม และนักวางค่ายกลพเนจรที่เดินทางท่องยุทธภพ สามารถท้าประลอง ขอรับการรักษา ผูกมิตร หรือชักชวนเข้าสำนักของเราได้</div>';
           h += wFigs.map(wf => '<div style="padding:6px 0;border-top:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
-            '<div style="flex:1;min-width:220px"><b>' + esc(wf.icon || '🧭') + ' ' + esc(wf.titleAndNameTh) + '</b> <span class="chip b">' + esc(wf.archetypeBadgeTh || wf.archetypeNameTh) + '</span> <span class="chip g">' + esc(wf.cult.path) + ' ขั้น ' + wf.cult.stage + ' · พลัง ' + wf.power + '</span> <span class="chip">ไมตรี ' + Math.round(wf.affinity || 25) + '/100</span>' +
+            '<div style="flex:1;min-width:220px"><b>' + esc(wf.icon || '🧭') + ' ' + esc(wf.titleAndNameTh) + '</b> <span class="chip b">' + esc(wf.archetypeBadgeTh || wf.archetypeNameTh) + '</span> <span class="chip g">' + esc((CULT && CULT.PATHS && CULT.PATHS[wf.cult.path] && CULT.PATHS[wf.cult.path].nameTh) || wf.cult.path) + ' ขั้น ' + wf.cult.stage + ' · พลัง ' + wf.power + '</span> <span class="chip">ไมตรี ' + Math.round(wf.affinity || 25) + '/100</span>' +
             '<div class="muted" style="font-size:11px;margin-top:2px">' + esc(wf.descTh || '') + '</div></div>' +
             '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
             (wf.archetypeId === 'SWORD_SEEKER' ? '<button class="btn pri" style="padding:2px 7px;font-size:11px" data-do="interact-wandering-figure" data-arg="' + esc(wf.id) + '|DUEL">⚔️ ท้าประลองยุทธ์</button>' : '') +
@@ -5987,7 +5991,7 @@
           h += '<h3>🐉 ทำเนียบผู้บำเพ็ญในตำนานพเนจร & ปรมาจารย์เร้นกายหวนคืนสู่ยุทธภพ (' + legends.length + ' คน)</h3>';
           h += '<div class="card"><div class="muted" style="margin-bottom:6px">ยอดคนอิสระไร้สังกัดระดับขั้น 7–9 ที่สุ่มกำเนิดใหม่ทุกครั้ง สามารถต่อสู้ บาดเจ็บ หรือถูกสังหารได้ และเมื่อสิ้นชีพจะมีปรมาจารย์ที่เคยสาบสูญปิดด่านพันปีหวนคืนสู่ยุทธภพขึ้นมาแทนที่ตามธรรมชาติ</div>';
           h += legends.map(l => '<div style="padding:6px 0;border-top:1px dotted var(--line,#3a3f4a);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
-            '<div style="flex:1;min-width:220px"><b>🐉 ' + esc(l.titleAndNameTh) + '</b> <span class="chip g">' + esc(l.cult.path) + ' ขั้น ' + l.cult.stage + ' · พลัง ' + l.power + '</span> <span class="chip">' + esc(l.alignmentLabelTh) + '</span>' + (l.isReemergence ? ' <span class="chip v">🌟 หวนคืนหลังสาบสูญ</span>' : '') +
+            '<div style="flex:1;min-width:220px"><b>🐉 ' + esc(l.titleAndNameTh) + '</b> <span class="chip g">' + esc((CULT && CULT.PATHS && CULT.PATHS[l.cult.path] && CULT.PATHS[l.cult.path].nameTh) || l.cult.path) + ' ขั้น ' + l.cult.stage + ' · พลัง ' + l.power + '</span> <span class="chip">' + esc(l.alignmentLabelTh) + '</span>' + (l.isReemergence ? ' <span class="chip v">🌟 หวนคืนหลังสาบสูญ</span>' : '') +
             '<div class="muted" style="font-size:11.5px;margin-top:2px">ศาสตรา: <b>' + esc(l.weaponNameTh) + '</b> · วิชาคู่กาย:「' + esc(l.signatureTechNameTh) + '」· ' + esc(l.personalitySummaryTh) + '</div>' +
             '<div class="muted" style="font-size:11px">ประวัติ: ' + esc(l.reemergenceOriginTh) + '</div></div>' +
             '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
@@ -7961,6 +7965,8 @@
         if (lgPills > 0) lgChips.push('<span class="chip">🧪 ดื้อโอสถอายุวัฒนะ ' + lgPills + '/4</span>');
         const blW = (!n.dead && g.EXPED && g.EXPED.BLACK_LEDGER && g.EXPED.BLACK_LEDGER.getActiveWarrantForNpc) ? g.EXPED.BLACK_LEDGER.getActiveWarrantForNpc(W, n.id) : null;
         if (blW) lgChips.push('<span class="chip r fed-badge-wanted">⚫ หมายจับ ' + esc(blW.caseCodeTh) + ' · ค่าหัว ' + blW.bountyGross + ' ศิลา (' + esc((g.EXPED.BLACK_LEDGER.STANCE_TH && g.EXPED.BLACK_LEDGER.STANCE_TH[blW.stance]) || blW.stance) + ')</span>');
+        if (n.ext && n.ext.darkStarStain) lgChips.push('<span class="chip r">🌑 คราบปราณคราสแฝง (ตลาดมืด)</span>');
+        if (n.ext && n.ext.pearTwigClues > 0) lgChips.push('<span class="chip ok">🌿 ไขเบาะแสกิ่งสาลี่แห้ง ' + n.ext.pearTwigClues + ' ครั้ง</span>');
         if (lgChips.length) h += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">' + lgChips.join('') + '</div>';
         if (bio.innerVoiceTh) h += '<div class="npc-inner-voice">💭 “' + esc(bio.innerVoiceTh) + '”</div>';
         h += '</div>';
@@ -9346,6 +9352,39 @@
             '<div class="fest-cal-grid">' + gridHtml + '</div></details>' +
             gfHtml +
           '</div>';
+          const fseMod = (typeof EXPED !== "undefined" && EXPED.FALLEN_STAR_EPIC) || null;
+          if (fseMod && !html.includes("fse-two-shadows-card")) {
+            const fseSum = fseMod.getReadOnlySummary(W);
+            if (fseSum && (fseSum.cluesCount > 0 || fseSum.recentRumors.length > 0 || fseSum.chuWangxuan || fseSum.outcome)) {
+              const clueRows = fseSum.recentRumors.map(r => '<div style="font-size:11px;margin-top:3px">• <b>ปีที่ ' + r.year + ':</b> ' + esc(r.textTh) + '</div>').join("");
+              let y10Bar = "";
+              if (fseSum.outcome === "VICTORY") {
+                y10Bar = '<div style="margin-top:6px;padding:6px 8px;border-radius:6px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);font-size:11px;color:#86efac">' +
+                  '⚔️ <b>บทสรุปปีที่ 10 — ชัยชนะแห่งยุคสมัยใหม่:</b> พันธมิตรอนุทวีปโค่นฉู่หวั่งเซวียนลงได้ด้วยกำลังตนเอง (ไร้เงาภรรยา) · เนินเถ้าดารา: หลุมสมรภูมิดารา · ปลดล็อกวิถีที่ 59 แล้ว</div>';
+              } else if (fseSum.outcome === "DEFEAT_PEAR_SMOKE") {
+                y10Bar = '<div style="margin-top:6px;padding:6px 8px;border-radius:6px;background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.4);font-size:11px;color:#fbcfe8">' +
+                  '🌸 <b>บทสรุปปีที่ 10 — ปิ่นไม้สาลี่หยุดวันสิ้นโลก:</b> เงาเวินจิ้งซูยั้งกระบี่ผ่าทวีป · ป่าดอกสาลี่ขาวงอกกลางเนินเถ้าดารา · เข้าสู่ยุคฟื้นฟูหลังมหาวิปโยค (ปลดล็อกวิถีที่ 59 แล้ว)</div>';
+              } else if (fseSum.chuWangxuan) {
+                const cw = fseSum.chuWangxuan;
+                const wInfo = fseSum.war ? (' · 🛡️ แนวรับทวีป ' + fseSum.war.continentDefense + '% · ⚙️ ทัพหุ่น ' + fseSum.war.tier1Remaining) : '';
+                y10Bar = '<div class="fse-year10-war-bar" style="margin-top:6px;padding:6px 8px;border-radius:6px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);font-size:11px;color:#fca5a5">' +
+                  '🌠 <b>ฉู่หวั่งเซวียน (' + esc(cw.epithetTh) + '):</b> พลังชีวิต ' + cw.hpPct + '% · พิกัด: ' + esc(cw.locationTh) + wInfo + '</div>';
+              }
+              html += '<div class="card fse-two-shadows-card" style="margin-top:10px;border-color:#9333ea">' +
+                '<div style="font-weight:700;color:#d8b4fe">' + (fseSum.chuWangxuan || fseSum.outcome ? '🌠 มหากาพย์ดาราคล้อยปีที่ 10 & สองเงายุทธภพ (เล่ม 106)' : '🌑 เงาปริศนาแห่งยุทธภพ: คนงอบเทาเหรียญคราส & กิ่งสาลี่แห้ง (เล่ม 106)') + '</div>' +
+                '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">' +
+                  '<span class="chip">⚙️ กรุหุ่นถูกปลุก ' + fseSum.repairedVaults + '/' + fseSum.maxVaults + ' (สกัดได้ ' + fseSum.interceptedVaults + ')</span>' +
+                  '<span class="chip ' + (fseSum.sectSuspicion >= 45 ? 'r' : 'b') + '">🗡️ ความระแวงสภา 19 สำนัก ' + fseSum.sectSuspicion + '%</span>' +
+                  '<span class="chip ok">🌿 เปิดโปงแผนยุยง ' + fseSum.falseFlagsExposed + '/' + fseSum.falseFlagsStaged + '</span>' +
+                  (fseSum.darkStarStainedCount > 0 ? ('<span class="chip r">🌑 ติดคราบปราณคราส ' + fseSum.darkStarStainedCount + ' ราย</span>') : '') +
+                  (fseSum.oreSpikeActive ? '<span class="chip">🪙 ตลาดแร่ดาราพุ่ง +12%</span>' : '') +
+                '</div>' +
+                y10Bar +
+                '<div class="muted" style="margin-top:5px">' + clueRows + '</div>' +
+              '</div>';
+            }
+          }
+
         } catch (_) {}
         return html;
       };

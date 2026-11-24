@@ -869,7 +869,7 @@
         const wantTribute=Math.max(60,Math.round(100+(s.power||1)*35));
         const tribute=ECO.earnFromPool?ECO.earnFromPool(W,wantTribute,'บรรณาการตามฤดูกาลจาก'+s.nameTh,{rivalSect:s}):(ECO.earn(W,wantTribute,'บรรณาการตามฤดูกาลจาก'+s.nameTh)?wantTribute:0);
         const validSpecialty=(s.specialtyMatIds||[]).find(id=>ECO.matById[id]&&ECO.matById[id].category==='HERB');
-        const herbs=Object.values(ECO.matById||{}).filter(m=>m&&m.category==='HERB'&&(m.tier||1)>=2);
+        const herbs=Object.values(ECO.matById||{}).filter(m=>m&&m.category==='HERB'&&(m.tier||1)>=2&&(!m.year10Locked||(g.CULT&&g.CULT.isPathUnlocked&&g.CULT.isPathUnlocked('FALLEN_STAR_DEFIANCE',W))));
         const herbId=validSpecialty||(herbs.length?herbs[(W.day/90+idx)%herbs.length].id:null);
         if(herbId) ECO.add(W,herbId,2);
         s.lastVassalTributeDay=W.day;

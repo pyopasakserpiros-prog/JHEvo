@@ -127,7 +127,8 @@ const loreFiles = [
   'data/lore_chronicle_b102_two_reincarnated_witnesses.js',
   'data/lore_chronicle_b103_twelve_shards_ancients_and_beasts_e101.js',
   'data/lore_chronicle_b104_shadow_market_and_ash_city.js',
-  'data/lore_chronicle_b105_grand_periodic_festivals.js'
+  'data/lore_chronicle_b105_grand_periodic_festivals.js',
+  'data/lore_chronicle_b106_fallen_star_pear_blossom.js'
 ];
 
 // Verify no unreferenced lore_chronicle_*.js files exist

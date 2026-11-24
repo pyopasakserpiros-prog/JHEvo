@@ -3650,6 +3650,7 @@
       seenMatIds.add(m.id);
       out.push(enrichCatalogEntry({
         key: "MATERIAL:" + m.id, kind: "MATERIAL", id: m.id, nameTh: m.nameTh, tier: m.tier || 1,
+        grade: m.grade || null, rarity: m.rarity || null,
         cat: m.cat, element: m.element || "NEUTRAL", elementProfile: m.elementProfile || null,
         sourceRegistry: "JD.ITEMS.materials", stackable: true, canSect: true, canNpc: true,
         descTh: "วัตถุดิบระดับ " + (m.tier || 1) + " (" + (m.cat || "ทั่วไป") + ")"
@@ -17527,7 +17528,7 @@
         ? W.world.sects[(dayNow + st.seq) % W.world.sects.length]
         : { id: 'RIVAL_DAO_ACADEMY', name: 'สำนักปราชญ์เทียนจี' };
       const allPaths = Object.keys((CULT && CULT.PATHS) || {});
-      const lockedPaths = SECT.PATH_LIBRARY ? SECT.PATH_LIBRARY.getSummary(W).lockedPaths.filter(pid => !g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY') : [];
+      const lockedPaths = SECT.PATH_LIBRARY ? SECT.PATH_LIBRARY.getSummary(W).lockedPaths.filter(pid => (!g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY') && (!g.CULT || !g.CULT.isPathUnlocked || g.CULT.isPathUnlocked(pid, W))) : [];
       const debatePath = opts.targetPath || (lockedPaths.length ? lockedPaths[(dayNow + st.seq) % lockedPaths.length] : allPaths[st.seq % allPaths.length]) || 'XIAN';
       const rivalDifficulty = opts.difficulty || 115;
       const victory = opts.forceWin || speakerScore >= rivalDifficulty;

@@ -76,7 +76,13 @@
     ZEN_VOID_MIND: { p: { mdef: .2, def: .1, hp: .08 }, f: { eva: 10, cast: 8 } },
     CALLIGRAPHY_PAINTING_SAGE: { p: { matk: .14, acc: .12, mdef: .08 }, f: { cast: 16 } },
     DREAM_ILLUSION_WEAVER: { p: { eva: .16, mdef: .12, matk: .08 }, f: { cast: 14, move: 8 } },
-    MIND_SWORD_TELEKINESIS: { p: { matk: .16, acc: .1, def: -.06 }, f: { pen: 20, crit: 8, critDmg: 18 } }
+    MIND_SWORD_TELEKINESIS: { p: { matk: .16, acc: .1, def: -.06 }, f: { pen: 20, crit: 8, critDmg: 18 } },
+    FALLEN_STAR_PRESSURE: { p: { atk: .14, matk: .12, def: .08 }, f: { pen: 16, crit: 6 } },
+    STAR_SPEAR_OATH: { p: { def: .18, hp: .14, mdef: .10 }, f: { acc: 8 } },
+    PEAR_BLOSSOM_MERCY: { p: { mdef: .16, hp: .12, def: .08 }, f: { cast: 12 } },
+    MYRIAD_TABLET_BLADE: { p: { atk: .16, def: -.04 }, f: { pen: 20, crit: 8, critDmg: 18 } },
+    STAR_FURNACE_PUPPET: { p: { def: .12, matk: .10, hp: .08 }, f: { pen: 10, cast: 8 } },
+    ECLIPSE_SHADOW_OPPORTUNIST: { p: { eva: .16, atk: .12 }, f: { crit: 10, critDmg: 20, move: 10 } }
   };
 
   Object.assign(SUBFX, (JD.EXPANSION && JD.EXPANSION.subStats) || {}, (JD.MARTIAL && JD.MARTIAL.subStats) || {});
@@ -414,7 +420,10 @@
     deathlessFrame: { id: 'deathlessFrame', name: 'กายไร้ชีพลุกขึ้นสู้', icon: '💀', kind: 'buff', defaultDur: 10, p: { atk: 0.20, def: -0.10 }, f: { pen: 10 }, descTh: 'ฝืนสังขารลุกขึ้นสู้ต่อแม้บาดเจ็บปางตาย เพิ่มพลังโจมตี +20% และเจาะเกราะ +10' },
     parryCounter: { id: 'parryCounter', name: 'ปัดป้องสะท้อนคม', icon: '⚔️', kind: 'offense', defaultDur: 45, p: { atk: 0.20, def: 0.18 }, f: { crit: 18, critDmg: 24, pen: 18 }, descTh: 'ตั้งการ์ดอิไอปัดป้องการโจมตีประชิดและสวนกลับด้วยคมดาบคริติคอลทันที' },
     sanityStrain: { id: 'sanityStrain', name: 'จิตใจปั่นป่วนนอกมิติ', icon: '👁️‍🗨️', kind: 'offense', defaultDur: 45, p: { matk: 0.38, def: -0.10 }, f: { pen: 24, crit: 15, critDmg: 25 }, descTh: 'สังเวยสติสัมปชัญญะรับพลังนอกมิติ เพิ่ม MATK +38% และเจาะเกราะ +24%' },
-    ironSkin: { id: 'ironSkin', name: 'กายาเหล็กไหล', icon: '🛡️', kind: 'defense', defaultDur: 45, p: { def: 0.25, mdef: 0.16, hp: 0.08 }, f: { tenacity: 18 }, descTh: 'แปรสภาพผิวหนังและกระดูกประดุจเหล็กไหล เพิ่มป้องกันและต้านทานสถานะ' }
+    ironSkin: { id: 'ironSkin', name: 'กายาเหล็กไหล', icon: '🛡️', kind: 'defense', defaultDur: 45, p: { def: 0.25, mdef: 0.16, hp: 0.08 }, f: { tenacity: 18 }, descTh: 'แปรสภาพผิวหนังและกระดูกประดุจเหล็กไหล เพิ่มป้องกันและต้านทานสถานะ' },
+    astralShield: { id: 'astralShield', name: 'เกราะแรงกดดาราคล้อย', icon: '🌌', kind: 'shield', defaultDur: 45, p: { def: 0.20, mdef: 0.22, atk: 0.10 }, f: { pen: 10 }, shieldPct: 0.18, descTh: 'ดึงน้ำหนักดาราคล้อยโอบล้อมกายเป็นโล่ปราณ เพิ่มป้องกันและเจาะเกราะ' },
+    bloodFury: { id: 'bloodFury', name: 'เปลวโลหิตทวงฟ้า', icon: '🔥', kind: 'offense', defaultDur: 40, p: { atk: 0.24, def: -0.06 }, f: { crit: 12, critDmg: 22, pen: 14 }, descTh: 'เร่งเปลวโลหิตทวงความเป็นธรรม เพิ่มโจมตี คริ และเจาะเกราะอย่างรุนแรง' },
+    pacify: { id: 'pacify', name: 'สงบจิตสังหาร', icon: '🌸', kind: 'debuff', defaultDur: 30, p: { atk: -0.18, matk: -0.18 }, f: { crit: -12 }, descTh: 'ละอองกลีบสาลี่ขาวสลายเจตนาสังหาร ลดพลังโจมตีและอัตราคริของเป้าหมาย' }
   });
 
   ST.STANCE_CATALOG = (SK && SK.STANCE_CATALOG) || {

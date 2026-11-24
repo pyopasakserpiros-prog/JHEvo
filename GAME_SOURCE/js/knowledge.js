@@ -398,6 +398,7 @@ M.discoverableTechniques=opts=>{
   if(!t||!t.id||byId.has(t.id))continue;
   if(t.martialBootstrap)continue;
   if(M.isInnateTech&&M.isInnateTech(t))continue;
+  if(t.year10Locked&&!(CULT&&CULT.isPathUnlocked&&CULT.isPathUnlocked('FALLEN_STAR_DEFIANCE',opts.W||null)))continue;
   if(/MANTRA/.test(t.cat||'')&&!t.legendary)continue;
   byId.set(t.id,t);
  }
@@ -435,7 +436,7 @@ M.rollHierarchicalDiscovery=(W,opts)=>{
   const tierWeights=M.TIER_WEIGHTS_BY_RANK[sourceRank]||M.TIER_WEIGHTS_BY_RANK.UNRANKED;
   const maxSubCap=Math.min(5,opts.hardMaxTier||5);
   const rolledSubTier=Math.min(maxSubCap,Math.max(1,Number(opts.forceTier||rollWeightedKey(W.rng,tierWeights,opts.tierRoll))||1));
-  const eligibleSubs=branches.filter(s=>(!opts.path||s.path===opts.path)&&s.tier<=maxSubCap&&!(kind==='subManual'&&(W.sect.subLibrary||[]).includes(s.id)));
+  const eligibleSubs=branches.filter(s=>(!opts.path||s.path===opts.path)&&(!CULT.isPathUnlocked||CULT.isPathUnlocked(s.path,W))&&s.tier<=maxSubCap&&!(kind==='subManual'&&(W.sect.subLibrary||[]).includes(s.id)));
   let pool=eligibleSubs.filter(s=>s.tier===rolledSubTier);
   if(!pool.length)pool=eligibleSubs.filter(s=>Math.abs(s.tier-rolledSubTier)<=1);
   if(!pool.length)pool=eligibleSubs;
@@ -465,7 +466,7 @@ M.rollHierarchicalDiscovery=(W,opts)=>{
  }
 
  // Step D: Select concrete eligible technique at selectedTier (with bounded within-Tier grade fallback & duplicate compensation)
- const allPool=M.discoverableTechniques(opts);
+ const allPool=M.discoverableTechniques(Object.assign({W},opts));
  const allowForbiddenRoute=opts.allowForbidden===true||['cave-gate','cave','gate','realm','expedition','region','ruin','FORBIDDEN_RUIN','DEEP_REALM'].includes(opts.source)||(opts.danger||0)>=3||(opts.caveFloor||opts.depth||0)>=5;
  const foundLegends=new Set(wm.foundLegends||[]);
  const themeIds=(opts.techs&&Array.isArray(opts.techs)&&opts.techs.length)?new Set(opts.techs):null;

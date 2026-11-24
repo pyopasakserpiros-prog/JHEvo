@@ -155,7 +155,8 @@
       ? g.EXPED.LIVING_INSTITUTIONS.getMarketPriceModifier(W, id)
       : 1;
     const fmP = ECO._festMod(W, null, id);
-    return ECO.base(id) * baseMult * liMod * (fmP ? (fmP.priceMult || 1) : 1);
+    const fseOre = (W && g.EXPED && g.EXPED.FALLEN_STAR_EPIC && g.EXPED.FALLEN_STAR_EPIC.getOrePriceMultiplier) ? g.EXPED.FALLEN_STAR_EPIC.getOrePriceMultiplier(W, id) : 1;
+    return Math.round(ECO.base(id) * baseMult * liMod * (fmP ? (fmP.priceMult || 1) : 1) * fseOre * 100) / 100;
   };
   const stripWildcardSuffix = s => (typeof s === 'string' && s.includes('@TR:')) ? s.slice(0, s.indexOf('@TR:')) : s;
   ECO.isPill = id => {

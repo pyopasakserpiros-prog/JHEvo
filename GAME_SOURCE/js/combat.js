@@ -6148,6 +6148,76 @@
         }
         break;
       }
+      case 'STAR_PRESSURE_DOMAIN': {
+        ST.addStatus(a, 'astralShield', 14, { amt: Math.max(12, Math.round(C.hpMax(a) * 0.16)) }, tNow);
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'armorbreak', 12, {}, tNow);
+          const sa = ST.get(a);
+          const pDmg = Math.min(Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * 0.24)), Math.max(14, Math.round(C.stageRefHp(t) * 0.16)));
+          C.applyDamage(W, f, a, t, pDmg, 'แรงกดดาราคล้อย');
+          bonusDmg += pDmg;
+        }
+        break;
+      }
+      case 'OATH_COUNTER_SPEAR': {
+        ST.addStatus(a, 'leylineBastion', 14, { amt: Math.max(14, Math.round(C.hpMax(a) * 0.18)) }, tNow);
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'weaken', 12, {}, tNow);
+          const sa = ST.get(a);
+          const cDmg = Math.min(Math.max(8, Math.round((sa.def || 40) * 0.35)), Math.max(14, Math.round(C.stageRefHp(t) * 0.15)));
+          C.applyDamage(W, f, a, t, cDmg, 'ทวนพิทักษ์สัตย์สวนกลับ');
+          bonusDmg += cDmg;
+        }
+        break;
+      }
+      case 'PEAR_MERCY_VEIL': {
+        const healAmt = Math.max(10, Math.round(C.hpMax(a) * 0.10));
+        if (a.h && a.h.state) a.h.state.hp = Math.min(C.hpMax(a), (a.h.state.hp || 0) + healAmt);
+        else if (typeof a.hp === 'number') a.hp = Math.min(C.hpMax(a), a.hp + healAmt);
+        ST.addStatus(a, 'vitalRegen', 14, {}, tNow);
+        if (t && C.alive(t)) ST.addStatus(t, 'pacify', 12, {}, tNow);
+        break;
+      }
+      case 'GIANT_SLAYER_CLEAVE': {
+        ST.addStatus(a, 'bloodFury', 12, {}, tNow);
+        if (t && C.alive(t)) {
+          const aStage = (a.cult && a.cult.stage) || 1;
+          const tStage = (t.cult && t.cult.stage) || 1;
+          const gapMult = tStage > aStage ? (1 + Math.min(0.45, (tStage - aStage) * 0.15)) : 1.0;
+          ST.addStatus(t, 'armorbreak', 12, {}, tNow);
+          const sa = ST.get(a);
+          const gDmg = Math.min(Math.max(10, Math.round((sa.atk || 40) * 0.28 * gapMult)), Math.max(16, Math.round(C.stageRefHp(t) * 0.20)));
+          C.applyDamage(W, f, a, t, gDmg, 'ดาบหมื่นป้ายโค่นยักษ์');
+          bonusDmg += gDmg;
+        }
+        break;
+      }
+      case 'FURNACE_SIPHON_PUPPET': {
+        ST.addStatus(a, 'ironSkin', 14, {}, tNow);
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'weaken', 10, {}, tNow);
+          const sa = ST.get(a);
+          const sDmg = Math.min(Math.max(8, Math.round(Math.max(sa.atk || 40, sa.matk || 40) * 0.22)), Math.max(12, Math.round(C.stageRefHp(t) * 0.14)));
+          C.applyDamage(W, f, a, t, sDmg, 'เตาดาราสูบชีพจร');
+          bonusDmg += sDmg;
+          const siph = Math.max(6, Math.round(sDmg * 0.45));
+          ST.addStatus(a, 'shield', 12, { amt: siph }, tNow);
+        }
+        break;
+      }
+      case 'ECLIPSE_STEAL_BOON': {
+        ST.addStatus(a, 'shadowVeil', 12, {}, tNow);
+        if (t && C.alive(t)) {
+          ST.addStatus(t, 'bleed', 12, {}, tNow);
+          const tHpRatio = (C.hpMax(t) > 0) ? ((t.h && t.h.state ? t.h.state.hp : t.hp) / C.hpMax(t)) : 1;
+          const execMult = tHpRatio < 0.45 ? 1.45 : 1.0;
+          const sa = ST.get(a);
+          const eDmg = Math.min(Math.max(8, Math.round((sa.atk || 40) * 0.26 * execMult)), Math.max(16, Math.round(C.stageRefHp(t) * 0.20)));
+          C.applyDamage(W, f, a, t, eDmg, 'เงาสุริยคราสซ้ำจุดตาย');
+          bonusDmg += eDmg;
+        }
+        break;
+      }
       default:
         break;
     }
@@ -8924,6 +8994,25 @@
       const homeLp = W && W.world && W.world.continent && W.world.continent.courts && W.world.continent.courts[homePol] && W.world.continent.courts[homePol].livingPolity;
       const era = homeLp ? homeLp.era : 'STABLE';
       buffUnit(actor, (era === 'TURMOIL' || era === 'DECLINING') ? 'aegisWard' : 'tacticalCommand', 8);
+    }
+    // 13. FALLEN_STAR_DEFIANCE (KW_DAO_FALLEN_STAR): Star-pressure defiance bonus against equal/higher foes (ICD 10)
+    else if (p === 'FALLEN_STAR_DEFIANCE' && (phase === 'hit' || phase === 'cast') && target && !target.dead && ready('fallen_star_defiance', 10)) {
+      const aSt = (actor.cult && actor.cult.stage) || 1;
+      const tSt = (target.cult && target.cult.stage) || 1;
+      const subId = (actor.cult && actor.cult.sub) || '';
+      if (subId === 'PEAR_BLOSSOM_MERCY') {
+        buffUnit(actor, 'vitalRegen', 8);
+      } else {
+        buffUnit(actor, subId === 'STAR_SPEAR_OATH' ? 'leylineBastion' : 'astralShield', 8);
+      }
+      const cap = Math.max(10, Math.round(refHp(target) * 0.14));
+      const scale = tSt >= aSt ? 0.18 : 0.10;
+      const extra = Math.min(Math.max(6, Math.round((dmgDealt || 40) * scale)), cap);
+      if (extra > 0) {
+        if (f && C.applyProcDamage) C.applyProcDamage(W, f, actor, target, extra, 'เจตจำนงดาราคล้อย');
+        else { const cur = getHp(target); const nxt = Math.max(1, cur - extra); if (target.h && target.h.state) target.h.state.hp = nxt; else target.hp = nxt; }
+        bonusDmg = extra;
+      }
     }
     return bonusDmg;
   };

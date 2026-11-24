@@ -3100,8 +3100,9 @@
             : '');
         const festPrefix = (!blWarrant && (!lens || !lens.burdenId) && actFest) ? (actFest.icon + ' ช่วง' + actFest.nameTh + 'เวียนมาถึง — ') : '';
         const prefix = blWarrant ? ('หมายจับป้ายเหล็กดำ ' + blWarrant.caseCodeTh + ' กำลังไล่ล่าข้าอยู่ — ') : (lens && lens.burdenId === 'HEART_DEMON') ? 'จิตมารยังรบกวนไม่หยุด — ' : (lens && lens.burdenId === 'GRUDGE') ? 'หนี้แค้นในใจยังไม่จาง — ' : festPrefix;
+        const darkStainSuffix = (n && n.ext && n.ext.darkStarStain) ? ' (ปราณดารามืดที่แอบฝึกจากตลาดมืดกำลังหมุนวนแปลกประหลาดในชีพจร)' : '';
         const actBody = topReason ? ('ยามนี้ข้าเลือก「' + topReason + '」') : (actFest ? 'ข้ากำลังซึมซับบรรยากาศเทศกาลร่วมกับผู้คนในยุทธภพ' : (blWarrant ? 'ข้าต้องระวังตัวไม่ให้ถูกนักล่าค่าหัวพบเจอ' : ''));
-        return prefix + actBody + (asp ? (' เพื่อมุ่งสู่ปณิธาน「' + asp + '」') : '') + lifeSuffix;
+        return prefix + actBody + (asp ? (' เพื่อมุ่งสู่ปณิธาน「' + asp + '」') : '') + lifeSuffix + darkStainSuffix;
       })()
     };
   };

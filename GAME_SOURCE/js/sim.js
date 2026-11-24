@@ -225,7 +225,7 @@
       CULT.refreshLifespan(npc);
       HC.bump(npc);
     } else {
-      const chosen = CULT.awaken(npc, rng, null, W.day);
+      const chosen = CULT.awaken(npc, rng, null, W.day, W);
       if (W._founding !== false) { npc.cult.sub = chosen.sub; if (CULT.trackDef(chosen.sub)) npc.cult.track = CULT.initTrack(chosen.sub, 1, W.day); }
     }
 
@@ -1132,6 +1132,7 @@
     W.avgMood = W.npcs.length ? W.npcs.reduce((s, n) => s + (n.dead ? 0 : n.h.state.mood), 0) / Math.max(1, W.npcs.filter(n => !n.dead).length) : 0;
     if (EXPED && EXPED.ANNUAL_FESTIVALS && EXPED.ANNUAL_FESTIVALS.dailyTick) EXPED.ANNUAL_FESTIVALS.dailyTick(W, cal, { silent: !!silent });
     if (EXPED && EXPED.GRAND_FESTIVALS && EXPED.GRAND_FESTIVALS.dailyTick) EXPED.GRAND_FESTIVALS.dailyTick(W, cal, { silent: !!silent });
+    if (EXPED && EXPED.FALLEN_STAR_EPIC && EXPED.FALLEN_STAR_EPIC.tickDaily) EXPED.FALLEN_STAR_EPIC.tickDaily(W, cal, { silent: !!silent });
     if (silent) return;
     if (EXPED && EXPED.BLACK_LEDGER && EXPED.BLACK_LEDGER.tickDaily) EXPED.BLACK_LEDGER.tickDaily(W);
     if (CULT.LONGEVITY && CULT.LONGEVITY.evaluateDaily) CULT.LONGEVITY.evaluateDaily(W);
@@ -2220,6 +2221,7 @@
         g.EXPED.POLITICAL_LIVES.ensure(W);
         if (g.EXPED.LIVING_INSTITUTIONS && g.EXPED.LIVING_INSTITUTIONS.ensure) g.EXPED.LIVING_INSTITUTIONS.ensure(W);
         if (g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.ensure) g.EXPED.WITNESSES_AND_SHARDS.ensure(W);
+        if (g.EXPED.FALLEN_STAR_EPIC && g.EXPED.FALLEN_STAR_EPIC.ensure) g.EXPED.FALLEN_STAR_EPIC.ensure(W);
       }
       return W;
     };

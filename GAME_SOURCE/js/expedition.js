@@ -1080,8 +1080,11 @@
     // Patch v2.0.0: Caravan rare Grand Dao Path Manual & Path Crystal offering
     if (S.stones >= 1600 && g.SECT && g.SECT.PATH_LIBRARY && W.rng && W.rng.chance(0.35)) {
       const summary = g.SECT.PATH_LIBRARY.getSummary(W);
-      if (summary && summary.lockedPaths.filter(pid => !g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY') && summary.lockedPaths.filter(pid => !g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY').length) {
-        const pickPath = W.rng.pick(summary.lockedPaths);
+      const _caravanEligiblePaths = summary && Array.isArray(summary.lockedPaths)
+        ? summary.lockedPaths.filter(pid => (!g.CULT || !g.CULT.LEGENDARY_DAO || g.CULT.LEGENDARY_DAO.gradeOf(pid) === 'ORDINARY') && (!g.CULT || !g.CULT.isPathUnlocked || g.CULT.isPathUnlocked(pid, W)))
+        : [];
+      if (_caravanEligiblePaths.length) {
+        const pickPath = W.rng.pick(_caravanEligiblePaths);
         const manualId = 'MANUAL_PATH_' + pickPath;
         const mPrice = (ECO.itemById && ECO.itemById[manualId] && ECO.itemById[manualId].price) || 1200;
         if ((S.stones - spent) >= mPrice + 400 && ECO.pay(W, mPrice, 'คาราวานซื้อคัมภีร์มหาวิถี ' + manualId)) {
@@ -6704,8 +6707,9 @@
     const sex = rng.chance(0.58) ? 'M' : 'F';
     const h = generateFastFigureCore(rng, sex);
 
+    const _path59Open = !!(CULT && CULT.isPathUnlocked ? CULT.isPathUnlocked('FALLEN_STAR_DEFIANCE', W) : false);
     const pathIds = (CULT && CULT.PATHS && Object.keys(CULT.PATHS).length)
-      ? Object.keys(CULT.PATHS)
+      ? Object.keys(CULT.PATHS).filter(pid => !CULT.isPathUnlocked || CULT.isPathUnlocked(pid, W))
       : ['XIAN', 'BODY', 'GOD', 'DEMON', 'HEART_SOUL', 'KARMA_SAMSARA', 'BEAST_SOVEREIGN', 'SAGE_SUPPORT', 'CRAFT_CREATION', 'ARRAY_TALISMAN'];
     const chosenPath = opts.path || rng.pick(pathIds);
     const subObjs = (CULT && CULT.PATHS && CULT.PATHS[chosenPath] && Array.isArray(CULT.PATHS[chosenPath].subPaths))
@@ -6718,7 +6722,7 @@
 
     let techs = [];
     if (JD && JD.TECH && Array.isArray(JD.TECH.techniques)) {
-      const highTechs = JD.TECH.techniques.filter(t => t && (t.path === chosenPath || t.path === 'ANY') && (t.tier || 1) >= 4);
+      const highTechs = JD.TECH.techniques.filter(t => t && (t.path === chosenPath || t.path === 'ANY') && (t.tier || 1) >= 4 && (!t.year10Locked || _path59Open));
       if (highTechs.length) {
         const t1 = rng.pick(highTechs);
         const t2 = rng.pick(highTechs);
@@ -7479,6 +7483,29 @@
       rewardRecipeIds: ['REC_V222_EQ_01', 'REC_V222_EQ_03', 'REC_V222_EQ_06', 'REC_V222_EQ_11', 'REC_V222_EQ_18', 'REC_V222_EQ_24'],
       rewardTechIds: ['TECH_V222_01', 'TECH_V222_03', 'TECH_V222_05', 'TECH_V222_06', 'TECH_V222_19', 'TECH_V222_21'],
       descTh: 'รอยแยกใต้ยอดเขาเหมันต์ที่ปราณโลหิตอสูรและไอเย็นบรรพกาลปะทะกัน แหล่งกำเนิดชิ้นส่วนอสูรและวิชาสายโลหิต-เหมันต์ในตำนาน!'
+    },
+    REALM_STAR_ASH_MOUND: {
+      id: 'REALM_STAR_ASH_MOUND',
+      nameTh: 'เนินเถ้าดารา (แดนลับมรดกดาราคล้อย)',
+      icon: '🌠',
+      macroRegion: 'CENTRAL_HEARTLAND',
+      danger: 6,
+      year10Locked: true,
+      guardianNameTh: 'เงาหุ่นองครักษ์ดาราคล้อยและเจตจำนงกระบี่ไร้ฝัก',
+      prizeNameTh: 'มหาวิถีที่ 59 วิถีดาราคล้อยทวนชะตา · ศาสตราและมวลสารเหนือตำนาน',
+      stones: 820,
+      catalystId: 'CAT_ASTRAL_ESSENCE_5',
+      rewardMatIds: ['MAT_V3163_STAR_PUPPET_CORE', 'MAT_V3163_PEAR_ASH_DEW'],
+      rewardItemIds: ['REL_V3163_SHEATHLESS_STAR_SWORD', 'REL_V3163_BLOOMING_PEAR_PIN', 'REL_V3163_SILVER_SPEAR_CLOUD_STAIR', 'REL_V3163_NOTCHED_BLADE_ANING'],
+      rewardTechIds: [
+        'TECH_V3163_NINE_SKY_STAR_EYE', 'TECH_V3163_THREE_VERSE_BROKEN_BRIDGE',
+        'TECH_V3163_CLOUD_STAIR_SPEAR', 'TECH_V3163_SILVER_ARMOR_DEBT',
+        'TECH_V3163_WHITE_PEAR_CURTAIN', 'TECH_V3163_PURE_HAND_VOW',
+        'TECH_V3163_THREE_THOUSAND_TABLETS', 'TECH_V3163_ONE_ARM_WAR_DRUM',
+        'TECH_V3163_STAR_FURNACE_BLUEPRINT', 'TECH_V3163_PUPPET_SHADOW_ARMY',
+        'TECH_V3163_SHADOW_UNDER_RIGHTEOUS_BANNER', 'TECH_V3163_ECLIPSE_VANISH_STEP'
+      ],
+      descTh: 'ยอดเนินเถ้าดาราที่เปิดเผยหลังมหาสงครามปีที่ 10 สภาพภูมิประเทศและมรดกภายในแปรเปลี่ยนตามผลแพ้-ชนะของอนุทวีป!'
     }
   });
 
@@ -7490,9 +7517,35 @@
     X.ensureWanderingLegends(W);
     if (!Array.isArray(W.world.secretRealms)) W.world.secretRealms = [];
 
-    const keys = Object.keys(X.SECRET_REALM_TEMPLATES);
-    const chosenKey = (tplId && X.SECRET_REALM_TEMPLATES[tplId]) ? tplId : keys[(W.day || 0) % keys.length];
-    const tpl = X.SECRET_REALM_TEMPLATES[chosenKey];
+    const fseUnlocked = !!(W && W.world && W.world.fallenStarEpic && W.world.fallenStarEpic.path59Unlocked);
+    const keys = Object.keys(X.SECRET_REALM_TEMPLATES).filter(k => {
+      const tDef = X.SECRET_REALM_TEMPLATES[k];
+      return !(tDef && tDef.year10Locked && !fseUnlocked);
+    });
+    const chosenKey = (tplId && X.SECRET_REALM_TEMPLATES[tplId]) ? tplId : keys[(W.day || 0) % Math.max(1, keys.length)];
+    let tpl = X.SECRET_REALM_TEMPLATES[chosenKey];
+    if (chosenKey === 'REALM_STAR_ASH_MOUND') {
+      const moundState = (W && W.world && W.world.fallenStarEpic && W.world.fallenStarEpic.starAshMoundState) || 'BATTLEFIELD_CRATER';
+      if (moundState === 'WHITE_PEAR_GROVE') {
+        tpl = Object.assign({}, tpl, {
+          nameTh: 'ป่าสาลี่ขาวกลางเถ้าดารา (เนินเถ้าดาราหลังปิ่นไม้ลุกไหม้)',
+          icon: '🌸',
+          prizeNameTh: 'ปิ่นไม้ดอกสาลี่ผลิใบใหม่ · น้ำค้างกลีบสาลี่เถ้าดารา · มรดกวิถีที่ 59',
+          rewardMatIds: ['MAT_V3163_PEAR_ASH_DEW'],
+          rewardItemIds: ['REL_V3163_BLOOMING_PEAR_PIN', 'REL_V3163_SILVER_SPEAR_CLOUD_STAIR', 'REL_V3163_NOTCHED_BLADE_ANING'],
+          descTh: 'สวนป่าสาลี่ขาวไร้ฤดูกาลที่งอกงามขึ้นกลางขี้เถ้าสมรภูมิ กลีบดอกสาลี่ช่วยเยียวยาเส้นชีพจรและซ่อนมรดกสายประคองชีพควบคู่คมกระบี่ผู้สำนึกบาป'
+        });
+      } else {
+        tpl = Object.assign({}, tpl, {
+          nameTh: 'หุบเหวศิลาดาราคล้อย (เนินเถ้าดาราหลังชัยชนะทวีป)',
+          icon: '⚔️',
+          prizeNameTh: 'กระบี่ดาราคล้อยไร้ฝัก · แกนหัวใจหุ่นองครักษ์ดาราคล้อย · มรดกวิถีที่ 59',
+          rewardMatIds: ['MAT_V3163_STAR_PUPPET_CORE'],
+          rewardItemIds: ['REL_V3163_SHEATHLESS_STAR_SWORD', 'REL_V3163_SILVER_SPEAR_CLOUD_STAIR', 'REL_V3163_NOTCHED_BLADE_ANING'],
+          descTh: 'สนามพลังดาราที่แตกกระจายและซากหุ่นรบนับร้อยตกผลึกเป็นหุบเหวแรงโน้มถ่วงแปรปรวน อุดมด้วยแร่ดาราบริสุทธิ์และศิลาจารึกวิถีดาราคล้อยทวนชะตา'
+        });
+      }
+    }
 
     // Pick 3 external sects + 1 wandering legend to autonomously enter the race
     const allSects = (W.world.allSects || []).slice().sort((a, b) => (b.power || 1) - (a.power || 1));
@@ -7574,6 +7627,18 @@
     }
 
     W.world.secretRealmSeq = (W.world.secretRealmSeq || 0) + 1;
+    let dynMatIds = Array.isArray(tpl.rewardMatIds) ? tpl.rewardMatIds.slice() : [];
+    let dynItemIds = Array.isArray(tpl.rewardItemIds) ? tpl.rewardItemIds.slice() : [];
+    if (tpl.id === 'REALM_STAR_ASH_MOUND') {
+      const moundState = W && W.world && W.world.fallenStarEpic && W.world.fallenStarEpic.starAshMoundState;
+      if (moundState === 'BATTLEFIELD_CRATER') {
+        dynMatIds = ['MAT_V3163_STAR_PUPPET_CORE'];
+        dynItemIds = ['REL_V3163_SHEATHLESS_STAR_SWORD', 'REL_V3163_SILVER_SPEAR_CLOUD_STAIR', 'REL_V3163_NOTCHED_BLADE_ANING'];
+      } else if (moundState === 'WHITE_PEAR_GROVE') {
+        dynMatIds = ['MAT_V3163_PEAR_ASH_DEW'];
+        dynItemIds = ['REL_V3163_BLOOMING_PEAR_PIN', 'REL_V3163_SILVER_SPEAR_CLOUD_STAIR', 'REL_V3163_NOTCHED_BLADE_ANING'];
+      }
+    }
     const realm = {
       id: 'SREALM_' + (W.day || 360) + '_' + W.world.secretRealmSeq,
       templateId: tpl.id,
@@ -7585,6 +7650,8 @@
       prizeNameTh: tpl.prizeNameTh,
       stones: tpl.stones,
       catalystId: tpl.catalystId,
+      rewardMatIds: dynMatIds,
+      rewardItemIds: dynItemIds,
       descTh: tpl.descTh,
       openedDay: W.day || 360,
       expiresDay: (W.day || 360) + 12,
@@ -7701,8 +7768,19 @@
       }
       if (realm.catalystId && ECO && ECO.addCatalyst) ECO.addCatalyst(W, realm.catalystId, 1);
       const rTpl = X.SECRET_REALM_TEMPLATES[realm.templateId] || {};
-      if (Array.isArray(rTpl.rewardMatIds) && rTpl.rewardMatIds.length && ECO && ECO.add) {
-        rng.shuffle(rTpl.rewardMatIds.slice()).slice(0, 3).forEach(mId => ECO.add(W, mId, 2));
+      const matPool = (Array.isArray(realm.rewardMatIds) && realm.rewardMatIds.length) ? realm.rewardMatIds : (rTpl.rewardMatIds || []);
+      if (matPool.length && ECO && ECO.add) {
+        rng.shuffle(matPool.slice()).slice(0, 3).forEach(mId => ECO.add(W, mId, 2));
+      }
+      const itemPool = (Array.isArray(realm.rewardItemIds) && realm.rewardItemIds.length) ? realm.rewardItemIds : (rTpl.rewardItemIds || []);
+      const canRelic = !rTpl.year10Locked || (X.FALLEN_STAR_EPIC && X.FALLEN_STAR_EPIC.canDropYear10Relic(W));
+      if (itemPool.length && canRelic && ECO && ECO.mintGear && W.sect) {
+        W.sect.gear = W.sect.gear || [];
+        const ownedRelics = new Set(W.sect.gear.map(gItem => gItem && gItem.baseId));
+        const unowned = itemPool.filter(iId => !ownedRelics.has(iId));
+        const chosenItemId = unowned.length ? rng.pick(unowned) : rng.pick(itemPool);
+        const minted = chosenItemId ? ECO.mintGear(chosenItemId, 1.45, W) : null;
+        if (minted) { W.sect.gear.push(minted); realm.awardedRelicId = chosenItemId; }
       }
       if (Array.isArray(rTpl.rewardRecipeIds) && W.sect) {
         W.sect.knownRecipes = W.sect.knownRecipes || [];
@@ -7719,10 +7797,30 @@
         if (m && !m.dead) { m.merit = (m.merit || 0) + 28; if (m.cult) CULT.gain(m, 35, W, 'secret_realm_win'); }
       });
     } else if (winEntry.sectId) {
+      const rTpl = X.SECRET_REALM_TEMPLATES[realm.templateId] || {};
       const winSect = X.findSect(W, winEntry.sectId);
       if (winSect) {
         winSect.power = +((winSect.power || 1.2) + 0.18).toFixed(2);
         winSect.influence = (winSect.influence || 60) + 14;
+        // Strict World Symmetry: external sects also receive real mats, relics, and techs from Secret Realms
+        const matPool = (Array.isArray(realm.rewardMatIds) && realm.rewardMatIds.length) ? realm.rewardMatIds : (rTpl.rewardMatIds || []);
+        if (matPool.length) {
+          winSect.vaultMats = winSect.vaultMats || {};
+          matPool.slice(0, 2).forEach(mId => { winSect.vaultMats[mId] = (winSect.vaultMats[mId] || 0) + 2; });
+        }
+        const itemPool = (Array.isArray(realm.rewardItemIds) && realm.rewardItemIds.length) ? realm.rewardItemIds : (rTpl.rewardItemIds || []);
+        const canRelic = !rTpl.year10Locked || (X.FALLEN_STAR_EPIC && X.FALLEN_STAR_EPIC.canDropYear10Relic(W));
+        if (itemPool.length && canRelic) {
+          winSect.relicIds = winSect.relicIds || [];
+          const pickRel = itemPool.find(iId => !winSect.relicIds.includes(iId)) || itemPool[0];
+          if (pickRel && !winSect.relicIds.includes(pickRel)) winSect.relicIds.push(pickRel);
+          realm.awardedRelicId = pickRel;
+        }
+        if (Array.isArray(rTpl.rewardTechIds) && rTpl.rewardTechIds.length) {
+          winSect.library = winSect.library || [];
+          const pickTech = rTpl.rewardTechIds.find(tId => !winSect.library.includes(tId)) || rTpl.rewardTechIds[0];
+          if (pickTech && !winSect.library.includes(pickTech)) winSect.library.push(pickTech);
+        }
       }
       if (winEntry.figureId && W.world.figuresById && W.world.figuresById[winEntry.figureId]) {
         const wFig = W.world.figuresById[winEntry.figureId];
@@ -7733,10 +7831,24 @@
         }
       }
     } else if (winEntry.entrantType === 'WANDERING_LEGEND' && winEntry.figureId) {
+      const rTpl = X.SECRET_REALM_TEMPLATES[realm.templateId] || {};
       const wLeg = (W.world.wanderingLegends || []).find(l => l && l.id === winEntry.figureId);
       if (wLeg && !wLeg.dead) {
         wLeg.prestige = (wLeg.prestige || 100) + 25;
         wLeg.realmWins = (wLeg.realmWins || 0) + 1;
+        const itemPool = (Array.isArray(realm.rewardItemIds) && realm.rewardItemIds.length) ? realm.rewardItemIds : (rTpl.rewardItemIds || []);
+        const canRelic = !rTpl.year10Locked || (X.FALLEN_STAR_EPIC && X.FALLEN_STAR_EPIC.canDropYear10Relic(W));
+        if (itemPool.length && canRelic) {
+          wLeg.relicIds = wLeg.relicIds || [];
+          const pickRel = itemPool.find(iId => !wLeg.relicIds.includes(iId)) || itemPool[0];
+          if (pickRel && !wLeg.relicIds.includes(pickRel)) wLeg.relicIds.push(pickRel);
+          realm.awardedRelicId = pickRel;
+        }
+        if (Array.isArray(rTpl.rewardTechIds) && rTpl.rewardTechIds.length) {
+          wLeg.techs = wLeg.techs || [];
+          const pickTech = rTpl.rewardTechIds.find(tId => !wLeg.techs.includes(tId)) || rTpl.rewardTechIds[0];
+          if (pickTech && !wLeg.techs.includes(pickTech)) wLeg.techs.push(pickTech);
+        }
       }
     }
 
@@ -11126,6 +11238,873 @@
     }
   };
   /* === JS2_V3150_GRAND_PERIODIC_FESTIVALS_END === */
+
+  /* === JS2_V3161_FALLEN_STAR_TWO_SHADOWS_START === */
+  X.FALLEN_STAR_EPIC = {
+    VERSION: "3.16.6-audit-hardened",
+    isPath59Unlocked(W) {
+      return !!(W && W.world && W.world.fallenStarEpic && W.world.fallenStarEpic.path59Unlocked);
+    },
+    canDropYear10Relic(W, itemId) {
+      const it = (g.JD && g.JD.ITEMS && Array.isArray(g.JD.ITEMS.items) && g.JD.ITEMS.items.find(x => x && x.id === itemId))
+        || (g.JD && g.JD.ITEMS && Array.isArray(g.JD.ITEMS.materials) && g.JD.ITEMS.materials.find(x => x && x.id === itemId));
+      if (!it || !it.year10Locked) return true;
+      return this.isPath59Unlocked(W);
+    },
+    OPERATIVE_DEFS: Object.freeze([
+      { id: "FSE_OP_MO_CHANGYUE", nameTh: "ม่อชางเยว่", coverIdentityTh: "คหบดีรับซื้อเครื่องสำริดโบราณ", trueFaction: "ECLIPSE_ASH", trueRoleTh: "เจ้าภาคีเถ้าสุริยคราสรุ่นที่ 412", stage: 7, ageYears: 142, roleKey: "INTEL_BROKER" },
+      { id: "FSE_OP_HAN_GU", nameTh: "หานกู๋", coverIdentityTh: "ช่างโลหะพเนจรกว้านซื้อแร่ดาราผุ", trueFaction: "ECLIPSE_ASH", trueRoleTh: "ช่างซ่อมแกนหุ่นมือผี", stage: 6, ageYears: 96, roleKey: "VAULT_ENGINEER" },
+      { id: "FSE_OP_SIKONG_YAN", nameTh: "ซือคงเยี่ยน", coverIdentityTh: "นายหน้าข่าวลือและตลาดมืด", trueFaction: "ECLIPSE_ASH", trueRoleTh: "นักยุยงร้อยลิ้น", stage: 5, ageYears: 68, roleKey: "INSTIGATOR" },
+      { id: "FSE_OP_CHU_XUAN", nameTh: "ฉู่เสวียน", coverIdentityTh: "นักพรตพเนจรงอบเทา (พี่)", trueFaction: "ECLIPSE_ASH", trueRoleTh: "หน่วยตอกหมุดเร่งผลึกค้างภพ", stage: 5, ageYears: 45, roleKey: "CRYSTAL_SPIKER" },
+      { id: "FSE_OP_CHU_SHA", nameTh: "ฉู่ซา", coverIdentityTh: "นักพรตพเนจรงอบเทา (น้อง)", trueFaction: "ECLIPSE_ASH", trueRoleTh: "หน่วยตอกหมุดเร่งผลึกค้างภพ", stage: 5, ageYears: 42, roleKey: "CRYSTAL_SPIKER" },
+      { id: "FSE_OP_WEN_MO", nameTh: "เหวินโม่", coverIdentityTh: "ช่างซ่อมร่มและหมอยาพเนจร", trueFaction: "PEAR_TWIG", trueRoleTh: "ทายาทผู้วางกิ่งสาลี่แห้ง", stage: 5, ageYears: 54, roleKey: "TWIG_WARNER" },
+      { id: "FSE_OP_A_ZU", nameTh: "อาซู่", coverIdentityTh: "ศิษย์สาวใบ้ผู้ติดตามช่างซ่อมร่ม", trueFaction: "PEAR_TWIG", trueRoleTh: "ผู้แกะรอยเสียงลมแห่งกิ่งสาลี่แห้ง", stage: 3, ageYears: 19, roleKey: "WIND_TRACKER" }
+    ]),
+
+    _detHash(str) {
+      let h = 2166136261;
+      const s = String(str || "");
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    },
+    _detUnit(str) {
+      return (this._detHash(str) % 100000) / 100000;
+    },
+
+    ensure(W) {
+      if (!W || !W.world) return null;
+      if (!W.world.fallenStarEpic) {
+        W.world.fallenStarEpic = {
+          phase: "Y1_3_BRONZE_COIN",
+          lastTickDay: -1,
+          lastMonthTick: -1,
+          crystalCrackPct: 0,
+          repairedVaults: 0,
+          interceptedVaults: 0,
+          maxVaults: 9,
+          sectSuspicion: 10,
+          falseFlagsStaged: 0,
+          falseFlagsExposed: 0,
+          darkStarStainedHomeIds: [],
+          darkStarStainedExternalIds: [],
+          oreSpikeUntilDay: 0,
+          y5BellSpiked: false,
+          y7GearsHeard: false,
+          y9SteleShattered: false,
+          year10Ready: false,
+          chuWangxuan: null,
+          war: null,
+          outcome: null,
+          outcomeDay: null,
+          wifeEchoAppeared: false,
+          starAshMoundState: "SEALED_RUIN",
+          path59Unlocked: false,
+          discoveredClues: [],
+          rumorLog: [],
+          operatives: this.OPERATIVE_DEFS.map(op => Object.assign({}, op, { alive: true, exposed: false }))
+        };
+      }
+      const st = W.world.fallenStarEpic;
+      if (!Array.isArray(st.operatives) || st.operatives.length < 7) {
+        st.operatives = this.OPERATIVE_DEFS.map(op => Object.assign({}, op, { alive: true, exposed: false }));
+      }
+      st.discoveredClues = Array.isArray(st.discoveredClues) ? st.discoveredClues : [];
+      st.rumorLog = Array.isArray(st.rumorLog) ? st.rumorLog : [];
+      st.darkStarStainedHomeIds = Array.isArray(st.darkStarStainedHomeIds) ? st.darkStarStainedHomeIds : [];
+      st.darkStarStainedExternalIds = Array.isArray(st.darkStarStainedExternalIds) ? st.darkStarStainedExternalIds : [];
+      if (st.chuWangxuan === undefined) st.chuWangxuan = null;
+      if (st.war === undefined) st.war = null;
+      if (st.outcome === undefined) st.outcome = null;
+      if (st.outcomeDay === undefined) st.outcomeDay = null;
+      if (st.wifeEchoAppeared === undefined) st.wifeEchoAppeared = false;
+      if (!st.starAshMoundState) st.starAshMoundState = "SEALED_RUIN";
+      if (st.path59Unlocked === undefined) st.path59Unlocked = false;
+      return st;
+    },
+
+    _pushRumor(st, day, year, textTh, tag) {
+      st.rumorLog.unshift({ day, year, textTh, tag: tag || "RUMOR" });
+      if (st.rumorLog.length > 32) st.rumorLog.length = 32;
+    },
+
+    _addClue(st, id, titleTh, detailTh, day, finderNameTh) {
+      if (st.discoveredClues.some(c => c && c.id === id)) return false;
+      st.discoveredClues.push({ id, titleTh, detailTh, day, finderNameTh: finderNameTh || "ผู้สัญจรยุทธภพ" });
+      if (st.discoveredClues.length > 20) st.discoveredClues.shift();
+      return true;
+    },
+
+    getOrePriceMultiplier(W, itemId) {
+      if (!W || !W.world || !W.world.fallenStarEpic || !itemId) return 1;
+      const st = W.world.fallenStarEpic;
+      const dayNow = W.day || 0;
+      if (dayNow <= 0 || (st.oreSpikeUntilDay || 0) < dayNow) return 1;
+      const mat = g.ECO && g.ECO.matById && g.ECO.matById[itemId];
+      const isOre = mat
+        ? (mat.cat === 'ORE' || mat.category === 'ORE' || mat.sub === 'ORE')
+        : /(^|_)(ore|iron|steel|metal)($|_)/i.test(String(itemId));
+      return isOre ? 1.12 : 1;
+    },
+
+    _findPerceptiveInvestigator(W, seedKey) {
+      // Strictly World-Symmetric: candidate pool includes BOTH home sect AND all 19 external sects!
+      const cands = [];
+      ((W && W.npcs) || []).forEach(n => {
+        if (!n || n.dead || n.exiled || (n.ext && n.ext.longevity && n.ext.longevity.stasis)) return;
+        const comp = (g.HC && g.HC.eff) ? g.HC.eff(n, "intellect.comprehension") : 50;
+        const caut = (g.HC && g.HC.eff) ? g.HC.eff(n, "personality.caution") : 50;
+        const isArch = n.cult && (n.cult.path === "LORE_ARCHIVIST" || n.cult.path === "ASTRO_DIVINATION" || n.cult.path === "INK_LITERATI");
+        const sc = comp + caut * 0.4 + (isArch ? 25 : 0);
+        if (sc >= 88) cands.push({ isHome: true, npc: n, nameTh: (g.HC && g.HC.fullName) ? g.HC.fullName(n) : n.id, sectNameTh: (W.sect && W.sect.name) || "สำนัก", score: sc });
+      });
+      const extSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || []);
+      extSects.forEach(s => {
+        if (!s || s.collapsed || !s.livingRoster || s.livingRoster.collapsed) return;
+        const r = s.livingRoster;
+        const members = [r.leader].concat(r.elders || [], r.prodigies || []).filter(Boolean);
+        members.forEach(m => {
+          if (m.longevity && m.longevity.stasis) return;
+          const sc = (m.wisdom || 50) * 1.25 + (m.integrity || 50) * 0.35;
+          if (sc >= 88) cands.push({ isHome: false, member: m, sect: s, nameTh: m.nameTh || m.name || "ผู้อาวุโส", sectNameTh: s.nameTh || s.id, score: sc });
+        });
+      });
+      if (!cands.length) return null;
+      return cands[this._detHash(seedKey + ":inv") % cands.length];
+    },
+
+    _spawnChuWangxuan(st, day) {
+      if (st.chuWangxuan) return st.chuWangxuan;
+      st.chuWangxuan = {
+        id: "FSE_BOSS_CHU_WANGXUAN",
+        nameTh: "ฉู่หวั่งเซวียน",
+        epithetTh: "ดาราคล้อยครึ่งก้าวอริยะ",
+        stage: 9.5,
+        ageYears: 157,
+        stasisYears: 51205,
+        hpMax: 12500,
+        hp: 12500,
+        basePower: 5200,
+        skyRiftScar: true,
+        skyRiftBurnAccum: 0,
+        mode: "PEACEFUL_PILGRIM",
+        locationTh: "ทุ่งร้างใต้เนินเถ้าดารา 40 ลี้",
+        awakenedDay: day,
+        inventory: {
+          sheathlessStarSword: true,
+          clothWrappedSword: true,
+          lacqueredPearPin: false,
+          freshPearTwig: false
+        }
+      };
+      return st.chuWangxuan;
+    },
+
+    _computeAlliancePower(W, st) {
+      // Strictly World-Symmetric power evaluation across Home Sect + ALL 19 External Sects!
+      let homePower = 0;
+      let homeFighters = 0;
+      let homeHealers = 0;
+      let homeStained = 0;
+      // Strictly symmetric per-sect vanguard contribution (prevents 19 external rosters from linearly overwhelming the 3-Tier Army)
+      ((W && W.npcs) || []).forEach(n => {
+        if (!n || n.dead || n.exiled || (n.ext && n.ext.longevity && n.ext.longevity.stasis)) return;
+        const stage = (n.cult && Number.isFinite(n.cult.stage)) ? n.cult.stage : 1;
+        const stained = !!(n.ext && n.ext.darkStarStain);
+        if (stained) homeStained++;
+        const raw = Math.pow(Math.max(1, stage), 1.85) * 26;
+        homePower += stained ? raw * 0.78 : raw;
+        homeFighters++;
+        const emp = (g.HC && g.HC.eff) ? g.HC.eff(n, "personality.empathy") : 50;
+        const integ = (g.HC && g.HC.eff) ? g.HC.eff(n, "personality.integrity") : 50;
+        const isHealer = n.cult && (n.cult.path === "MEDICINE_ALCHEMY" || n.cult.path === "HEART_SOUL");
+        if (isHealer || (emp >= 72 && integ >= 70)) homeHealers++;
+      });
+
+      let extPower = 0;
+      let extFighters = 0;
+      let extHealers = 0;
+      let extStained = 0;
+      const extSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || []);
+      extSects.forEach(s => {
+        if (!s || s.collapsed || !s.livingRoster || s.livingRoster.collapsed) return;
+        const r = s.livingRoster;
+        const members = [r.leader].concat(r.elders || [], r.prodigies || []).filter(Boolean);
+        let sectRaw = 0;
+        members.forEach(m => {
+          if (m.longevity && m.longevity.stasis) return;
+          const stage = Number.isFinite(m.stage) ? m.stage : 3;
+          const stained = !!m.darkStarStain;
+          if (stained) extStained++;
+          const raw = Math.pow(Math.max(1, stage), 1.85) * 26;
+          sectRaw += stained ? raw * 0.78 : raw;
+          extFighters++;
+          if ((m.integrity || 50) >= 78 && (m.wisdom || 50) >= 65) extHealers++;
+        });
+        extPower += sectRaw * 0.22;
+      });
+      const homeVanguard = homePower * 0.55;
+      const unityFactor = +clamp(1.12 - ((st.sectSuspicion || 0) / 100) * 0.48, 0.58, 1.12).toFixed(3);
+      const totalPower = Math.round((homeVanguard + extPower) * unityFactor);
+      return {
+        homePower: Math.round(homePower),
+        extPower: Math.round(extPower),
+        homeFighters,
+        extFighters,
+        totalHealers: homeHealers + extHealers,
+        totalStained: homeStained + extStained,
+        unityFactor,
+        totalPower
+      };
+    },
+
+    _applyWarAttritionSymmetric(W, severity, seedKey) {
+      // Applies real war wear symmetrically across BOTH Home Sect AND External Sects (never favors player!)
+      const sev = clamp(severity || 0.2, 0.05, 0.65);
+      // 1. Home Sect frontline combatants & symmetric war logistics wear
+      const homeLiving = ((W && W.npcs) || []).filter(n => n && !n.dead && !n.exiled && !(n.ext && n.ext.longevity && n.ext.longevity.stasis));
+      homeLiving.forEach((n, idx) => {
+        if (this._detUnit(seedKey + ":hw:" + idx) < sev) {
+          if (n.h && n.h.state && Number.isFinite(n.h.state.hp)) {
+            const maxHp = (g.CULT && g.CULT.hpMax) ? g.CULT.hpMax(n) : 100;
+            const floorHp = Math.max(8, Math.round(maxHp * 0.14));
+            const curHp = n.h.state.hp;
+            const nextHp = Math.round(curHp * (1 - sev * 0.50));
+            n.h.state.hp = curHp <= floorHp ? curHp : Math.max(floorHp, nextHp);
+            n.inj = Math.min(24, Math.max(n.inj || 0, Math.round(sev * 14)));
+          }
+          if (n.h && n.h.state) n.h.state.stress = clamp((n.h.state.stress || 0) + Math.round(sev * 22), 0, 100);
+        }
+      });
+      if (W.sect && sev < 0.45) {
+        if (Number.isFinite(W.sect.stones) && W.sect.stones > 220) {
+          W.sect.stones = Math.max(220, Math.round(W.sect.stones * (1 - sev * 0.12)));
+        }
+        if (W.sect.stock && Number.isFinite(W.sect.stock.grain) && W.sect.stock.grain > 45) {
+          W.sect.stock.grain = Math.max(45, Math.round(W.sect.stock.grain * (1 - sev * 0.10)));
+        }
+      }
+      // 2. External Sects rosters symmetrically (safe non-extinction floors above LIVING_SECTS collapse threshold)
+      const extSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || []);
+      extSects.forEach((s, idx) => {
+        if (!s || s.collapsed || !s.livingRoster || s.livingRoster.collapsed) return;
+        const r = s.livingRoster;
+        if (this._detUnit(seedKey + ":ew:" + idx) < sev) {
+          const curM = r.morale || 55;
+          const nextM = curM - Math.round(sev * 12);
+          r.morale = curM <= 34 ? curM : Math.max(34, nextM);
+          const curT = r.treasury || 55;
+          const nextT = curT - Math.round(sev * 12);
+          r.treasury = curT <= 28 ? curT : Math.max(28, nextT);
+          if (r.leader) r.leader.wounds = clamp((r.leader.wounds || 0) + Math.round(sev * 14), 0, 20);
+        }
+      });
+    },
+
+    _resolveVictory(W, st, day, yr, moOpt) {
+      if (st.outcome) return;
+      const cw = st.chuWangxuan;
+      const moNow = moOpt || ((g.SIM && g.SIM.calendar) ? (g.SIM.calendar(W.t || 0).month || 12) : 12);
+      cw.hp = 0;
+      cw.mode = "FALLEN_IN_BATTLE";
+      if (cw.inventory) cw.inventory.lacqueredPearPin = false;
+      st.phase = "RESOLVED_VICTORY";
+      st.outcome = "VICTORY";
+      st.outcomeDay = day;
+      st.wifeEchoAppeared = false; // Zero wife echo on continent victory!
+      st.starAshMoundState = "BATTLEFIELD_CRATER";
+      st.path59Unlocked = true;
+
+      // Symmetrical prestige & morale boost for BOTH Home Sect and surviving External Sects
+      if (typeof W.fame === "function") W.fame(18);
+      const extSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || []);
+      extSects.forEach(s => {
+        if (s && !s.collapsed && s.livingRoster && !s.livingRoster.collapsed) {
+          s.livingRoster.morale = clamp((s.livingRoster.morale || 60) + 14, 15, 100);
+        }
+      });
+
+      const seasonTh = moNow >= 10 ? "ท่ามกลางลมหนาวและเหมันต์ลึก" : moNow >= 7 ? "ท่ามกลางลมสารทพัดโหม" : "ท่ามกลางท้องฟ้ามืดครึ้มเหนือเนินเถ้าดารา";
+      const msg = seasonTh + " พันธมิตรผู้บ่มเพาะทั้งอนุทวีปผสานพลังโค่นล้มฉู่หวั่งเซวียนลงได้ก่อนเขาจะจุดไฟเผาขั้วหัวใจ! ปิ่นไม้ดอกสาลี่ซ่อมครั่งในสาบเสื้อแตกสลายเป็นเถ้าไม้ธรรมดาโดยไร้ปาฏิหาริย์และไร้เงาภรรยา — อนุทวีปยุคที่ 101 ยืนหยัดด้วยกำลังของตนเอง และมหาวิถีที่ 59「วิถีดาราคล้อยทวนชะตา」ได้เปิดเผยร่องรอยสู่อนุชนแล้ว!";
+      this._pushRumor(st, day, yr, msg, "OUTCOME_VICTORY");
+      if (st.war) st.war.battleLog.push({ day, month: moNow, textTh: msg });
+      X.recordChronicle(W, {
+        category: "WITNESS_EPOCH",
+        reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
+        icon: "⚔️",
+        titleTh: "ปิดฉากศึกปีที่ 10: ชัยชนะแห่งยุคสมัยใหม่ — ฉู่หวั่งเซวียนล้มลงกลางหิมะไร้เงาปาฏิหาริย์!",
+        storyTh: msg,
+        quiet: false
+      });
+    },
+
+    _resolveDefeatPearSmoke(W, st, day, yr, moOpt) {
+      if (st.outcome) return;
+      const cw = st.chuWangxuan;
+      const moNow = moOpt || ((g.SIM && g.SIM.calendar) ? (g.SIM.calendar(W.t || 0).month || 12) : 12);
+      const hasPin = !!(cw && cw.inventory && cw.inventory.lacqueredPearPin);
+      cw.mode = hasPin ? "DISSOLVED_BY_PEAR_SMOKE" : "COLLAPSED_BY_SKYRIFT_SCAR";
+      cw.hp = 0;
+      if (cw.inventory) cw.inventory.lacqueredPearPin = false;
+      st.phase = "RESOLVED_DEFEAT_PEAR_SMOKE";
+      st.outcome = "DEFEAT_PEAR_SMOKE";
+      st.outcomeDay = day;
+      st.wifeEchoAppeared = hasPin;
+      st.starAshMoundState = hasPin ? "WHITE_PEAR_GROVE" : "BATTLEFIELD_CRATER";
+      st.path59Unlocked = true;
+
+      // Strict World-Symmetric Post-Cataclysm Loss & Non-Extinction Survival Floor (Home + ALL External Sects, zero double-penalty!)
+      if (W.sect) {
+        if (Number.isFinite(W.sect.stones) && W.sect.stones > 220) W.sect.stones = Math.max(220, Math.round(W.sect.stones * 0.68));
+        if (W.sect.stock && Number.isFinite(W.sect.stock.grain) && W.sect.stock.grain > 45) {
+          W.sect.stock.grain = Math.max(45, Math.round(W.sect.stock.grain * 0.68));
+        }
+      }
+      const homeLiving = ((W && W.npcs) || []).filter(n => n && !n.dead && !n.exiled && !(n.ext && n.ext.longevity && n.ext.longevity.stasis));
+      homeLiving.forEach((n, idx) => {
+        if (this._detUnit(String(W.seed || "JS2") + ":fse_defeat:h:" + idx) < 0.52) {
+          if (n.h && n.h.state && Number.isFinite(n.h.state.hp)) {
+            const maxHp = (g.CULT && g.CULT.hpMax) ? g.CULT.hpMax(n) : 100;
+            const floorHp = Math.max(10, Math.round(maxHp * 0.16));
+            n.h.state.hp = n.h.state.hp <= floorHp ? n.h.state.hp : Math.max(floorHp, Math.round(n.h.state.hp * 0.72));
+            n.inj = Math.min(22, Math.max(n.inj || 0, 10));
+          }
+          if (n.h && n.h.state) n.h.state.stress = clamp((n.h.state.stress || 0) + 16, 0, 100);
+        }
+      });
+      const extSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || []);
+      extSects.forEach(s => {
+        if (s && !s.collapsed && s.livingRoster && !s.livingRoster.collapsed) {
+          const r = s.livingRoster;
+          const curT = r.treasury || 50;
+          r.treasury = curT <= 28 ? curT : Math.max(28, Math.round(curT * 0.68));
+          const curM = r.morale || 50;
+          r.morale = curM <= 34 ? curM : Math.max(34, Math.round(curM * 0.74));
+          if (r.leader) r.leader.wounds = clamp((r.leader.wounds || 0) + 10, 0, 20);
+        }
+      });
+
+      const msg = hasPin
+        ? "แนวป้องกันทั้งอนุทวีปแตกพ่าย! ขณะที่ฉู่หวั่งเซวียนลอยตัวเหนือเมฆดำจุดไฟปราณขั้วหัวใจเพื่อฟาดหนึ่งกระบี่ผ่าชีพจรทวีป เปลวไฟกลับเผา「ปิ่นไม้ดอกสาลี่ซ่อมครั่ง」แนบอกจนลุกไหม้เป็นควันสีขาวบริสุทธิ์ — เงาโปร่งแสงไร้เสียงของเวินจิ้งซูยื่นมือที่มีรอยเข็มเย็บผ้าแตะหลังมือเขา ส่ายหน้าทั้งรอยยิ้มเปื้อนน้ำตาแล้วชี้ลงไปยังผู้บาดเจ็บเบื้องล่าง กระบี่ดาราคล้อยหลุดร่วงจากมือ ร่างครึ่งก้าวอริยะสลายเป็นแสงดาวเงิน และป่าต้นสาลี่ดอกขาวงอกงามขึ้นกลางเนินเถ้าดาราในชั่วข้ามคืน — โลกมิได้ดับสูญ แต่เข้าสู่ยุคฟื้นฟูหลังมหาวิปโยคอย่างเท่าเทียมทุกสำนัก!"
+        : "แนวป้องกันทั้งอนุทวีปแตกพ่าย! ทว่าในเสี้ยววินาทีที่ฉู่หวั่งเซวียนจุดไฟปราณขั้วหัวใจเพื่อฟาดกระบี่ผ่าชีพจรทวีป รอยร้าวทัณฑ์สวรรค์ที่สะสมมายาวนานกลับปะทุตีกลับจนร่างครึ่งก้าวอริยะสลายเป็นเถ้าดาราไปพร้อมคมกระบี่ — โลกมิได้ดับสูญ แต่เข้าสู่ยุคฟื้นฟูหลังมหาวิปโยคอย่างเท่าเทียมทุกสำนัก!";
+      this._pushRumor(st, day, yr, msg, "OUTCOME_DEFEAT_PEAR_SMOKE");
+      if (st.war) st.war.battleLog.push({ day, month: moNow, textTh: msg });
+      X.recordChronicle(W, {
+        category: "WITNESS_EPOCH",
+        reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
+        icon: "🌸",
+        titleTh: "ปิ่นไม้สาลี่ลุกไหม้หยุดวันสิ้นโลก! เงาเวินจิ้งซูยั้งกระบี่ผ่าทวีป — เข้าสู่ยุคฟื้นฟูหลังมหาวิปโยค",
+        storyTh: msg,
+        quiet: false
+      });
+    },
+
+    _tickYear10(W, st, cal, day, isSilent) {
+      if (st.outcome) return st;
+      const yr = cal.year || 10;
+      const mo = cal.month || 1;
+      const dom = cal.dom || 1;
+      const cw = this._spawnChuWangxuan(st, day);
+      if (isSilent) return st;
+
+      // Q1 (Month 1-3, Year 10 only): Peaceful Pilgrim Search for the Pear Grove
+      if (yr === 10 && mo <= 3) {
+        st.phase = "Y10_Q1_PEACEFUL_SEARCH";
+        if (!st.y10AwakenedLogged) {
+          st.y10AwakenedLogged = true;
+          cw.locationTh = "ทุ่งร้างใต้เนินเถ้าดารา 40 ลี้";
+          const msg = "ผลึกสุญญากาศค้างภพใต้แผ่นดินแตกสลายลงในรุ่งสางปีที่ 10! ชายผมสีขาวเงินในชุดผ้าแพรครามโบราณยุคที่ 49 พันผ้าดิบหุ้มใบกระบี่ดาราคล้อยไร้ฝักเดินขึ้นจากรอยแยกดินอย่างเงียบสงบ ไม่แผ่รังสีคุกคามผู้ใด";
+          this._pushRumor(st, day, yr, msg, "Y10_AWAKEN");
+          X.recordChronicle(W, {
+            category: "WITNESS_EPOCH",
+            reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
+            icon: "🌠",
+            titleTh: "ปีที่ 10 วสันต์แรก: ฉู่หวั่งเซวียนตื่นจากผลึกค้างภพในฐานะผู้พเนจรผู้สงบนิ่ง",
+            storyTh: msg,
+            quiet: false
+          });
+        }
+        if (mo >= 2 && (mo > 2 || dom >= 10) && !cw.inventory.freshPearTwig) {
+          cw.inventory.freshPearTwig = true;
+          cw.locationTh = "เมืองบัณฑิตกวางขาวไป๋ลู่ → ตลาดเช้าตีนเขาชิงซี";
+          const msg = "ชาวตลาดเช้าตีนเขาชิงซีและเมืองกวางขาวไป๋ลู่พบชายผมขาวเงินท่าทางสุภาพถามทางไปยอดเขาเก่าและขอซื้อกิ่งดอกสาลี่สดหนึ่งกิ่ง เขามองเหรียญกษาปณ์ยุคใหม่ด้วยแววตาเศร้าสงบราวกับรู้ว่าเวลาล่วงเลยไปนับหมื่นปีแล้ว";
+          this._pushRumor(st, day, yr, msg, "Y10_PILGRIM");
+          this._addClue(st, "CLUE_Y10_SILVER_PILGRIM", "ชายผมขาวเงินผู้ซื้อกิ่งดอกสาลี่สด", msg, day, "ชาวตลาดเช้าตีนเขาชิงซี");
+        }
+        return st;
+      }
+
+      // Q2 (Month 4-6, Year 10 only): Star-Ash Mound Revelation & Crushing Mo Changyue + Forming 3-Tier Army
+      if (yr === 10 && mo <= 6) {
+        st.phase = "Y10_Q2_REVELATION_AND_MUSTER";
+        if ((mo > 4 || (mo === 4 && dom >= 14)) && !cw.inventory.lacqueredPearPin) {
+          cw.inventory.lacqueredPearPin = true;
+          cw.inventory.clothWrappedSword = false;
+          cw.locationTh = "ยอดเนินเถ้าดารา";
+          cw.mode = "AVENGER_WARLORD";
+          const msg = "บ่ายวันที่ 14 เดือนสี่คิมหันต์แรก ฉู่หวั่งเซวียนขึ้นถึงยอดเนินเถ้าดารา เห็นศิลาประจานหมื่นบาปถ่มน้ำลายใส่ชื่อเวินจิ้งซู ขุดหินตะกรันด้วยมือเปล่าจนพบ「ปิ่นไม้ดอกสาลี่ซ่อมครั่ง」เก็บแนบขั้วหัวใจ ก่อนกรีดเลือดใช้เนตรดาราย้อนรอยละอองอดีตเห็นภาพภรรยาถูกฉู่เทียนเหิงหลอกออกมารับคมธนูและถูกเผาทั้งเป็น! รอยร้าวทัณฑ์สวรรค์ปริแสงสีเลือด ท้องฟ้าเหนืออนุทวีปมืดครึ้มในพริบตา!";
+          this._pushRumor(st, day, yr, msg, "Y10_REVELATION");
+          X.recordChronicle(W, {
+            category: "WITNESS_EPOCH",
+            reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
+            icon: "🩸",
+            titleTh: "เนินเถ้าดาราสะเทือนฟ้า! ฉู่หวั่งเซวียนเห็นภาพอดีตเวินจิ้งซู — รอยร้าวทัณฑ์สวรรค์ปะทุ",
+            storyTh: msg,
+            quiet: false
+          });
+        }
+        if (mo >= 5 && !st.war) {
+          // Crush Mo Changyue & Sikong Yan with a flick of his finger!
+          (st.operatives || []).forEach(op => {
+            if (!op) return;
+            op.exposed = true;
+            if (op.id === "FSE_OP_MO_CHANGYUE" || op.id === "FSE_OP_SIKONG_YAN") {
+              op.alive = false;
+            }
+          });
+          const tier1Max = (st.repairedVaults || 0) * 420;
+          const tier2Max = 900 + Math.round((st.sectSuspicion || 10) * 14);
+          st.war = {
+            startedDay: day,
+            lastClashMonth: 6,
+            continentDefense: 100,
+            tier1Max,
+            tier1Remaining: tier1Max,
+            tier2Max,
+            tier2Remaining: tier2Max,
+            clashesResolved: 0,
+            hesitationTriggers: 0,
+            lastAllianceSummary: this._computeAlliancePower(W, st),
+            battleLog: []
+          };
+          const msg = "เชิงเนินเถ้าดารา ม่อชางเยว่และซือคงเยี่ยนนำคนงอบเทามาต้อนรับหวังอ้างสายเลือดฉู่เทียนเหิง แต่ฉู่หวั่งเซวียนเพียงสะบัดนิ้วบดขยี้ผู้นำภาคีเถ้าสุริยคราสแหลกเป็นฝุ่นในเสี้ยวลมหายใจ ก่อนยึดตราปลุกกองทัพดาราคล้อยสามชั้น (กรุหุ่น " + (st.repairedVaults || 0) + "/9 กรุ + กองกำลังไถ่บาปและนอกรีต) เคลื่อนทัพทวงหนี้แค้นทั่วอนุทวีป!";
+          this._pushRumor(st, day, yr, msg, "Y10_MO_CRUSHED");
+          st.war.battleLog.push({ day, month: mo, textTh: msg });
+          X.recordChronicle(W, {
+            category: "WITNESS_EPOCH",
+            reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
+            icon: "⚡",
+            titleTh: "สะบัดนิ้วบดขยี้ม่อชางเยว่! กองทัพดาราคล้อยสามชั้นเคลื่อนพลเปิดมหาสงครามทวีป",
+            storyTh: msg,
+            quiet: false
+          });
+        }
+        return st;
+      }
+
+      // Q3-Q4 (Month 7-12): Unscripted Continental War — Monthly Frontline Resolution
+      st.phase = "Y10_Q3_4_CONTINENTAL_WAR";
+      if (!st.war) {
+        // Safety fallback if simulation jumped directly into Q3+
+        if (!cw.inventory.lacqueredPearPin) cw.inventory.lacqueredPearPin = true;
+        cw.inventory.clothWrappedSword = false;
+        cw.locationTh = "ยอดเนินเถ้าดารา";
+        cw.mode = "AVENGER_WARLORD";
+        (st.operatives || []).forEach(op => {
+          if (!op) return;
+          op.exposed = true;
+          if (op.id === "FSE_OP_MO_CHANGYUE" || op.id === "FSE_OP_SIKONG_YAN") op.alive = false;
+        });
+        const tier1Max = (st.repairedVaults || 0) * 420;
+        const tier2Max = 900 + Math.round((st.sectSuspicion || 10) * 14);
+        st.war = {
+          startedDay: day,
+          lastClashMonth: mo - 1,
+          continentDefense: 100,
+          tier1Max,
+          tier1Remaining: tier1Max,
+          tier2Max,
+          tier2Remaining: tier2Max,
+          clashesResolved: 0,
+          hesitationTriggers: 0,
+          lastAllianceSummary: this._computeAlliancePower(W, st),
+          battleLog: []
+        };
+      }
+
+      const war = st.war;
+      const clashStep = mo + (yr > 10 ? (yr - 10) * 12 : 0);
+      if (clashStep <= war.lastClashMonth) return st;
+      war.lastClashMonth = clashStep;
+      war.clashesResolved++;
+
+      const seedKey = String(W.seed || "JS2") + ":fse_war:c" + clashStep;
+      const alliance = this._computeAlliancePower(W, st);
+      war.lastAllianceSummary = alliance;
+
+      // Fallen Star 3-Tier Army effective strength this month
+      const bossScale = Math.max(0.35, cw.hp / Math.max(1, cw.hpMax));
+      const enemyPower = Math.round(
+        war.tier1Remaining * 0.55 +
+        war.tier2Remaining * 0.45 +
+        cw.basePower * bossScale
+      );
+
+      // Human Heart Hesitation: smooth diminishing-returns curve so healers matter without solo-burning the boss
+      let hesitationDmg = 0;
+      const hesChance = Math.min(0.55, 0.14 + Math.sqrt(Math.max(0, alliance.totalHealers)) * 0.08);
+      if (alliance.totalHealers > 0 && this._detUnit(seedKey + ":hes") < hesChance) {
+        war.hesitationTriggers++;
+        hesitationDmg = 280 + Math.min(480, Math.round(Math.sqrt(alliance.totalHealers) * 110));
+        cw.hp = Math.max(0, cw.hp - hesitationDmg);
+        cw.skyRiftBurnAccum += hesitationDmg;
+      }
+
+      // Natural Sky-Rift Scar burn each month of full-power combat
+      const scarBurn = 240;
+      cw.hp = Math.max(0, cw.hp - scarBurn);
+      cw.skyRiftBurnAccum += scarBurn;
+
+      // Frontline exchange: alliance strikes Tier 1 -> Tier 2 -> Chu Wangxuan directly (no double-dipping while shields hold)
+      const luckA = 0.90 + this._detUnit(seedKey + ":la") * 0.20;
+      const luckE = 0.90 + this._detUnit(seedKey + ":le") * 0.20;
+      const effA = Math.round(alliance.totalPower * luckA);
+      const effE = Math.round(enemyPower * luckE);
+
+      let strikeRem = Math.round(effA * 0.44);
+      if (war.tier1Remaining > 0) {
+        const hit1 = Math.min(war.tier1Remaining, strikeRem);
+        war.tier1Remaining -= hit1;
+        strikeRem -= hit1;
+      }
+      if (strikeRem > 0 && war.tier2Remaining > 0) {
+        const hit2 = Math.min(war.tier2Remaining, strikeRem);
+        war.tier2Remaining -= hit2;
+        strikeRem -= hit2;
+      }
+      const shieldsUp = (war.tier1Remaining + war.tier2Remaining) > 0;
+      const bossHit = Math.round(strikeRem * 0.85) + Math.round(effA * (shieldsUp ? 0.04 : 0.12));
+      cw.hp = Math.max(0, cw.hp - bossHit);
+
+      // Continent Defense loss when Fallen Star Army pushes through
+      const defLoss = effE > effA
+        ? Math.round(18 + clamp(((effE - effA) / Math.max(1, effE)) * 28, 4, 28))
+        : Math.round(clamp((effE / Math.max(1, effA)) * 11, 3, 12));
+      war.continentDefense = Math.max(0, war.continentDefense - defLoss);
+
+      // Symmetrical battle wear on Home + External Sects
+      this._applyWarAttritionSymmetric(W, effE > effA ? 0.26 : 0.14, seedKey);
+
+      const clashText = "สมรภูมิเดือน " + mo + ": พันธมิตรทวีป (พลัง " + effA + " · สามัคคี " + Math.round(alliance.unityFactor * 100) + "%) ปะทะทัพดาราคล้อย (พลัง " + effE + ") — แนวป้องกันทวีปคงเหลือ " + war.continentDefense + "%, พลังชีวิตฉู่หวั่งเซวียนเหลือ " + Math.round((cw.hp / cw.hpMax) * 100) + "%" + (hesitationDmg > 0 ? " (หมอสนามและผู้พิทักษ์ทำให้คมกระบี่ชะงัก รอยร้าวทัณฑ์สวรรค์ตีกลับ!)" : "");
+      war.battleLog.push({ day, month: mo, textTh: clashText });
+      if (war.battleLog.length > 16) war.battleLog.shift();
+      this._pushRumor(st, day, yr, clashText, "Y10_CLASH");
+
+      // Check Unscripted Outcome Triggers!
+      if (cw.hp <= 0 && war.continentDefense > 0) {
+        this._resolveVictory(W, st, day, yr, mo);
+        return st;
+      }
+      if (war.continentDefense <= 0) {
+        this._resolveDefeatPearSmoke(W, st, day, yr, mo);
+        return st;
+      }
+      // Final Month 12 Climax Resolution if still deadlocked
+      if (mo >= 12) {
+        const bossPct = cw.hp / Math.max(1, cw.hpMax);
+        const defPct = war.continentDefense / 100;
+        if (defPct >= bossPct) {
+          this._resolveVictory(W, st, day, yr, mo);
+        } else {
+          war.continentDefense = 0;
+          this._resolveDefeatPearSmoke(W, st, day, yr, mo);
+        }
+      }
+      return st;
+    },
+
+    tickDaily(W, calOpt, opts) {
+      if (!W || !W.world) return null;
+      const cal = calOpt || (g.SIM && g.SIM.calendar ? g.SIM.calendar(W.t || 0) : null);
+      if (!cal) return null;
+      const isSilent = !!(opts && opts.silent);
+      const st = this.ensure(W);
+      if (!st) return null;
+      if (isSilent) return st;
+      if (X.LIVING_SECTS && X.LIVING_SECTS.ensureWorldState) X.LIVING_SECTS.ensureWorldState(W);
+      const day = W.day || 360;
+      if (st.lastTickDay >= day) return st;
+      st.lastTickDay = day;
+
+      const yr = cal.year || 1;
+      const mo = cal.month || 1;
+      const dom = cal.dom || 1;
+
+      // Update crystal crack progress across Years 1-9 (0% -> 100% by Year 10 M1 D1)
+      const startOff = (g.SIM && g.SIM.CALENDAR && g.SIM.CALENDAR.START_DAY_OFFSET) || 360;
+      const elapsedDays = Math.max(0, day - startOff);
+      const baseCrack = Math.min(100, Math.round((elapsedDays / (9 * 360)) * 94));
+      st.crystalCrackPct = Math.min(100, Math.max(st.crystalCrackPct || 0, baseCrack + (st.y5BellSpiked ? 6 : 0)));
+
+      if (yr >= 10) {
+        st.crystalCrackPct = 100;
+        st.year10Ready = true;
+        if (!st.outcome) {
+          this._tickYear10(W, st, cal, day, isSilent);
+        }
+        return st;
+      } else if (yr >= 7) {
+        st.phase = "Y7_9_UNDERGROUND_GEARS";
+      } else if (yr >= 4) {
+        st.phase = "Y4_6_PEAR_TWIG_WARNING";
+      } else {
+        st.phase = "Y1_3_BRONZE_COIN";
+      }
+
+      if (isSilent) return st;
+
+      // Year 5 Month 1 Day 3 (during Book #105 Ten-Epoch Bell): Chu Xuan & Chu Sha hammer resonance spikes
+      if (yr >= 5 && (yr > 5 || mo > 1 || dom >= 3) && !st.y5BellSpiked) {
+        st.y5BellSpiked = true;
+        st.crystalCrackPct = Math.min(99, (st.crystalCrackPct || 0) + 6);
+        const msg = "ระหว่างเสียงระฆังหมื่นปีก้องทั่วอนุทวีป ชาวบ้านแถบเนินเถ้าดาราพบกลุ่มคนงอบเทาสองคนลอบตอกหมุดเหล็กลงตามสันเขารอบหลุมยุบโบราณก่อนเร้นกายหายไป";
+        this._pushRumor(st, day, yr, msg, "BELL_SPIKE");
+        this._addClue(st, "CLUE_Y5_RESONANCE_SPIKES", "หมุดเหล็กสะท้อนเสียงระฆังหมื่นปี", msg, day, "ชาวบ้านแถบเนินเถ้าดารา");
+        X.recordChronicle(W, {
+          category: "WITNESS_EPOCH",
+          reportFormat: "JIANGHU_TEAHOUSE_RUMOR",
+          icon: "🌑",
+          titleTh: "เงางอบเทาตอกหมุดเหล็กรอบเนินเถ้าดารากลางเสียงระฆังหมื่นปี",
+          storyTh: msg,
+          quiet: true
+        });
+      }
+
+      // Monthly shadow operative cycle (Years 1-9)
+      const monthIdx = Math.floor(elapsedDays / 30);
+      if (st.lastMonthTick >= monthIdx) return st;
+      st.lastMonthTick = monthIdx;
+      const seedKey = String(W.seed || "JS2") + ":fse:m" + monthIdx;
+
+      // Age operatives realistically
+      (st.operatives || []).forEach(op => {
+        if (op && op.alive) op.ageYears = +((op.ageYears || 40) + 1 / 12).toFixed(2);
+      });
+
+      // 1. Han Gu repairs Reserve Puppet Vaults (0..9) & spikes star-ore prices (Years 1-9)
+      const hanGu = st.operatives.find(o => o && o.id === "FSE_OP_HAN_GU" && o.alive);
+      if (hanGu && (st.repairedVaults + st.interceptedVaults) < st.maxVaults && this._detUnit(seedKey + ":vault") < 0.14) {
+        st.oreSpikeUntilDay = day + 28;
+        const inv = this._findPerceptiveInvestigator(W, seedKey + ":vint");
+        const intercepted = inv && this._detUnit(seedKey + ":vcatch") < 0.34;
+        if (intercepted) {
+          st.interceptedVaults++;
+          const msg = inv.nameTh + " แห่ง「" + inv.sectNameTh + "」สะดุดตากิ่งสาลี่แห้งผูกด้ายขาวหน้าโบราณสถานร้าง จึงตรวจพบประตูกลกรุหุ่นศาสตราดาราที่เพิ่งถูกงัดและทำลายแกนพลังงานไว้ได้ทัน!";
+          this._pushRumor(st, day, yr, msg, "VAULT_SEALED");
+          this._addClue(st, "CLUE_VAULT_OIL_" + st.interceptedVaults, "รอยน้ำมันจักรกลและกิ่งสาลี่เตือนภัย", msg, day, inv.nameTh);
+          if (inv.isHome && inv.npc) {
+            inv.npc.ext = inv.npc.ext || {};
+            inv.npc.ext.pearTwigClues = (inv.npc.ext.pearTwigClues || 0) + 1;
+            if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) {
+              g.SIM.PROSE.recordLifeChapter(W, inv.npc, "ตามรอยกิ่งสาลี่แห้งผูกด้ายขาวเข้าสกัดกรุหุ่นศาสตราดาราโบราณไว้ได้ทัน", "milestone");
+            }
+          }
+          X.recordChronicle(W, {
+            category: "SECRET_REALM",
+            reportFormat: "JIANGHU_TEAHOUSE_RUMOR",
+            icon: "🌿",
+            titleTh: "กิ่งสาลี่แห้งชี้เบาะแส! " + inv.nameTh + " สกัดกรุหุ่นจักรกลโบราณสำเร็จ",
+            storyTh: msg,
+            npcIds: inv.isHome && inv.npc ? [inv.npc.id] : [],
+            quiet: true
+          });
+        } else {
+          st.repairedVaults++;
+          const msg = "ตลาดชายแดนพบชายงอบเทากว้านซื้อแร่ดาราขึ้นสนิมจนราคาพุ่ง และทำเหรียญสำริดสลักดวงอาทิตย์ถูกเงากลืนครึ่งดวงตกไว้ — ภายหลังคณะสำรวจพบกรุโบราณใต้รากเขาถูกไขรหัสลากหุ่นโลหะหายไปในความมืด (กรุที่ " + st.repairedVaults + "/9)";
+          this._pushRumor(st, day, yr, msg, "VAULT_REPAIRED");
+          this._addClue(st, "CLUE_BRONZE_COIN", "เหรียญสำริดคราสทมิฬตกหล่นกลางตลาด", msg, day, "พ่อค้าตลาดเช้าตีนเขาชิงซี");
+          X.recordChronicle(W, {
+            category: "MARKET_TAX_ECONOMY",
+            reportFormat: "JIANGHU_TEAHOUSE_RUMOR",
+            icon: "🪙",
+            titleTh: "ชายงอบเทากว้านซื้อแร่ดาราและเหรียญสำริดคราสทมิฬปริศนา",
+            storyTh: msg,
+            quiet: true
+          });
+        }
+      }
+
+      // 2. Sikong Yan stages false-flag sect ambushes & Wen Mo / A-Zu leave Dried Pear Twigs (Years 4-9)
+      const sikong = st.operatives.find(o => o && o.id === "FSE_OP_SIKONG_YAN" && o.alive);
+      if (sikong && yr >= 4 && this._detUnit(seedKey + ":ff") < 0.16) {
+        st.falseFlagsStaged++;
+        const extSects = ((W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || [])).filter(s => s && !s.collapsed && (!s.livingRoster || !s.livingRoster.collapsed));
+        const sA = extSects.length ? extSects[this._detHash(seedKey + ":sA") % extSects.length] : null;
+        const inv = this._findPerceptiveInvestigator(W, seedKey + ":ffint");
+        const exposed = inv && this._detUnit(seedKey + ":ffcatch") < 0.42;
+        if (exposed) {
+          st.falseFlagsExposed++;
+          st.sectSuspicion = clamp((st.sectSuspicion || 10) - 8, 0, 100);
+          if (sA) sA.attitude = clamp((sA.attitude || 0) + 4, -100, 100);
+          const msg = inv.nameTh + " แห่ง「" + inv.sectNameTh + "」พบกิ่งสาลี่แห้งผูกด้ายขาวปักทับผงปลอมปราณข้างซากขบวนม้า เปิดโปงแผนจัดฉากยุยงให้สำนักใหญ่แตกคอกันได้ทันเวลา!";
+          this._pushRumor(st, day, yr, msg, "FALSE_FLAG_EXPOSED");
+          this._addClue(st, "CLUE_PEAR_TWIG_EXPOSE", "กิ่งสาลี่แห้งผูกด้ายขาวเปิดโปงแผนยุยง", msg, day, inv.nameTh);
+          if (inv.isHome && inv.npc) {
+            inv.npc.ext = inv.npc.ext || {};
+            inv.npc.ext.pearTwigClues = (inv.npc.ext.pearTwigClues || 0) + 1;
+            if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) {
+              g.SIM.PROSE.recordLifeChapter(W, inv.npc, "อาศัยกิ่งสาลี่แห้งผูกด้ายขาวเปิดโปงแผนจัดฉากยุยงระหว่างสำนัก", "milestone");
+            }
+          }
+          X.recordChronicle(W, {
+            category: "COURT_POLITICS",
+            reportFormat: "JIANGHU_TEAHOUSE_RUMOR",
+            icon: "🌿",
+            titleTh: "เปิดโปงแผนยุยง! กิ่งสาลี่แห้งช่วยหยุดศึกสายเลือดระหว่างสำนัก",
+            storyTh: msg,
+            npcIds: inv.isHome && inv.npc ? [inv.npc.id] : [],
+            quiet: true
+          });
+        } else {
+          st.sectSuspicion = clamp((st.sectSuspicion || 10) + 11, 0, 100);
+          if (sA) sA.attitude = clamp((sA.attitude || 0) - 6, -100, 100);
+          const targetName = sA ? sA.nameTh : "สำนักภาคกลาง";
+          const msg = "ขบวนม้าของ「" + targetName + "」ถูกลอบสังหารกลางทางโดยพบเศษหยกสำนักคู่อริตกอยู่ข้างศพ — ความระแวงในหมู่สิบเก้าสำนักพุ่งสูงขึ้นโดยไม่มีใครสังเกตกิ่งสาลี่แห้งที่ถูกพายุพัดกลบ";
+          this._pushRumor(st, day, yr, msg, "FALSE_FLAG_HIT");
+          X.recordChronicle(W, {
+            category: "COURT_POLITICS",
+            reportFormat: "JIANGHU_TEAHOUSE_RUMOR",
+            icon: "🗡️",
+            titleTh: "เหตุลอบสังหารขบวนม้าปริศนา จุดไฟระแวงในสภาสิบเก้าสำนัก",
+            storyTh: msg,
+            quiet: true
+          });
+        }
+      }
+
+      // 3. Moonshadow Black Market sells cheap Dark-Star Manuals (Years 4-8, World-Symmetric across home & external!)
+      if (yr >= 4 && yr <= 8 && this._detUnit(seedKey + ":darkman") < 0.14) {
+        const homeCands = (W.npcs || []).filter(n => {
+          if (!n || n.dead || n.exiled || (n.ext && n.ext.darkStarStain) || (n.ext && n.ext.longevity && n.ext.longevity.stasis)) return false;
+          const amb = (g.HC && g.HC.eff) ? g.HC.eff(n, "personality.ambition") : 50;
+          const caut = (g.HC && g.HC.eff) ? g.HC.eff(n, "personality.caution") : 50;
+          return amb >= 64 || caut <= 40;
+        });
+        const extSects = ((W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || [])).filter(s => s && !s.collapsed && s.livingRoster && !s.livingRoster.collapsed);
+        const extCands = [];
+        extSects.forEach(s => {
+          const r = s.livingRoster;
+          [r.leader].concat(r.elders || [], r.prodigies || []).forEach(m => {
+            if (m && !m.darkStarStain && !(m.longevity && m.longevity.stasis) && (m.ambition || 50) >= 62) {
+              extCands.push({ m, s });
+            }
+          });
+        });
+        const totalPool = homeCands.length + extCands.length;
+        if (totalPool > 0) {
+          const idx = this._detHash(seedKey + ":dmpick") % totalPool;
+          if (idx < homeCands.length) {
+            const n = homeCands[idx];
+            n.ext = n.ext || {};
+            n.ext.darkStarStain = true;
+            if (!st.darkStarStainedHomeIds.includes(n.id)) st.darkStarStainedHomeIds.push(n.id);
+            if (n.cult && g.CULT && g.CULT.threshold) {
+              n.cult.prog = (n.cult.prog || 0) + Math.round(g.CULT.threshold(n) * 0.25);
+            }
+            const nm = (g.HC && g.HC.fullName) ? g.HC.fullName(n) : n.id;
+            const msg = nm + " แอบซื้อ「สำเนาวิชาเร่งปราณดารามืด」ราคาถูกจากตลาดมืดเงาจันทรา ตบะพุ่งไวผิดหูผิดตาแต่มีคราบปราณคราสฝังลึกในชีพจร";
+            this._pushRumor(st, day, yr, msg, "DARK_STAR_STAIN");
+            if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) {
+              g.SIM.PROSE.recordLifeChapter(W, n, "แอบฝึกสำเนาวิชาเร่งปราณดารามืดจากตลาดมืด ตบะพุ่งไวผิดปกติแต่ชีพจรติดคราบปราณคราส", "milestone");
+            }
+          } else {
+            const pick = extCands[idx - homeCands.length];
+            pick.m.darkStarStain = true;
+            if (!st.darkStarStainedExternalIds.includes(pick.m.id)) st.darkStarStainedExternalIds.push(pick.m.id);
+            pick.m.prog = (pick.m.prog || 0) + 35;
+            const msg = "ข่าวลือตลาดมืดเงาจันทรา: ยอดฝีมือแห่ง「" + (pick.s.nameTh || pick.s.id) + "」แอบซื้อสำเนาวิชาเร่งปราณดารามืดราคาถูกไปฝึกจนตบะพุ่งพรวดผิดธรรมชาติ";
+            this._pushRumor(st, day, yr, msg, "DARK_STAR_STAIN");
+          }
+        }
+      }
+
+      // 4. Year 7-9 Omens (Underground Metallic Gears & Shattered Condemnation Steles)
+      if (yr >= 7 && !st.y7GearsHeard && (yr > 7 || mo >= 3)) {
+        st.y7GearsHeard = true;
+        const msg = "กองคาราวานเดินทางกลางคืนแถบที่ราบภาคกลางค่อนบูรพารายงานตรงกันว่าได้ยินเสียงฟันเฟืองและโลหะเดินแถวใต้พื้นดินอย่างน่าขนลุก";
+        this._pushRumor(st, day, yr, msg, "UNDERGROUND_GEARS");
+        this._addClue(st, "CLUE_Y7_GEARS", "เสียงฟันเฟืองและโลหะใต้แผ่นดิน", msg, day, "กองคาราวานบูรพา");
+        X.recordChronicle(W, {
+          category: "WITNESS_EPOCH",
+          reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
+          icon: "⚙️",
+          titleTh: "ลางประหลาดปีที่ 7: เสียงโลหะเดินแถวใต้พื้นดินภาคกลางค่อนบูรพา",
+          storyTh: msg,
+          quiet: true
+        });
+      }
+      if (yr >= 9 && !st.y9SteleShattered && (yr > 9 || mo >= 6)) {
+        st.y9SteleShattered = true;
+        const msg = "แผ่นศิลาโบราณตามหัวเมืองเก่าที่เคยจารึกประณามตำหนักดาราคล้อยเมื่อยุคที่ 49 ถูกทุบทำลายแตกละเอียดในคืนเดือนมืด ทิ้งรอยถ่านหินเขียนไว้ว่า「เจ็ดราตรีไร้ตะวันกำลังจะทวงหนี้คืน」";
+        this._pushRumor(st, day, yr, msg, "STELE_SHATTERED");
+        this._addClue(st, "CLUE_Y9_STELE", "ศิลาประจานยุค 49 แหลกสลายและคำประกาศทวงหนี้", msg, day, "หอจดหมายเหตุหัวเมืองเก่า");
+        X.recordChronicle(W, {
+          category: "WITNESS_EPOCH",
+          reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
+          icon: "🪨",
+          titleTh: "ลางวิบัติปีที่ 9: ศิลาประจานยุค 49 แหลกสลาย —「เจ็ดราตรีไร้ตะวันกำลังจะทวงหนี้คืน」",
+          storyTh: msg,
+          quiet: false
+        });
+      }
+
+      return st;
+    },
+
+    getReadOnlySummary(W) {
+      const st = W && W.world && W.world.fallenStarEpic;
+      if (!st) return null;
+      const revealed = st.year10Ready || !!st.outcome || (st.sectSuspicion >= 45 && st.discoveredClues && st.discoveredClues.length >= 3) || (st.operatives || []).some(op => op && op.exposed);
+      return {
+        phase: st.phase,
+        crystalCrackPct: st.crystalCrackPct || 0,
+        repairedVaults: st.repairedVaults || 0,
+        interceptedVaults: st.interceptedVaults || 0,
+        maxVaults: st.maxVaults || 9,
+        sectSuspicion: st.sectSuspicion || 0,
+        falseFlagsStaged: st.falseFlagsStaged || 0,
+        falseFlagsExposed: st.falseFlagsExposed || 0,
+        darkStarStainedCount: (st.darkStarStainedHomeIds ? st.darkStarStainedHomeIds.length : 0) + (st.darkStarStainedExternalIds ? st.darkStarStainedExternalIds.length : 0),
+        oreSpikeActive: ((W && W.day) || 0) > 0 && (st.oreSpikeUntilDay || 0) >= ((W && W.day) || 0),
+        cluesCount: st.discoveredClues ? st.discoveredClues.length : 0,
+        discoveredClues: (st.discoveredClues || []).slice(-4).reverse(),
+        recentRumors: (st.rumorLog || []).slice(0, 4),
+        year10Ready: !!st.year10Ready,
+        outcome: st.outcome || null,
+        wifeEchoAppeared: !!st.wifeEchoAppeared,
+        starAshMoundState: st.starAshMoundState || "SEALED_RUIN",
+        path59Unlocked: !!st.path59Unlocked,
+        chuWangxuan: st.chuWangxuan ? {
+          nameTh: st.chuWangxuan.nameTh,
+          epithetTh: st.chuWangxuan.epithetTh,
+          mode: st.chuWangxuan.mode,
+          hp: st.chuWangxuan.hp,
+          hpMax: st.chuWangxuan.hpMax,
+          hpPct: Math.round((st.chuWangxuan.hp / Math.max(1, st.chuWangxuan.hpMax)) * 100),
+          locationTh: st.chuWangxuan.locationTh,
+          hasPearPin: !!(st.chuWangxuan.inventory && st.chuWangxuan.inventory.lacqueredPearPin)
+        } : null,
+        war: st.war ? {
+          continentDefense: st.war.continentDefense,
+          tier1Remaining: st.war.tier1Remaining,
+          tier2Remaining: st.war.tier2Remaining,
+          clashesResolved: st.war.clashesResolved,
+          hesitationTriggers: st.war.hesitationTriggers,
+          unityPct: st.war.lastAllianceSummary ? Math.round(st.war.lastAllianceSummary.unityFactor * 100) : 100
+        } : null,
+        operatives: (st.operatives || []).map(op => ({
+          id: op.id,
+          displayNameTh: (revealed || op.exposed) ? op.nameTh : op.coverIdentityTh,
+          factionLabelTh: (revealed || op.exposed) ? (op.trueFaction === "ECLIPSE_ASH" ? "ภาคีเถ้าสุริยคราส" : "ผู้วางกิ่งสาลี่แห้ง") : "ไม่ทราบสังกัด",
+          alive: !!op.alive
+        }))
+      };
+    }
+  };
+  /* === JS2_V3161_FALLEN_STAR_TWO_SHADOWS_END === */
+
 
   g.EXPED = X;
   if (typeof module === 'object' && module.exports) module.exports = X;

@@ -112,7 +112,8 @@
     const liMod = (g.EXPED && g.EXPED.LIVING_INSTITUTIONS && g.EXPED.LIVING_INSTITUTIONS.getMarketPriceModifier)
       ? g.EXPED.LIVING_INSTITUTIONS.getMarketPriceModifier(W, id)
       : 1;
-    const base = (EXT.basePrice(W, id) || ECO.price(W, id)) * ((W.market && W.market.mult[id]) || 1) * (Number.isFinite(liMod) && liMod > 0 ? liMod : 1);
+    const fseOre = (W && g.EXPED && g.EXPED.FALLEN_STAR_EPIC && g.EXPED.FALLEN_STAR_EPIC.getOrePriceMultiplier) ? g.EXPED.FALLEN_STAR_EPIC.getOrePriceMultiplier(W, id) : 1;
+    const base = (EXT.basePrice(W, id) || ECO.price(W, id)) * ((W.market && W.market.mult[id]) || 1) * (Number.isFinite(liMod) && liMod > 0 ? liMod : 1) * (Number.isFinite(fseOre) && fseOre > 0 ? fseOre : 1);
     if (!Number.isFinite(base) || base <= 0) return 0;
     const npcObj = (skillOrNpc && typeof skillOrNpc === 'object') ? skillOrNpc : null;
     const abacusBonus = (npcObj && npcObj.equip && npcObj.equip.WEAPON && (npcObj.equip.WEAPON.gearType === 'ABACUS' || npcObj.equip.WEAPON.weaponType === 'ABACUS')) ? 8 : 0;
@@ -150,7 +151,8 @@
   };
 
   function pickMaterial(W, excluded, maxTier) {
-    const pool = Object.values(ECO.matById).filter(m => EXT.isTradable(m.id) && !excluded.has(m.id) && (maxTier == null || (m.tier || 1) <= maxTier));
+    const _y10Open = !!(CULT && CULT.isPathUnlocked && CULT.isPathUnlocked('FALLEN_STAR_DEFIANCE', W));
+    const pool = Object.values(ECO.matById).filter(m => EXT.isTradable(m.id) && !excluded.has(m.id) && (!m.year10Locked || _y10Open) && (maxTier == null || (m.tier || 1) <= maxTier));
     return pool.length ? W.rng.pick(pool).id : null;
   }
   function addStock(W, stock, id, min, max) {
@@ -180,7 +182,8 @@
       if (pills.length) { const id = W.rng.pick(pills); addStock(W, stock, id, 1, subtype === 'medicine' ? 4 : 2); }
     }
     if ((subtype === 'rare' || subtype === 'caravan') && W.rng.chance(0.35)) {
-      const pool = (g.JD && g.JD.TECH && Array.isArray(g.JD.TECH.techniques) ? g.JD.TECH.techniques : []).filter(t => t && !t.innateOnly && t.tier <= (subtype === 'rare' ? 5 : 3));
+      const _y10OpenT = !!(CULT && CULT.isPathUnlocked && CULT.isPathUnlocked('FALLEN_STAR_DEFIANCE', W));
+      const pool = (g.JD && g.JD.TECH && Array.isArray(g.JD.TECH.techniques) ? g.JD.TECH.techniques : []).filter(t => t && !t.innateOnly && (!t.year10Locked || _y10OpenT) && t.tier <= (subtype === 'rare' ? 5 : 3));
       if (pool.length) {
         const t = W.rng.pick(pool);
         addStock(W, stock, 'TECH_MANUAL:' + t.id, 1, 2);

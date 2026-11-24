@@ -1,5 +1,7 @@
-> **Latest Production Status (Updated 2026-11-23 — JS2 v3.15.1):**
-> - **Current Display Version:** `JS2 v3.15.1` (Save Schema Preserved: `SIM.PATCH_VERSION = '3.9.6'`, `SIM.SAVE_SCHEMA_VERSION = '3.9.6-deep-gameplay-integration'`)
+> **Latest Production Release (`JS2 v3.16.6`):** Completed 10-Team Read-Only Deep Audit & 3-Part Hardening Series (`v3.16.4`–`v3.16.6`) for the Fallen Star & Bloodstained Pear Blossom Epic (`v3.16.0`–`v3.16.3`). Verified: `59` paths / `364` subpaths, `1,999` techs, `1,324` items, `106` lore books / `753` events, `validate_data_schema.js` 0E/0W, `lint_lore_archive.js` 0E/0W, `core_lock.js` & `standalone.js` & `v3160`–`v3166` PASS.
+
+> **Latest Production Status (Updated 2026-11-23 — JS2 v3.16.3 (Part 4/4 COMPLETE: Fallen Star & Bloodstained Pear Blossom Epic — Book #106, Years 1–9 Two Shadows, Year-10 Chu Wangxuan & Two Unscripted Outcomes, Path #59 FALLEN_STAR_DEFIANCE + 6 Subpaths + 12 Techs + 6 Relics/Materials + Morphing Star-Ash Mound Realm)):**
+> - **Current Display Version:** `JS2 v3.16.0` (Save Schema Preserved: `SIM.PATCH_VERSION = '3.9.6'`, `SIM.SAVE_SCHEMA_VERSION = '3.9.6-deep-gameplay-integration'`)
 > - **Hard Locks Verified:** `AGENTS.md` (67,202 B, SHA-256 `f8f0e6cb90f0ad4b3524b204f7ede97f351c0dac1540cd96c40723c888af0fb4`), `GAME_SOURCE/js/human_core.js` (68,270 B, SHA-256 `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`, `HC.FINGERPRINT === '155:2f9c9dd7'`), Exact **40 `<script>` tags**.
 > - **Recent Patch Chain in `PATCH_REPORTS/`:**
 >   - `TWO_SPECS_BUGFIX_AUDIT_JS2_V3_9_9.md` — Two-Spec Bugfix Audit (Fortune Spots, Secret Realms #13, Clues, UI/VFX & Observer-Autonomy)
@@ -10,7 +12,8 @@
 >   - `SEVEN_HALL_BLACK_LEDGER_JS2_V3_13_0.md` — Seven-Hall Neutral Federation (Book 95), Zero Thin-Air Representatives, 3-Faction Politics, Three-Empire Leverage & World-Symmetric Black Ledger Bounty System
 >   - `LIVING_TWELVE_FESTIVALS_JS2_V3_14_0.md` — Part 1: Living 12 Annual Festivals (Book 40) wired symmetrically across player sect, 19 external sects, economy, cultivation, Seven Halls, innerVoiceTh, and 360px HUD/World UI
 >   - `GRAND_PERIODIC_FESTIVALS_B105_JS2_V3_15_0.md`
-- **แพตช์แก้บั๊กและยกระดับความสมมาตร (`JS2 v3.15.1`, 2026-11-24):** `PATCH_REPORTS/AUDIT_BUGFIX_HARDENING_JS2_V3_15_1.md` (อ้างอิงรายงานตรวจบั๊ก 6 ทีม `PATCH_REPORTS/COMPREHENSIVE_SESSION_AUDIT_JS2_V3_9_9_TO_V3_15_0.md` — แก้ครบทุก P0 11 จุด + P1/P2 ข้ามระบบ + `v3151_audit_bugfix_suite.js` 8/8 PASS + `JianghuSect_single.html` 23,877 KB) — Part 2: Lore-First Book #105 (105 books / 742 events) & 6 Grand Periodic Festivals (10y/50y/100y/120y/1,000y/10,000y) converging in Years 2–5
+- **แพตช์แก้บั๊กและยกระดับความสมมาตร (`JS2 v3.15.1`, 2026-11-24):** `PATCH_REPORTS/AUDIT_BUGFIX_HARDENING_JS2_V3_15_1.md`
+- **แพตช์ย่อยที่ 1/4 มหากาพย์ดาราคล้อย (`JS2 v3.16.0`, 2026-11-24):** `PATCH_REPORTS/LORE_B106_FALLEN_STAR_EPIC_JS2_V3_16_0.md` — คัมภีร์ตำนานเล่มที่ 106 ฉบับสมบูรณ์ทั้ง 4 พาร์ท (106 เล่ม / 753 เหตุการณ์, `lint_lore_archive.js` 0E/0W, `v3160_lore_b106_suite.js` 4/4 PASS, `JianghuSect_single.html` 23,980 KB) (อ้างอิงรายงานตรวจบั๊ก 6 ทีม `PATCH_REPORTS/COMPREHENSIVE_SESSION_AUDIT_JS2_V3_9_9_TO_V3_15_0.md` — แก้ครบทุก P0 11 จุด + P1/P2 ข้ามระบบ + `v3151_audit_bugfix_suite.js` 8/8 PASS + `JianghuSect_single.html` 23,877 KB) — Part 2: Lore-First Book #105 (105 books / 742 events) & 6 Grand Periodic Festivals (10y/50y/100y/120y/1,000y/10,000y) converging in Years 2–5
 
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 

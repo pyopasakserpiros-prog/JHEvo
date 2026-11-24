@@ -53352,3 +53352,348 @@ JD.ITEMS.items.forEach(it => {
     }
   }
 })();
+
+
+/* === JS2_V3163_PATH59_FALLEN_STAR_DEFIANCE_START === */
+(function () {
+  const g = typeof globalThis !== "undefined" ? globalThis : window;
+  const JD = g.JD;
+  if (!JD || !JD.CULT || !JD.CULT.paths) return;
+
+  // 1. Register Major Path #59: FALLEN_STAR_DEFIANCE (วิถีดาราคล้อยทวนชะตา) + 6 Subpaths
+  const mkTraits = (subId, nameTh, trigger, action, buff, debuff) => ([
+    { realm: 3, id: "SUBTRAIT_" + subId + "_R3", nameTh: "เปิดมรรคา · " + nameTh, trigger, action, grantBuff: buff, bonusStats: { atkPct: 0.06, matkPct: 0.06, acc: 6 }, descTh: "ปลดล็อกเคล็ดลับขั้นต้นของ " + nameTh },
+    { realm: 6, id: "SUBTRAIT_" + subId + "_R6", nameTh: "ชำนาญศึก · " + nameTh, trigger, action, applyDebuff: debuff, bonusStats: { defPct: 0.08, mdefPct: 0.08, pen: 10 }, descTh: "ยกระดับความเชี่ยวชาญของ " + nameTh },
+    { realm: 9, id: "SUBTRAIT_" + subId + "_R9", nameTh: "บรรลุสัจธรรม · " + nameTh, trigger, action, grantBuff: buff, applyDebuff: debuff, bonusStats: { atkPct: 0.14, matkPct: 0.14, crit: 10, critDmg: 20 }, descTh: "เข้าถึงแก่นแท้สูงสุดของ " + nameTh }
+  ]);
+
+  const path59 = {
+    id: "FALLEN_STAR_DEFIANCE",
+    nameTh: "วิถีดาราคล้อยทวนชะตา",
+    shortTh: "ดาราคล้อย",
+    icon: "🌠",
+    color: "#c084fc",
+    element: "ASTRAL",
+    gaugeId: "STAR_DEFIANCE_GAUGE",
+    gaugeNameTh: "เจตจำนงดาราคล้อย",
+    statWeights: { atk: 1.18, matk: 1.16, def: 1.10, mdef: 1.12, hp: 1.12, qi: 1.16 },
+    resourceUsed: "ปราณดาราคล้อย แรงกดทับม่านฟ้า และพันธะทางใจอันแน่วแน่",
+    coreMechanicTh: "ดึงน้ำหนักของดวงดาวที่ร่วงหล่นลงมาหลอมรวมกับพันธะทางใจของมนุษย์ แบ่งเป็น 6 สายย่อยสะท้อนเจตจำนงทั้งสองขั้วแห่งโศกนาฏกรรมยุคที่ 49 (ล็อกไม่ให้สุ่มเกิดเองก่อนจบศึกปีที่ 10 ยกเว้นผู้เล่นเสกผ่าน Edit Hub)",
+    supremeRiskTh: "หากฝืนดึงปราณดาราเกินพิกัดอาจเกิดรอยร้าวทัณฑ์สวรรค์ตีกลับในเส้นชีพจร",
+    maxStage: 9,
+    year10Locked: true,
+    grade: "TRANSCENDENT",
+    originType: "EPOCH_101_YEAR10_AWAKENING",
+    lore: "มหาวิถีลำดับที่ 59 แห่งหอเจดีย์เก้าเต๋า เปิดเผยหลังมหาวิบัติปีที่ 10 ของครึ่งก้าวอริยะฉู่หวั่งเซวียน และป่าสาลี่เถ้าดารา",
+    signatureKw: "KW_DAO_FALLEN_STAR",
+    v200: true,
+    elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "ASTRAL", weights: { ASTRAL: 0.65, LIGHT_YANG: 0.20, YIN_SHADOW: 0.15 } },
+    realmTraits: [
+      { id: "RT_FSE_STAR_PRESSURE", nameTh: "แรงกดดาราคล้อย", descTh: "แผ่แรงโน้มถ่วงดาราคล้อยกดทับศัตรูที่เข้าประชิด เพิ่มเจาะเกราะและต้านทานแรงผลัก" },
+      { id: "RT_FSE_DEFIANT_OATH", nameTh: "พันธะทวนชะตา", descTh: "ยิ่งเผชิญศัตรูระดับสูงกว่า ยิ่งเพิ่มเจตจำนงต้านทัณฑ์สวรรค์และฟื้นฟูเกจวิถีเร็วขึ้น" }
+    ],
+    stages: [
+      { stage: 1, nameTh: "ขั้นที่ 1 • ยืนใต้ฟ้าปิด", lifespanMax: 110, combatPower: 135, breakthroughBaseChance: 0.80, tribulationLayers: 0, majorStageEquivalent: 1, effectiveTechStage: 1, resourceReq: "ปราณดาราและจิตใจแน่วแน่" },
+      { stage: 2, nameTh: "ขั้นที่ 2 • ดึงน้ำหนักดารา", lifespanMax: 140, combatPower: 220, breakthroughBaseChance: 0.74, tribulationLayers: 0, majorStageEquivalent: 2, effectiveTechStage: 2, resourceReq: "แร่ดาราและศิลาปราณ" },
+      { stage: 3, nameTh: "ขั้นที่ 3 • สลักพันธะลงชีพจร", lifespanMax: 185, combatPower: 360, breakthroughBaseChance: 0.66, tribulationLayers: 1, majorStageEquivalent: 3, effectiveTechStage: 3, resourceReq: "แก่นดาราและโอสถประคองชีพจร" },
+      { stage: 4, nameTh: "ขั้นที่ 4 • ไร้ฝักไร้ถอย", lifespanMax: 245, combatPower: 560, breakthroughBaseChance: 0.58, tribulationLayers: 1, majorStageEquivalent: 4, effectiveTechStage: 4, resourceReq: "เศษศิลาดาราคล้อย" },
+      { stage: 5, nameTh: "ขั้นที่ 5 • เงาคราสกลางทิวา", lifespanMax: 325, combatPower: 860, breakthroughBaseChance: 0.50, tribulationLayers: 2, majorStageEquivalent: 5, effectiveTechStage: 5, resourceReq: "แกนหุ่นดาราและน้ำค้างสาลี่" },
+      { stage: 6, nameTh: "ขั้นที่ 6 • ฝ่าค่ายกลเก้าชั้น", lifespanMax: 430, combatPower: 1280, breakthroughBaseChance: 0.42, tribulationLayers: 2, majorStageEquivalent: 6, effectiveTechStage: 6, resourceReq: "มรดกเนินเถ้าดารา" },
+      { stage: 7, nameTh: "ขั้นที่ 7 • เหยียบรอยร้าวทัณฑ์สวรรค์", lifespanMax: 560, combatPower: 1850, breakthroughBaseChance: 0.34, tribulationLayers: 3, majorStageEquivalent: 7, effectiveTechStage: 7, resourceReq: "แกนหัวใจหุ่นดาราและโอสถเจ็ดทิวา" },
+      { stage: 8, nameTh: "ขั้นที่ 8 • สามวรรคไร้บทจบ", lifespanMax: 720, combatPower: 2620, breakthroughBaseChance: 0.26, tribulationLayers: 4, majorStageEquivalent: 8, effectiveTechStage: 8, resourceReq: "ความตระหนักรู้วรรคที่สี่แห่งตน" },
+      { stage: 9, nameTh: "ขั้นที่ 9 • ดาราคล้อยทวนชะตา (สุดขอบโลกล่าง)", lifespanMax: 920, combatPower: 3650, breakthroughBaseChance: 0.18, tribulationLayers: 5, majorStageEquivalent: 9, effectiveTechStage: 9, resourceReq: "เจตจำนงทวนม่านฟ้าอันบริสุทธิ์" }
+    ],
+    subPaths: [
+      {
+        id: "FALLEN_STAR_PRESSURE",
+        path: "FALLEN_STAR_DEFIANCE",
+        nameTh: "สายดาราคล้อยทับนภา",
+        icon: "🌌",
+        resourceTh: "ปราณดาราคล้อยและแรงโน้มถ่วงม่านฟ้า",
+        strengthTh: "สายแนวหน้าเชิงรุกและควบคุมพื้นที่ระดับสูงสุด กางเขตแดนแรงกดดาราคล้อยกดทับศัตรูทั้งสนาม (มรดกฉู่หวั่งเซวียน)",
+        weaknessTh: "ต้องรักษาสมาธิและสมดุลชีพจรไม่ให้รอยร้าวปราณดาราตีกลับ",
+        combatBonus: 1.28, defenseBonus: 1.18, breakthroughMod: 1.06, cultivationBonus: 1.10,
+        element: "ASTRAL",
+        elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "ASTRAL", weights: { ASTRAL: 0.75, EARTH_METAL: 0.25 } },
+        weaponTypes: ["SWORD"], armorTypes: ["ROBE", "LIGHT"],
+        primarySkill: "SWORD", secondarySkills: ["MEDITATION"],
+        subpathTraits: mkTraits("FALLEN_STAR_PRESSURE", "สายดาราคล้อยทับนภา", "onHit", "STAR_PRESSURE_DOMAIN", "astralShield", "armorbreak"),
+        customTrigger: "onHit", customAction: "STAR_PRESSURE_DOMAIN", signatureBuff: "astralShield", signatureDebuff: "armorbreak",
+        descTh: "หนึ่งคนยืนขวางหมื่นทัพ ดึงแรงกดทับของม่านฟ้าลงมาเป็นเกราะและคมกระบี่ของตนเอง (มรดกเจตจำนงแห่งฉู่หวั่งเซวียน)",
+        grade: "TRANSCENDENT", signatureKw: "KW_DAO_FALLEN_STAR", v200: true
+      },
+      {
+        id: "STAR_SPEAR_OATH",
+        path: "FALLEN_STAR_DEFIANCE",
+        nameTh: "สายทวนดาราพิทักษ์สัตย์",
+        icon: "🛡️",
+        resourceTh: "ปณิธานคุ้มครองผู้บริสุทธิ์และเกราะเงินดารา",
+        strengthTh: "ปราการแนวหน้าและสวนกลับอย่างเที่ยงธรรม รับความเสียหายแทนสหายและปลดปล่อยกลไกตายทั้งยืนไม่ถอยก้าว (มรดกฉู่หวินหลาน)",
+        weaknessTh: "ยอมรับแรงปะทะแทนสหายทำให้เสี่ยงบาดเจ็บหนักหากไร้หมอสนามหนุนหลัง",
+        combatBonus: 1.20, defenseBonus: 1.32, breakthroughMod: 1.05, cultivationBonus: 1.08,
+        element: "EARTH_METAL",
+        elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "EARTH_METAL", weights: { EARTH_METAL: 0.6, LIGHT_YANG: 0.4 } },
+        weaponTypes: ["SPEAR"], armorTypes: ["HEAVY"],
+        primarySkill: "SPEAR", secondarySkills: ["BODY_REFINING"],
+        subpathTraits: mkTraits("STAR_SPEAR_OATH", "สายทวนดาราพิทักษ์สัตย์", "onStruck", "OATH_COUNTER_SPEAR", "leylineBastion", "weaken"),
+        customTrigger: "onStruck", customAction: "OATH_COUNTER_SPEAR", signatureBuff: "leylineBastion", signatureDebuff: "weaken",
+        descTh: "ต่อให้คนในบ้านทำผิดจนฟ้าดินสาปแช่ง ทวนเล่มนี้ก็จะยืนขวางหน้าผู้ไร้เดียงสาจนลมหายใจสุดท้าย (มรดกเจตจำนงแห่งแม่ทัพหญิงฉู่หวินหลาน)",
+        grade: "TRANSCENDENT", signatureKw: "KW_DAO_FALLEN_STAR", v200: true
+      },
+      {
+        id: "PEAR_BLOSSOM_MERCY",
+        path: "FALLEN_STAR_DEFIANCE",
+        nameTh: "สายกิ่งสาลี่ทอเมตตา",
+        icon: "🌸",
+        resourceTh: "ปราณเมตตาอันบริสุทธิ์และกลีบดอกสาลี่ขาว",
+        strengthTh: "สายสนับสนุน เยียวยา และสลายจิตมารระดับสูงสุด กางม่านกลีบสาลี่ขาวเปลี่ยนเจตนาสังหารเป็นละอองฟื้นฟู (มรดกเวินจิ้งซูและหมอหญิงซูเหยา)",
+        weaknessTh: "ไม่เน้นการสังหารเด็ดขาดโดยตรง และพลังม่านคุ้มกันขึ้นกับความบริสุทธิ์ของประวัติความเมตตา",
+        combatBonus: 1.12, defenseBonus: 1.26, breakthroughMod: 1.10, cultivationBonus: 1.14,
+        element: "WOOD_LIFE",
+        elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "WOOD_LIFE", weights: { WOOD_LIFE: 0.65, LIGHT_YANG: 0.35 } },
+        weaponTypes: ["NEEDLE", "FAN"], armorTypes: ["ROBE"],
+        primarySkill: "ALCHEMY", secondarySkills: ["MEDITATION"],
+        subpathTraits: mkTraits("PEAR_BLOSSOM_MERCY", "สายกิ่งสาลี่ทอเมตตา", "onHeal", "PEAR_MERCY_VEIL", "vitalRegen", "pacify"),
+        customTrigger: "onHeal", customAction: "PEAR_MERCY_VEIL", signatureBuff: "vitalRegen", signatureDebuff: "pacify",
+        descTh: "ปราณที่อ่อนโยนที่สุดมิใช่ปราณที่ไร้กำลัง แต่คือปราณที่แม้แต่คมดาบของผู้แค้นเคืองยังต้องหลั่งน้ำตายามสัมผัส (มรดกเจตจำนงแห่งเวินจิ้งซูและซูเหยา)",
+        grade: "TRANSCENDENT", signatureKw: "KW_DAO_FALLEN_STAR", v200: true
+      },
+      {
+        id: "MYRIAD_TABLET_BLADE",
+        path: "FALLEN_STAR_DEFIANCE",
+        nameTh: "สายดาบหมื่นป้ายทวงหนี้ฟ้า",
+        icon: "🗡️",
+        resourceTh: "เจตจำนงผู้โค่นยักษ์และเปลวโลหิตทวงความเป็นธรรม",
+        strengthTh: "สายเจาะเกราะโค่นยักษ์ ยิ่งศัตรูมีขั้นตบะหรืออำนาจสูงกว่า ยิ่งเจาะเกราะและคริติคอลรุนแรง (มรดกลู่เฉินและเสิ่นชางไห่)",
+        weaknessTh: "พลังคมดาบจะอ่อนลงหากนำไปรังแกผู้ที่อ่อนแอกว่า และเสี่ยงเสียเลือดเนื้อยามเผาโลหิตผ่าค่ายกล",
+        combatBonus: 1.30, defenseBonus: 1.12, breakthroughMod: 1.06, cultivationBonus: 1.08,
+        element: "FIRE",
+        elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "FIRE", weights: { FIRE: 0.55, BLOOD_DEMON: 0.45 } },
+        weaponTypes: ["BLADE"], armorTypes: ["LIGHT", "HEAVY"],
+        primarySkill: "BLADE", secondarySkills: ["BODY_REFINING"],
+        subpathTraits: mkTraits("MYRIAD_TABLET_BLADE", "สายดาบหมื่นป้ายทวงหนี้ฟ้า", "onHit", "GIANT_SLAYER_CLEAVE", "bloodFury", "armorbreak"),
+        customTrigger: "onHit", customAction: "GIANT_SLAYER_CLEAVE", signatureBuff: "bloodFury", signatureDebuff: "armorbreak",
+        descTh: "เมื่อผู้สูงส่งบนยอดเขาไม่เคยก้มมองดิน คมดาบบิ่นของเด็กกำพร้าจะปีนขึ้นไปทวงคำตอบถึงหน้าประตูฟ้าเอง (มรดกเจตจำนงแห่งลู่เฉินและเสิ่นชางไห่)",
+        grade: "TRANSCENDENT", signatureKw: "KW_DAO_FALLEN_STAR", v200: true
+      },
+      {
+        id: "STAR_FURNACE_PUPPET",
+        path: "FALLEN_STAR_DEFIANCE",
+        nameTh: "สายเตาดารากลืนชีพจร",
+        icon: "⚙️",
+        resourceTh: "แร่เหล็กดาราและแกนจักรกลสูบปราณ",
+        strengthTh: "สายลูกผสมการรบยืดเยื้อและช่างกลศาสตรา ดูดเศษปราณซ่อมอาวุธเกราะและปลุกเงาหุ่นดาราช่วยรุมตี (มรดกไป๋หลี่เซียว)",
+        weaknessTh: "ความหมกมุ่นในงานช่างสุดโต่งอาจทำให้ศิษย์สายเมตตาห่างเหิน",
+        combatBonus: 1.22, defenseBonus: 1.22, breakthroughMod: 1.04, cultivationBonus: 1.12,
+        element: "EARTH_METAL",
+        elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "EARTH_METAL", weights: { EARTH_METAL: 0.60, ASTRAL: 0.40 } },
+        weaponTypes: ["ASTROLABE", "STAFF"], armorTypes: ["HEAVY", "ROBE"],
+        primarySkill: "FORGING", secondarySkills: ["FORMATION"],
+        subpathTraits: mkTraits("STAR_FURNACE_PUPPET", "สายเตาดารากลืนชีพจร", "onHit", "FURNACE_SIPHON_PUPPET", "ironSkin", "weaken"),
+        customTrigger: "onHit", customAction: "FURNACE_SIPHON_PUPPET", signatureBuff: "ironSkin", signatureDebuff: "weaken",
+        descTh: "เนื้อหนังมนุษย์เปราะบางและเน่าเปื่อยง่าย มีเพียงการหลอมชีพจรลงในเหล็กดาราเท่านั้นที่จะคงอยู่ชั่วนิรันดร์ (มรดกเจตจำนงแห่งไป๋หลี่เซียว)",
+        grade: "TRANSCENDENT", signatureKw: "KW_DAO_FALLEN_STAR", v200: true
+      },
+      {
+        id: "ECLIPSE_SHADOW_OPPORTUNIST",
+        path: "FALLEN_STAR_DEFIANCE",
+        nameTh: "สายเงาสุริยคราสชิงวาสนา",
+        icon: "🌑",
+        resourceTh: "ไอเงาสุริยคราสและกลอุบายตัดจังหวะ",
+        strengthTh: "สายลอบเร้น ซ้ำจุดตายเป้าหมายพลังชีวิตต่ำ และช่วงชิงบัฟคุ้มกายของศัตรูมาเป็นของตน (มรดกหวงฝู่เจิ้งและภาคีเถ้าสุริยคราส)",
+        weaknessTh: "ไม่ถนัดการปะทะตรงหน้ากับปราการแนวหน้าที่มีสติมั่นคง",
+        combatBonus: 1.26, defenseBonus: 1.14, breakthroughMod: 1.05, cultivationBonus: 1.10,
+        element: "YIN_SHADOW",
+        elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "YIN_SHADOW", weights: { YIN_SHADOW: 0.70, ASTRAL: 0.30 } },
+        weaponTypes: ["BLADE", "NEEDLE"], armorTypes: ["LIGHT"],
+        primarySkill: "BLADE", secondarySkills: ["STEALTH"],
+        subpathTraits: mkTraits("ECLIPSE_SHADOW_OPPORTUNIST", "สายเงาสุริยคราสชิงวาสนา", "onCrit", "ECLIPSE_STEAL_BOON", "shadowVeil", "bleed"),
+        customTrigger: "onCrit", customAction: "ECLIPSE_STEAL_BOON", signatureBuff: "shadowVeil", signatureDebuff: "bleed",
+        descTh: "ผู้กล้าตายหน้ากำแพง ผู้โง่งมตายเฝ้าคลัง ส่วนผู้ชนะตัวจริงคือก้าวออกมาตอนที่ดวงอาทิตย์ดับแสง (มรดกด้านมืดแห่งหวงฝู่เจิ้งและภาคีเถ้าสุริยคราส)",
+        grade: "TRANSCENDENT", signatureKw: "KW_DAO_FALLEN_STAR", v200: true
+      }
+    ]
+  };
+
+  if (Array.isArray(JD.CULT.paths)) {
+    if (!JD.CULT.paths.some(p => p && p.id === "FALLEN_STAR_DEFIANCE")) {
+      JD.CULT.paths.push(path59);
+    }
+  } else {
+    JD.CULT.paths.FALLEN_STAR_DEFIANCE = path59;
+  }
+
+  // 2. Register 12 Signature Martial Techs (2 per Subpath) into JD.TECH.techniques
+  if (JD.TECH && Array.isArray(JD.TECH.techniques)) {
+    const _fseMoveSpec = {
+      TECH_V3163_NINE_SKY_STAR_EYE: { M: 1.58, hits: 2, pen: 18, rider: "armorbreak", grantBuff: "astralShield", targetSelector: "ALL_ENEMIES", aiRole: "burst" },
+      TECH_V3163_THREE_VERSE_BROKEN_BRIDGE: { M: 1.92, hits: 3, pen: 26, critBonus: 14, rider: "armorbreak", grantBuff: "astralShield", targetSelector: "SINGLE_ENEMY", aiRole: "burst" },
+      TECH_V3163_CLOUD_STAIR_SPEAR: { M: 1.54, hits: 2, pen: 14, rider: "weaken", grantBuff: "leylineBastion", targetSelector: "SINGLE_ENEMY", aiRole: "burst" },
+      TECH_V3163_SILVER_ARMOR_DEBT: { type: "b", M: 0, hits: 0, shieldPct: 0.24, grantBuff: "leylineBastion", targetSelector: "SELF", aiRole: "sustain" },
+      TECH_V3163_WHITE_PEAR_CURTAIN: { type: "b", M: 0, hits: 0, healPct: 0.22, shieldPct: 0.14, cleanse: 1, grantBuff: "vitalRegen", targetSelector: "ALL_ALLIES", aiRole: "sustain" },
+      TECH_V3163_PURE_HAND_VOW: { type: "b", M: 0, hits: 0, healPct: 0.30, shieldPct: 0.18, cleanse: 2, grantBuff: "vitalRegen", targetSelector: "LOWEST_HP_ALLY", aiRole: "sustain" },
+      TECH_V3163_THREE_THOUSAND_TABLETS: { M: 1.66, hits: 2, pen: 24, critBonus: 12, rider: "armorbreak", grantBuff: "bloodFury", targetSelector: "SINGLE_ENEMY", aiRole: "burst" },
+      TECH_V3163_ONE_ARM_WAR_DRUM: { M: 1.56, hits: 2, pen: 22, rider: "armorbreak", grantBuff: "bloodFury", targetSelector: "ROW_FRONT", aiRole: "burst" },
+      TECH_V3163_STAR_FURNACE_BLUEPRINT: { M: 1.48, hits: 2, pen: 14, rider: "weaken", grantBuff: "ironSkin", targetSelector: "SINGLE_ENEMY", aiRole: "burst" },
+      TECH_V3163_PUPPET_SHADOW_ARMY: { M: 1.52, hits: 3, pen: 12, rider: "weaken", grantBuff: "ironSkin", targetSelector: "ALL_ENEMIES", aiRole: "burst" },
+      TECH_V3163_SHADOW_UNDER_RIGHTEOUS_BANNER: { M: 1.68, hits: 2, pen: 20, critBonus: 16, rider: "bleed", grantBuff: "shadowVeil", targetSelector: "LOWEST_HP_ENEMY", aiRole: "burst" },
+      TECH_V3163_ECLIPSE_VANISH_STEP: { type: "b", M: 0, hits: 0, shieldPct: 0.14, grantBuff: "shadowVeil", targetSelector: "SELF", aiRole: "sustain" }
+    };
+    const mkTech = (id, nameTh, subId, tier, grade, power, el, arch, wpn, descTh) => {
+      const sp = _fseMoveSpec[id] || {};
+      const isBuff = arch === "buff" || sp.type === "b";
+      const mv1 = Object.assign({
+        id: id + "_M1", parentId: id, stageReq: 1, reqMastery: 0,
+        nameTh: "กระบวนท่า • " + nameTh, arch, type: isBuff ? "b" : "a",
+        M: isBuff ? 0 : (sp.M || 1.48), mult: isBuff ? 1 : (sp.M || 1.48),
+        hits: isBuff ? 0 : (sp.hits || 2), cd: isBuff ? 24 : 26, wind: 3, costPct: 7, qiCost: 28,
+        targetSelector: sp.targetSelector || (isBuff ? "SELF" : "SINGLE_ENEMY"),
+        aiRole: sp.aiRole || (isBuff ? "sustain" : "burst")
+      }, sp);
+      return {
+        id, nameTh,
+        path: "FALLEN_STAR_DEFIANCE",
+        compatiblePaths: ["FALLEN_STAR_DEFIANCE"],
+        exclusiveSubpath: subId,
+        requiresWeapon: wpn.length > 0,
+        cat: "COMBAT_TECHNIQUE",
+        role: "ACTIVE",
+        combatArch: arch,
+        tier, reqTier: Math.max(1, tier - 1),
+        grade, power,
+        legendary: true,
+        transcendent: grade === "Transcendent",
+        element: el,
+        elementalRole: "INTRINSIC",
+        elementProfile: { mode: "INTRINSIC_SINGLE", primary: el, weights: { [el]: 1 } },
+        weaponTypes: wpn,
+        armorTypes: ["ROBE", "LIGHT", "HEAVY"],
+        obtainSources: ["SECRET_REALM:REALM_STAR_ASH_MOUND", "PAGODA_TRIAL:FALLEN_STAR_DEFIANCE"],
+        sourceInfoTh: "แดนลับเนินเถ้าดารา & หอเจดีย์เก้าเต๋าชั้นที่ 59 (หลังศึกปีที่ 10)",
+        descTh,
+        year10Locked: true,
+        stages: [
+          { stage: 1, id: id + "_S1", nameTh: "ขั้นที่ 1 • แรกสัมผัสเจตจำนง", reqMastery: 0, reqCultStage: Math.max(1, tier - 1), mult: 1 },
+          { stage: 2, id: id + "_S2", nameTh: "ขั้นที่ 2 • หลอมรวมดาราคล้อย", reqMastery: 45, reqCultStage: tier, mult: 1.24 }
+        ],
+        moveDefs: [mv1],
+        moves: ["กระบวนท่า • " + nameTh],
+        v200: true
+      };
+    };
+
+    const fseTechs = [
+      mkTech("TECH_V3163_NINE_SKY_STAR_EYE", "เคล็ดเนตรดาราคล้อยเก้าชั้นฟ้า", "FALLEN_STAR_PRESSURE", 6, "Legendary", 420, "ASTRAL", "burst", ["SWORD"], "กางเขตแดนแรงกดดาราคล้อยจากเก้าชั้นฟ้า กดทับความเร็วและเจาะเกราะศัตรูทั้งสนาม"),
+      mkTech("TECH_V3163_THREE_VERSE_BROKEN_BRIDGE", "มหาคัมภีร์สามวรรค • กระบี่ไร้ฝักหักสะพานเซียน", "FALLEN_STAR_PRESSURE", 7, "Transcendent", 560, "ASTRAL", "burst", ["SWORD"], "มหาวิชาเหนือตำนานของฉู่หวั่งเซวียน ผู้ฝึกต้องเขียนวรรคที่สี่จากความปรารถนาสูงสุดที่ยอมแลกได้แม้กระทั่งความเป็นเซียน"),
+      mkTech("TECH_V3163_CLOUD_STAIR_SPEAR", "เพลงทวนดาราขวางบันไดเมฆา", "STAR_SPEAR_OATH", 6, "Legendary", 405, "EARTH_METAL", "strike", ["SPEAR"], "เพลงทวนปักหลักขวางบันไดหินของฉู่หวินหลาน สวนกลับผู้ที่บังอาจทำร้ายผู้บาดเจ็บอย่างรุนแรง"),
+      mkTech("TECH_V3163_SILVER_ARMOR_DEBT", "เคล็ดเกราะเงินแบกหนี้ตระกูล", "STAR_SPEAR_OATH", 5, "Exceptional", 340, "EARTH_METAL", "buff", ["SPEAR"], "ปลุกปราณเกราะเงินไม่ถอยก้าว เพิ่มพลังป้องกันและต้านทานสถานะควบคุมสูงสุดเมื่อพลังชีวิตวิกฤต"),
+      mkTech("TECH_V3163_WHITE_PEAR_CURTAIN", "เคล็ดม่านกลีบสาลี่ขาวสลายมาร", "PEAR_BLOSSOM_MERCY", 6, "Legendary", 390, "WOOD_LIFE", "buff", [], "กางม่านกลีบสาลี่ขาวล้างพิษ ปราณติดขัด และลดปมมารในใจให้สหายทั้งสนามรบ"),
+      mkTech("TECH_V3163_PURE_HAND_VOW", "คัมภีร์มือสะอาดใจบริสุทธิ์ประคองชีพ", "PEAR_BLOSSOM_MERCY", 7, "Transcendent", 460, "WOOD_LIFE", "buff", [], "เปลี่ยนเจตนาสังหารส่วนเกินของศัตรูเป็นละอองปราณฟื้นฟูผู้บาดเจ็บ และรับดาบถึงตายแทนสหายได้หนึ่งครั้ง"),
+      mkTech("TECH_V3163_THREE_THOUSAND_TABLETS", "เพลงดาบบิ่นสามพันป้ายวิญญาณ", "MYRIAD_TABLET_BLADE", 6, "Legendary", 435, "FIRE", "burst", ["BLADE"], "เพลงดาบโค่นยักษ์แห่งลู่เฉิน ยิ่งศัตรูมีขั้นตบะสูงกว่ายิ่งเจาะทะลวงเกราะทุกชนิด"),
+      mkTech("TECH_V3163_ONE_ARM_WAR_DRUM", "เคล็ดกลองศึกแขนเดี่ยวผ่าค่ายกล", "MYRIAD_TABLET_BLADE", 5, "Exceptional", 355, "BLOOD_DEMON", "strike", ["BLADE"], "สละพลังชีวิตส่วนหนึ่งระเบิดคมดาบทำลายม่านค่ายกลป้องกันของศัตรูตามเจตจำนงเสิ่นชางไห่"),
+      mkTech("TECH_V3163_STAR_FURNACE_BLUEPRINT", "พิมพ์เขียวเตาดาราสูบชีพจร", "STAR_FURNACE_PUPPET", 6, "Legendary", 410, "EARTH_METAL", "strike", ["ASTROLABE"], "ดูดซับเศษปราณจากศัตรูที่บาดเจ็บมาซ่อมแซมความทนทานศาสตราและเสริมพลังหุ่นกล"),
+      mkTech("TECH_V3163_PUPPET_SHADOW_ARMY", "เคล็ดเชิดหุ่นเหล็กดาราคล้อย", "STAR_FURNACE_PUPPET", 5, "Exceptional", 350, "ASTRAL", "burst", ["ASTROLABE", "STAFF"], "ปลุกเงาหุ่นองครักษ์ดาราคล้อยเข้าล้อมโจมตีศัตรูอย่างต่อเนื่อง"),
+      mkTech("TECH_V3163_SHADOW_UNDER_RIGHTEOUS_BANNER", "เคล็ดดาบซ่อนเงาใต้ธงธรรมะ", "ECLIPSE_SHADOW_OPPORTUNIST", 6, "Legendary", 425, "YIN_SHADOW", "burst", ["BLADE", "NEEDLE"], "โจมตีซ้ำจุดตายเป้าหมายที่พลังชีวิตต่ำกว่า 40% และช่วงชิงบัฟคุ้มกายของศัตรู"),
+      mkTech("TECH_V3163_ECLIPSE_VANISH_STEP", "ท่าร่างเร้นกายวันสุริยคราส", "ECLIPSE_SHADOW_OPPORTUNIST", 5, "Exceptional", 335, "YIN_SHADOW", "buff", [], "ซ่อนกลิ่นอายปราณไม่ให้ตกเป็นเป้าแรกและเพิ่มความคล่องตัวหลบหนีจากวงล้อม")
+    ];
+    for (const t of fseTechs) {
+      if (!JD.TECH.techniques.some(x => x && x.id === t.id)) JD.TECH.techniques.push(t);
+    }
+  }
+
+  // 3. Register 4 Legendary/Transcendent Relics into JD.ITEMS.items + 2 Transcendent Materials into JD.ITEMS.materials
+  if (JD.ITEMS && Array.isArray(JD.ITEMS.items)) {
+    const fseRelics = [
+      {
+        id: "REL_V3163_SHEATHLESS_STAR_SWORD",
+        nameTh: "กระบี่ดาราคล้อยไร้ฝัก",
+        cat: "EQUIPMENT", out: "EQUIPMENT", slot: "WEAPON", gearType: "SWORD", visualSubtype: "SWORD",
+        tier: 7, minStage: 6, rarity: "Transcendent", grade: "Transcendent", legendary: true, unique: true, year10Locked: true,
+        q: 1.45, value: 6800, craft: "FORGING", durability: 100,
+        compatiblePath: ["FALLEN_STAR_DEFIANCE", "XIAN", "ANY"],
+        preferredSubs: ["FALLEN_STAR_PRESSURE"],
+        fixedStats: { atk: 760, matk: 710, acc: 210, crit: 14, critDmg: 30, pen: 26, cast: 14 },
+        descTh: "ใบกระบี่สีเงินหม่นที่มีรอยร้าวสายฟ้าทัณฑ์สวรรค์พาดผ่านกลางใบ คู่กายครึ่งก้าวอริยะฉู่หวั่งเซวียน ไร้ฝักเพราะฝักไม้ผุสลายไปกับเรือนสาลี่แล้ว (ปลดล็อกหลังศึกปีที่ 10 หรือเสกผ่าน Edit Hub)",
+        element: "ASTRAL",
+        elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "ASTRAL", weights: { ASTRAL: 0.75, EARTH_METAL: 0.25 } },
+        obtainSources: ["SECRET_REALM:REALM_STAR_ASH_MOUND", "YEAR10_VICTORY"],
+        passiveEffects: [{ id: "EFF_SHEATHLESS_STAR_SWORD", trigger: "onHit", grantBuff: "astralShield", rider: "armorbreak", descTh: "โจมตีมีโอกาสกางเกราะแรงกดดาราคล้อยและเจาะเกราะศัตรู" }],
+        noEvolution: true
+      },
+      {
+        id: "REL_V3163_BLOOMING_PEAR_PIN",
+        nameTh: "ปิ่นไม้ดอกสาลี่ผลิใบใหม่",
+        cat: "EQUIPMENT", out: "EQUIPMENT", slot: "ACCESSORY", gearType: "CHARM", subType: "CHARM", visualSubtype: "CHARM",
+        tier: 7, minStage: 5, rarity: "Transcendent", grade: "Transcendent", legendary: true, unique: true, year10Locked: true,
+        q: 1.45, value: 6500, craft: "FORGING", durability: 100,
+        compatiblePath: ["FALLEN_STAR_DEFIANCE", "SAGE_SUPPORT", "ANY"],
+        preferredSubs: ["PEAR_BLOSSOM_MERCY"],
+        fixedStats: { hp: 780, def: 260, mdef: 320, matk: 340, eva: 75 },
+        descTh: "กิ่งไม้สาลี่สีขาวนวลที่งอกขึ้นใหม่ตรงจุดที่หยดเลือดสุดท้ายของเวินจิ้งซูร่วงลงดิน ป้องกันธาตุไฟเข้าแทรกและปมมาร พร้อมม่านควันดอกสาลี่คุ้มครองจากคมดาบถึงตาย (ปลดล็อกหลังศึกปีที่ 10 หรือเสกผ่าน Edit Hub)",
+        element: "WOOD_LIFE",
+        elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "WOOD_LIFE", weights: { WOOD_LIFE: 0.70, LIGHT_YANG: 0.30 } },
+        obtainSources: ["SECRET_REALM:REALM_STAR_ASH_MOUND", "YEAR10_DEFEAT_PEAR_SMOKE"],
+        passiveEffects: [{ id: "EFF_BLOOMING_PEAR_PIN", trigger: "onLowHp", grantBuff: "vitalRegen", rider: "pacify", descTh: "เมื่อพลังชีวิตวิกฤตกางม่านควันดอกสาลี่ฟื้นฟูและสงบจิตสังหารศัตรู" }],
+        noEvolution: true
+      },
+      {
+        id: "REL_V3163_SILVER_SPEAR_CLOUD_STAIR",
+        nameTh: "ด้ามทวนเงินบันไดเมฆาขาด",
+        cat: "EQUIPMENT", out: "EQUIPMENT", slot: "WEAPON", gearType: "SPEAR", visualSubtype: "SPEAR",
+        tier: 7, minStage: 5, rarity: "Legendary", grade: "Legendary", legendary: true, unique: true, year10Locked: true,
+        q: 1.38, value: 5200, craft: "FORGING", durability: 100,
+        compatiblePath: ["FALLEN_STAR_DEFIANCE", "BODY", "ANY"],
+        preferredSubs: ["STAR_SPEAR_OATH"],
+        fixedStats: { atk: 620, def: 340, mdef: 240, hp: 580, acc: 185, pen: 18 },
+        descTh: "ทวนเงินที่ตีต่อคมขึ้นใหม่จากด้ามทวนหักของแม่ทัพหญิงฉู่หวินหลาน มอบพลังป้องกันและแรงต้านทานมหาศาลเมื่อยืนแนวหน้าคุ้มกันสหาย",
+        element: "EARTH_METAL",
+        elementProfile: { mode: "INTRINSIC_SINGLE", primary: "EARTH_METAL", weights: { EARTH_METAL: 1 } },
+        obtainSources: ["SECRET_REALM:REALM_STAR_ASH_MOUND"],
+        passiveEffects: [{ id: "EFF_SILVER_SPEAR_CLOUD_STAIR", trigger: "onStruck", grantBuff: "leylineBastion", rider: "weaken", descTh: "เมื่อรับแรงปะทะปลุกเกราะเงินดาราและลดพลังโจมตีศัตรู" }],
+        noEvolution: true
+      },
+      {
+        id: "REL_V3163_NOTCHED_BLADE_ANING",
+        nameTh: "ดาบสันบิ่นสลักชื่ออาหนิง",
+        cat: "EQUIPMENT", out: "EQUIPMENT", slot: "WEAPON", gearType: "BLADE", visualSubtype: "BLADE",
+        tier: 7, minStage: 5, rarity: "Legendary", grade: "Legendary", legendary: true, unique: true, year10Locked: true,
+        q: 1.38, value: 5200, craft: "FORGING", durability: 100,
+        compatiblePath: ["FALLEN_STAR_DEFIANCE", "BODY", "ANY"],
+        preferredSubs: ["MYRIAD_TABLET_BLADE"],
+        fixedStats: { atk: 690, crit: 16, critDmg: 32, pen: 28, acc: 190 },
+        descTh: "ดาบสันบิ่นข้างโครงกระดูกคุกเข่าของลู่เฉิน ยิ่งสู้กับผู้มีตบะสูงกว่าคมดาบยิ่งเปล่งปราณสีชาดเจาะทะลุเกราะทุกชนิด แต่จะลดพลังลงครึ่งหนึ่งหากใช้รังแกผู้อ่อนแอกว่าเกินสองขั้น",
+        element: "FIRE",
+        elementProfile: { mode: "INTRINSIC_WEIGHTED", primary: "FIRE", weights: { FIRE: 0.6, BLOOD_DEMON: 0.4 } },
+        obtainSources: ["SECRET_REALM:REALM_STAR_ASH_MOUND"],
+        passiveEffects: [{ id: "EFF_NOTCHED_BLADE_ANING", trigger: "onHit", grantBuff: "bloodFury", rider: "armorbreak", descTh: "ฟันศัตรูระดับสูงกว่าปลุกเปลวโลหิตทวงฟ้าและทะลุเกราะ" }],
+        noEvolution: true
+      }
+    ];
+    for (const rel of fseRelics) {
+      if (!JD.ITEMS.items.some(x => x && x.id === rel.id)) JD.ITEMS.items.push(rel);
+    }
+  }
+
+  if (JD.ITEMS && Array.isArray(JD.ITEMS.materials)) {
+    const fseMats = [
+      {
+        id: "MAT_V3163_STAR_PUPPET_CORE",
+        nameTh: "แกนหัวใจหุ่นองครักษ์ดาราคล้อย",
+        category: "ORE", cat: "ORE", tier: 7, rarity: "Transcendent", grade: "Transcendent", value: 2400, year10Locked: true, isTranscendentMaterial: true, equipmentOnlyWildcard: true,
+        element: "ASTRAL",
+        descTh: "แกนโลหะผสมแร่ดาราบริสุทธิ์รุ่นต้นแบบที่ฉู่หวั่งเซวียนหลอมเองด้วยมือ ใช้ตีผสานศาสตราและเกราะเพื่อสร้างสนามแรงโน้มถ่วงปัดป้องอาวุธลับ"
+      },
+      {
+        id: "MAT_V3163_PEAR_ASH_DEW",
+        nameTh: "น้ำค้างกลีบสาลี่เถ้าดารา",
+        category: "HERB", cat: "HERB", tier: 7, rarity: "Transcendent", grade: "Transcendent", value: 2400, year10Locked: true, isTranscendentMaterial: true, alchemyOnlyWildcard: true,
+        element: "WOOD_LIFE",
+        descTh: "หยดน้ำค้างที่กลั่นตัวบนกลีบดอกสาลี่ขาวซึ่งงอกขึ้นมาจากขี้เถ้าสมรภูมิ ใช้ปรุงโอสถชุบเส้นชีพจรที่แตกสลายให้กลับมาสมบูรณ์ไร้ตำหนิ"
+      }
+    ];
+    for (const m of fseMats) {
+      if (!JD.ITEMS.materials.some(x => x && x.id === m.id)) JD.ITEMS.materials.push(m);
+    }
+  }
+})();
+/* === JS2_V3163_PATH59_FALLEN_STAR_DEFIANCE_END === */

@@ -153,6 +153,9 @@
     entropyDecay: { nameTh: 'ปราณโกลาหลกัดกร่อนธาตุ', icon: '🌌', dot: true, pmods: { def: -.18, mdef: -.24 }, tags: ['#ASTRAL'] },
     divineResonance: { nameTh: 'การสั่นพ้องเทวะ', icon: '🏛️', isBuff: true, pmods: { atk: .18, matk: .18, def: .12, mdef: .15 }, fmods: { pen: 30 }, tags: ['#BUFF'] },
     shadowClone: { nameTh: 'ร่างแยกเงามายา', icon: '👥', isBuff: true, pmods: { eva: .22 }, fmods: { crit: 12 }, tags: ['#BUFF'] },
+    astralShield: { nameTh: 'เกราะแรงกดดาราคล้อย', icon: '🌌', isBuff: true, pmods: { def: .20, mdef: .22, atk: .10 }, mods: { pen: 10 }, tags: ['#ASTRAL', '#SHIELD'] },
+    bloodFury: { nameTh: 'เปลวโลหิตทวงฟ้า', icon: '🔥', isBuff: true, pmods: { atk: .24, def: -.06 }, mods: { crit: 12, critDmg: 22, pen: 14 }, tags: ['#BLOOD', '#PHYSICAL'] },
+    pacify: { nameTh: 'สงบจิตสังหาร', icon: '🌸', pmods: { atk: -.18, matk: -.18 }, mods: { crit: -12 }, tags: ['#CONTROL', '#WOOD'] },
     substitutionReady: { nameTh: 'สลับร่างท่อนไม้', icon: '🪵', isBuff: true, pmods: { eva: .16, def: .12 }, tags: ['#BUFF'] },
     vowBacklash: { nameTh: 'ของเข้าตัว·ผิดสัจจะ', icon: '💔', pmods: { def: -.35, mdef: -.30 }, tags: ['#SEAL'] },
     boneArmor: { nameTh: 'เกราะกระดูกวิญญาณ', icon: '🦴', isBuff: true, shield: true, pmods: { def: .25, mdef: .14 }, tags: ['#SHIELD', '#BUFF'] },
@@ -1397,6 +1400,7 @@
     const lower = raw.toLowerCase().replace(/_/g, '');
     const map = {
       onhit: 'onHit',
+      onattack: 'onHit',
       onstruck: 'onStruck',
       onbeinghit: 'onStruck',
       oncrit: 'onCrit',

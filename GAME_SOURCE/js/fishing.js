@@ -987,12 +987,12 @@
 
     if (category === 'MATERIAL') {
       return Object.values(ECO.matById)
-        .filter(m => m && m.tier === tier && !m.legendary && m.category !== 'CONTAINER' && m.category !== 'TRASH' && m.category !== 'FOOD')
+        .filter(m => m && m.tier === tier && !m.legendary && (!m.year10Locked || (CULT && CULT.isPathUnlocked && CULT.isPathUnlocked('FALLEN_STAR_DEFIANCE', W))) && m.category !== 'CONTAINER' && m.category !== 'TRASH' && m.category !== 'FOOD')
         .map(m => ({ kind: 'MATERIAL', id: m.id, nameTh: m.nameTh, tier: m.tier }));
     }
 
     if (category === 'TECH_CRYSTAL' || category === 'TECH_MANUAL') {
-      const allTechs = M && M.discoverableTechniques ? M.discoverableTechniques({}) : JD.TECH.techniques;
+      const allTechs = M && M.discoverableTechniques ? M.discoverableTechniques({ W }) : JD.TECH.techniques;
       const isManual = category === 'TECH_MANUAL';
       const lib = (W && W.sect && Array.isArray(W.sect.library)) ? W.sect.library : [];
       const heldManuals = (openerNpc && openerNpc.inv && Array.isArray(openerNpc.inv.techs)) ? openerNpc.inv.techs : [];
@@ -1031,12 +1031,13 @@
       })));
       let list = allSubs.filter(s => {
         if (s.lootTier !== tier) return false;
+        if (CULT && CULT.isPathUnlocked && !CULT.isPathUnlocked(s.path, W)) return false;
         if (isManual && (subLib.includes(s.id) || heldSub.includes(s.id))) return false;
         return true;
       });
       let compensatedToCrystal = false;
       if (isManual && !list.length) {
-        list = allSubs.filter(s => s.lootTier === tier);
+        list = allSubs.filter(s => s.lootTier === tier && (!CULT || !CULT.isPathUnlocked || CULT.isPathUnlocked(s.path, W)));
         compensatedToCrystal = true;
       }
       return list.map(s => ({
