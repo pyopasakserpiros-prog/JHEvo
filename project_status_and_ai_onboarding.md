@@ -1,3 +1,5 @@
+> **รุ่นปัจจุบัน JS2 v3.17.0:** `EXPED.FALLEN_STAR_EPIC` เปิดศึกปีที่ 10 แบบหลายแนวรบและเลือกจุดรบตามวัตถุประสงค์ ฉู่ไล่เชื่อมชีพจร ทายาทฉวยชื่อยึดเมือง หาเสบียงและซ่อมหุ่น ฝ่ายพันธมิตรเลือกการรบและช่วยคนตามกำลัง การเดินทางใช้แผนที่ยุทธภพ และผลหน่วย/เมืองเขียนกลับสู่โลก ดู [รายงาน](PATCH_REPORTS/FALLEN_STAR_CAMPAIGN_JS2_V3_17_0.md) สำหรับพฤติกรรมและผลตรวจ รุ่นด้านล่างเป็นประวัติเดิม
+
 > **Latest Production Release (`JS2 v3.16.6`):** Completed 10-Team Read-Only Deep Audit & 3-Part Hardening Series (`v3.16.4`–`v3.16.6`) for the Fallen Star & Bloodstained Pear Blossom Epic (`v3.16.0`–`v3.16.3`). Verified: `59` paths / `364` subpaths, `1,999` techs, `1,324` items, `106` lore books / `753` events, `validate_data_schema.js` 0E/0W, `lint_lore_archive.js` 0E/0W, `core_lock.js` & `standalone.js` & `v3160`–`v3166` PASS.
 
 > **Latest Production Status (Updated 2026-11-23 — JS2 v3.16.3 (Part 4/4 COMPLETE: Fallen Star & Bloodstained Pear Blossom Epic — Book #106, Years 1–9 Two Shadows, Year-10 Chu Wangxuan & Two Unscripted Outcomes, Path #59 FALLEN_STAR_DEFIANCE + 6 Subpaths + 12 Techs + 6 Relics/Materials + Morphing Star-Ash Mound Realm)):**

@@ -1,3 +1,5 @@
+> **JS2 v3.17.0:** ศึกดาราคล้อยใช้ `EXPED.FALLEN_STAR_EPIC` เชื่อมการตัดสินใจ การเดินทาง การต่อสู้ ผู้เล่นสังเกตการณ์ พงศาวดาร และเซฟ ดู [รายงาน](../../PATCH_REPORTS/FALLEN_STAR_CAMPAIGN_JS2_V3_17_0.md) และสกิลเฉพาะงานตามตารางด้านล่าง
+
 > **Baseline Sync (`JS2 v3.16.6` — 2026-11-24):** โปรเจกต์ปัจจุบันอยู่ที่ `JS2 v3.16.6` (Save Schema `3.9.6-deep-gameplay-integration`, 58 วิถี / 358 สายย่อย, 1,987 วิชา, 1,320 ไอเทม, 105 คัมภีร์ตำนาน / 742 เหตุการณ์, 12 เทศกาลประจำปี + 6 มหาเทศกาลหกคาบเวลา, สหพันธ์เจ็ดหอและสมุดปกดำ, ระบบอายุยืนแบบสมมาตร, และ `JianghuSect_single.html` 24,002 KB / 40 `<script>` tags) — ดูรายละเอียดล่าสุดใน `START_HERE_FOR_AI.md` และ `PATCH_REPORTS/AUDIT_BUGFIX_HARDENING_JS2_V3_15_1.md`
 
 # JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (JianghuSect 2 JS2-v3.0.0)

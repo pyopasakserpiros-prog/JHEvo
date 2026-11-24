@@ -725,6 +725,7 @@
         HC.nowDay = d;
         SIM.dailyUpdate(W);
       }
+      if (W.t % 30 === 0 && W.world?.fallenStarEpic?.war?.campaign) EXPED.FALLEN_STAR_EPIC.tickCampaign(W);
     }
     const npcs = W.npcs;
     if (true) {

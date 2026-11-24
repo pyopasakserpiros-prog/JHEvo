@@ -241,3 +241,7 @@ For map and civil government changes run the schema tool, `world_atlas`, `world_
 - Current production release: **`JS2 v3.16.6`** (59 paths / 364 subpaths, 106 Lore Books / 742 events, 40 `<script>` tags, `JianghuSect_single.html` 24,002 KB).
 - Key active systems since `v3.9.6`: Chronicle & Reporting Overhaul (`v3.10.0`), Interactive Biography & Era Timeline (`v3.11.0`), World-Symmetric Emergent Longevity (`v3.12.0–v3.12.1`), Seven-Hall Neutral Federation & Black Ledger (`v3.13.0`), 12 Annual Festivals (`v3.14.0`), Lore Book #105 & 6 Grand Periodic Festivals (`v3.15.0`), and Audit Bugfix Hardening (`v3.15.1`).
 - Always preserve `AGENTS.md` and `human_core.js` SHA-256 locks and run `v3100`–`v3151` suites alongside `core_lock.js` and `standalone.js`.
+
+## JS2 v3.17.0 — ศึกดาราคล้อย
+
+เพิ่ม `v3170_fallen_star_campaign_suite.js` และอัปเดต assertions ของ `v3162`/`v3166` สำหรับปฏิทินเดิม การเดินทาง เสบียง การยกเลิกหน่วยระหว่างวัน การเฝ้าดู หลายผลลัพธ์ และเซฟกลางศึก

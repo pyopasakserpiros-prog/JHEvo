@@ -798,3 +798,7 @@
 
 ## Path #59 Unlocked Post-Year-10 (`JS2 v3.16.3`)
 - **59 Major Paths / 364 Subpaths:** Added `FALLEN_STAR_DEFIANCE` (วิถีดาราคล้อยทวนชะตา) with 6 subpaths, 12 signature techs, 4 relics, 2 transcendent materials, and dynamic `REALM_STAR_ASH_MOUND` (morphing between `หุบเหวศิลาดาราคล้อย` on Victory and `ป่าสาลี่ขาวกลางเถ้าดารา` on Defeat/Pear Smoke), strictly gated until Year-10 resolves unless spawned via Edit Hub.
+
+## สงครามหลังฉู่ตื่น — JS2 v3.17.0
+
+การตื่นยังอยู่ต้นปีที่ 10 นับจากปฏิทินสำนัก ทายาทภาคีฉวยชื่อฉู่ยึดเมือง ฉู่สนใจแก้แค้นและการเดินทัณฑ์ผ่านจุดชีพจร เรื่องเล่ม 106 หลังการตื่นบันทึกผลที่เป็นไปได้ตามการจำลอง ป่าสาลี่ขาวเกิดเมื่อคำให้การไปถึงฉู่และเขายอมหยุด ผลรูปแบบอื่นเปิดหุบเหวศิลาดาราคล้อย มรดกวิถี 59 เปิดหลังศึกจบ

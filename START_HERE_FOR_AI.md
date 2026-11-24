@@ -1,3 +1,5 @@
+> **ฐานปัจจุบัน JS2 v3.17.0:** อ่าน [รายงานศึกดาราคล้อย](PATCH_REPORTS/FALLEN_STAR_CAMPAIGN_JS2_V3_17_0.md) และ [ข้อเสนอสำหรับแพตช์ถัดไป](docs/handovers/ACTIVE_PATCH_PROMPT_V3_18_0.md) เมื่อผู้ใช้สั่ง รุ่นและงานที่อยู่ด้านล่างเป็นประวัติเดิม
+
 > **Current Verified Production Base (`JS2 v3.16.6` — 10-Team Audit Hardened):** 59 Cultivation Paths / 364 Subpaths, 1,999 Martial Techs, 1,324 Items, 1,515 Recipes, 106 Lore Books / 753 Events, `JianghuSect_single.html` (`24,002 KB`, exact 40 `<script>` tags). See `PATCH_REPORTS/AUDIT_HARDENING_JS2_V3_16_4_TO_V3_16_6.md`.
 
 # START HERE FOR AI — JianghuSect Evolution (`JS2 v3.16.3 (Part 4/4 COMPLETE: Fallen Star & Bloodstained Pear Blossom Epic — Book #106, Years 1–9 Two Shadows, Year-10 Chu Wangxuan & Two Unscripted Outcomes, Path #59 FALLEN_STAR_DEFIANCE + 6 Subpaths + 12 Techs + 6 Relics/Materials + Morphing Star-Ash Mound Realm)` Production Base)

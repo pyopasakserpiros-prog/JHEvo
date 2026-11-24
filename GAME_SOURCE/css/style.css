@@ -587,3 +587,50 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .fest-cal-cell.active{border-color:var(--gold);background:rgba(48,42,18,.55)}
 @media(max-width:520px){#dateTxt{overflow:hidden;text-overflow:ellipsis;max-width:100%}}
 .fest-grand-banner{padding:6px 8px;margin-top:4px;border-radius:8px;background:rgba(139,92,246,.16);border:1px solid rgba(192,132,252,.45)}
+
+/* Fallen Star campaign observer */
+.fse-watch { border-color:#93664b; background:#161b25; margin:9px 0 4px; }
+.fse-watch h3 { margin:0 0 8px; color:#ffdda2; font-size:1rem; }
+.fse-tabs,.fse-site-stats { display:flex; gap:5px; flex-wrap:wrap; align-items:center; margin-bottom:7px; }
+.fse-tabs .chip,.fse-site-stats button { min-height:34px; cursor:pointer; }
+.fse-watch-grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); gap:8px; }
+.fse-watch-scene { position:relative; overflow:hidden; isolation:isolate; min-height:174px; aspect-ratio:2/1; border:1px solid #5d5350; border-radius:9px;
+  background:radial-gradient(ellipse at 66% 53%,#74444788,transparent 26%),linear-gradient(153deg,#172330 20%,#394342 55%,#24292c); }
+.fse-watch-scene.fse-ferry { background:linear-gradient(150deg,#26453b 30%,#204a68 58%,#142037 80%); }
+.fse-watch-scene.fse-bridge { background:linear-gradient(155deg,#253b2f 24%,#33566c 44%,#192b46 75%); }
+.fse-watch-scene.fse-base { background:radial-gradient(ellipse at 65% 63%,#784730,#261f29 55%,#141a25); }
+.fse-watch-scene svg { position:absolute; inset:0; width:100%; height:100%; }
+.fse-scene-title,.fse-no-combat { position:absolute; z-index:2; left:8px; top:5px; font-size:.8em; color:#ffebca; text-shadow:0 1px 3px #000; }
+.fse-no-combat { inset:50% 0 auto; text-align:center; }
+.fse-road { fill:none; stroke:#b6986c; opacity:.34; stroke-width:16; }
+.fse-vein { fill:none; stroke:#ebb178; opacity:.28; stroke-width:1.5; stroke-dasharray:3 3; }
+.fse-node { fill:#58383c; stroke:#b97853; stroke-width:2; opacity:.64; }
+.fse-tracer { stroke:#f8d2a5; stroke-width:1.6; stroke-dasharray:3 4; opacity:.6; }
+.fse-tracer.art { stroke:#e2a3ff; stroke-width:3; filter:drop-shadow(0 0 4px #c382ff); }
+.fse-tracer.heal { stroke:#7cf1aa; }
+.fse-unit { position:absolute; transform:translate(-50%,-50%); text-align:center; color:#88ddff; font-size:10px; transition:left .35s,top .35s; text-shadow:0 1px 3px #000; }
+.fse-unit i { display:block; width:22px; height:22px; margin:auto; background:#172332; border:1px solid currentColor; border-radius:50%; font-style:normal; font-size:14px; line-height:20px; }
+.fse-unit.chu { color:#efb2ff; z-index:3; }
+.fse-unit.chu i { box-shadow:0 0 11px #b673ed; }
+.fse-unit.heirs { color:#ffc092; }
+.fse-unit meter { display:block; margin:auto; width:22px; height:6px; }
+.fse-unit span { display:block; max-width:78px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fse-site-stats { color:#c7cdd8; font-size:.76rem; margin:5px 0; }
+.fse-site-stats span { border:1px solid #515968; padding:2px 5px; border-radius:5px; }
+.fse-arrivals,.fse-roster,.fse-recent { font-size:.78rem; }
+.fse-roster { max-height:235px; overflow:auto; padding:6px; border:1px solid #444d61; border-radius:8px; }
+.fse-roster-row { display:grid; gap:2px; border-bottom:1px solid #3c4556; padding:5px 0; }
+.fse-roster-row.heirs b { color:#ffc092; }
+.fse-roster-row.chu b { color:#efb2ff; }
+.fse-roster-row.alliance b { color:#9ee3ff; }
+.fse-recent { padding-left:20px; max-height:9rem; overflow:auto; margin:7px 0 0; }
+.fse-recent time { color:#ffdba5; }
+.fse-ended { color:#ffdba5; margin:4px 0 8px; }
+@media(max-width:620px) { .fse-watch-grid { grid-template-columns:minmax(0,1fr); } .fse-roster { max-height:125px; } }
+@media(prefers-reduced-motion:reduce) { .fse-unit { transition:none; } }
+.fse-nav { margin:4px 0 6px; }
+.fse-observe-entry { margin:7px 0; min-height:36px; }
+.fse-campaign-summary { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:7px; color:#ffd39c; font-size:.76rem; }
+.fse-campaign-summary span { padding:3px 6px; border-bottom:1px solid #715752; }
+.fse-world-entry { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;
+  padding:0 9px; border:1px solid #795740; border-radius:8px; background:#2d2634; color:#ffd39c; font-size:.8rem; margin-bottom:8px; }

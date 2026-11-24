@@ -741,7 +741,7 @@
   UI.linkify = linkify;
 
   function actText(n) {
-    if (n.dead) return '☠ เสียชีวิต'; if (n.away) { const ex = UI.G.W.world.expeds.find(e => e.id === n.expId), mission = ex && EXPED.MISSIONS[ex.kind]; return '🧭 ออกภารกิจ' + (mission ? '「' + mission.nameTh + '」' : ''); }
+    if (n.dead) return '☠ เสียชีวิต'; if (n.fseDeployment) return '⚔️ ปฏิบัติการศึกดาราคล้อย'; if (n.away) { const ex = UI.G.W.world.expeds.find(e => e.id === n.expId), mission = ex && EXPED.MISSIONS[ex.kind]; return '🧭 ออกภารกิจ' + (mission ? '「' + mission.nameTh + '」' : ''); }
     if (n.travel) return n.travel.to === 'exit' ? '🚶 กำลังออกจากสำนัก' : '🚶 กำลังกลับเข้าสำนัก';
     if (!n.act || !n.act.id) return n.isExternalWitness ? '📜 พยานภายนอก' : '🚶 เดินเล่น';
     const a = AI.ACTS[n.act.id]; let t = a ? a.icon + ' ' + a.nameTh : n.act.id === 'pair' ? '💬 พบปะ' : n.act.id === 'fight' ? '⚔️ ต่อสู้' : '🚶 เดินเล่น';
@@ -968,6 +968,7 @@
   UI.open = (kind, arg) => {
     if (!UI.G.W && kind !== 'menu') { UI.close(); return; }
     if (UI.sheet === kind && kind !== 'npc' && kind !== 'edit' && (!arg || UI.tab === arg)) { UI.close(); return; }
+    if (kind === 'fallen-star' && !UI.fallenStarWatchEntry(UI.G.W)) return;
     if (kind === 'people') {
       const tCount = ((UI.G.W && UI.G.W.sect && UI.G.W.sect.trackedNpcIds) || []).length;
       show('people', '👥 ผู้คนในสำนัก', [['rank', 'ตามระดับ'], ['act', 'กำลังทำอะไร'], ['cult', 'ตบะ'], ['mood', 'อารมณ์'], ['tracked', '⭐ ที่ติดตาม' + (tCount ? ' (' + tCount + ')' : '')]], arg || 'rank');
@@ -975,6 +976,7 @@
     else if (kind === 'sect') show('sect', '🏯 สำนัก', [['over', 'ภาพรวม'], ['council', '🏛️ สภา/ธรรมนูญ'], ['peaks', '⛰️ หุบเขา/ยอดเขา'], ['lineage', '💞 คู่บำเพ็ญ/มรดก'], ['dao', '🌌 แดนลับ/ชะตาฟ้า'], ['visuals', '✨ กราฟิก/ฟ้าดิน'], ['policy', 'นโยบาย/นิสัยผู้นำ'], ['posts', 'ตำแหน่ง'], ['library', '📚 หอคัมภีร์'], ['stock', 'ภาพรวมคลัง'], ['stockItems', '📦 คลังไอเทม'], ['shop', '🛒 ร้าน/คุณูปการ'], ['bld', 'อาคาร']], arg || 'over');
     else if (kind === 'log') { if (UI.audio && UI.audio.playGuqinChime) UI.audio.playGuqinChime(); show('log', '📜 บันทึกเหตุการณ์', Object.keys(LOG_GROUPS).map(k => [k, LOG_GROUPS[k][0]]), 'all'); }
     else if (kind === 'world') show('world', '🧭 ยุทธภพนอกสำนัก', [['map', '🗺️ แผนที่ยุทธภพ'], ['polities', '🏛️ อาณาจักร'], ['exp', 'คณะเดินทาง'], ['visitors', '🎐 ผู้มาเยือน'], ['clues', '🗺️ เบาะแส/มรดก'], ['content', '🌿 พื้นที่/ตำรับ'], ['ecology', '🐾 อสูรและนิเวศ'], ['disc', '🔭 ค้นพบ'], ['sects', 'สำนักอื่น'], ['hist', 'ประวัติ']], arg || 'exp', true);
+    else if (kind === 'fallen-star') show('fallen-star', '🌠 หอสังเกตการณ์ดาราคล้อย', [], null, true);
     else if (kind === 'lore') {
       show('lore', '📜 พงศาวดารและตำนานโลก (Master Lore Compendium)', [
         ['eras', '⏳ 6 มหายุคสมัย'],
@@ -1095,7 +1097,7 @@
 
   function R_SHADERS_HAS(k) { return !!(g.Render && g.Render.CELESTIAL_SHADERS && g.Render.CELESTIAL_SHADERS[k]); }
   // Only observation and explicit state editing cross the player interaction boundary.
-  const OBSERVER_ACTIONS = new Set(["npc","set-lore-era","set-lore-emp-group","set-lore-fig-group","set-lore-chaos-sub","set-lore-chaos-era","set-lore-surv-filter","set-lore-chronicle-book","set-lore-chronicle-cat","chronicle-filter","chronicle-person","chronicle-clear-person","sect-chronicle-more","world-chronicle-cat","world-chronicle-fmt","world-chronicle-sev","world-chronicle-epistemic","world-chronicle-days","world-chronicle-unread","world-chronicle-include-digest","chronicle-thread","reset-archive-filters","news-preset","toggle-news-toast","set-critical-policy","set-toast-severity","toggle-tracked-toast","cycle-cat-channel","set-digest-interval","digest-window","record-digest-now","mark-all-news-read","mark-news-read","world-chronicle-more","timeline-filter","timeline-more","toggle-audio","play-audio-demo","cycle-celestial-preview","toggle-vfx-opt","cycle-ceremony-preview","focus-plaza-ceremony","focus-martial-arena","set-diorama-pose","set-sect-subtab","set-sect-posts-subtab","set-stock-subtab","set-shop-subtab","set-npc-subtab","set-exp-subtab","set-disc-subtab","set-content-subtab","set-building-subtab","set-edit-char-subtab","set-edit-pet-subtab","focus-raid","focus-wild-fight","focus-tribulation","preview-signature-vfx","open-sect-peaks","select-peak-tab","focus-peak-camera","set-post-dir-filter","editnpc","spawnnpc","open-spawn-sect","deselect","locate","follow","goto-npc","toggle-track-npc","untrack-npc","clear-all-tracked","open-log-tracked","open-menu-tracked","open-people","locb","locv","toggle-clue-debug","open-visitor","open-clue","save","load","export","import","new","tool","cmp","logfilter","logsubfilter","spawn-page","set-inv-mode","bag-cat","bag-page","bag-sel","bag-close-detail","bag-toggle-more","stock-cat","stock-page","library-detail","stock-sel","stock-close-detail","stock-toggle-more","shop-cat","shop-page","shop-sel","shop-close-detail","shop-toggle-more","set-lib-cat","open-world-map","atlas-event","world-polity","atlas-select","atlas-group","atlas-close","atlas-filter","atlas-layer","atlas-zoom","atlas-home","atlas-fit","atlas-open-discovery","atlas-open-realms","atlas-open-legends","select-world-node","set-world-subtab","set-chronicle-filter"]);
+  const OBSERVER_ACTIONS = new Set(["npc","set-lore-era","set-lore-emp-group","set-lore-fig-group","set-lore-chaos-sub","set-lore-chaos-era","set-lore-surv-filter","set-lore-chronicle-book","set-lore-chronicle-cat","chronicle-filter","chronicle-person","chronicle-clear-person","sect-chronicle-more","world-chronicle-cat","world-chronicle-fmt","world-chronicle-sev","world-chronicle-epistemic","world-chronicle-days","world-chronicle-unread","world-chronicle-include-digest","chronicle-thread","reset-archive-filters","news-preset","toggle-news-toast","set-critical-policy","set-toast-severity","toggle-tracked-toast","cycle-cat-channel","set-digest-interval","digest-window","record-digest-now","mark-all-news-read","mark-news-read","world-chronicle-more","timeline-filter","timeline-more","toggle-audio","play-audio-demo","cycle-celestial-preview","toggle-vfx-opt","cycle-ceremony-preview","focus-plaza-ceremony","focus-martial-arena","set-diorama-pose","set-sect-subtab","set-sect-posts-subtab","set-stock-subtab","set-shop-subtab","set-npc-subtab","set-exp-subtab","set-disc-subtab","set-content-subtab","set-building-subtab","set-edit-char-subtab","set-edit-pet-subtab","focus-raid","focus-wild-fight","focus-tribulation","preview-signature-vfx","open-sect-peaks","select-peak-tab","focus-peak-camera","set-post-dir-filter","editnpc","spawnnpc","open-spawn-sect","deselect","locate","follow","goto-npc","toggle-track-npc","untrack-npc","clear-all-tracked","open-log-tracked","open-menu-tracked","open-people","locb","locv","toggle-clue-debug","open-visitor","open-clue","save","load","export","import","new","tool","cmp","logfilter","logsubfilter","spawn-page","set-inv-mode","bag-cat","bag-page","bag-sel","bag-close-detail","bag-toggle-more","stock-cat","stock-page","library-detail","stock-sel","stock-close-detail","stock-toggle-more","shop-cat","shop-page","shop-sel","shop-close-detail","shop-toggle-more","set-lib-cat","open-world-map","open-fse-watch","fse-watch-front","atlas-event","world-polity","atlas-select","atlas-group","atlas-close","atlas-filter","atlas-layer","atlas-zoom","atlas-home","atlas-fit","atlas-open-discovery","atlas-open-realms","atlas-open-legends","select-world-node","set-world-subtab","set-chronicle-filter"]);
   const STATE_EDIT_ACTIONS = new Set(["apply-char-edit","undo-char-edit","edit-pet-spawn","edit-pet-awaken","edit-pet-release","edit-gate-beast","edit-cast-buff","edit-clear-buffs","edit-save-mech","edit-save-karma","edit-save-doctrine","edit-upgrade-facility","heal-char-edit","spawn-item","spawn-equip-item","spawn-teach-item","edit-dip-attitude","edit-dip-treaty","edit-dip-cleartreaty","edit-dip-resetcd","edit-sanctum-setfloor","edit-sanctum-spawncat","edit-pet-four-symbol","equip-personal","unequip-bag","unequip-sect","equip-passive","unequip-passive","switch-mantra"]);
   const OBSERVER_TOOLS = new Set(['stones', 'food', 'heal']);
   UI.playerActionKind = action => OBSERVER_ACTIONS.has(action) ? 'observe' : STATE_EDIT_ACTIONS.has(action) ? 'edit' : 'blocked';
@@ -1866,6 +1868,8 @@
       UI.render();
     }
     else if (a === 'open-world-map') { UI.open('world', 'map'); }
+    else if (a === 'fse-watch-front') { UI.fseWatchFront = arg; UI.render(); }
+    else if (a === 'open-fse-watch') { UI.open('fallen-star'); }
     else if (a === 'world-polity') {
       UI.selectedPolityId = Object.hasOwn(EXPED.POLITY_DEFS,arg) ? arg : null;
       if (UI.sheet === 'world' && UI.tab === 'polities') {
@@ -1961,7 +1965,8 @@
       case 'people': html = UI.rPeople(); break;
       case 'sect': html = UI.rSect(); break;
       case 'log': html = UI.rLog(); break;
-      case 'world': html = UI.rWorld(); break;
+      case 'world': html = UI.fallenStarWatchEntry(W) + UI.rWorld(); break;
+      case 'fallen-star': html = UI.rFallenStarObserver(W); break;
       case 'lore': html = UI.rLore(); break;
       case 'edit': html = UI.rEdit(); break;
       case 'menu': html = UI.rMenu(); break;
@@ -9391,6 +9396,78 @@
     }
   })();
   /* === JS2_V3140_ANNUAL_FESTIVALS_UI_END === */
+  UI.fallenStarWatchEntry = W => {
+    const info = W && EXPED.FALLEN_STAR_EPIC.getReadOnlySummary(W);
+    if (!info || (!info.year10Ready && !info.outcome && info.cluesCount < 3)) return '';
+    const label = info.outcome ? 'บันทึกหลังศึก' : info.war ? 'กำลังรบหลายแนว' : 'มีข่าวใหม่จากยุทธภพ';
+    return '<div class="fse-world-entry"><span>' + label + '</span>' +
+      '<button type="button" class="chip fse-observe-entry" data-do="open-fse-watch">⚔️ หอสังเกตการณ์ดาราคล้อย</button></div>';
+  };
+
+  UI.rFallenStarObserver = W => {
+    const st = W.world?.fallenStarEpic;
+    const info = EXPED.FALLEN_STAR_EPIC.getReadOnlySummary(W);
+    const back = '<nav class="fse-nav"><button class="chip" data-do="open-world-map">🧭 กลับแผนที่ยุทธภพ</button></nav>';
+    if (st?.war?.campaign) return back + UI.renderFallenStarCampaign(W, UI.fseWatchFront);
+    if (!info) return back + '<div class="card">ยังไม่มีข่าวยืนยันเกี่ยวกับดาราคล้อย</div>';
+    const lead = info.outcome ? 'พงศาวดารจากศึกที่จบแล้ว' : info.chuWangxuan ? 'ฉู่หวั่งเซวียนกำลังตามหาร่องรอยของเวินจิ้งซู' : 'ข่าวที่สายข่าวยืนยันได้ในขณะนี้';
+    return back + '<div class="card fse-watch"><h3>' + esc(lead) + '</h3>' +
+      '<ol class="fse-recent">' + info.recentRumors.slice().reverse().map(r => '<li>ปีที่ ' + r.year + ' · ' + esc(r.textTh) + '</li>').join('') + '</ol></div>';
+  };
+
+  UI.renderFallenStarCampaign = (W, selected) => {
+    const st = W.world?.fallenStarEpic;
+    const c = st?.war?.campaign;
+    if (!c) return '';
+    const visible = Object.values(c.fronts).filter(f => f.id !== 'BASE' || c.baseRevealed || st.outcome);
+    const active = Object.values(c.units).filter(u => u.status === 'PRESENT' && u.hp > 0);
+    const front = visible.find(f => f.id === selected) || visible.find(f => f.id === c.units.CHU?.frontId) || visible[0];
+    const present = active.filter(u => u.frontId === front.id);
+    const arrivals = Object.values(c.units).filter(u => u.frontId === front.id && u.status === 'TRAVEL' && !u.returning);
+    const actions = EXPED.FALLEN_STAR_EPIC.CAMPAIGN_ACTIONS;
+    const point = W.world.mapTopology?.nodes?.[front.node];
+    const mapLink = point ? '<button class="chip" type="button" data-do="atlas-event" data-arg="' +
+      esc(JSON.stringify({nodeId: point.id, x: point.x, y: point.y, nameTh: point.nameTh, macroRegion: point.macroRegion})) + '">📍 ดูเส้นทางบนแผนที่</button>' : '';
+    const name = u => esc(u.name) + (u.faction ? ' <small>· ' + esc(u.faction) + '</small>' : '');
+    const side = u => u.side.toLowerCase();
+    const recent = [...c.events.filter(e => e.frontId === front.id), ...(front.actions || [])].sort((a, b) => b.seq - a.seq).slice(0, 9);
+    const indexById = Object.fromEntries(present.map(u => [u.id, u]));
+    const effects = present.map(u => {
+      const move = u.lastAction;
+      const target = move && indexById[move.targetId];
+      if (!target || target === u || move.slot !== c.lastSlot || !['ART', 'STRIKE', 'HEAL'].includes(move.action)) return '';
+      return `<line class="fse-tracer ${move.action.toLowerCase()}" x1="${u.x * 3}" y1="${u.y * 1.5}" x2="${target.x * 3}" y2="${target.y * 1.5}"/>`;
+    }).join('');
+    const dots = present.map(u => {
+      const icon = u.side === 'CHU' ? '🌠' : u.source === 'PUPPET' ? '⚙' : u.medic ? '✚' : u.engineer ? '◇' : '⚔';
+      return `<div class="fse-unit ${side(u)}" style="left:${u.x}%;top:${u.y}%" aria-label="${esc(u.name)} พลังชีวิต ${Math.round(u.hp)}%">` +
+        `<i>${icon}</i><meter min="0" max="100" value="${Math.round(u.hp)}"></meter><span>${esc(u.name)}</span></div>`;
+    }).join('');
+    const rows = present.map(u => '<div class="fse-roster-row ' + side(u) + '"><b>' +
+      (u.source === 'HOME' ? '<a class="link-ref" data-npc="' + esc(u.memberId) + '">' + name(u) + '</a>' : name(u)) +
+      '</b><span>' + esc(actions[u.objective] || 'ตั้งหลัก') + ' · ' + esc(u.reason) + '</span>' +
+      '<small>ชีวิต ' + Math.round(u.hp) + '% · ปราณ ' + Math.round(u.qi) + '%</small></div>').join('');
+    const tabs = visible.map(f => '<button type="button" class="chip' + (f.id === front.id ? ' ok' : '') +
+      '" data-do="fse-watch-front" data-arg="' + f.id + '" aria-pressed="' + (f.id === front.id) + '">' +
+      esc(f.name) + (f.rebuilt ? ' · ฟื้นแล้ว' : f.ruined ? ' · พัง' : active.some(u => u.frontId === f.id && u.side !== 'ALLIANCE') ? ' · ⚔' : '') + '</button>').join('');
+    const phase = front.rebuilt ? 'ซ่อมทางสัญจรแล้ว' : front.ruined ? 'วงส่งทัณฑ์แตก' : front.secured ? 'พันธมิตรยึดได้' : front.levy ? 'ทายาทยึดทางส่งของ' : front.control < 0 ? 'แนวรับกำลังถอย' : 'แนวรับยังคุมพื้นที่';
+    return '<section class="card fse-watch" aria-label="เฝ้าดูศึกดาราคล้อย"><h3>⚔ เฝ้าดูศึกดาราคล้อย</h3>' +
+      (c.endedText ? '<p class="fse-ended">' + esc(c.endedText) + '</p>' : '') +
+      '<div class="fse-site-stats"><span>ศึกผ่านไป ' + Math.max(0, (st.outcomeDay ?? W.day) - c.openedDay) + ' วัน</span>' +
+      '<span>ฉู่ · พลังชีวิต ' + Math.round(c.units.CHU?.hp ?? 0) + '%</span><span>ชีพจรแตก ' + c.ruin + '/3 จุด</span>' +
+      '<span>อพยพแล้ว ' + Object.values(c.fronts).reduce((sum, f) => sum + f.evacuated, 0) + ' กลุ่ม</span></div>' +
+      '<div class="fse-campaign-summary"><span>ฉู่ · ทำลายวงชีพจร</span><span>ทายาท · ยึดเมืองและเส้นทางค้า</span><span>พันธมิตร · รักษาแนวรับและผู้คน</span></div>' +
+      '<div class="fse-tabs">' + tabs + '</div><div class="fse-watch-grid"><div><div class="fse-watch-scene fse-' + front.id.toLowerCase() +
+      '" aria-label="แนวรบ ' + esc(front.name) + '"><b class="fse-scene-title">' + esc(front.name) + '</b>' +
+      '<svg viewBox="0 0 300 150" preserveAspectRatio="none" aria-hidden="true"><path class="fse-road" d="M0 112 Q83 109 129 87 T300 32"/><path class="fse-vein" d="M187 150 L169 111 185 78 161 56 174 0"/><circle cx="174" cy="73" r="17" class="fse-node"/>' + effects + '</svg>' + dots +
+      (!present.length ? '<span class="fse-no-combat">' + (st.outcome ? 'สนามหลังศึก' : 'ยังไม่มีใครถึงแนวรบ') + '</span>' : '') +
+      '</div><div class="fse-site-stats"><span>' + esc(phase) + '</span><span>ทัณฑ์ ' + Math.round(front.charge) + '%</span><span>เสบียงแนวรับ ' + front.aid + '</span><span>อพยพแล้ว ' + front.evacuated + ' กลุ่ม</span>' + mapLink + '</div>' +
+      (arrivals.length ? '<div class="fse-arrivals"><b>ระหว่างเดินทาง</b> ' + arrivals.map(u => name(u) + ' · อีก ' + Math.max(0, u.eta - W.day) + ' วัน').join(' / ') + '</div>' : '') +
+      '</div><div class="fse-roster"><b>ผู้ที่อยู่ในพื้นที่</b>' + (rows || '<div class="muted">ไม่มีผู้ร่วมศึกในพื้นที่</div>') + '</div></div>' +
+      (recent.length ? '<ol class="fse-recent" aria-label="เหตุการณ์ล่าสุด">' + recent.map(e => `<li><time>${String(Math.floor((e.time % 1440) / 60)).padStart(2, '0')}:${String(e.time % 60).padStart(2, '0')}</time> ${esc(e.text)}</li>`).join('') + '</ol>' : '') + '</section>';
+  };
+
+
   (() => {
     const _origRNpcWS = UI.rNpc;
     if (typeof _origRNpcWS === "function") {

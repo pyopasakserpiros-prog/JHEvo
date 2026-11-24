@@ -1,5 +1,7 @@
 {
   "observe": [
+    "open-fse-watch",
+    "fse-watch-front",
     "npc",
     "set-lore-era",
     "set-lore-emp-group",

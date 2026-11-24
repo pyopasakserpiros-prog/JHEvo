@@ -4414,7 +4414,9 @@
   const roadCondition = (W, leg) => {
     const a = W.world?.continent?.cities[leg.from], b = W.world?.continent?.cities[leg.to];
     const average = ((a?.safety ?? 65) + (b?.safety ?? 65)) / 2;
-    return 1 + Math.max(0, 60 - average) / 160;
+    const fronts = W.world?.fallenStarEpic?.war?.campaign?.fronts;
+    const affected = fronts && Object.values(fronts).filter(f => (f.node === leg.from || f.node === leg.to) && (f.levy || (f.ruined && !f.rebuilt)));
+    return 1 + Math.max(0, 60 - average) / 160 + (affected?.some(f => f.ruined && !f.rebuilt) ? 0.28 : affected?.length ? 0.12 : 0);
   };
   X.planContinentalRoute = (W, topo, target, fromId = homeId) => {
     if (!target || !topo?.nodes) return null;
@@ -11241,7 +11243,7 @@
 
   /* === JS2_V3161_FALLEN_STAR_TWO_SHADOWS_START === */
   X.FALLEN_STAR_EPIC = {
-    VERSION: "3.16.6-audit-hardened",
+    VERSION: "3.17.0-living-campaign",
     isPath59Unlocked(W) {
       return !!(W && W.world && W.world.fallenStarEpic && W.world.fallenStarEpic.path59Unlocked);
     },
@@ -11402,416 +11404,617 @@
       return st.chuWangxuan;
     },
 
-    _computeAlliancePower(W, st) {
-      // Strictly World-Symmetric power evaluation across Home Sect + ALL 19 External Sects!
-      let homePower = 0;
-      let homeFighters = 0;
-      let homeHealers = 0;
-      let homeStained = 0;
-      // Strictly symmetric per-sect vanguard contribution (prevents 19 external rosters from linearly overwhelming the 3-Tier Army)
-      ((W && W.npcs) || []).forEach(n => {
-        if (!n || n.dead || n.exiled || (n.ext && n.ext.longevity && n.ext.longevity.stasis)) return;
-        const stage = (n.cult && Number.isFinite(n.cult.stage)) ? n.cult.stage : 1;
-        const stained = !!(n.ext && n.ext.darkStarStain);
-        if (stained) homeStained++;
-        const raw = Math.pow(Math.max(1, stage), 1.85) * 26;
-        homePower += stained ? raw * 0.78 : raw;
-        homeFighters++;
-        const emp = (g.HC && g.HC.eff) ? g.HC.eff(n, "personality.empathy") : 50;
-        const integ = (g.HC && g.HC.eff) ? g.HC.eff(n, "personality.integrity") : 50;
-        const isHealer = n.cult && (n.cult.path === "MEDICINE_ALCHEMY" || n.cult.path === "HEART_SOUL");
-        if (isHealer || (emp >= 72 && integ >= 70)) homeHealers++;
-      });
+    CAMPAIGN_FRONTS: Object.freeze([
+      { id: 'BASE', node: 'TOWN_YH_QINGXI_FOOT', name: 'ฐานลับใต้เขาชิงซี', kind: 'BASE', x: 15, danger: 1.1 },
+      { id: 'MOUND', node: 'CITY_YH_BAILU_ACADEMY', name: 'ทางขึ้นเนินเถ้าดารา', kind: 'VEIN', x: 32, danger: 1.0 },
+      { id: 'BRIDGE', node: 'PASS_YH_SANJIANG_BRIDGE', name: 'สะพานสามธาร', kind: 'VEIN', x: 48, danger: 0.9 },
+      { id: 'FERRY', node: 'TOWN_YH_LIUWAN_FERRY', name: 'ท่าเรือหลิ่ววาน', kind: 'PORT', x: 72, danger: 0.75 },
+      { id: 'CITY', node: 'CITY_YH_SHUANGJIANG', name: 'เมืองซวงเจียง', kind: 'VEIN', x: 87, danger: 0.8 }
+    ]),
+    CAMPAIGN_ACTIONS: Object.freeze({
+      ATTACK: 'กดดันแนวข้าศึก', DEFEND: 'ตั้งแนวรักษาจุดชีพจร', SEVER: 'ตัดวงส่งทัณฑ์', SUPPLY: 'ส่งกำลังและเสบียง',
+      EVACUATE: 'คุ้มกันคนอพยพ', HEAL: 'ตามช่วยคนเจ็บ', SCOUT: 'สืบเส้นทางและคำสั่ง',
+      OCCUPY: 'ยึดพื้นที่ในนามฉู่', REPAIR: 'ซ่อมหุ่นและส่งแกนปราณ', CHANNEL: 'ฝังทัณฑ์ลงชีพจร',
+      PILGRIM: 'ตามหาร่องรอยของเวินจิ้งซู', REBUILD: 'ส่งคนและวัสดุซ่อมทาง', RETREAT: 'ถอนตัวไปรักษาคน', COUNTER: 'เปิดทางสวนค่ายกล',
+      REST: 'พักและรวบรวมปราณ', MARCH: 'ขยับเข้าสู่ระยะ', STRIKE: 'โจมตีประชิด', ART: 'ใช้วิชา',
+      GUARD: 'บังทัณฑ์ให้สหาย', PILL: 'ใช้โอสถ', COMMAND: 'ปิดทางส่งกำลัง',
+      NEGOTIATE: 'ส่งคำให้การถึงฉู่', DEPLOY: 'ออกเดินทาง'
+    }),
 
-      let extPower = 0;
-      let extFighters = 0;
-      let extHealers = 0;
-      let extStained = 0;
-      const extSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || []);
-      extSects.forEach(s => {
-        if (!s || s.collapsed || !s.livingRoster || s.livingRoster.collapsed) return;
-        const r = s.livingRoster;
-        const members = [r.leader].concat(r.elders || [], r.prodigies || []).filter(Boolean);
-        let sectRaw = 0;
-        members.forEach(m => {
-          if (m.longevity && m.longevity.stasis) return;
-          const stage = Number.isFinite(m.stage) ? m.stage : 3;
-          const stained = !!m.darkStarStain;
-          if (stained) extStained++;
-          const raw = Math.pow(Math.max(1, stage), 1.85) * 26;
-          sectRaw += stained ? raw * 0.78 : raw;
-          extFighters++;
-          if ((m.integrity || 50) >= 78 && (m.wisdom || 50) >= 65) extHealers++;
+    _campaignEvent(W, st, kind, front, text, unit, target) {
+      const c = st.war.campaign;
+      const event = { seq: ++c.eventSeq, day: W.day, time: W.t, kind, frontId: front.id,
+        actorId: unit ? unit.id : null, targetId: target ? target.id : null, text };
+      const log = kind === 'ACTION' ? (front.actions ??= []) : c.events;
+      log.push(event);
+      if (log.length > (kind === 'ACTION' ? 18 : 144)) log.shift();
+      if (kind === 'TURN' || kind === 'REVEALED' || kind === 'END') {
+        X.recordChronicle(W, {
+          category: 'BATTLE', reportFormat: 'WAR_PAVILION_RECORD', storyThreadId: 'FALLEN_STAR_CAMPAIGN',
+          icon: '⚔️', location: stampPlace(W.world.mapTopology?.nodes?.[front.node]), titleTh: front.name + ' · ' + text,
+          storyTh: text, npcIds: unit && unit.source === 'HOME' ? [unit.memberId] : [], quiet: kind !== 'END'
         });
-        extPower += sectRaw * 0.22;
-      });
-      const homeVanguard = homePower * 0.55;
-      const unityFactor = +clamp(1.12 - ((st.sectSuspicion || 0) / 100) * 0.48, 0.58, 1.12).toFixed(3);
-      const totalPower = Math.round((homeVanguard + extPower) * unityFactor);
-      return {
-        homePower: Math.round(homePower),
-        extPower: Math.round(extPower),
-        homeFighters,
-        extFighters,
-        totalHealers: homeHealers + extHealers,
-        totalStained: homeStained + extStained,
-        unityFactor,
-        totalPower
-      };
+      }
     },
 
-    _applyWarAttritionSymmetric(W, severity, seedKey) {
-      // Applies real war wear symmetrically across BOTH Home Sect AND External Sects (never favors player!)
-      const sev = clamp(severity || 0.2, 0.05, 0.65);
-      // 1. Home Sect frontline combatants & symmetric war logistics wear
-      const homeLiving = ((W && W.npcs) || []).filter(n => n && !n.dead && !n.exiled && !(n.ext && n.ext.longevity && n.ext.longevity.stasis));
-      homeLiving.forEach((n, idx) => {
-        if (this._detUnit(seedKey + ":hw:" + idx) < sev) {
-          if (n.h && n.h.state && Number.isFinite(n.h.state.hp)) {
-            const maxHp = (g.CULT && g.CULT.hpMax) ? g.CULT.hpMax(n) : 100;
-            const floorHp = Math.max(8, Math.round(maxHp * 0.14));
-            const curHp = n.h.state.hp;
-            const nextHp = Math.round(curHp * (1 - sev * 0.50));
-            n.h.state.hp = curHp <= floorHp ? curHp : Math.max(floorHp, nextHp);
-            n.inj = Math.min(24, Math.max(n.inj || 0, Math.round(sev * 14)));
-          }
-          if (n.h && n.h.state) n.h.state.stress = clamp((n.h.state.stress || 0) + Math.round(sev * 22), 0, 100);
-        }
-      });
-      if (W.sect && sev < 0.45) {
-        if (Number.isFinite(W.sect.stones) && W.sect.stones > 220) {
-          W.sect.stones = Math.max(220, Math.round(W.sect.stones * (1 - sev * 0.12)));
-        }
-        if (W.sect.stock && Number.isFinite(W.sect.stock.grain) && W.sect.stock.grain > 45) {
-          W.sect.stock.grain = Math.max(45, Math.round(W.sect.stock.grain * (1 - sev * 0.10)));
-        }
+    _startCampaign(W, st) {
+      const oldWar = st.war;
+      const c = { fronts: {}, units: {}, events: [], eventSeq: 0, lastDay: -1, lastSlot: -1, muster: {},
+        parts: 14 + (st.repairedVaults || 0) * 4, witnessed: 0, baseRevealed: false, scouts: {},
+        rebuilt: 0,
+        ruin: 0, peakPress: 0, releaseDay: null, openedDay: W.day, pinAppeal: false };
+      const hold = { BASE: -74, MOUND: -16, BRIDGE: 16, FERRY: 22, CITY: 28 };
+      for (const site of this.CAMPAIGN_FRONTS) {
+        c.fronts[site.id] = { ...site, control: hold[site.id], charge: 0, aid: 2, civilians: site.kind === 'BASE' ? 0 : 8,
+          evacuated: 0, ruined: false, secured: false, levy: false, evidence: 0, round: 0 };
       }
-      // 2. External Sects rosters symmetrically (safe non-extinction floors above LIVING_SECTS collapse threshold)
-      const extSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || []);
-      extSects.forEach((s, idx) => {
-        if (!s || s.collapsed || !s.livingRoster || s.livingRoster.collapsed) return;
+      st.war = { startedDay: oldWar?.startedDay ?? W.day, continentDefense: 100, tier1Remaining: 0, tier2Remaining: 0,
+        clashesResolved: 0, hesitationTriggers: 0, campaign: c };
+      const cw = st.chuWangxuan;
+      c.units.CHU = { id: 'CHU', name: cw.nameTh, source: 'BOSS', side: 'CHU', stage: cw.stage,
+        frontId: 'MOUND', status: 'PRESENT', objective: 'CHANNEL', reason: 'เปิดทางให้ทัณฑ์ลามถึงเมืองถัดไป', hp: cw.hp / cw.hpMax * 100,
+        qi: 100, x: 72, y: 49, ready: 0 };
+      const topo = X.ensureWorldTopology(W);
+      this._campaignRoute(W, topo, c, c.units.CHU, c.fronts.MOUND.node, c.fronts.BASE, 'CHANNEL', 'ตามทางเก่าไปยังฐานหลังตำหนักที่เหลือเพียงซาก');
+      this._campaignEvent(W, st, 'REVEALED', c.fronts.MOUND, 'ฉู่หวั่งเซวียนเริ่มออกตามแนวชีพจร ทายาทฉวยโอกาสส่งคนไปยึดเมือง');
+      return c;
+    },
+
+    _campaignRoster(W) {
+      const rosters = [{ id: 'HOME', node: 'NODE_HOME_SECT', name: W.sect?.name || 'สำนักเมฆาหยก',
+        stance: W.byId?.[W.sect?.masterId], supply: W.sect, people: W.npcs || [] }];
+      const ext = W.world.allSects?.length ? W.world.allSects : W.world.sects || [];
+      for (const s of ext) {
         const r = s.livingRoster;
-        if (this._detUnit(seedKey + ":ew:" + idx) < sev) {
-          const curM = r.morale || 55;
-          const nextM = curM - Math.round(sev * 12);
-          r.morale = curM <= 34 ? curM : Math.max(34, nextM);
-          const curT = r.treasury || 55;
-          const nextT = curT - Math.round(sev * 12);
-          r.treasury = curT <= 28 ? curT : Math.max(28, nextT);
-          if (r.leader) r.leader.wounds = clamp((r.leader.wounds || 0) + Math.round(sev * 14), 0, 20);
-        }
-      });
+        if (!r || s.collapsed || r.collapsed) continue;
+        rosters.push({ id: s.id, node: s.nodeId, name: s.nameTh || s.id, stance: r.leader, supply: r,
+          people: [r.leader, ...(r.elders || []), ...(r.prodigies || [])].filter(Boolean) });
+      }
+      return rosters;
     },
 
-    _resolveVictory(W, st, day, yr, moOpt) {
-      if (st.outcome) return;
-      const cw = st.chuWangxuan;
-      const moNow = moOpt || ((g.SIM && g.SIM.calendar) ? (g.SIM.calendar(W.t || 0).month || 12) : 12);
-      cw.hp = 0;
-      cw.mode = "FALLEN_IN_BATTLE";
-      if (cw.inventory) cw.inventory.lacqueredPearPin = false;
-      st.phase = "RESOLVED_VICTORY";
-      st.outcome = "VICTORY";
-      st.outcomeDay = day;
-      st.wifeEchoAppeared = false; // Zero wife echo on continent victory!
-      st.starAshMoundState = "BATTLEFIELD_CRATER";
-      st.path59Unlocked = true;
-
-      // Symmetrical prestige & morale boost for BOTH Home Sect and surviving External Sects
-      if (typeof W.fame === "function") W.fame(18);
-      const extSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || []);
-      extSects.forEach(s => {
-        if (s && !s.collapsed && s.livingRoster && !s.livingRoster.collapsed) {
-          s.livingRoster.morale = clamp((s.livingRoster.morale || 60) + 14, 15, 100);
-        }
-      });
-
-      const seasonTh = moNow >= 10 ? "ท่ามกลางลมหนาวและเหมันต์ลึก" : moNow >= 7 ? "ท่ามกลางลมสารทพัดโหม" : "ท่ามกลางท้องฟ้ามืดครึ้มเหนือเนินเถ้าดารา";
-      const msg = seasonTh + " พันธมิตรผู้บ่มเพาะทั้งอนุทวีปผสานพลังโค่นล้มฉู่หวั่งเซวียนลงได้ก่อนเขาจะจุดไฟเผาขั้วหัวใจ! ปิ่นไม้ดอกสาลี่ซ่อมครั่งในสาบเสื้อแตกสลายเป็นเถ้าไม้ธรรมดาโดยไร้ปาฏิหาริย์และไร้เงาภรรยา — อนุทวีปยุคที่ 101 ยืนหยัดด้วยกำลังของตนเอง และมหาวิถีที่ 59「วิถีดาราคล้อยทวนชะตา」ได้เปิดเผยร่องรอยสู่อนุชนแล้ว!";
-      this._pushRumor(st, day, yr, msg, "OUTCOME_VICTORY");
-      if (st.war) st.war.battleLog.push({ day, month: moNow, textTh: msg });
-      X.recordChronicle(W, {
-        category: "WITNESS_EPOCH",
-        reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
-        icon: "⚔️",
-        titleTh: "ปิดฉากศึกปีที่ 10: ชัยชนะแห่งยุคสมัยใหม่ — ฉู่หวั่งเซวียนล้มลงกลางหิมะไร้เงาปาฏิหาริย์!",
-        storyTh: msg,
-        quiet: false
-      });
+    _campaignActor(W, st, u, rosters) {
+      if (u.source === 'HOME') return W.byId?.[u.memberId];
+      if (u.source === 'EXTERNAL') return rosters.find(r => r.id === u.sectId)?.people.find(p => p.id === u.memberId);
+      if (u.source === 'OPERATIVE') return st.operatives.find(p => p.id === u.memberId);
+      return null;
     },
 
-    _resolveDefeatPearSmoke(W, st, day, yr, moOpt) {
-      if (st.outcome) return;
-      const cw = st.chuWangxuan;
-      const moNow = moOpt || ((g.SIM && g.SIM.calendar) ? (g.SIM.calendar(W.t || 0).month || 12) : 12);
-      const hasPin = !!(cw && cw.inventory && cw.inventory.lacqueredPearPin);
-      cw.mode = hasPin ? "DISSOLVED_BY_PEAR_SMOKE" : "COLLAPSED_BY_SKYRIFT_SCAR";
-      cw.hp = 0;
-      if (cw.inventory) cw.inventory.lacqueredPearPin = false;
-      st.phase = "RESOLVED_DEFEAT_PEAR_SMOKE";
-      st.outcome = "DEFEAT_PEAR_SMOKE";
-      st.outcomeDay = day;
-      st.wifeEchoAppeared = hasPin;
-      st.starAshMoundState = hasPin ? "WHITE_PEAR_GROVE" : "BATTLEFIELD_CRATER";
-      st.path59Unlocked = true;
+    _campaignActorReady(u, actor) {
+      if (u.source === 'BOSS' || u.source === 'PUPPET') return true;
+      if (!actor || actor.dead || actor.exiled || actor.sealed || actor.alive === false || actor.expId || actor.travel
+        || actor.ext?.longevity?.stasis || actor.longevity?.stasis) return false;
+      return u.source !== 'HOME' || (actor.fseDeployment === u.id && actor.away);
+    },
 
-      // Strict World-Symmetric Post-Cataclysm Loss & Non-Extinction Survival Floor (Home + ALL External Sects, zero double-penalty!)
-      if (W.sect) {
-        if (Number.isFinite(W.sect.stones) && W.sect.stones > 220) W.sect.stones = Math.max(220, Math.round(W.sect.stones * 0.68));
-        if (W.sect.stock && Number.isFinite(W.sect.stock.grain) && W.sect.stock.grain > 45) {
-          W.sect.stock.grain = Math.max(45, Math.round(W.sect.stock.grain * 0.68));
+    _campaignRoute(W, topo, c, unit, from, dest, objective, reason, returning = false) {
+      const route = X.planContinentalRoute(W, topo, topo.nodes[dest.node], from);
+      if (!route) return false;
+      Object.assign(unit, { frontId: dest.id, objective, reason, from, to: dest.node,
+        depart: W.day, eta: W.day + Math.max(1, Math.ceil(route.days)), returning, status: 'TRAVEL' });
+      c.units[unit.id] = unit;
+      return true;
+    },
+
+    _releaseCampaignUnit(W, u, actor) {
+      if (u.source === 'HOME' && actor?.fseDeployment === u.id) {
+        delete actor.fseDeployment;
+        if (!actor.travel && !actor.expId && !actor.exiled) actor.away = false;
+        if (!actor.dead) actor.lastFseDutyDay = W.day;
+      }
+      u.status = 'DONE';
+    },
+
+    _retreatCampaignUnit(W, st, topo, u, actor) {
+      if (u.status === 'TRAVEL' && u.returning) return;
+      const c = st.war.campaign;
+      const front = c.fronts[u.frontId];
+      const home = { id: front.id, node: u.origin };
+      if (u.source === 'HOME' && actor && u.hp < 45) {
+        actor.h.state.stress = clamp((actor.h.state.stress || 0) + 8, 0, 100);
+      }
+      if (u.source === 'PUPPET') {
+        // Broken puppets are lost. Only intact machines carry their spent core back.
+        if (u.hp > 15) c.parts = Math.min(50, c.parts + 1);
+        u.status = 'DONE';
+      } else {
+        const node = u.status === 'TRAVEL' ? u.from : front.node;
+        if (!this._campaignRoute(W, topo, c, u, node, home, 'RETREAT', 'พาคนเจ็บกลับและพักฟื้น', true)) {
+          this._releaseCampaignUnit(W, u, actor);
         }
       }
-      const homeLiving = ((W && W.npcs) || []).filter(n => n && !n.dead && !n.exiled && !(n.ext && n.ext.longevity && n.ext.longevity.stasis));
-      homeLiving.forEach((n, idx) => {
-        if (this._detUnit(String(W.seed || "JS2") + ":fse_defeat:h:" + idx) < 0.52) {
-          if (n.h && n.h.state && Number.isFinite(n.h.state.hp)) {
-            const maxHp = (g.CULT && g.CULT.hpMax) ? g.CULT.hpMax(n) : 100;
-            const floorHp = Math.max(10, Math.round(maxHp * 0.16));
-            n.h.state.hp = n.h.state.hp <= floorHp ? n.h.state.hp : Math.max(floorHp, Math.round(n.h.state.hp * 0.72));
-            n.inj = Math.min(22, Math.max(n.inj || 0, 10));
+      this._campaignEvent(W, st, 'RETREAT', front, u.name + ' ถอนตัวจากแนวรบ', u);
+    },
+
+    _campaignDispatch(W, st, topo, rosters) {
+      const c = st.war.campaign;
+      const active = Object.values(c.units).filter(u => u.status !== 'DONE');
+      const sites = Object.values(c.fronts).filter(f => !f.ruined && (f.kind !== 'BASE' || c.baseRevealed));
+      for (const r of rosters) {
+        const home = r.id === 'HOME';
+        const rosterUnits = active.filter(u => u.sectId === r.id);
+        if (rosterUnits.length >= (home ? Math.min(4, Math.max(0, r.people.filter(n => !n.dead && !n.exiled).length - 1)) : 2)
+          || (c.muster[r.id] ?? -Infinity) > W.day || !r.node) continue;
+        const leader = r.stance;
+        if (!leader) continue;
+        const courage = home ? HC.eff(leader, 'personality.courage') : leader.martial ?? 50;
+        const duty = home ? HC.eff(leader, 'values.justice') : leader.integrity ?? 50;
+        const threat = Math.max(...sites.map(f => f.charge), 0);
+        const commitment = (courage * 0.38 + duty * 0.34 + threat * 0.32) - st.sectSuspicion * 0.22;
+        // A cautious sect may delay. A worsening front makes even reluctant leaders reconsider.
+        c.muster[r.id] = W.day + 4;
+        if (commitment + this._detUnit(`${W.seed}:fse:muster:${r.id}:${W.day}`) * 34 < 37) continue;
+        const candidates = r.people.filter(n => {
+          if (!n?.id || n.dead || n.exiled || n.sealed || n.away || n.travel || n.expId || n.fseDeployment || n.act?.id === 'fight'
+            || n.ext?.longevity?.stasis || n.longevity?.stasis || active.some(u => u.sectId === r.id && u.memberId === n.id)) return false;
+          if (home) {
+            if (HC.eff(n, 'personality.courage') * 0.53 + HC.eff(n, 'values.justice') * 0.34 + threat * 0.38 < 34) return false;
+            if (n.id === W.sect.masterId || !n.cult || n.h.state.hp / CULT.hpMax(n) < 0.72 || n.h.state.energy < 30
+              || W.day - (n.lastFseDutyDay ?? -Infinity) < 8) return false;
+          } else if ((n.wounds || 0) >= 38 || W.day - (n.lastFseDutyDay ?? -Infinity) < 8) return false;
+          return true;
+        });
+        if (!candidates.length) continue;
+        // Prefer willing, rested cultivators. Rank alone cannot assign a person already committed elsewhere.
+        const willingness = n => home ? HC.eff(n, 'personality.courage') * 0.45 + HC.eff(n, 'values.justice') * 0.28 + n.cult.stage * 3
+          : (n.integrity || 50) * 0.42 + (n.martial || 40) * 0.28 + (n.stage || 1) * 3;
+        const actor = candidates.sort((a, b) => willingness(b) - willingness(a))[0];
+        const stage = home ? actor.cult.stage : actor.stage || 1;
+        const path = home ? actor.cult.path : actor.path;
+        const kindness = home ? HC.eff(actor, 'personality.empathy') : actor.integrity ?? 50;
+        const insight = home ? HC.eff(actor, 'intellect.comprehension') : actor.wisdom ?? 50;
+        const medic = path === 'MEDICINE_ALCHEMY' || path === 'HEART_SOUL' || kindness > 78;
+        const engineer = path === 'ARRAY_FORMATION' || path === 'MECH_PUPPET' || insight > 74;
+        const u = { id: `${r.id}:${actor.id}`, memberId: actor.id, sectId: r.id, source: home ? 'HOME' : 'EXTERNAL',
+          side: 'ALLIANCE', name: home ? HC.fullName(actor) : actor.nameTh || actor.name || actor.id,
+          faction: r.name, origin: r.node, hp: home ? Math.round(actor.h.state.hp / CULT.hpMax(actor) * 100) : 100 - (actor.wounds || 0),
+          qi: home ? clamp(Math.round(actor.h.state.qi / Math.max(1, CULT.qiMax(actor)) * 100), 0, 100) : 100,
+          stage, medic, engineer, x: 16, y: 50, ready: 0, rations: 0 };
+        let selected = null;
+        for (const f of sites) {
+          const route = X.planContinentalRoute(W, topo, topo.nodes[f.node], r.node);
+          if (!route) continue;
+          const occupants = active.filter(a => a.frontId === f.id && a.side === 'ALLIANCE');
+          if (occupants.length >= 7) continue;
+          const hostile = active.filter(a => a.frontId === f.id && a.side !== 'ALLIANCE').length;
+          const objectives = [
+            ['DEFEND', f.charge * 0.48 + hostile * 5 + stage * 3, 'หยุดทัพก่อนจุดชีพจรเปิด'],
+            ['EVACUATE', f.civilians ? (kindness * 0.34 + f.civilians * 2 + Math.max(0, -f.control) * 0.27) : -90, 'พาคนที่ยังติดอยู่ให้พ้นเขตทัณฑ์'],
+            ['SEVER', f.kind === 'VEIN' && f.control < 25 ? f.charge * 0.58 + (engineer ? 26 : 3) : -90, 'ตัดวงส่งทัณฑ์'],
+            ['SCOUT', c.witnessed < 8 && !c.scouts[u.id] && f.id === 'FERRY' ? insight * 0.54 + (c.baseRevealed ? 0 : 12) : -90, 'สืบคำสั่งที่ออกในนามฉู่'],
+            ['HEAL', occupants.some(a => a.hp < 68) ? 17 + (medic ? 34 : 0) : -90, 'คนแนวหน้าต้องการหมอ'],
+            ['SUPPLY', f.aid < 4 ? 30 + (hostile ? 12 : 0) : -90, 'เติมเสบียงและทางพักให้คนแนวหน้า'],
+            ['ATTACK', f.id === 'BASE' ? 29 + stage * 3 + f.charge * 0.25 : -90, 'ตัดกำลังโรงหุ่นที่ฐาน']
+          ];
+          for (const [objective, raw, reason] of objectives) {
+            const score = raw - route.days * 2.6 - occupants.length * 4
+              + this._detUnit(`${W.seed}:${W.day}:${actor.id}:${f.id}:${objective}`) * 14;
+            if (!selected || score > selected.score) selected = { f, objective, reason, score };
           }
-          if (n.h && n.h.state) n.h.state.stress = clamp((n.h.state.stress || 0) + 16, 0, 100);
         }
-      });
-      const extSects = (W.world && Array.isArray(W.world.allSects) && W.world.allSects.length) ? W.world.allSects : ((W.world && W.world.sects) || []);
-      extSects.forEach(s => {
-        if (s && !s.collapsed && s.livingRoster && !s.livingRoster.collapsed) {
-          const r = s.livingRoster;
-          const curT = r.treasury || 50;
-          r.treasury = curT <= 28 ? curT : Math.max(28, Math.round(curT * 0.68));
-          const curM = r.morale || 50;
-          r.morale = curM <= 34 ? curM : Math.max(34, Math.round(curM * 0.74));
-          if (r.leader) r.leader.wounds = clamp((r.leader.wounds || 0) + 10, 0, 20);
+        if (!selected || selected.score < 9) continue;
+        if (selected.objective === 'SUPPLY') {
+          if (home && ECO.take(W, 'grain', 3)) u.rations = 3;
+          if (!home && (r.supply.treasury || 0) >= 33) { r.supply.treasury -= 3; u.rations = 3; }
+          if (!u.rations) continue;
         }
-      });
-
-      const msg = hasPin
-        ? "แนวป้องกันทั้งอนุทวีปแตกพ่าย! ขณะที่ฉู่หวั่งเซวียนลอยตัวเหนือเมฆดำจุดไฟปราณขั้วหัวใจเพื่อฟาดหนึ่งกระบี่ผ่าชีพจรทวีป เปลวไฟกลับเผา「ปิ่นไม้ดอกสาลี่ซ่อมครั่ง」แนบอกจนลุกไหม้เป็นควันสีขาวบริสุทธิ์ — เงาโปร่งแสงไร้เสียงของเวินจิ้งซูยื่นมือที่มีรอยเข็มเย็บผ้าแตะหลังมือเขา ส่ายหน้าทั้งรอยยิ้มเปื้อนน้ำตาแล้วชี้ลงไปยังผู้บาดเจ็บเบื้องล่าง กระบี่ดาราคล้อยหลุดร่วงจากมือ ร่างครึ่งก้าวอริยะสลายเป็นแสงดาวเงิน และป่าต้นสาลี่ดอกขาวงอกงามขึ้นกลางเนินเถ้าดาราในชั่วข้ามคืน — โลกมิได้ดับสูญ แต่เข้าสู่ยุคฟื้นฟูหลังมหาวิปโยคอย่างเท่าเทียมทุกสำนัก!"
-        : "แนวป้องกันทั้งอนุทวีปแตกพ่าย! ทว่าในเสี้ยววินาทีที่ฉู่หวั่งเซวียนจุดไฟปราณขั้วหัวใจเพื่อฟาดกระบี่ผ่าชีพจรทวีป รอยร้าวทัณฑ์สวรรค์ที่สะสมมายาวนานกลับปะทุตีกลับจนร่างครึ่งก้าวอริยะสลายเป็นเถ้าดาราไปพร้อมคมกระบี่ — โลกมิได้ดับสูญ แต่เข้าสู่ยุคฟื้นฟูหลังมหาวิปโยคอย่างเท่าเทียมทุกสำนัก!";
-      this._pushRumor(st, day, yr, msg, "OUTCOME_DEFEAT_PEAR_SMOKE");
-      if (st.war) st.war.battleLog.push({ day, month: moNow, textTh: msg });
-      X.recordChronicle(W, {
-        category: "WITNESS_EPOCH",
-        reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
-        icon: "🌸",
-        titleTh: "ปิ่นไม้สาลี่ลุกไหม้หยุดวันสิ้นโลก! เงาเวินจิ้งซูยั้งกระบี่ผ่าทวีป — เข้าสู่ยุคฟื้นฟูหลังมหาวิปโยค",
-        storyTh: msg,
-        quiet: false
-      });
+        if (!this._campaignRoute(W, topo, c, u, r.node, selected.f, selected.objective, selected.reason)) continue;
+        if (home) {
+          if (g.AI && g.AI.release) g.AI.release(W, actor);
+          actor.fseDeployment = u.id;
+          actor.away = true;
+        }
+        active.push(u);
+        this._campaignEvent(W, st, 'DEPARTED', selected.f, `${u.name} (${r.name}) ออกเดินทาง: ${this.CAMPAIGN_ACTIONS[u.objective]}`, u);
+      }
     },
 
-    _tickYear10(W, st, cal, day, isSilent) {
-      if (st.outcome) return st;
-      const yr = cal.year || 10;
-      const mo = cal.month || 1;
-      const dom = cal.dom || 1;
-      const cw = this._spawnChuWangxuan(st, day);
-      if (isSilent) return st;
-
-      // Q1 (Month 1-3, Year 10 only): Peaceful Pilgrim Search for the Pear Grove
-      if (yr === 10 && mo <= 3) {
-        st.phase = "Y10_Q1_PEACEFUL_SEARCH";
-        if (!st.y10AwakenedLogged) {
-          st.y10AwakenedLogged = true;
-          cw.locationTh = "ทุ่งร้างใต้เนินเถ้าดารา 40 ลี้";
-          const msg = "ผลึกสุญญากาศค้างภพใต้แผ่นดินแตกสลายลงในรุ่งสางปีที่ 10! ชายผมสีขาวเงินในชุดผ้าแพรครามโบราณยุคที่ 49 พันผ้าดิบหุ้มใบกระบี่ดาราคล้อยไร้ฝักเดินขึ้นจากรอยแยกดินอย่างเงียบสงบ ไม่แผ่รังสีคุกคามผู้ใด";
-          this._pushRumor(st, day, yr, msg, "Y10_AWAKEN");
-          X.recordChronicle(W, {
-            category: "WITNESS_EPOCH",
-            reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
-            icon: "🌠",
-            titleTh: "ปีที่ 10 วสันต์แรก: ฉู่หวั่งเซวียนตื่นจากผลึกค้างภพในฐานะผู้พเนจรผู้สงบนิ่ง",
-            storyTh: msg,
-            quiet: false
-          });
+    _campaignEnemies(W, st, topo) {
+      const c = st.war.campaign;
+      const base = c.fronts.BASE;
+      const boss = c.units.CHU;
+      const veined = Object.values(c.fronts).filter(f => f.kind === 'VEIN' && !f.ruined);
+      if (boss.status !== 'TRAVEL' && veined.length) {
+        const here = c.fronts[boss.frontId];
+        const candidates = veined.filter(f => f.id !== here.id);
+        const next = candidates.sort((a, b) => (a.control - a.charge * 0.28) - (b.control - b.charge * 0.28))[0];
+        const dwell = W.day - (boss.arrivedDay ?? c.openedDay);
+        if (here.id === 'BASE' && W.day < (boss.recoverUntil ?? 0) && !here.secured) {
+          boss.hp = Math.min(87, boss.hp + 4);
+        } else if (next && ((here.id === 'BASE' && dwell >= 4) || here.ruined || (here.charge >= 83 && dwell >= 22))) {
+          this._campaignRoute(W, topo, c, boss, here.node, next, 'CHANNEL', 'หาเส้นทางให้ทัณฑ์ลามถึงชีพจรถัดไป');
+          this._campaignEvent(W, st, 'DEPARTED', next, boss.name + ' เคลื่อนไปยังจุดชีพจรถัดไป', boss);
         }
-        if (mo >= 2 && (mo > 2 || dom >= 10) && !cw.inventory.freshPearTwig) {
-          cw.inventory.freshPearTwig = true;
-          cw.locationTh = "เมืองบัณฑิตกวางขาวไป๋ลู่ → ตลาดเช้าตีนเขาชิงซี";
-          const msg = "ชาวตลาดเช้าตีนเขาชิงซีและเมืองกวางขาวไป๋ลู่พบชายผมขาวเงินท่าทางสุภาพถามทางไปยอดเขาเก่าและขอซื้อกิ่งดอกสาลี่สดหนึ่งกิ่ง เขามองเหรียญกษาปณ์ยุคใหม่ด้วยแววตาเศร้าสงบราวกับรู้ว่าเวลาล่วงเลยไปนับหมื่นปีแล้ว";
-          this._pushRumor(st, day, yr, msg, "Y10_PILGRIM");
-          this._addClue(st, "CLUE_Y10_SILVER_PILGRIM", "ชายผมขาวเงินผู้ซื้อกิ่งดอกสาลี่สด", msg, day, "ชาวตลาดเช้าตีนเขาชิงซี");
-        }
-        return st;
       }
-
-      // Q2 (Month 4-6, Year 10 only): Star-Ash Mound Revelation & Crushing Mo Changyue + Forming 3-Tier Army
-      if (yr === 10 && mo <= 6) {
-        st.phase = "Y10_Q2_REVELATION_AND_MUSTER";
-        if ((mo > 4 || (mo === 4 && dom >= 14)) && !cw.inventory.lacqueredPearPin) {
-          cw.inventory.lacqueredPearPin = true;
-          cw.inventory.clothWrappedSword = false;
-          cw.locationTh = "ยอดเนินเถ้าดารา";
-          cw.mode = "AVENGER_WARLORD";
-          const msg = "บ่ายวันที่ 14 เดือนสี่คิมหันต์แรก ฉู่หวั่งเซวียนขึ้นถึงยอดเนินเถ้าดารา เห็นศิลาประจานหมื่นบาปถ่มน้ำลายใส่ชื่อเวินจิ้งซู ขุดหินตะกรันด้วยมือเปล่าจนพบ「ปิ่นไม้ดอกสาลี่ซ่อมครั่ง」เก็บแนบขั้วหัวใจ ก่อนกรีดเลือดใช้เนตรดาราย้อนรอยละอองอดีตเห็นภาพภรรยาถูกฉู่เทียนเหิงหลอกออกมารับคมธนูและถูกเผาทั้งเป็น! รอยร้าวทัณฑ์สวรรค์ปริแสงสีเลือด ท้องฟ้าเหนืออนุทวีปมืดครึ้มในพริบตา!";
-          this._pushRumor(st, day, yr, msg, "Y10_REVELATION");
-          X.recordChronicle(W, {
-            category: "WITNESS_EPOCH",
-            reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
-            icon: "🩸",
-            titleTh: "เนินเถ้าดาราสะเทือนฟ้า! ฉู่หวั่งเซวียนเห็นภาพอดีตเวินจิ้งซู — รอยร้าวทัณฑ์สวรรค์ปะทุ",
-            storyTh: msg,
-            quiet: false
-          });
+      if (W.day % 4 !== 0 || base.secured) return;
+      const active = Object.values(c.units).filter(u => u.side === 'HEIRS' && u.status !== 'DONE');
+      for (const op of st.operatives.filter(p => p.alive && p.trueFaction === 'ECLIPSE_ASH')) {
+        const id = 'OP:' + op.id;
+        if (active.some(u => u.id === id) || W.day - (op.lastFseDutyDay ?? -Infinity) < 12) continue;
+        const sites = [c.fronts.FERRY, c.fronts.CITY, c.fronts.BRIDGE].filter(f => !f.ruined);
+        const dest = op.roleKey === 'VAULT_ENGINEER' || !sites.length ? base
+          : sites.sort((a, b) => (a.control + active.filter(u => u.frontId === a.id).length * 12) -
+            (b.control + active.filter(u => u.frontId === b.id).length * 12))[0];
+        const u = { id, source: 'OPERATIVE', memberId: op.id, side: 'HEIRS', stage: op.stage, name: op.nameTh,
+          faction: 'ภาคีเถ้าสุริยคราส', origin: base.node, hp: 100 - (op.wounds || 0), qi: 100, x: 84, y: 34, ready: 0 };
+        if (this._campaignRoute(W, topo, c, u, base.node, dest, dest === base ? 'REPAIR' : 'OCCUPY',
+          dest === base ? 'ซ่อมกองหุ่นไว้ใช้คุมเส้นทางค้า' : 'ยึดเมืองโดยอ้างอำนาจฉู่หวั่งเซวียน')) {
+          active.push(u);
+          this._campaignEvent(W, st, 'DEPARTED', dest, u.name + (dest === base ? ' กลับไปดูแลโรงหุ่น' : ' ใช้ชื่อฉู่ออกคำสั่งให้เมืองยอมขึ้นตรง'), u);
         }
-        if (mo >= 5 && !st.war) {
-          // Crush Mo Changyue & Sikong Yan with a flick of his finger!
-          (st.operatives || []).forEach(op => {
-            if (!op) return;
-            op.exposed = true;
-            if (op.id === "FSE_OP_MO_CHANGYUE" || op.id === "FSE_OP_SIKONG_YAN") {
-              op.alive = false;
+      }
+      if (c.parts < 2 || active.filter(u => u.source === 'PUPPET').length >= 7) return;
+      const target = veined.filter(f => active.filter(u => u.frontId === f.id).length < 4)
+        .sort((a, b) => b.charge + b.control / 4 - a.charge - a.control / 4)[0];
+      if (!target) return;
+      const id = `PUPPET:${W.day}`;
+      const duplicate = c.units[id];
+      if (duplicate) return;
+      const puppet = { id, source: 'PUPPET', side: 'HEIRS', stage: 4 + Math.min(2, Math.floor(st.repairedVaults / 3)),
+        name: 'หุ่นองครักษ์ #' + (c.eventSeq + 1), faction: 'โรงหุ่นชิงซี', origin: base.node, hp: 100, qi: 100, x: 76, y: 60, ready: 0 };
+      if (this._campaignRoute(W, topo, c, puppet, base.node, target, 'DEFEND', 'คุมจุดส่งปราณเพื่อรักษาเขตที่ตำหนักยึด')) c.parts -= 2;
+    },
+
+    _campaignCityEffect(W, front, deltaSafety, deltaProsperity) {
+      const city = W.world.continent?.cities?.[front.node];
+      if (!city) return;
+      city.safety = clamp((city.safety ?? 60) + deltaSafety, 0, 100);
+      city.prosperity = clamp((city.prosperity ?? 50) + deltaProsperity, 0, 100);
+    },
+
+    _finishCampaign(W, st, outcome, front, reason) {
+      const c = st.war.campaign;
+      if (st.outcome) return;
+      st.outcome = outcome;
+      st.outcomeDay = W.day;
+      st.phase = 'RESOLVED_' + outcome;
+      st.path59Unlocked = true;
+      st.wifeEchoAppeared = outcome === 'PEAR_APPEAL';
+      st.starAshMoundState = st.wifeEchoAppeared ? 'WHITE_PEAR_GROVE' : 'BATTLEFIELD_CRATER';
+      const boss = c.units.CHU;
+      boss.status = 'DONE';
+      st.chuWangxuan.mode = outcome === 'VICTORY' ? 'FALLEN_IN_BATTLE' : outcome === 'PEAR_APPEAL' ? 'STAYED_HIS_HAND' : 'WITHDREW';
+      c.releaseDay = W.day;
+      c.endedText = reason;
+      this._campaignEvent(W, st, 'END', front, reason + ' · มรดกวิถีดาราคล้อยเริ่มถูกค้นหา');
+    },
+
+    _campaignDay(W, st) {
+      const c = st.war.campaign;
+      if (c.lastDay >= W.day || (st.outcome && W.day > st.outcomeDay + 65 && !Object.values(c.units).some(u => u.status !== 'DONE'))) return;
+      c.lastDay = W.day;
+      const topo = X.ensureWorldTopology(W);
+      const rosters = this._campaignRoster(W);
+      for (const [id, u] of Object.entries(c.units)) {
+        if (u.status === 'DONE') { if (id !== 'CHU') delete c.units[id]; continue; }
+        const actor = this._campaignActor(W, st, u, rosters);
+        if (!this._campaignActorReady(u, actor)) { this._releaseCampaignUnit(W, u, actor); continue; }
+        const f = c.fronts[u.frontId];
+        if (u.status === 'TRAVEL') {
+          if (W.day < u.eta) continue;
+          if (u.returning) {
+            if (actor && u.source === 'HOME') actor.h.state.qi = Math.min(actor.h.state.qi || 0, Math.round(CULT.qiMax(actor) * u.qi / 100));
+            if (actor && u.source !== 'HOME') actor.lastFseDutyDay = W.day;
+            this._releaseCampaignUnit(W, u, actor);
+            this._campaignEvent(W, st, 'RETURNED', f, u.name + ' กลับถึงที่พักและเริ่มฟื้นตัว', u);
+            continue;
+          }
+          u.status = 'PRESENT';
+          u.arrivedDay = W.day;
+          u.x = u.side === 'ALLIANCE' ? 17 : 84;
+          u.y = 22 + this._detHash(u.id) % 59;
+          this._campaignEvent(W, st, 'ARRIVED', f, u.name + ' มาถึง' + f.name, u);
+        }
+        if (u.objective === 'REBUILD' && u.status === 'PRESENT') {
+          if (!f.rebuilt && u.rations > 0) {
+            f.rebuilt = true;
+            u.rations = 0;
+            c.rebuilt++;
+            this._campaignCityEffect(W, f, 14, 12);
+            this._campaignEvent(W, st, 'TURN', f, u.name + ' นำคนซ่อมทางและเปิดขบวนเสบียงอีกครั้ง', u);
+          }
+          this._retreatCampaignUnit(W, st, topo, u, actor);
+          continue;
+        }
+        if (st.outcome || f.ruined || u.hp < 27) {
+          if (u.source !== 'BOSS') this._retreatCampaignUnit(W, st, topo, u, actor);
+          continue;
+        }
+        if (u.source === 'HOME' && actor) u.hp = Math.min(u.hp, actor.h.state.hp / Math.max(1, CULT.hpMax(actor)) * 100);
+        if (u.objective === 'SUPPLY' && u.rations > 0) {
+          f.aid += u.rations;
+          u.rations = 0;
+          this._campaignEvent(W, st, 'TURN', f, u.name + ' ส่งเสบียงถึงแนวหน้า', u);
+          u.objective = 'DEFEND';
+        }
+        if (u.objective === 'SCOUT') {
+          if (!c.scouts[u.id]) {
+            c.scouts[u.id] = true;
+            f.evidence++;
+            c.witnessed++;
+          }
+          if (!c.baseRevealed && c.witnessed >= 4) {
+            c.baseRevealed = true;
+            this._campaignEvent(W, st, 'REVEALED', c.fronts.BASE, u.name + ' ตามพบทางส่งแกนปราณและหลักฐานการอ้างชื่อฉู่', u);
+          }
+          if (u.source !== 'BOSS') this._retreatCampaignUnit(W, st, topo, u, actor);
+          continue;
+        }
+        if (u.objective === 'EVACUATE' && f.civilians && f.control > -56) {
+          const moved = Math.min(f.civilians, f.control >= 0 ? 2 : 1);
+          f.civilians -= moved;
+          f.evacuated += moved;
+          if (f.civilians === 0) this._campaignEvent(W, st, 'TURN', f, u.name + ' พากลุ่มคนสุดท้ายออกจากเขตอันตราย', u);
+        }
+        if (u.objective === 'OCCUPY') f.control -= 2;
+        if (u.objective === 'REPAIR' && !f.secured && W.day % 5 === 0) c.parts = Math.min(50, c.parts + 1);
+        if (u.source !== 'BOSS' && W.day - u.arrivedDay >= 24) this._retreatCampaignUnit(W, st, topo, u, actor);
+      }
+      st.chuWangxuan.hp = Math.round(st.chuWangxuan.hpMax * c.units.CHU.hp / 100);
+      if (st.outcome) { this._campaignRebuild(W, st, topo, rosters); return; }
+      const present = Object.values(c.units).filter(u => u.status === 'PRESENT');
+      for (const f of Object.values(c.fronts)) {
+        if (f.ruined) continue;
+        const at = present.filter(u => u.frontId === f.id);
+        const ally = at.filter(u => u.side === 'ALLIANCE');
+        const heirs = at.filter(u => u.side === 'HEIRS');
+        const bossHere = at.some(u => u.side === 'CHU');
+        f.control = clamp(f.control + ally.length * 2 - heirs.length * 2 - (bossHere ? 3 : 0), -100, 100);
+        if (f.kind === 'VEIN') {
+          const engineers = ally.filter(u => u.objective === 'SEVER').length;
+          const transmit = bossHere ? 3.2 : f.control < -18 && f.charge >= 60 ? 0.65 : 0;
+          f.charge = clamp(f.charge + transmit - engineers * 4 - (f.control > 28 ? 3 : 0), 0, 100);
+          if (f.charge >= 100 && f.control <= -27) {
+            f.ruined = true;
+            c.ruin++;
+            f.lost = f.civilians;
+            f.civilians = 0;
+            this._campaignCityEffect(W, f, -(18 + f.lost * 2), -24);
+            this._campaignEvent(W, st, 'TURN', f, 'จุดชีพจรแตก · อพยพสำเร็จ ' + f.evacuated + ' กลุ่ม · ยังติดอยู่ ' + f.lost + ' กลุ่ม');
+          }
+        }
+        if (f.id !== 'BASE' && !f.levy && f.control <= -38 && heirs.length) {
+          f.levy = true;
+          if (!f.leviedOnce) {
+            f.leviedOnce = true;
+            c.parts = Math.min(50, c.parts + 3);
+            this._campaignCityEffect(W, f, -8, -7);
+          }
+          this._campaignEvent(W, st, 'TURN', f, 'ทายาทตั้งกองควบคุมเมือง เก็บเสบียงไปส่งฐาน', heirs[0]);
+        }
+        if (f.levy && f.control >= 32) {
+          f.levy = false;
+          this._campaignEvent(W, st, 'TURN', f, 'ทางส่งเสบียงของตำหนักถูกตัด เมืองกลับมาเปิดทางให้คนของตน');
+        }
+        if (f.kind === 'BASE' && !f.secured && f.control >= 42) {
+          f.secured = true;
+          c.parts = 0;
+          this._campaignEvent(W, st, 'TURN', f, 'พันธมิตรยึดโรงซ่อมหุ่น โรงหุ่นหยุดส่งกำลัง');
+        }
+      }
+      const veins = Object.values(c.fronts).filter(f => f.kind === 'VEIN');
+      const pressure = Math.round(veins.reduce((sum, f) => sum + f.charge, 0) / veins.length);
+      c.peakPress = Math.max(c.peakPress, pressure);
+      st.war.continentDefense = 100 - pressure;
+      st.war.tier1Remaining = Object.values(c.units).filter(u => u.source === 'PUPPET' && u.status !== 'DONE').length;
+      st.war.tier2Remaining = st.operatives.filter(o => o.trueFaction === 'ECLIPSE_ASH' && o.alive).length;
+      const boss = c.units.CHU;
+      const scene = c.fronts[boss.frontId];
+      if (c.ruin === veins.length) return this._finishCampaign(W, st, 'RUPTURE', scene, 'ทัณฑ์ลามครบวง ชีพจรทั้งสามพัง ทวีปเข้าสู่การฟื้นฟู');
+      const envoys = present.filter(u => u.frontId === boss.frontId && u.side === 'ALLIANCE' && u.medic && u.hp >= 42);
+      if (boss.status === 'PRESENT' && envoys.length && c.witnessed >= 8 && W.day - c.openedDay >= 55 && Object.values(c.fronts).reduce((s, f) => s + f.evacuated, 0) >= 10 && !c.pinAppeal) {
+        c.pinAppeal = true;
+        this._campaignEvent(W, st, 'TURN', scene, envoys[0].name + ' นำคำให้การไปถึงฉู่ หลังผู้คนเสี่ยงช่วยกันอพยพ', envoys[0]);
+        if (boss.hp <= 62 || c.fronts.BASE.secured) return this._finishCampaign(W, st, 'PEAR_APPEAL', scene, 'ฉู่ยอมหยุดเมื่อได้ฟังคำให้การของผู้รอดและเห็นคนช่วยกันต่อหน้า');
+      }
+      if (c.pinAppeal && boss.hp < 32) return this._finishCampaign(W, st, 'PEAR_APPEAL', scene, 'ฉู่ยอมวางกระบี่เมื่อคำให้การเก่าตามมาถึงแนวรบ');
+      if (boss.hp <= 0) return this._finishCampaign(W, st, 'VICTORY', scene, 'ฉู่หวั่งเซวียนล้มลงจากบาดแผลที่สะสมในสนามรบ');
+      if (c.fronts.BASE.secured && pressure < 25 && W.day - c.openedDay >= 55) {
+        return this._finishCampaign(W, st, 'DISRUPTED', scene, 'โรงหุ่นหยุดทำงานและเส้นชีพจรถูกแยก ฉู่ถอนตัวพร้อมทัณฑ์ที่เหลือ');
+      }
+      // Carry exhaustion forward over months. A sectless world can still be ravaged without an automatic rescue.
+      if (W.day - c.openedDay >= 125 && boss.status === 'PRESENT') {
+        if (boss.hp < 19) return this._finishCampaign(W, st, 'DISRUPTED', scene, 'แผลทัณฑ์กำเริบและแนวส่งปราณยังต่อไม่ครบ ฉู่ถอนตัว');
+        boss.hp = Math.max(0, boss.hp - (boss.hp > 35 ? 0.45 : 0.65));
+        st.chuWangxuan.hp = Math.round(st.chuWangxuan.hpMax * boss.hp / 100);
+      }
+      this._campaignEnemies(W, st, topo);
+      this._campaignDispatch(W, st, topo, rosters);
+    },
+
+    _campaignRebuild(W, st, topo, rosters) {
+      const c = st.war.campaign;
+      if (W.day - st.outcomeDay < 7 || W.day - st.outcomeDay > 65 || W.day % 5 !== 0) return;
+      const active = Object.values(c.units).filter(u => u.status !== 'DONE');
+      const front = Object.values(c.fronts).find(f => f.ruined && !f.rebuilt && !active.some(u => u.frontId === f.id && u.objective === 'REBUILD'));
+      if (!front) return;
+      for (const r of rosters) {
+        const home = r.id === 'HOME';
+        if (!r.node || active.some(u => u.sectId === r.id && u.objective === 'REBUILD')) continue;
+        const actor = r.people.find(a => a.id !== r.stance?.id && !a.dead && !a.exiled && !a.away && !a.travel && !a.expId &&
+          !a.fseDeployment && !a.ext?.longevity?.stasis && !a.longevity?.stasis && !active.some(u => u.memberId === a.id) &&
+          (home ? a.act?.id !== 'fight' && a.h.state.hp >= CULT.hpMax(a) * 0.65 && HC.eff(a, 'personality.empathy') >= 48 : (a.integrity ?? 50) >= 48));
+        if (!actor || !X.planContinentalRoute(W, topo, topo.nodes[front.node], r.node)) continue;
+        if (home ? (ECO.count(W, 'grain') < 18 || !ECO.take(W, 'grain', 6)) : (r.supply.treasury || 0) < 36) continue;
+        if (!home) r.supply.treasury -= 6;
+        const u = { id: `${r.id}:${actor.id}`, memberId: actor.id, sectId: r.id, source: home ? 'HOME' : 'EXTERNAL',
+          side: 'ALLIANCE', name: home ? HC.fullName(actor) : actor.nameTh || actor.id, faction: r.name, origin: r.node,
+          hp: 100, qi: 100, x: 17, y: 45, rations: 6 };
+        this._campaignRoute(W, topo, c, u, r.node, front, 'REBUILD', 'เปิดเส้นทางรับผู้รอดและขบวนอาหาร');
+        if (home) {
+          if (g.AI && g.AI.release) g.AI.release(W, actor);
+          actor.fseDeployment = u.id;
+          actor.away = true;
+        }
+        this._campaignEvent(W, st, 'DEPARTED', front, u.name + ' ออกเดินทางไปฟื้นฟูเส้นทาง', u);
+        return;
+      }
+    },
+
+    _campaignCombat(W, st) {
+      const c = st.war.campaign;
+      const slot = Math.floor(W.t / 30);
+      if (slot <= c.lastSlot) return;
+      c.lastSlot = slot;
+      const rosters = this._campaignRoster(W);
+      const active = Object.values(c.units).filter(u => {
+        if (u.status !== 'PRESENT' || u.hp <= 0) return false;
+        const actor = this._campaignActor(W, st, u, rosters);
+        if (this._campaignActorReady(u, actor)) return true;
+        this._releaseCampaignUnit(W, u, actor);
+        return false;
+      });
+      for (const front of Object.values(c.fronts)) {
+        if (front.ruined) continue;
+        const team = active.filter(u => u.frontId === front.id);
+        if (!team.some(u => u.side === 'ALLIANCE') || !team.some(u => u.side !== 'ALLIANCE')) continue;
+        if (front.lastClashDay !== W.day) {
+          front.lastClashDay = W.day;
+          st.war.clashesResolved++;
+        }
+        front.round++;
+        for (const u of team) {
+          if (u.status !== 'PRESENT' || u.hp <= (u.source === 'BOSS' ? 0 : 24)) continue;
+          const friends = team.filter(a => a.side === u.side && a !== u && a.hp > 0);
+          let target = team.filter(a => (a.side === 'ALLIANCE') !== (u.side === 'ALLIANCE') && a.hp > 0 && a.status === 'PRESENT')
+            .sort((a, b) => Math.hypot(a.x - u.x, a.y - u.y) - Math.hypot(b.x - u.x, b.y - u.y))[0];
+          if (!target) break;
+          const actor = this._campaignActor(W, st, u, rosters);
+          const hurt = friends.filter(a => a.hp < 70).sort((a, b) => a.hp - b.hp)[0];
+          let action = 'STRIKE';
+          let note = '';
+          const remedy = u.hp < 55 && actor?.inv?.pills && Object.keys(actor.inv.pills).find(key => {
+            const effect = ECO.pillInfo(key)?.effect;
+            return actor.inv.pills[key] > 0 && effect?.healHealth > 0 && !(effect.maxRecipients > 1);
+          });
+          if (u.side === 'ALLIANCE' && front.aid > 0 && u.qi < 25 && u.aidDay !== W.day) {
+            front.aid--;
+            u.aidDay = W.day;
+            u.qi = Math.min(100, u.qi + 28);
+            u.hp = Math.min(100, u.hp + 4);
+            this._syncCampaignWound(u, actor, true);
+            action = 'SUPPLY';
+            note = ' · ฟื้นปราณจากเสบียงที่มาถึง';
+            target = u;
+          } else if (remedy) {
+            actor.inv.pills[remedy]--;
+            ECO.applyPill(W, actor, remedy);
+            u.hp = clamp(actor.h.state.hp / Math.max(1, CULT.hpMax(actor)) * 100, 0, 100);
+            note = ' ' + ECO.pillInfo(remedy).name;
+            action = 'PILL';
+            target = u;
+            this._syncCampaignWound(u, actor, true);
+          } else if (u.medic && hurt && u.qi >= 20 && Math.hypot(hurt.x - u.x, hurt.y - u.y) <= 31) {
+            u.qi -= 17;
+            hurt.hp = Math.min(100, hurt.hp + 2 + u.stage * 0.25);
+            this._syncCampaignWound(hurt, this._campaignActor(W, st, hurt, rosters), true);
+            action = 'HEAL';
+            target = hurt;
+          } else if (u.qi < 13) {
+            u.qi += 12;
+            action = 'REST';
+            target = u;
+          } else {
+            const dx = target.x - u.x, dy = target.y - u.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > (u.source === 'BOSS' ? 25 : 18)) {
+              const pace = Math.min(7, dist);
+              u.x = Math.round(u.x + dx / dist * pace);
+              u.y = Math.round(u.y + dy / dist * pace);
+              action = 'MARCH';
+            } else {
+              const tech = u.source === 'HOME' && actor?.cult?.techs?.map(id => CULT.techById[id])
+                .find(t => t && !t.innateOnly && (t.power || t.moveDefs?.length));
+              const art = u.qi >= 30 && slot >= u.ready && (tech || u.source === 'BOSS' || u.engineer || u.stage >= 5);
+              if (art) { u.qi -= 23; u.ready = slot + 18; action = 'ART'; }
+              else u.qi = Math.min(100, u.qi + 5);
+              const guard = team.find(a => a.side === target.side && a !== target && a.hp > 57 && a.objective === 'DEFEND'
+                && Math.hypot(a.x - target.x, a.y - target.y) <= 14);
+              if (guard && target.hp < 47 && this._detUnit(`${W.seed}:${slot}:${guard.id}`) < 0.46) {
+                this._campaignEvent(W, st, 'ACTION', front, guard.name + ' เข้าบังการโจมตีแทน ' + target.name, guard, target);
+                target = guard;
+              }
+              const power = u.source === 'HOME' && actor ? Math.log10(Math.max(10, CULT.power(actor))) : 2 + u.stage / 3;
+              const strength = Math.max(1, u.stage) ** 1.14 * clamp(power / (2 + u.stage / 3), 0.68, 1.35);
+              const armor = Math.max(1, target.stage) ** 0.54;
+              const variance = 0.84 + this._detUnit(`${W.seed}:${slot}:${u.id}:${target.id}`) * 0.32;
+              const dealt = strength / armor * (art ? 1.15 : 0.48) * variance * (target.source === 'BOSS' ? 0.043 : 1);
+              target.hp = clamp(target.hp - dealt, target.source === 'BOSS' ? 0 : 8, 100);
+              if (target.source === 'BOSS' && target.hp > 0 && target.hp < 38 && front.id !== 'BASE' &&
+                  !c.fronts.BASE.secured && c.fronts.BASE.control < 30 && (target.rallies || 0) < 2) {
+                const topo = W.world.mapTopology;
+                if (this._campaignRoute(W, topo, c, target, front.node, c.fronts.BASE, 'REST', 'แผลทัณฑ์กำเริบ ถอยไปตั้งหลักที่ฐาน')) {
+                  target.rallies = (target.rallies || 0) + 1;
+                  target.recoverUntil = target.eta + 14;
+                  this._campaignEvent(W, st, 'TURN', front, target.name + ' ถอนตัวเพราะแผลทัณฑ์ แนวรบได้เวลาฟื้นกำลัง', target);
+                }
+              }
+              const hitActor = this._campaignActor(W, st, target, rosters);
+              this._syncCampaignWound(target, hitActor);
+              if (target.source !== 'BOSS' && target.hp < 25) this._retreatCampaignUnit(W, st, W.world.mapTopology, target, hitActor);
+              note = ' · เสียพลังชีวิต ' + dealt.toFixed(1) + '%';
+              if (art) note = ' ' + (tech?.nameTh || (u.source === 'BOSS' ? 'กระบี่ดาราคล้อย' : 'เคล็ดประจำตัว')) + note;
             }
-          });
-          const tier1Max = (st.repairedVaults || 0) * 420;
-          const tier2Max = 900 + Math.round((st.sectSuspicion || 10) * 14);
-          st.war = {
-            startedDay: day,
-            lastClashMonth: 6,
-            continentDefense: 100,
-            tier1Max,
-            tier1Remaining: tier1Max,
-            tier2Max,
-            tier2Remaining: tier2Max,
-            clashesResolved: 0,
-            hesitationTriggers: 0,
-            lastAllianceSummary: this._computeAlliancePower(W, st),
-            battleLog: []
-          };
-          const msg = "เชิงเนินเถ้าดารา ม่อชางเยว่และซือคงเยี่ยนนำคนงอบเทามาต้อนรับหวังอ้างสายเลือดฉู่เทียนเหิง แต่ฉู่หวั่งเซวียนเพียงสะบัดนิ้วบดขยี้ผู้นำภาคีเถ้าสุริยคราสแหลกเป็นฝุ่นในเสี้ยวลมหายใจ ก่อนยึดตราปลุกกองทัพดาราคล้อยสามชั้น (กรุหุ่น " + (st.repairedVaults || 0) + "/9 กรุ + กองกำลังไถ่บาปและนอกรีต) เคลื่อนทัพทวงหนี้แค้นทั่วอนุทวีป!";
-          this._pushRumor(st, day, yr, msg, "Y10_MO_CRUSHED");
-          st.war.battleLog.push({ day, month: mo, textTh: msg });
-          X.recordChronicle(W, {
-            category: "WITNESS_EPOCH",
-            reportFormat: "HEAVENLY_DAO_OMEN_SCROLL",
-            icon: "⚡",
-            titleTh: "สะบัดนิ้วบดขยี้ม่อชางเยว่! กองทัพดาราคล้อยสามชั้นเคลื่อนพลเปิดมหาสงครามทวีป",
-            storyTh: msg,
-            quiet: false
-          });
+          }
+          u.lastAction = { action, targetId: target.id, slot };
+          this._campaignEvent(W, st, 'ACTION', front, `${u.name} ${this.CAMPAIGN_ACTIONS[action]}${note}${target !== u ? ' · ' + target.name : ''}`, u, target);
+        }
+      }
+      const boss = c.units.CHU;
+      st.chuWangxuan.hp = Math.round(st.chuWangxuan.hpMax * boss.hp / 100);
+      st.chuWangxuan.locationTh = boss.status === 'TRAVEL' ? 'ระหว่างทางสู่' + c.fronts[boss.frontId].name : c.fronts[boss.frontId].name;
+      if (boss.hp <= 0) this._finishCampaign(W, st, 'VICTORY', c.fronts[boss.frontId], 'ฉู่หวั่งเซวียนล้มลงต่อหน้าผู้ที่มาถึงแนวรบ');
+    },
+
+    _syncCampaignWound(u, actor, recovery = false) {
+      if (!actor) return;
+      if (u.source === 'HOME') {
+        const health = actor.h.state;
+        const max = CULT.hpMax(actor);
+        const hp = Math.max(1, Math.round(max * u.hp / 100));
+        health.hp = recovery ? Math.max(health.hp, hp) : Math.min(health.hp, hp);
+      } else actor.wounds = recovery ? Math.min(actor.wounds || 0, Math.round((100 - u.hp) / 2))
+        : Math.max(actor.wounds || 0, Math.round((100 - u.hp) / 2));
+    },
+
+    tickCampaign(W) {
+      const st = W.world?.fallenStarEpic;
+      if (st?.war?.campaign && !st.outcome) this._campaignCombat(W, st);
+    },
+
+    _tickYear10(W, st, cal, day) {
+      // Calendar onset is kept for existing players. Only battle and political outcomes are simulated.
+      const cw = this._spawnChuWangxuan(st, day);
+      if (st.war?.campaign) { this._campaignDay(W, st); return st; }
+      if (st.outcome) return st;
+      const yr = cal.year, mo = cal.month, dom = cal.dom;
+      if (!st.y10AwakenedLogged) {
+        st.y10AwakenedLogged = true;
+        this._pushRumor(st, day, yr, 'ฉู่หวั่งเซวียนตื่นจากผลึกค้างภพและออกตามหาข่าวของเวินจิ้งซู', 'Y10_AWAKEN');
+        X.recordChronicle(W, { category: 'WITNESS_EPOCH', reportFormat: 'HEAVENLY_DAO_OMEN_SCROLL', icon: '🌠',
+          titleTh: 'ปีที่ 10: ฉู่หวั่งเซวียนตื่นขึ้นมาตามหาภรรยา', storyTh: 'ผู้พเนจรผมเงินตามหาคนที่อาจจำเวินจิ้งซูได้', quiet: false });
+      }
+      if (yr === 10 && mo < 4) {
+        st.phase = 'Y10_Q1_PEACEFUL_SEARCH';
+        if (mo > 2 || (mo === 2 && dom >= 10)) {
+          cw.locationTh = 'ตลาดเช้าตีนเขาชิงซี';
+          cw.inventory.freshPearTwig = true;
         }
         return st;
       }
-
-      // Q3-Q4 (Month 7-12): Unscripted Continental War — Monthly Frontline Resolution
-      st.phase = "Y10_Q3_4_CONTINENTAL_WAR";
-      if (!st.war) {
-        // Safety fallback if simulation jumped directly into Q3+
-        if (!cw.inventory.lacqueredPearPin) cw.inventory.lacqueredPearPin = true;
+      st.phase = 'Y10_Q2_REVELATION_AND_MUSTER';
+      if (yr === 10 && mo === 4 && dom < 14) return st;
+      if (!cw.inventory.lacqueredPearPin) {
+        cw.inventory.lacqueredPearPin = true;
         cw.inventory.clothWrappedSword = false;
-        cw.locationTh = "ยอดเนินเถ้าดารา";
-        cw.mode = "AVENGER_WARLORD";
-        (st.operatives || []).forEach(op => {
-          if (!op) return;
-          op.exposed = true;
-          if (op.id === "FSE_OP_MO_CHANGYUE" || op.id === "FSE_OP_SIKONG_YAN") op.alive = false;
-        });
-        const tier1Max = (st.repairedVaults || 0) * 420;
-        const tier2Max = 900 + Math.round((st.sectSuspicion || 10) * 14);
-        st.war = {
-          startedDay: day,
-          lastClashMonth: mo - 1,
-          continentDefense: 100,
-          tier1Max,
-          tier1Remaining: tier1Max,
-          tier2Max,
-          tier2Remaining: tier2Max,
-          clashesResolved: 0,
-          hesitationTriggers: 0,
-          lastAllianceSummary: this._computeAlliancePower(W, st),
-          battleLog: []
-        };
+        cw.locationTh = 'เนินเถ้าดารา';
+        cw.mode = 'AVENGER';
+        this._pushRumor(st, day, yr, 'ปิ่นดอกสาลี่ยืนยันชะตาของเวินจิ้งซู ฉู่หวั่งเซวียนหันเข้าหาฐานลับของทายาท', 'Y10_REVELATION');
       }
-
-      const war = st.war;
-      const clashStep = mo + (yr > 10 ? (yr - 10) * 12 : 0);
-      if (clashStep <= war.lastClashMonth) return st;
-      war.lastClashMonth = clashStep;
-      war.clashesResolved++;
-
-      const seedKey = String(W.seed || "JS2") + ":fse_war:c" + clashStep;
-      const alliance = this._computeAlliancePower(W, st);
-      war.lastAllianceSummary = alliance;
-
-      // Fallen Star 3-Tier Army effective strength this month
-      const bossScale = Math.max(0.35, cw.hp / Math.max(1, cw.hpMax));
-      const enemyPower = Math.round(
-        war.tier1Remaining * 0.55 +
-        war.tier2Remaining * 0.45 +
-        cw.basePower * bossScale
-      );
-
-      // Human Heart Hesitation: smooth diminishing-returns curve so healers matter without solo-burning the boss
-      let hesitationDmg = 0;
-      const hesChance = Math.min(0.55, 0.14 + Math.sqrt(Math.max(0, alliance.totalHealers)) * 0.08);
-      if (alliance.totalHealers > 0 && this._detUnit(seedKey + ":hes") < hesChance) {
-        war.hesitationTriggers++;
-        hesitationDmg = 280 + Math.min(480, Math.round(Math.sqrt(alliance.totalHealers) * 110));
-        cw.hp = Math.max(0, cw.hp - hesitationDmg);
-        cw.skyRiftBurnAccum += hesitationDmg;
-      }
-
-      // Natural Sky-Rift Scar burn each month of full-power combat
-      const scarBurn = 240;
-      cw.hp = Math.max(0, cw.hp - scarBurn);
-      cw.skyRiftBurnAccum += scarBurn;
-
-      // Frontline exchange: alliance strikes Tier 1 -> Tier 2 -> Chu Wangxuan directly (no double-dipping while shields hold)
-      const luckA = 0.90 + this._detUnit(seedKey + ":la") * 0.20;
-      const luckE = 0.90 + this._detUnit(seedKey + ":le") * 0.20;
-      const effA = Math.round(alliance.totalPower * luckA);
-      const effE = Math.round(enemyPower * luckE);
-
-      let strikeRem = Math.round(effA * 0.44);
-      if (war.tier1Remaining > 0) {
-        const hit1 = Math.min(war.tier1Remaining, strikeRem);
-        war.tier1Remaining -= hit1;
-        strikeRem -= hit1;
-      }
-      if (strikeRem > 0 && war.tier2Remaining > 0) {
-        const hit2 = Math.min(war.tier2Remaining, strikeRem);
-        war.tier2Remaining -= hit2;
-        strikeRem -= hit2;
-      }
-      const shieldsUp = (war.tier1Remaining + war.tier2Remaining) > 0;
-      const bossHit = Math.round(strikeRem * 0.85) + Math.round(effA * (shieldsUp ? 0.04 : 0.12));
-      cw.hp = Math.max(0, cw.hp - bossHit);
-
-      // Continent Defense loss when Fallen Star Army pushes through
-      const defLoss = effE > effA
-        ? Math.round(18 + clamp(((effE - effA) / Math.max(1, effE)) * 28, 4, 28))
-        : Math.round(clamp((effE / Math.max(1, effA)) * 11, 3, 12));
-      war.continentDefense = Math.max(0, war.continentDefense - defLoss);
-
-      // Symmetrical battle wear on Home + External Sects
-      this._applyWarAttritionSymmetric(W, effE > effA ? 0.26 : 0.14, seedKey);
-
-      const clashText = "สมรภูมิเดือน " + mo + ": พันธมิตรทวีป (พลัง " + effA + " · สามัคคี " + Math.round(alliance.unityFactor * 100) + "%) ปะทะทัพดาราคล้อย (พลัง " + effE + ") — แนวป้องกันทวีปคงเหลือ " + war.continentDefense + "%, พลังชีวิตฉู่หวั่งเซวียนเหลือ " + Math.round((cw.hp / cw.hpMax) * 100) + "%" + (hesitationDmg > 0 ? " (หมอสนามและผู้พิทักษ์ทำให้คมกระบี่ชะงัก รอยร้าวทัณฑ์สวรรค์ตีกลับ!)" : "");
-      war.battleLog.push({ day, month: mo, textTh: clashText });
-      if (war.battleLog.length > 16) war.battleLog.shift();
-      this._pushRumor(st, day, yr, clashText, "Y10_CLASH");
-
-      // Check Unscripted Outcome Triggers!
-      if (cw.hp <= 0 && war.continentDefense > 0) {
-        this._resolveVictory(W, st, day, yr, mo);
-        return st;
-      }
-      if (war.continentDefense <= 0) {
-        this._resolveDefeatPearSmoke(W, st, day, yr, mo);
-        return st;
-      }
-      // Final Month 12 Climax Resolution if still deadlocked
-      if (mo >= 12) {
-        const bossPct = cw.hp / Math.max(1, cw.hpMax);
-        const defPct = war.continentDefense / 100;
-        if (defPct >= bossPct) {
-          this._resolveVictory(W, st, day, yr, mo);
-        } else {
-          war.continentDefense = 0;
-          this._resolveDefeatPearSmoke(W, st, day, yr, mo);
-        }
-      }
+      if (yr === 10 && mo < 5) return st;
+      st.phase = 'Y10_CONTINENTAL_CAMPAIGN';
+      this._startCampaign(W, st);
+      this._campaignDay(W, st);
       return st;
     },
 
@@ -11841,8 +12044,8 @@
       if (yr >= 10) {
         st.crystalCrackPct = 100;
         st.year10Ready = true;
-        if (!st.outcome) {
-          this._tickYear10(W, st, cal, day, isSilent);
+        if (!st.outcome || st.war?.campaign) {
+          this._tickYear10(W, st, cal, day);
         }
         return st;
       } else if (yr >= 7) {

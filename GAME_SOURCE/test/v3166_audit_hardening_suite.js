@@ -53,36 +53,34 @@ for (let i = 0; i < 400; i++) {
 assert(picked59 >= 1 && picked59 < 250, 'Post-Y10 organic Path #59 pick rate out of healthy bounds: ' + picked59 + '/400');
 console.log('[PASS] 3. Post-Year-10 organic Path #59 pick rate verified: ' + picked59 + '/400');
 
-// 4. Year-10 natural war balance (multi-clash, non-instant kill) & Both Outcomes reachable (Team 4 & 5)
+// 4. Multi-front campaign lasts and resolves in different world states.
 const DAY_TICKS = SIM.DAY || 1440;
-let minClashes = 999;
-for (const sd of [101, 202, 303]) {
-  const Wn = SIM.create({ seed: sd, name: 'BalSect' + sd });
+const observed = [];
+for (const seed of [101, 202, 303, 404]) {
+  const world = SIM.create(seed);
+  EXPED.LIVING_SECTS.ensureWorldState(world);
   const FSE = EXPED.FALLEN_STAR_EPIC;
-  EXPED.LIVING_SECTS.ensureWorldState(Wn);
-  const st = FSE.ensure(Wn);
-  for (let d = 360; d <= 4000; d += 10) {
-    Wn.day = d; Wn.t = d * DAY_TICKS;
-    FSE.tickDaily(Wn, SIM.calendar(Wn.t));
-    if (st.outcome) break;
+  const state = FSE.ensure(world);
+  const unready = seed === 404;
+  if (unready) {
+    state.sectSuspicion = 95;
+    state.repairedVaults = 9;
+    for (const n of world.npcs) n.away = true;
+    for (const s of world.world.allSects) for (const n of [s.livingRoster.leader, ...s.livingRoster.elders, ...s.livingRoster.prodigies].filter(Boolean)) n.wounds = 80;
   }
-  assert(st.outcome === 'VICTORY' || st.outcome === 'DEFEAT_PEAR_SMOKE', 'Seed ' + sd + ' did not resolve');
-  assert(st.war && st.war.clashesResolved >= 2, 'Seed ' + sd + ' resolved in 1-clash instant kill!');
-  minClashes = Math.min(minClashes, st.war.clashesResolved);
+  for (let d = 3600; d <= 4140 && !state.outcome; d++) {
+    world.day = d; world.t = d * DAY_TICKS;
+    FSE.tickDaily(world, SIM.calendar(world.t));
+    for (let i = 0; i < 48; i++) { world.t = d * DAY_TICKS + i * 30; FSE.tickCampaign(world); }
+  }
+  assert(state.outcome && state.path59Unlocked, 'Campaign must resolve for seed ' + seed);
+  assert(state.outcomeDay - state.war.campaign.openedDay >= 35, 'campaign should play out across many days in seed ' + seed);
+  if (!unready) assert(state.war.clashesResolved >= 5, 'multiple frontline clash days must be recorded');
+  else assert(state.outcome === 'RUPTURE' && state.war.campaign.ruin === 3, 'a failure is reachable when no one comes to defend');
+  observed.push(state.outcome);
 }
-// Verify divided/high-suspicion continent naturally reaches DEFEAT_PEAR_SMOKE
-const Wdiv = SIM.create({ seed: 404, name: 'DividedSect' });
-EXPED.LIVING_SECTS.ensureWorldState(Wdiv);
-const stDiv = EXPED.FALLEN_STAR_EPIC.ensure(Wdiv);
-stDiv.repairedVaults = 9;
-stDiv.sectSuspicion = 95;
-for (let d = 3600; d <= 4000; d += 10) {
-  Wdiv.day = d; Wdiv.t = d * DAY_TICKS;
-  EXPED.FALLEN_STAR_EPIC.tickDaily(Wdiv, SIM.calendar(Wdiv.t));
-  if (stDiv.outcome) break;
-}
-assert(stDiv.outcome === 'DEFEAT_PEAR_SMOKE', 'High-suspicion/9-vaults continent should naturally reach DEFEAT_PEAR_SMOKE, got ' + stDiv.outcome);
-console.log('[PASS] 4. Natural Year-10 war balance verified (minClashes=' + minClashes + ', divided continent -> ' + stDiv.outcome + ')');
+assert(new Set(observed).size >= 2, 'campaign can go different ways');
+console.log('[PASS] 4. Multi-front campaign and catastrophic failure reachable (' + observed.join(', ') + ')');
 
 // 5. Dynamic Star-Ash Mound loot & Relic drop (Team 8)
 const Wrel = SIM.create({ seed: 31665, name: 'RelicSect' });

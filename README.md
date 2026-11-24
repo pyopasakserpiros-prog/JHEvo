@@ -1,3 +1,5 @@
+> **JS2 v3.17.0 — ศึกพล่ากำลังดาราคล้อย (`main`)** เปิดหอสังเกตการณ์จากหน้ายุทธภพเมื่อมีข่าวยืนยัน ติดตามศึกห้าแนวรบและการตัดสินใจของฉู่ ทายาท และพันธมิตร [รายละเอียดแพตช์](PATCH_REPORTS/FALLEN_STAR_CAMPAIGN_JS2_V3_17_0.md)
+
 > **JS2 v3.9.8 — ภาพสัตว์อสูรและไอคอนเหนือตำนาน (`main`)** เพิ่มเอฟเฟกต์สัตว์เทพสี่ทิศ คู่หูระดับตำนานขึ้นไป และอสูรอ้างอิง 5 ตัว พร้อมไอคอนวัสดุ 20 แบบและกรอบภาพใหม่ ดู [รายงานแพตช์](PATCH_REPORTS/VFX_JS2_V3_9_8.md)
 
 > **Latest Release: `JS2 v3.8.5`** — Lore Continuity & Canon Hardening (resolved all 15 audit findings `LC-01..LC-15` + 3 worldbuilding decisions across runtime `sim.js`/`sect.js`/`expedition.js`/`visitors_clues.js` and 44 bundled Lore Chronicles), verified 40-script lock & `JianghuSect_single.html` (`21,261 KB`). See [`NEW_CHAT_HANDOFF_JS2_v3.8.5.md`](NEW_CHAT_HANDOFF_JS2_v3.8.5.md) & [`PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md`](PATCH_REPORTS/PATCH_REPORT_JS2_v3.8.5.md).

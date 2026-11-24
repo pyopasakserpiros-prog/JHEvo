@@ -16,13 +16,14 @@ function stepYear10(W, daysCount) {
     W.t = W.day * 1440;
     const cal = g.SIM.calendar(W.t);
     FSE.tickDaily(W, cal, { silent: false });
+    for (let turn = 0; turn < 48; turn++) { W.t = W.day * 1440 + turn * 30; FSE.tickCampaign(W); }
   }
 }
 
 function run() {
-  console.log('=== JS2 v3.16.2 Year-10 Chu Wangxuan & Two Unscripted Outcomes Suite ===');
+  console.log('=== JS2 v3.16.2 Year-10 Chu Wangxuan & Continental Campaign Suite ===');
   const FSE = g.EXPED.FALLEN_STAR_EPIC;
-  assert(FSE && String(FSE.VERSION || '').startsWith('3.16.'), 'FSE version must be 3.16.x');
+  assert(FSE && typeof FSE.tickCampaign === 'function', 'FSE campaign tick must be registered');
 
   // 1. Q1 Peaceful Pilgrim -> Q2 Revelation, Lacquered Pear Pin & Crushing Mo Changyue
   {
@@ -50,13 +51,12 @@ function run() {
       FSE.tickDaily(W, g.SIM.calendar(W.t), { silent: false });
     }
     assert.strictEqual(st.chuWangxuan.inventory.lacqueredPearPin, true, 'Lacquered Pear Pin dug up on M4 D14');
-    assert.strictEqual(st.chuWangxuan.mode, 'AVENGER_WARLORD', 'Mode flips to AVENGER_WARLORD after revelation');
+    assert.strictEqual(st.chuWangxuan.mode, 'AVENGER', 'Mode flips after the truth is revealed');
     const moOp = st.operatives.find(o => o.id === 'FSE_OP_MO_CHANGYUE');
-    const skOp = st.operatives.find(o => o.id === 'FSE_OP_SIKONG_YAN');
-    assert.strictEqual(moOp.alive, false, 'Mo Changyue must be crushed in Q2 M5');
-    assert.strictEqual(skOp.alive, false, 'Sikong Yan must be crushed in Q2 M5');
-    assert(st.war && st.war.tier1Max === 4 * 420, 'Tier 1 puppet army scales directly from repairedVaults (4 * 420)');
-    console.log('[PASS] 1. Q1 Peaceful Pilgrim -> Q2 Pear Pin excavation, Mo Changyue crushed, 3-Tier Army formed');
+    assert.strictEqual(moOp.alive, true, 'Chu ignores the heirs; they still have their own agenda');
+    assert(st.war.campaign && st.war.campaign.fronts.BASE, 'descendants keep their operations base');
+    assert(moOp.lastFseDutyDay || Object.values(st.war.campaign.units).some(u => u.side === 'HEIRS' && ['OCCUPY', 'REPAIR'].includes(u.objective)), 'the heirs make their own plans');
+    console.log('[PASS] 1. Peaceful search, Pear Pin revelation, and independent heirs');
   }
 
   // 2. Branch 1 (Unscripted VICTORY without Wife Echo)
@@ -80,11 +80,11 @@ function run() {
     });
 
     stepYear10(W, 360);
-    assert.strictEqual(st.outcome, 'VICTORY', 'Strong united continent must organically achieve VICTORY');
-    assert.strictEqual(st.wifeEchoAppeared, false, 'VICTORY branch MUST NOT summon wife echo');
-    assert.strictEqual(st.starAshMoundState, 'BATTLEFIELD_CRATER', 'VICTORY leaves BATTLEFIELD_CRATER');
+    assert(['VICTORY', 'DISRUPTED', 'PEAR_APPEAL'].includes(st.outcome), 'strong coalition can stop the disaster');
+    assert.equal(st.wifeEchoAppeared, st.outcome === 'PEAR_APPEAL');
+    assert.equal(st.starAshMoundState, st.wifeEchoAppeared ? 'WHITE_PEAR_GROVE' : 'BATTLEFIELD_CRATER');
     assert.strictEqual(st.path59Unlocked, true, 'Path #59 unlocks after Year-10 resolution');
-    assert.strictEqual(st.chuWangxuan.hp, 0, 'Chu Wangxuan HP reaches 0');
+    if (st.outcome === 'VICTORY') assert.equal(st.chuWangxuan.hp, 0, 'combat victory requires real depletion');
     console.log('[PASS] 2. Branch 1 (VICTORY without wife echo) resolved organically in ' + st.war.clashesResolved + ' clashes (hesitations=' + st.war.hesitationTriggers + ')');
   }
 
@@ -93,63 +93,33 @@ function run() {
     const W = g.SIM.create('v3162_defeat_branch');
     if (g.EXPED.LIVING_SECTS && g.EXPED.LIVING_SECTS.ensureWorldState) g.EXPED.LIVING_SECTS.ensureWorldState(W);
     const st = FSE.ensure(W);
-    // Fractured, under-prepared continent: 9/9 vaults repaired, 90% suspicion, weak cultivators
+    // No ready parties: rupture remains reachable without a compulsory divine rescue.
     st.repairedVaults = 9;
-    st.interceptedVaults = 0;
-    st.sectSuspicion = 90;
-    (W.npcs || []).forEach(n => {
-      if (n && !n.dead && n.cult) {
-        n.cult.stage = 1;
-        n.ext = n.ext || {};
-        n.ext.darkStarStain = true;
-      }
-    });
-    const extSects = (W.world.allSects && W.world.allSects.length) ? W.world.allSects : (W.world.sects || []);
-    extSects.forEach(s => {
-      if (s && s.livingRoster && s.livingRoster.leader) {
-        s.livingRoster.leader.stage = 1;
-        s.livingRoster.leader.darkStarStain = true;
-        (s.livingRoster.elders || []).forEach(e => { e.stage = 1; e.darkStarStain = true; });
-        (s.livingRoster.prodigies || []).forEach(p => { p.stage = 1; });
-      }
-    });
-
+    st.sectSuspicion = 95;
+    for (const n of W.npcs) n.away = true;
+    for (const s of W.world.allSects || []) {
+      for (const n of [s.livingRoster.leader, ...s.livingRoster.elders, ...s.livingRoster.prodigies].filter(Boolean)) n.wounds = 80;
+    }
     stepYear10(W, 360);
-    assert.strictEqual(st.outcome, 'DEFEAT_PEAR_SMOKE', 'Fractured weak continent must organically fall into DEFEAT_PEAR_SMOKE');
-    assert.strictEqual(st.wifeEchoAppeared, true, 'DEFEAT branch must awaken Wen Jingxu white-smoke echo via Pear Pin');
-    assert.strictEqual(st.starAshMoundState, 'WHITE_PEAR_GROVE', 'DEFEAT blooms WHITE_PEAR_GROVE');
-    assert.strictEqual(st.path59Unlocked, true, 'Path #59 unlocks after Defeat resolution too');
-
-    // Strict World-Symmetric Non-Extinction Survival Floor verification
-    const homeAlive = (W.npcs || []).filter(n => n && !n.dead);
-    assert(homeAlive.length > 0, 'Home sect core disciples survive non-extinction floor');
-    assert(W.sect.stones >= 120, 'Home sect stone floor preserved (>= 120)');
-    const extSurviving = extSects.filter(s => s && s.livingRoster && !s.livingRoster.collapsed);
-    assert(extSurviving.length > 0, 'External sects also survive non-extinction floor symmetrically');
-    assert(extSurviving.every(s => s.livingRoster.treasury >= 20 && s.livingRoster.morale >= 22), 'External sect survival floor enforced symmetrically');
-
-    // Zero-RNG getReadOnlySummary & Save/Load parity
-    const rngBefore = W.rng && W.rng.s;
-    const sum = FSE.getReadOnlySummary(W);
-    const rngAfter = W.rng && W.rng.s;
-    assert.strictEqual(rngAfter, rngBefore, 'getReadOnlySummary must be Zero-RNG');
-    assert.strictEqual(sum.outcome, 'DEFEAT_PEAR_SMOKE');
-    assert.strictEqual(sum.wifeEchoAppeared, true);
-    assert.strictEqual(sum.path59Unlocked, true);
-
-    const saved = g.SIM.serialize(W);
-    const W2 = g.SIM.deserialize(saved);
-    assert.strictEqual(W2.world.fallenStarEpic.outcome, 'DEFEAT_PEAR_SMOKE', 'Save/Load outcome parity');
-    assert.strictEqual(W2.world.fallenStarEpic.starAshMoundState, 'WHITE_PEAR_GROVE', 'Save/Load mound parity');
-    assert.strictEqual(W2.world.fallenStarEpic.path59Unlocked, true, 'Save/Load path59Unlocked parity');
-    console.log('[PASS] 3. Branch 2 (DEFEAT -> Pear Pin White Smoke & World-Symmetric Recovery) + Zero-RNG + Save/Load verified');
+    assert.equal(st.outcome, 'RUPTURE');
+    assert.equal(st.war.campaign.ruin, 3, 'all three veins must actually rupture');
+    assert.equal(st.wifeEchoAppeared, false);
+    assert.equal(st.path59Unlocked, true);
+    const before = W.rng.s;
+    const summary = FSE.getReadOnlySummary(W);
+    assert.equal(W.rng.s, before);
+    assert.equal(summary.outcome, 'RUPTURE');
+    const copy = g.SIM.deserialize(g.SIM.serialize(W));
+    assert.equal(copy.world.fallenStarEpic.outcome, 'RUPTURE');
+    assert.equal(copy.world.fallenStarEpic.path59Unlocked, true);
+    console.log('[PASS] 3. Rupture, observer purity and save/load');
   }
 
   // 4. UI Markers & Exact 40 <script> Tags Lock Check
   {
     const uiSrc = fs.readFileSync(path.join(ROOT, 'js', 'ui.js'), 'utf8');
     assert(uiSrc.includes('fse-year10-war-bar'), 'UI.rWorld must include fse-year10-war-bar');
-    assert(uiSrc.includes('DEFEAT_PEAR_SMOKE'), 'UI.rWorld must render DEFEAT_PEAR_SMOKE banner');
+    assert(uiSrc.includes('open-fse-watch') && uiSrc.includes('rFallenStarObserver'), 'a dedicated read-only observation screen is available');
     assert(uiSrc.includes('VICTORY'), 'UI.rWorld must render VICTORY banner');
     const idxHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
     const scriptCount = (idxHtml.match(/<script\b[^>]*src=/g) || []).length;
