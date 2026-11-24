@@ -905,7 +905,7 @@
           const prevFatigue = guardPet.fatigue || 0;
           guardPet.fatigue = clamp(prevFatigue + (isBlackTortoise ? 2.0 : 3.5), 0, 100);
           if ((prevFatigue < 90 && guardPet.fatigue >= 90) || (prevFatigue < 95 && guardPet.fatigue >= 95)) {
-            if (ST && ST.dirty) ST.dirty(d);
+            if (g.STATS && g.STATS.dirty) g.STATS.dirty(d);
           }
           d.lastPetIntercept = { t: W.t, petId: guardPet.uid || guardPet.petId, petName: guardPet.nameTh, fourSymbol: guardPet.fourSymbol || null, intercepted: Math.round(intercepted) };
           if (isBlackTortoise && a && !a.dead && note !== 'สะท้อนเกราะเสวียนอู่') {
@@ -2913,6 +2913,10 @@
     if (isForbid && !a.foe && a.voluntaryVows && a.voluntaryVows.VOW_ASCETIC_PRECEPT && a.voluntaryVows.VOW_ASCETIC_PRECEPT.active && CULT && CULT.VOLUNTARY_VOWS && CULT.VOLUNTARY_VOWS.violateVow) {
       CULT.VOLUNTARY_VOWS.violateVow(W, a, 'VOW_ASCETIC_PRECEPT', 'ร่ายวิชาต้องห้าม「' + (tech ? tech.nameTh : p.nameTh) + '」');
     }
+    const _hasWitnessOrSerious = !!(f && (f.serious || f.kind === 'raid' || f.kind === 'tourney' || (Array.isArray(f.B) && f.B.some(uid => { const uu = C.unit(W, uid); return uu && uu.foe; }))));
+    if (isForbid && !a.foe && _hasWitnessOrSerious && g.EXPED && g.EXPED.BLACK_LEDGER && g.EXPED.BLACK_LEDGER.reportTransgression && W && W.rng && W.rng.chance(0.22)) {
+      g.EXPED.BLACK_LEDGER.reportTransgression(W, a, 'FORBIDDEN_ART', 'ร่ายวิชาต้องห้าม「' + (tech ? tech.nameTh : p.nameTh) + '」ต่อหน้าพยานในศึกยุทธภพ');
+    }
     if (!a.foe && CULT && CULT.SECONDARY_RESOURCES && CULT.SECONDARY_RESOURCES.canUseResource) {
       if (CULT.SECONDARY_RESOURCES.canUseResource(a, 'FORMATION_INK')) CULT.SECONDARY_RESOURCES.gain(a, 'FORMATION_INK', 14);
     }
@@ -4057,7 +4061,7 @@
           injuredIds.push(u.id);
         }
       }
-      if (u.meridians && u.meridians.overdriveUsedInFight) {
+      if (!u.foe && !u.dead && u.meridians && u.meridians.overdriveUsedInFight) {
         overdriveBacklashIds.push(u.id);
       }
       if (!u.foe) {
@@ -4086,7 +4090,16 @@
       DRAW: 'เสมอกัน'
     }[outcome] || 'ยุติการปะทะ';
 
+    const extraHighlights = [];
+    if (f.lastDomainClash && f.lastDomainClash.nameTh) extraHighlights.push('อาณาเขตปะทะแตก: ' + f.lastDomainClash.nameTh);
+    const _scarCount = Math.max((f.daoScars && f.daoScars.length) || 0, f.totalDaoScarsCreated || 0);
+    if (_scarCount > 0) extraHighlights.push('รอยจารึกเต๋า ' + _scarCount + ' แห่ง');
+    if (overdriveBacklashIds.length > 0) {
+      const odNames = overdriveBacklashIds.slice(0, 2).map(id => { const u2 = W.byId && W.byId[id]; return u2 && u2.h && u2.h.name ? u2.h.name.given : id; }).join('、');
+      extraHighlights.push('ฝืนเร่งชีพจรพิสดาร (' + odNames + ' · ปราณบ่มเพาะ -30% 1 วัน)');
+    }
     const summaryParts = [outcomeLabelTh + ' (' + durTicks + ' นาที)', tacticalSummaryTh];
+    if (extraHighlights.length) summaryParts.push(extraHighlights.join(' · '));
     if (mvp && mvp.nameTh) summaryParts.push('ผู้โดดเด่น: ' + mvp.nameTh);
     if (casualties.length > 0) summaryParts.push('ผู้เสียชีวิต ' + casualties.length + ' ราย');
     const summaryLineTh = summaryParts.filter(Boolean).join(' · ');
@@ -4350,7 +4363,7 @@
     const T = W.sect.tournament; if (!T) return;
     const m = W.byId[W.sect.masterId];
     if (T.state === 'announce' && W.t >= T.start) {
-      const pool = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 1 && n.rank < 6 && !n.sealed && !(n.jail > W.t) && !(n.inj && n.inj.some(i => i.sev >= 2)) && n.h.state.hp > CULT.hpMax(n) * 0.6);
+      const pool = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 1 && n.rank < 6 && !n.sealed && !(n.ext && n.ext.longevity && n.ext.longevity.stasis) && !(n.jail > W.t) && !(g.SECT && g.SECT.isNpcDetained && g.SECT.isNpcDetained(W, n)) && !(n.inj && n.inj.some(i => i.sev >= 2)) && n.h.state.hp > CULT.hpMax(n) * 0.6);
       const ent = pool.filter(n => { const want = (E(n, 'interests.combat') + E(n, 'values.martialPeak') + E(n, 'personality.ambition') + E(n, 'personality.courage') + (E(n, 'values.wealthResource') * T.prize / 200)) / 5 - 38 + (n.rank >= 4 ? -10 : 0) + (n.post === 'martial' ? 10 : 0); return W.rng.next() < clamp(0.1 + want / 40, 0.03, 0.9); });
       if (ent.length < 2) { W.log('tournament', 'ประลองยุทธ์ยกเลิกเพราะมีผู้สมัครน้อยเกินไป', []); W.sect.tournament = null; return; }
       ent.sort((a, b) => ((b.rank || 1) * 10 + (b.cult ? b.cult.stage : 1) + (W.rng.next() - 0.5) * 1.5) - ((a.rank || 1) * 10 + (a.cult ? a.cult.stage : 1)));
@@ -4829,7 +4842,7 @@
           C.setHp(u, Math.max(1, C.hp(u) - shatterDmg));
           u.fx = { t: tNow, text: '💥 อาณาเขตปะทะแตกสลาย! (-' + shatterDmg + ')' };
         }
-        f.lastDomainClash = { t: tNow, domainA: f.activeDomain.id, domainB: spec.id, outcome: 'DOMAIN_SHATTER' };
+        f.lastDomainClash = { t: tNow, domainA: f.activeDomain.id, domainB: spec.id, nameTh: (f.activeDomain.nameTh || f.activeDomain.id) + ' × ' + (spec.nameTh || spec.id), outcome: 'DOMAIN_SHATTER' };
         f.activeDomain = null;
         return null;
       }

@@ -583,8 +583,18 @@
     LEG_V240_GOD: Object.freeze({ id: 'LEG_V240_GOD', motif: 'legend_celestial_mandate', path: 'GOD', primary: '#ffd166', secondary: '#ff9e00', accent: '#ffffff', passive: false }),
     LEG_V240_CRAFT_CREATION: Object.freeze({ id: 'LEG_V240_CRAFT_CREATION', motif: 'legend_qiankun_taiji', path: 'CRAFT_CREATION', primary: '#ff4d00', secondary: '#ffd166', accent: '#fff3b0', passive: false })
   });
-  R.resolveLegendaryGearVisual = item => item && item.legendary === true
-    ? (R.LEGENDARY_GEAR_VISUALS[item.id] || (R.GRAND_DAO_RELIC_VISUALS && R.GRAND_DAO_RELIC_VISUALS[item.id]) || null) : null;
+  R.resolveLegendaryGearVisual = item => {
+    if (!item || item.legendary !== true) return null;
+    const direct = R.LEGENDARY_GEAR_VISUALS[item.id] || (R.GRAND_DAO_RELIC_VISUALS && R.GRAND_DAO_RELIC_VISUALS[item.id]);
+    if (direct) return direct;
+    if (typeof item.id === 'string' && item.id.startsWith('EQ_V320_LORE_')) {
+      const slot = item.slot || 'WEAPON';
+      const fallbackBySlot = slot === 'ARMOR' ? 'LEG_ARM_CELESTIAL_CRANE_ROBE' : slot === 'ACCESSORY' ? 'LEG_ACC_TAICHI_HEAVEN_SEAL' : 'LEG_WPN_YITIAN_SWORD';
+      const base = R.LEGENDARY_GEAR_VISUALS[fallbackBySlot];
+      return base ? Object.assign({}, base, { id: item.id, nameTh: item.nameTh || base.nameTh }) : null;
+    }
+    return null;
+  };
 
 
   // Legendary apex presentation: exact identities, themed scenes, and bounded spectacle.
@@ -619,7 +629,7 @@
     devouring_maw:'void_maw',flower_needles:'blood_bloom',tempest_fan:'ocean_pillars',nine_palaces:'star_orrery',golden_abacus:'fortune_table',
     crane_wings:'kunpeng_horizon',kirin:'beast_avatar',tortoise:'earth_bastion',samsara:'karma_orbit',star_beads:'star_orrery',
     imperial_seal:'deity_throne',dragon_phoenix:'dragon_descent'};
-  R.LEGENDARY_RELIC_SCENES = Object.freeze(Object.fromEntries(Object.values(R.LEGENDARY_GEAR_VISUALS).map((a,i)=>[a.id,Object.freeze({
+  R.LEGENDARY_RELIC_SCENES = Object.freeze(Object.fromEntries([...Object.values(R.LEGENDARY_GEAR_VISUALS), ...Object.values(R.GRAND_DAO_RELIC_VISUALS || {})].map((a,i)=>[a.id,Object.freeze({
     id:a.id,family:relicSceneFamilies[a.shape]||'star_orrery',variant:i+51,life:a.slot==='ARMOR'?2400:2100,gatherEnd:.18,releaseAt:.43
   })])));
   R.legendarySceneLife = fx => (fx && (R.LEGENDARY_SCENES[fx.techId] || R.LEGENDARY_RELIC_SCENES[fx.relicId]) || {}).life || 2300;
@@ -1693,7 +1703,7 @@
     SOUL:      { id: 'SOUL',      nameTh: 'วิถีวิญญาณ',    moteShape: 'zen_mirror_petal',     apexCrownShape: 'bodhi_mind_mirror',        family: 'MIND_DHARMA',     primary: '#80cbc4', secondary: '#b388ff', accent: '#ffffff', maxStage: 9 },
     BEAST:     { id: 'BEAST',     nameTh: 'วิถีอสูร',      moteShape: 'primal_claw_fang',     apexCrownShape: 'four_symbols_totem',       family: 'BEAST_TOTEM',     primary: '#a1887f', secondary: '#ffcc80', accent: '#51cf66', maxStage: 8 },
     SOUND:     { id: 'SOUND',     nameTh: 'วิถีดนตรีปราณ',  moteShape: 'qin_ripple_wave',      apexCrownShape: 'nine_heavens_zither',      family: 'SONIC_LITERATI',  primary: '#80deea', secondary: '#f48fb1', accent: '#ffd166', maxStage: 8 },
-    PUPPET:    { id: 'PUPPET',    nameTh: 'วิถีเชิดหุ่น',   moteShape: 'clockwork_cog',        apexCrownShape: 'clockwork_golem_Halo',     family: 'MECH_PUPPETRY',   primary: '#b0bec5', secondary: '#ea80fc', accent: '#ffb703', maxStage: 8 },
+    PUPPET:    { id: 'PUPPET',    nameTh: 'วิถีเชิดหุ่น',   moteShape: 'clockwork_cog',        apexCrownShape: 'clockwork_golem_halo',     family: 'MECH_PUPPETRY',   primary: '#b0bec5', secondary: '#ea80fc', accent: '#ffb703', maxStage: 8 },
     POISON:    { id: 'POISON',    nameTh: 'วิถีพิษกู่',     moteShape: 'gu_centipede_spore',   apexCrownShape: 'myriad_gu_mandala',        family: 'SHADOW_VENOM',    primary: '#9ccc65', secondary: '#ab47bc', accent: '#00f5d4', maxStage: 8 },
     DIVINE:    { id: 'DIVINE',    nameTh: 'วิถีเทวะชะตา',   moteShape: 'faith_incense_lamp',   apexCrownShape: 'divine_pantheon_shrine',   family: 'DIVINE_PANTHEON', primary: '#ffe082', secondary: '#ffffff', accent: '#ff6d00', maxStage: 4 }
   });
@@ -1810,6 +1820,8 @@
     SPACE:       { primary: '#3a0ca3', secondary: '#4361ee', accent: '#4cc9f0', style: 'void_rift' },
     VOID:        { primary: '#3a0ca3', secondary: '#4361ee', accent: '#4cc9f0', style: 'void_rift' },
     ASTRAL:      { primary: '#74c0fc', secondary: '#4361ee', accent: '#e0fbfc', style: 'void_rift' },
+    ASTRAL_VOID: { primary: '#5c7cfa', secondary: '#4361ee', accent: '#e0fbfc', style: 'void_rift' },
+    POISON_CORROSION: { primary: '#74c69d', secondary: '#9d4edd', accent: '#b7e4c7', style: 'vine_blossom' },
     BLOOD_DEMON: { primary: '#d90429', secondary: '#9b2226', accent: '#ffccd5', style: 'abyss_eclipse' },
     NEUTRAL:     { primary: '#a5d9df', secondary: '#e9cd85', accent: '#ffffff', style: 'razor_silver' },
     TIME:        { primary: '#f4a261', secondary: '#e9c46a', accent: '#e0fbfc', style: 'chrono_wheel' },
@@ -2121,17 +2133,56 @@
     },
     getMini() {
       if (this.mini && this.mini.rev === this.rev) return this.mini.cv;
-      const M = this.W.map, cv = newCanvas(MAP.W, MAP.H), c = cv.getContext('2d'), season = this.W.season;
-      for (let y = 0; y < MAP.H; y++) for (let x = 0; x < MAP.W; x++) {
-        c.fillStyle = tileColor(M.terrain[y * MAP.W + x], x, y, season);
-        c.fillRect(x, y, 1, 1);
-      }
-      M.decor.forEach(d => {
-        if (d.kind === 'pine' || d.kind === 'blossom') {
-          c.fillStyle = season === 2 ? '#b8782a' : season === 3 ? '#e8eef2' : '#2f6a35';
-          c.fillRect(d.x, d.y, 1, 1);
+      const M = this.W.map, cv = newCanvas(MAP.W, MAP.H), c = cv.getContext('2d'), season = Math.max(0, Math.min(3, this.W.season || 0));
+      if (c && typeof c.createImageData === 'function' && typeof c.putImageData === 'function') {
+        const img = c.createImageData(MAP.W, MAP.H), data = img.data, rgbCache = Object.create(null);
+        const parseHex = col => {
+          let r = rgbCache[col];
+          if (r) return r;
+          if (typeof col === 'string' && col.startsWith('rgb')) {
+            const m = col.match(/\d+/g);
+            if (m && m.length >= 3) {
+              r = [Number(m[0]) & 255, Number(m[1]) & 255, Number(m[2]) & 255];
+              rgbCache[col] = r;
+              return r;
+            }
+          }
+          const h = (typeof col === 'string' && col[0] === '#') ? col.slice(1) : '587a6e';
+          const parsed = parseInt(h.length === 3 ? h[0]+h[0]+h[1]+h[1]+h[2]+h[2] : h.slice(0, 6), 16);
+          const n = Number.isNaN(parsed) ? 0x587a6e : parsed;
+          r = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+          rgbCache[col] = r;
+          return r;
+        };
+        for (let y = 0; y < MAP.H; y++) {
+          const row = y * MAP.W;
+          for (let x = 0; x < MAP.W; x++) {
+            const rgb = parseHex(tileColor(M.terrain[row + x], x, y, season));
+            const idx = (row + x) << 2;
+            data[idx] = rgb[0]; data[idx + 1] = rgb[1]; data[idx + 2] = rgb[2]; data[idx + 3] = 255;
+          }
         }
-      });
+        const treeRgb = parseHex(season === 2 ? '#b8782a' : season === 3 ? '#e8eef2' : '#2f6a35');
+        for (let i = 0; i < M.decor.length; i++) {
+          const d = M.decor[i];
+          if (d && (d.kind === 'pine' || d.kind === 'blossom') && d.x >= 0 && d.x < MAP.W && d.y >= 0 && d.y < MAP.H) {
+            const idx = ((d.y | 0) * MAP.W + (d.x | 0)) << 2;
+            data[idx] = treeRgb[0]; data[idx + 1] = treeRgb[1]; data[idx + 2] = treeRgb[2]; data[idx + 3] = 255;
+          }
+        }
+        c.putImageData(img, 0, 0);
+      } else if (c) {
+        for (let y = 0; y < MAP.H; y++) for (let x = 0; x < MAP.W; x++) {
+          c.fillStyle = tileColor(M.terrain[y * MAP.W + x], x, y, season);
+          c.fillRect(x, y, 1, 1);
+        }
+        M.decor.forEach(d => {
+          if (d.kind === 'pine' || d.kind === 'blossom') {
+            c.fillStyle = season === 2 ? '#b8782a' : season === 3 ? '#e8eef2' : '#2f6a35';
+            c.fillRect(d.x, d.y, 1, 1);
+          }
+        });
+      }
       this.mini = { cv, rev: this.rev };
       return cv;
     },
@@ -2185,8 +2236,8 @@
       ctx.translate(-c.x, -c.y);
 
       const hw = this.vw / 2 / c.z, hh = this.vh / 2 / c.z;
-      const x0 = Math.max(0, Math.floor((c.x - hw) / (TS * CH))), x1 = Math.min(MAP.W / CH - 1, Math.floor((c.x + hw) / (TS * CH)));
-      const y0 = Math.max(0, Math.floor((c.y - hh) / (TS * CH))), y1 = Math.min(MAP.H / CH - 1, Math.floor((c.y + hh) / (TS * CH)));
+      const x0 = Math.max(0, Math.floor((c.x - hw) / (TS * CH))), x1 = Math.min(Math.ceil(MAP.W / CH) - 1, Math.floor((c.x + hw) / (TS * CH)));
+      const y0 = Math.max(0, Math.floor((c.y - hh) / (TS * CH))), y1 = Math.min(Math.ceil(MAP.H / CH) - 1, Math.floor((c.y + hh) / (TS * CH)));
       const mini = this.getMini();
       for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
         const cv = this.getChunk(cx, cy);
@@ -2322,7 +2373,7 @@
       }
 
       ctx.restore();
-      if (this.opts.weather) this.drawWeather(ctx, W.weather.kind, hour);
+      if (this.opts.weather && W.weather && W.weather.kind) this.drawWeather(ctx, W.weather.kind, hour);
       if (this.opts.celestialShaders !== false) {
         this.drawCelestialPhenomena(ctx, hour, night);
       }
@@ -3072,8 +3123,8 @@
     },
 
     drawLegendaryRelicScene(ctx, fx, p, reduced, full = true) {
-      const spec=R.LEGENDARY_GEAR_VISUALS[fx.relicId];if(!ctx||!spec)return false;
-      const scene=R.LEGENDARY_RELIC_SCENES[spec.id],low=this.resolveQuality()==='low',frame=this.legendaryApexFrame(scene,p,reduced,!full);
+      const spec=R.LEGENDARY_GEAR_VISUALS[fx.relicId] || (R.GRAND_DAO_RELIC_VISUALS && R.GRAND_DAO_RELIC_VISUALS[fx.relicId]);if(!ctx||!spec)return false;
+      const scene=R.LEGENDARY_RELIC_SCENES[spec.id] || { id: spec.id, family: 'star_orrery', variant: 51, life: 2200, gatherEnd: .18, releaseAt: .43 },low=this.resolveQuality()==='low',frame=this.legendaryApexFrame(scene,p,reduced,!full);
       const ink={primary:spec.primary,secondary:spec.secondary,accent:'#fff4da'};
       ctx.save();
       if(full){
@@ -5469,7 +5520,8 @@
     },
 
     hpBar(ctx, x, y, f, w) {
-      f = clamp(f, 0, 1);
+      if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(w) || w <= 0) return;
+      f = Number.isFinite(f) ? clamp(f, 0, 1) : 0;
       ctx.fillStyle = 'rgba(0,0,0,.68)';
       ctx.fillRect(x - w / 2 - 1, y - 1, w + 2, 4);
       ctx.fillStyle = f > 0.5 ? '#5fd35f' : f > 0.25 ? '#e8c43a' : '#e0463a';
@@ -5653,12 +5705,13 @@
         ctx.ellipse(3, 1, 4, 2.2, 0.4, 0, 7);
         ctx.ellipse(0, -2, 2.5, 3.8, 0, 0, 7);
         ctx.fill();
+        const matId = String(rn.materialId || '');
         let petalCol = '#a8e6cf';
-        if (rn.materialId === 'MAT_HERB_CINDER_LEAF_1') petalCol = '#ff7043';
-        else if (rn.materialId === 'MAT_HERB_JADE_LOTUS_2') petalCol = '#81c784';
-        else if (rn.materialId === 'MAT_HERB_MIST_ORCHID_2') petalCol = '#ba68c8';
-        else if (rn.materialId.includes('FLAME') || rn.materialId.includes('FIRE')) petalCol = '#f44336';
-        else if (rn.materialId.includes('ICE') || rn.materialId.includes('SNOW')) petalCol = '#80deea';
+        if (matId === 'MAT_HERB_CINDER_LEAF_1') petalCol = '#ff7043';
+        else if (matId === 'MAT_HERB_JADE_LOTUS_2') petalCol = '#81c784';
+        else if (matId === 'MAT_HERB_MIST_ORCHID_2') petalCol = '#ba68c8';
+        else if (matId.includes('FLAME') || matId.includes('FIRE')) petalCol = '#f44336';
+        else if (matId.includes('ICE') || matId.includes('SNOW')) petalCol = '#80deea';
         ctx.fillStyle = petalCol;
         ctx.beginPath(); ctx.arc(0, -3.5, 2.4, 0, 7); ctx.fill();
       } else if (rn.category === 'ORE') {
@@ -5728,7 +5781,7 @@
         ctx.beginPath(); ctx.moveTo(4, -11 - bob); ctx.lineTo(12, -17 - bob + Math.sin(t * 9) * 3); ctx.stroke();
       }
       ctx.restore();
-      this.hpBar(ctx, x, y - 24 * s, f.hp / f.hpMax, 16);
+      this.hpBar(ctx, x, y - 24 * s, (Number(f.hp) || 0) / Math.max(1, Number(f.hpMax) || 1), 16);
       ctx.font = '8.5px ' + FONT;
       ctx.textAlign = 'center';
       if (z >= 1) { ctx.fillStyle = '#ffb0a8'; ctx.fillText(f.name, x, y + 9); }
@@ -5818,28 +5871,37 @@
     },
 
     drawWeather(ctx, kind, hour) {
-      const w = this.vw, h = this.vh, t = this.t;
+      const w = this.vw, h = this.vh, t = this.t, reduced = this.isReducedMotion();
       const qual = this.effectiveQuality || 'standard';
       const mult = qual === 'low' ? 0.35 : qual === 'standard' ? 0.65 : 1.0;
-      if (kind === 'rain') {
-        const drops = Math.round(100 * mult);
-        ctx.strokeStyle = 'rgba(190,215,255,.45)';
-        ctx.lineWidth = 1;
+      ctx.save();
+      if (kind === 'rain' || kind === 'storm' || kind === 'thunder_tempest') {
+        const heavy = kind !== 'rain';
+        const drops = Math.round((heavy ? 150 : 100) * mult);
+        ctx.strokeStyle = heavy ? 'rgba(175,205,255,.55)' : 'rgba(190,215,255,.45)';
+        ctx.lineWidth = heavy ? 1.2 : 1;
         ctx.beginPath();
         for (let i = 0; i < drops; i++) {
-          const x = ((i * 97 + t * 160) % (w + 40)) - 20, y = ((i * 53 + t * 520) % (h + 40)) - 20;
-          ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 11);
+          const x = ((i * 97 + t * (heavy ? 240 : 160)) % (w + 40)) - 20, y = ((i * 53 + t * (heavy ? 680 : 520)) % (h + 40)) - 20;
+          ctx.moveTo(x, y); ctx.lineTo(x - (heavy ? 6 : 3), y + (heavy ? 15 : 11));
         }
         ctx.stroke();
-        ctx.fillStyle = 'rgba(36,52,76,.14)';
+        ctx.fillStyle = heavy ? 'rgba(20,30,54,.24)' : 'rgba(36,52,76,.14)';
         ctx.fillRect(0, 0, w, h);
+        if (heavy && !reduced && Math.sin(t * 6.5) > 0.96) {
+          ctx.fillStyle = 'rgba(225,238,255,.18)';
+          ctx.fillRect(0, 0, w, h);
+        }
       } else if (kind === 'snow') {
         const flakes = Math.round(80 * mult);
         ctx.fillStyle = 'rgba(255,255,255,.85)';
+        ctx.beginPath();
         for (let i = 0; i < flakes; i++) {
           const x = ((i * 89 + Math.sin(t + i) * 20 + t * 14) % (w + 20)), y = ((i * 61 + t * 55) % (h + 20));
-          ctx.beginPath(); ctx.arc(x, y, 1.5 + (i % 3) * 0.4, 0, 7); ctx.fill();
+          const r = 1.5 + (i % 3) * 0.4;
+          ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, Math.PI * 2);
         }
+        ctx.fill();
         ctx.fillStyle = 'rgba(220,230,245,.09)';
         ctx.fillRect(0, 0, w, h);
       } else if (kind === 'fog') {
@@ -5851,8 +5913,21 @@
       } else if (kind === 'cloud') {
         ctx.fillStyle = 'rgba(70,80,95,.08)';
         ctx.fillRect(0, 0, w, h);
+      } else if (kind === 'spirit_aurora') {
+        const gr = ctx.createLinearGradient(0, 0, w, h * 0.65);
+        gr.addColorStop(0, 'rgba(64,224,208,.18)');
+        gr.addColorStop(0.5, 'rgba(138,108,246,.14)');
+        gr.addColorStop(1, 'rgba(95,211,138,.10)');
+        ctx.fillStyle = gr;
+        ctx.fillRect(0, 0, w, h);
+      } else if (kind === 'crimson_sun') {
+        const gr = ctx.createLinearGradient(0, 0, 0, h);
+        gr.addColorStop(0, 'rgba(210,58,42,.20)');
+        gr.addColorStop(1, 'rgba(255,160,64,.08)');
+        ctx.fillStyle = gr;
+        ctx.fillRect(0, 0, w, h);
       }
-      if (this.W.season === 0 && kind !== 'rain' && qual !== 'low') {
+      if (this.W.season === 0 && kind !== 'rain' && kind !== 'storm' && kind !== 'thunder_tempest' && qual !== 'low') {
         const cnt = Math.round(16 * mult);
         ctx.fillStyle = 'rgba(250,192,212,.8)';
         for (let i = 0; i < cnt; i++) {
@@ -5860,7 +5935,7 @@
           ctx.beginPath(); ctx.ellipse(x, y, 2.4, 1.4, t + i, 0, 7); ctx.fill();
         }
       }
-      if (this.W.season === 2 && kind !== 'rain' && qual !== 'low') {
+      if (this.W.season === 2 && kind !== 'rain' && kind !== 'storm' && kind !== 'thunder_tempest' && qual !== 'low') {
         const cnt = Math.round(12 * mult);
         ctx.fillStyle = 'rgba(212,135,52,.8)';
         for (let i = 0; i < cnt; i++) {
@@ -5868,6 +5943,7 @@
           ctx.beginPath(); ctx.ellipse(x, y, 2.6, 1.6, t * 2 + i, 0, 7); ctx.fill();
         }
       }
+      ctx.restore();
     },
 
     /* ---------- Patch v5.0.0 & JS2-v2.5.0: 43-Path Ascendant Halos (P0) & Multi-Tier Path Motes (P2) ---------- */
@@ -6807,8 +6883,8 @@
         case 'fate_dice_card': {
           ctx.beginPath();
           ctx.arc(mx, my, 2.1, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.clearRect(mx - 0.7, my - 0.7, 1.4, 1.4);
+          ctx.rect(mx - 0.7, my - 0.7, 1.4, 1.4);
+          ctx.fill('evenodd');
           break;
         }
         case 'hourglass_pendulum':
@@ -7760,7 +7836,11 @@
         const px = payload.x, py = payload.y;
         if (!Number.isFinite(px) || !Number.isFinite(py) || Math.abs(px - this.cam.x) > hw + 112 || Math.abs(py - this.cam.y) > hh + 112) return;
         this.castActive.delete(fullKey);
-        if (this.castActive.size >= 24) this.castActive.delete(this.castActive.keys().next().value);
+        if (this.castActive.size >= 24) {
+          let evKey = null;
+          for (const [k2, fx2] of this.castActive) { if (!fx2.transcendent && !fx2.legendary && !fx2.relicId && (fx2.tier || 1) <= 2) { evKey = k2; break; } }
+          this.castActive.delete(evKey || this.castActive.keys().next().value);
+        }
         this.castActive.set(fullKey, payload);
       };
       const ox = Number.isFinite(pos.x) ? pos.x * TS : 0, oy = Number.isFinite(pos.y) ? pos.y * TS : 0;
@@ -8489,11 +8569,16 @@
         // Phase 2: Dark storm glaze + periodic lightning flash across the sect sky
         ctx.fillStyle = 'rgba(18, 10, 38, 0.30)';
         ctx.fillRect(0, 0, w, h);
-        const flash = Math.max(0, Math.sin(t * 16));
-        if (flash > 0.72) {
-          ctx.fillStyle = 'rgba(255, 245, 210, ' + ((flash - 0.72) * 0.55).toFixed(3) + ')';
-          ctx.fillRect(0, 0, w, h);
+        if (!this.isReducedMotion()) {
+          const flash = Math.max(0, Math.sin(t * 16));
+          if (flash > 0.72) {
+            ctx.fillStyle = 'rgba(255, 245, 210, ' + ((flash - 0.72) * 0.55).toFixed(3) + ')';
+            ctx.fillRect(0, 0, w, h);
+          }
         }
+      } else if (lead.phase === 'BACKFIRE') {
+        ctx.fillStyle = 'rgba(120, 18, 24, 0.24)';
+        ctx.fillRect(0, 0, w, h);
       } else if (lead.phase === 'ASCENSION') {
         // Phase 3 (Success): Golden celestial dawn glaze
         ctx.fillStyle = 'rgba(255, 215, 64, 0.14)';
@@ -9639,7 +9724,12 @@
       }
       const W = this.W;
       if (!W) return null;
-      const align = String(W.celestialAlignment || (W.world && W.world.celestialEvent) || (W.sect && W.sect.fengShui && W.sect.fengShui.celestialPhenomenon && W.sect.fengShui.celestialPhenomenon.id) || '').toUpperCase();
+      const rawAlign = (W.celestialAlignment && typeof W.celestialAlignment === 'object')
+        ? (W.celestialAlignment.activeEvent && (W.celestialAlignment.activeEvent.id || W.celestialAlignment.activeEvent.nameTh || W.celestialAlignment.activeEvent))
+        : W.celestialAlignment;
+      const rawEvent = (W.celestialEvent && typeof W.celestialEvent === 'object') ? (W.celestialEvent.id || W.celestialEvent.nameTh) : W.celestialEvent;
+      const rawWorldEvent = (W.world && W.world.celestialEvent && typeof W.world.celestialEvent === 'object') ? (W.world.celestialEvent.id || W.world.celestialEvent.nameTh) : (W.world && W.world.celestialEvent);
+      const align = String(rawAlign || rawEvent || rawWorldEvent || (W.sect && W.sect.fengShui && W.sect.fengShui.celestialPhenomenon && W.sect.fengShui.celestialPhenomenon.id) || '').toUpperCase();
       if (/BLOOD|ECLIPSE|CRIMSON|โลหิต/.test(align)) return R.CELESTIAL_SHADERS.BLOOD_MOON;
       if (/SUN|YANG|SOLAR|สุริยัน|ตะวัน/.test(align)) return R.CELESTIAL_SHADERS.NINE_SUNS;
       if (/STAR|METEOR|ASTRAL|ดารา|ดาวตก/.test(align)) return R.CELESTIAL_SHADERS.METEOR_SHOWER;
@@ -9991,15 +10081,17 @@
 
   /* ---------- Illustrated Wuxia Portrait (Shared Visual Vocabulary with World Sprite) ---------- */
   R.portrait = (canvas, n, size) => {
+    if (!canvas || !n) return;
     const dpr = Math.min(2, g.devicePixelRatio || 1);
     size = size || 40;
     canvas.width = canvas.height = size * dpr;
-    canvas.style.width = canvas.style.height = size + 'px';
-    const c = canvas.getContext('2d');
+    if (canvas.style) { canvas.style.width = canvas.style.height = size + 'px'; }
+    const c = canvas.getContext && canvas.getContext('2d');
+    if (!c) return;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, size, size);
 
-    const col = n.cult ? PATH_COL[n.cult.path] : ROBE_MORTAL;
+    const col = (n.cult && PATH_COL[n.cult.path]) || ROBE_MORTAL;
     const rk = SECT.RANKS[n.rank] || { color: '#888' };
     const b = (n.h && n.h.body) || {};
     const ageY = (g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 22;

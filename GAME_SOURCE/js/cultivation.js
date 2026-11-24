@@ -2310,6 +2310,13 @@
       if (Number.isFinite(npc.ext.elixirLifespanBonus) && npc.ext.elixirLifespanBonus > 0) {
         life += Math.round(npc.ext.elixirLifespanBonus);
       }
+      const lg = npc.ext.longevity;
+      if (lg) {
+        if (lg.leylineAnchored && Number.isFinite(lg.leylineBonusYears)) life += Math.round(lg.leylineBonusYears);
+        const _bondedPet = (CULT.LONGEVITY && CULT.LONGEVITY.getActiveBondedPet) ? CULT.LONGEVITY.getActiveBondedPet(npc, lg.beastPetId) : (npc.pet && !npc.pet.dead ? npc.pet : null);
+        if (lg.beastSymbiosis && _bondedPet && Number.isFinite(lg.beastBonusYears)) life += Math.round(lg.beastBonusYears);
+        if (Number.isFinite(lg.stasisDaysSaved) && lg.stasisDaysSaved > 0) life += Math.round((lg.stasisDaysSaved / 360) * 10) / 10;
+      }
     }
     if (c.mantra && c.mantra.charCodeAt(0) === 84) {
       const mObj = TECH_BY_ID[c.mantra];
@@ -5814,7 +5821,8 @@
         rc.semiStaticMult = semiStaticMult; rc.sMs = msSig; rc.sFb = fbSig; rc.sFw = fwSig; rc.sInj = injLen; rc.sComp = compId; rc.sPk = npc.peakId || ''; rc.sInd = !!npc.isIndependentFromPeak; rc.sFoc = hasFocusWin;
       }
     }
-    const dynMult = rest * toxic * dev * pill * buffMult * semiStaticMult * faithMult * bodyTempMult;
+    const _festRateMult = (g.EXPED && g.EXPED.ANNUAL_FESTIVALS && g.EXPED.ANNUAL_FESTIVALS.getActiveModifiers && wRefGlobal) ? g.EXPED.ANNUAL_FESTIVALS.getActiveModifiers(wRefGlobal).cultRateMult : 1;
+    const dynMult = rest * toxic * dev * pill * buffMult * semiStaticMult * faithMult * bodyTempMult * _festRateMult;
     return staticBase * dynMult * (env || 1);
   };
   CULT.hasActiveCompanionInSect = (npc, W) => {
@@ -6043,6 +6051,10 @@
       if (c.bodyTemperT > 0 || (npc.stats && (npc.stats.kills || 0) > 0)) p += 0.04;
     }
     if (prep) p += (prep.pill || 0) + (prep.env || 0) + (prep.guide || 0);
+    const _btW = (prep && prep.W) || (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || null;
+    if (_btW && g.EXPED && g.EXPED.ANNUAL_FESTIVALS && g.EXPED.ANNUAL_FESTIVALS.getActiveModifiers) {
+      p += g.EXPED.ANNUAL_FESTIVALS.getActiveModifiers(_btW).btBonus;
+    }
     return clamp(p, 0.03, 0.97);
   };
   CULT.checkStageResourceReq = (W, npc) => {
@@ -8947,6 +8959,13 @@
     npc._qiMaxCache = null;
     npc._cultRateBase = null;
     if (g.STATS && g.STATS.dirty) g.STATS.dirty(npc);
+    const _worldRef = opts.W || g.W || (g.G && g.G.W);
+    if (!opts.quiet && _worldRef && typeof _worldRef.log === 'function' && (m.openedCount === 4 || m.openedCount === 8)) {
+      const mSpec = MERIDIANS.CATALOG[id];
+      const nm = (npc.h && npc.h.name && npc.h.name.given) || npc.id;
+      const tail = m.allEightOpened ? ' — ชีพจรพิสดารทั้งแปดเชื่อมประสานไร้รอยต่อ บรรลุภาวะต้านทานการสกัดจุดโดยสมบูรณ์!' : ' — เปิดครบ 4 เส้น ปลดล็อกเคล็ดป้องกันการสกัดจุด!';
+      _worldRef.log('breakthrough', '🪡 ' + nm + ' ทะลวงเปิด「' + (mSpec ? mSpec.nameTh : id) + '」สำเร็จ (' + m.openedCount + '/8 เส้น)' + tail, [npc.id]);
+    }
     return {
       ok: true,
       meridianId: id,
@@ -9805,8 +9824,27 @@
           }
           const prepArg = (st.prep && typeof st.prep === 'object') ? st.prep : { env: 0.05, pill: Number(st.prep) || 0 };
           const res = CULT.breakthrough(W, n, prepArg);
-          if (res && res.ok) { if (typeof W.log === 'function') W.log('breakthrough', n.h.name.given + ' ฝ่าทัณฑ์สวรรค์ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!', [n.id]); }
-          else if (res) { if (typeof W.log === 'function') W.log('breakthrough', n.h.name.given + ' ฝ่าทัณฑ์สวรรค์ล้มเหลว (โอกาส ' + Math.round((res.p || 0) * 100) + '%) ตบะย้อนกลับ', [n.id]); }
+          const _tribLabel = st.pathStyleNameTh || st.styleTh || st.boltLabelTh;
+          const tribTitle = _tribLabel ? ('「' + _tribLabel + '」') : '';
+          if (res && res.ok) {
+            const scarNote = (st.totalStrikes >= 6 && !n.dead) ? ' ทิ้งรอยจารึก「แผลเป็นทัณฑ์สวรรค์」ติดกายเป็นเกียรติยศ' : '';
+            if (typeof W.log === 'function') W.log('breakthrough', '⚡ ' + n.h.name.given + ' ยืนหยัดรับทัณฑ์สวรรค์' + tribTitle + 'ครบ ' + st.totalStrikes + ' สาย ทะลวงสู่ ' + CULT.stageName(n) + ' สำเร็จ!' + scarNote, [n.id]);
+            if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) g.SIM.PROSE.recordLifeChapter(W, n, 'ฝ่าทัณฑ์สวรรค์ ' + st.totalStrikes + ' สาย ทะลวงสู่ ' + CULT.stageName(n), 'tribulation');
+          } else if (res) {
+            const protNote = res.ancestralProtected ? ' ทว่า「พรพิทักษ์บรรพชน」ส่องประกายรับเคราะห์แทน รักษาชีวิตไว้ได้!' : '';
+            const _RISK_TH = {
+              DEMONIC_BACKLASH_FRENZY: 'ปราณมารย้อนคลั่ง',
+              SOUL_SHATTER_ILLUSION_LOST: 'จิตวิญญาณแตกซ่านหลงมายา',
+              QI_DEVIATION_SEVERE: 'ธาตุไฟเข้าแทรกขั้นรุนแรง',
+              MERIDIAN_RUPTURE: 'ชีพจรฉีกขาด',
+              HEART_DEMON_SEIZURE: 'มารใจเข้าครอบงำ',
+              LIFESPAN_BURN: 'อายุขัยถูกเผาผลาญ',
+              DAO_FOUNDATION_CRACK: 'รากฐานเต๋าแตกร้าว'
+            };
+            const riskTh = res.supremeRisk ? (_RISK_TH[res.supremeRisk] || String(res.supremeRisk).replace(/_/g, ' ')) : '';
+            const riskNote = riskTh ? (' (' + riskTh + ')') : '';
+            if (typeof W.log === 'function') W.log('breakthrough', '💥 ' + n.h.name.given + ' ฝ่าทัณฑ์สวรรค์' + tribTitle + 'ล้มเหลว (โอกาส ' + Math.round((res.p || 0) * 100) + '%) ตบะย้อนกลับ' + riskNote + protNote, [n.id]);
+          }
           st.resolved = true;
           st.outcome = res;
           if (st.totalStrikes >= 6 && !n.dead && CULT.grantAcquiredTrait) {
@@ -11986,6 +12024,426 @@
       };
     }
   };
+
+  /* === JS2_V3120_EMERGENT_LONGEVITY_START === */
+  CULT.LONGEVITY = {
+    ELIXIR_DIMINISH: [1.0, 0.5, 0.25, 0.1, 0],
+    ANCIENT_POOL: [
+      { id: "ANC_FROZEN_SWORD", nameTh: "จอมกระบี่หยกเหมันต์ (ผู้ตื่นจากโลงหยกยุคเก่า)", methodTh: "จำศีลโลงหยกเหมันต์", eraTh: "ปลายยุคที่ 74", remainingYears: 18, reasonTh: "ผนึกโลงหยกแตกร้าวจากแรงสั่นสะเทือนของแดนลับ จึงตื่นขึ้นมาสืบหาศิษย์สายกระบี่ที่ยังหลงเหลือ" },
+      { id: "ANC_LEYLINE_SAGE", nameTh: "เฒ่าชีพจรศิลา (ผู้เฝ้าตาน้ำวิญญาณยุคก่อน)", methodTh: "ผูกชีพจรตาน้ำปฐพี", eraTh: "ยุคที่ 82", remainingYears: 24, reasonTh: "ชีพจรปฐพีแปรปรวนจนพันธะคลายตัว จำต้องออกท่องยุทธภพก่อนสิ้นอายุขัยที่เหลือ" },
+      { id: "ANC_WINE_HERMIT", nameTh: "นักพรตสุราดับชีพจร (ผู้หลับใหลในไหพิษ)", methodTh: "จำศีลสุราพิษหยุดชีพจร", eraTh: "ยุคที่ 89", remainingYears: 15, reasonTh: "กลิ่นปราณศึกในยุคที่ 101 ปลุกให้ตื่นจากนิทรายาวนาน เพื่อดูว่าโลกยุทธภพเปลี่ยนแปลงไปเพียงใด" }
+    ],
+    ensure(n) {
+      if (!n) return null;
+      n.ext = n.ext || {};
+      if (!n.ext.longevity) {
+        n.ext.longevity = {
+          stasis: false,
+          stasisStartDay: 0,
+          stasisDaysSaved: 0,
+          leylineAnchored: false,
+          leylineBonusYears: 0,
+          beastSymbiosis: false,
+          beastBonusYears: 0,
+          beastNameTh: "",
+          wakeReasonTh: ""
+        };
+      }
+      return n.ext.longevity;
+    },
+    isPeacefulAccepter(n) {
+      if (!n || !n.h) return true;
+      const p = n.h.personality || {};
+      const v = n.h.values || {};
+      const hasGrudge = Array.isArray(n.h.mind && n.h.mind.grudges) && n.h.mind.grudges.length > 0;
+      if (hasGrudge) return false;
+      if ((p.ambition || 50) >= 62 || (p.caution || 50) >= 68 || (v.sectDuty || 50) >= 70) return false;
+      return (p.composure || 50) >= 52 || (p.integrity || 50) >= 52;
+    },
+    wakeFromStasis(W, n, reasonTh) {
+      if (!n || !n.ext || !n.ext.longevity || !n.ext.longevity.stasis) return false;
+      const lg = n.ext.longevity;
+      const sleptDays = Math.max(1, ((W && W.day) || 0) - (lg.stasisStartDay || 0));
+      lg.stasis = false;
+      lg.wakeReasonTh = reasonTh || "ครบกำหนดจำศีล";
+      CULT.refreshLifespan(n);
+      const nm = (g.HC && g.HC.fullName) ? g.HC.fullName(n) : (n.name || n.id);
+      const txt = nm + " ตื่นจากการจำศีลผนึกเวลา (หลับใหลไป " + sleptDays + " วัน) — " + lg.wakeReasonTh;
+      if (W && W.log) W.log("breakthrough", txt, [n.id], { severity: "MAJOR", promoteChronicle: true });
+      if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) {
+        g.SIM.PROSE.recordLifeChapter(W, n, txt, "milestone");
+      }
+      return true;
+    },
+    applyLeylineAnchor(W, n) {
+      if (!W || !n || n.dead) return false;
+      const lg = this.ensure(n);
+      if (lg.leylineAnchored) return false;
+      const stage = (n.cult && n.cult.stage) || 1;
+      if (stage < 6) return false;
+      const bonus = 35 + Math.min(25, (stage - 5) * 8);
+      lg.leylineAnchored = true;
+      lg.leylineBonusYears = bonus;
+      CULT.refreshLifespan(n);
+      const nm = (g.HC && g.HC.fullName) ? g.HC.fullName(n) : (n.name || n.id);
+      const txt = nm + " ผูกชีพจรเข้ากับแกนวิญญาณของ" + ((W.sect && W.sect.name) || "สำนัก") + " ยืดอายุขัย +" + bonus + " ปี (แลกกับการไม่อาจก้าวพ้นเขตสำนักได้อีก)";
+      if (W.log) W.log("breakthrough", txt, [n.id], { severity: "MAJOR", promoteChronicle: true });
+      if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) g.SIM.PROSE.recordLifeChapter(W, n, txt, "lineage");
+      return true;
+    },
+    isInStasis(n) {
+      return !!(n && n.ext && n.ext.longevity && n.ext.longevity.stasis);
+    },
+    isHomeBound(n) {
+      const lg = n && n.ext && n.ext.longevity;
+      return !!(lg && (lg.stasis || lg.leylineAnchored));
+    },
+    getActiveBondedPet(n, preferPetId) {
+      if (!n) return null;
+      const list = Array.isArray(n.pets) && n.pets.length ? n.pets : (n.ext && Array.isArray(n.ext.pets) && n.ext.pets.length ? n.ext.pets : []);
+      if (list.length) {
+        const alive = list.filter(p => p && !p.dead && (p.hp == null || p.hp > 0));
+        if (!alive.length) return null;
+        if (preferPetId) {
+          const exact = alive.find(p => p.id === preferPetId);
+          if (exact) return exact;
+        }
+        return alive.slice().sort((a, b) => ((b.bondXp || b.bond || 0) + (b.tier || 1) * 40) - ((a.bondXp || a.bond || 0) + (a.tier || 1) * 40))[0];
+      }
+      if (n.pet && !n.pet.dead) return n.pet;
+      return null;
+    },
+    applyBeastSymbiosis(W, n) {
+      const pet = this.getActiveBondedPet(n);
+      if (!W || !n || n.dead || !pet) return false;
+      const lg = this.ensure(n);
+      if (lg.beastSymbiosis) return false;
+      const tier = pet.tier || 1;
+      const bonus = 20 + Math.min(20, tier * 4);
+      lg.beastSymbiosis = true;
+      lg.beastBonusYears = bonus;
+      lg.beastPetId = pet.id || null;
+      lg.beastNameTh = pet.nameTh || pet.name || "อสูรคู่หู";
+      CULT.refreshLifespan(n);
+      const nm = (g.HC && g.HC.fullName) ? g.HC.fullName(n) : (n.name || n.id);
+      const txt = nm + " ทำพันธะแบ่งปันลมปราณอายุขัยกับอสูรคู่หู「" + lg.beastNameTh + "」ยืดอายุขัย +" + bonus + " ปี (หากอสูรคู่หูสิ้นชีพจะเกิดแรงสะท้อนถึงกัน)";
+      if (W.log) W.log("breakthrough", txt, [n.id], { severity: "MAJOR", promoteChronicle: true });
+      if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) g.SIM.PROSE.recordLifeChapter(W, n, txt, "milestone");
+      return true;
+    },
+    enterStasis(W, n, reasonTh) {
+      if (!W || !n || n.dead) return false;
+      const lg = this.ensure(n);
+      if (lg.stasis) return false;
+      lg.stasis = true;
+      lg.stasisStartDay = W.day || 0;
+      if (g.AI && g.AI.interruptFor) { try { g.AI.interruptFor(W, n); } catch (_) {} }
+      n.act = { id: 'idle', stage: 'do', left: 60, total: 60, ctx: {}, why: [['จำศีลผนึกเวลา', 9]] };
+      const nm = (g.HC && g.HC.fullName) ? g.HC.fullName(n) : (n.name || n.id);
+      const txt = nm + " เข้าจำศีลผนึกเวลาเพื่อชะลอการเสื่อมถอยของอายุขัย (" + (reasonTh || "รอคอยวาสนาทะลวงขอบเขต") + ")";
+      if (W.log) W.log("breakthrough", txt, [n.id], { severity: "NOTABLE", promoteChronicle: true });
+      if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) g.SIM.PROSE.recordLifeChapter(W, n, txt, "milestone");
+      return true;
+    },
+    maybeAwakenDormantAncient(W, triggerSourceTh, opts) {
+      if (!W || !W.world) return null;
+      W.world.awakenedAncients = Array.isArray(W.world.awakenedAncients) ? W.world.awakenedAncients : [];
+      if (W.world.awakenedAncients.length >= 2) return null;
+      const rng = W.rng;
+      const chance = (opts && Number.isFinite(opts.chance)) ? opts.chance : 0.04;
+      if (!opts || !opts.force) {
+        if (!rng || !rng.chance(chance)) return null;
+      }
+      const remaining = this.ANCIENT_POOL.filter(a => !W.world.awakenedAncients.some(x => x.id === a.id));
+      if (!remaining.length) return null;
+      const pick = remaining[rng ? Math.floor(rng.next() * remaining.length) : 0];
+      const rec = {
+        id: pick.id,
+        nameTh: pick.nameTh,
+        methodTh: pick.methodTh,
+        eraTh: pick.eraTh,
+        awakenedDay: W.day || 1,
+        remainingYears: pick.remainingYears,
+        triggerSourceTh: triggerSourceTh || "แรงสั่นสะเทือนของชีพจรฟ้าดิน",
+        reasonTh: pick.reasonTh
+      };
+      W.world.awakenedAncients.push(rec);
+      const story = "แรงกระเพื่อมจาก" + rec.triggerSourceTh + " ทำให้ผนึกโบราณคลายตัว — " + rec.nameTh + " จาก" + rec.eraTh + " (" + rec.methodTh + ") ตื่นขึ้นสู่ยุคที่ 101 ด้วยพลังที่ถดถอยและอายุขัยที่เหลืออีกราว " + rec.remainingYears + " ปี (" + rec.reasonTh + ")";
+      if (g.EXPED && g.EXPED.recordChronicle) {
+        g.EXPED.recordChronicle(W, {
+          category: "WITNESS_EPOCH",
+          titleTh: "ผู้จำศีลข้ามยุคตื่นขึ้น: " + rec.nameTh,
+          storyTh: story,
+          consequenceTh: "ยอดคนยุคเก่าปรากฏตัวพร้อมอายุขัยจำกัด ไม่ทำลายเพดานพลังโลกเบื้องล่าง",
+          quiet: false
+        });
+      }
+      return rec;
+    },
+    evaluateDaily(W) {
+      if (!W || !Array.isArray(W.npcs) || !W.rng) return;
+      const rng = W.rng;
+      const hasActiveRaid = Array.isArray(W.fights) && W.fights.some(f => f && !f.done && f.kind === "raid");
+
+      for (let i = 0; i < W.npcs.length; i++) {
+        const n = W.npcs[i];
+        if (!n || n.dead) continue;
+        const lg = n.ext && n.ext.longevity;
+
+        // 1. Check active beast symbiosis backlash if pet died/lost
+        if (lg && lg.beastSymbiosis && !this.getActiveBondedPet(n, lg.beastPetId)) {
+          lg.beastSymbiosis = false;
+          lg.beastBonusYears = 0;
+          lg.beastPetId = null;
+          CULT.refreshLifespan(n);
+          if (n.h && n.h.state) n.h.state.hp = Math.max(1, Math.round(n.h.state.hp * 0.65));
+          const nm = (g.HC && g.HC.fullName) ? g.HC.fullName(n) : n.id;
+          if (W.log) W.log("crisis", nm + " ได้รับแรงสะท้อนจากพันธะอายุขัยอสูรคู่หูที่ขาดสะบั้น กายาบอบช้ำและอายุขัยหดสั้นลง", [n.id]);
+        }
+
+        // 2. Check active stasis hibernation
+        if (lg && lg.stasis) {
+          lg.stasisDaysSaved = +( (lg.stasisDaysSaved || 0) + 0.9 ).toFixed(2);
+          const slept = (W.day || 0) - (lg.stasisStartDay || 0);
+          if (hasActiveRaid) {
+            this.wakeFromStasis(W, n, "รับรู้ภัยคุกคามต่อสำนัก จึงฝืนคลายผนึกออกมาช่วยต้านศึก");
+          } else if (slept >= 180 && rng.chance(0.03)) {
+            this.wakeFromStasis(W, n, "ปราณฟ้าดินแปรเปลี่ยนจนครบวาระตื่นจากการจำศีล");
+          }
+          continue;
+        }
+
+        if (n.away || n.travel || n.expId) continue;
+        const age = (g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : (n.age || 18);
+        const life = Math.max(1, n.lifespanMax || CULT.lifespan(n));
+        const lifeRatio = age / life;
+        if (lifeRatio < 0.84) continue;
+
+        // 3. Autonomous longevity pill handling (if carrying one in personal inventory n.inv.pills)
+        const hasNoMedVow = !!(CULT.isAbstainingFromPills ? CULT.isAbstainingFromPills(n) : (n.voluntaryVows && n.voluntaryVows.VOW_NO_MEDICINE && n.voluntaryVows.VOW_NO_MEDICINE.active));
+        if (!hasNoMedVow && n.inv && g.ECO && g.ECO.pillInfo) {
+          const pillBag = (n.inv.pills && typeof n.inv.pills === 'object') ? n.inv.pills : n.inv;
+          const pillKey = Object.keys(pillBag).find(k => {
+            if (typeof pillBag[k] !== 'number' || !(pillBag[k] > 0)) return false;
+            const info = g.ECO.pillInfo(k);
+            return info && info.effect && (info.effect.lifeBonus || info.effect.lifespanBonus || info.effect.lifespanAdd);
+          });
+          if (pillKey) {
+            const p = (n.h && n.h.personality) || {};
+            const mentor = (n.mentorId || n.mentor) && W.byId && W.byId[n.mentorId || n.mentor];
+            const mentorDying = mentor && !mentor.dead && ((g.HC.ageYears(mentor) / Math.max(1, mentor.lifespanMax || CULT.lifespan(mentor))) >= 0.88);
+            if (mentorDying && (p.empathy || 50) >= 65 && ((mentor.ext && mentor.ext.longevityPillsTaken) || 0) < 4) {
+              pillBag[pillKey]--;
+              if (pillBag[pillKey] <= 0) delete pillBag[pillKey];
+              mentor.inv = mentor.inv || {};
+              mentor.inv.pills = mentor.inv.pills || {};
+              mentor.inv.pills[pillKey] = (mentor.inv.pills[pillKey] || 0) + 1;
+              const nm = g.HC.fullName(n), mm = g.HC.fullName(mentor);
+              const txt = nm + " กตัญญูต่ออาจารย์ มอบโอสถอายุวัฒนะที่ถือครองอยู่ให้ " + mm + " เพื่อต่อชะตา";
+              if (W.log) W.log("gift", txt, [n.id, mentor.id]);
+              if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) g.SIM.PROSE.recordLifeChapter(W, n, txt, "lineage");
+              continue;
+            } else if (((n.ext && n.ext.longevityPillsTaken) || 0) < 4 && !this.isPeacefulAccepter(n)) {
+              pillBag[pillKey]--;
+              if (pillBag[pillKey] <= 0) delete pillBag[pillKey];
+              if (g.ECO.applyPill) g.ECO.applyPill(W, n, pillKey);
+              else if (g.ECO.usePill) g.ECO.usePill(W, n, pillKey);
+              continue;
+            }
+          }
+        }
+
+        // 4. Peaceful/content elders accept natural mortality organically (NEVER forced)
+        if (this.isPeacefulAccepter(n)) continue;
+
+        const stage = (n.cult && n.cult.stage) || 1;
+        const p = (n.h && n.h.personality) || {};
+        const v = (n.h && n.h.values) || {};
+
+        // 5. Emergent Leyline Anchor (Stage 6+, high sectDuty)
+        if (stage >= 6 && (v.sectDuty || 50) >= 68 && !(lg && lg.leylineAnchored) && rng.chance(0.05)) {
+          this.applyLeylineAnchor(W, n);
+          continue;
+        }
+        // 6. Emergent Spirit Beast Symbiosis (strong bonded pet)
+        const _candPet = this.getActiveBondedPet(n);
+        if (_candPet && ((_candPet.bondXp || _candPet.bond || 0) >= 220 || _candPet.sovereignAwakened || (_candPet.tier || 1) >= 4) && !(lg && lg.beastSymbiosis) && rng.chance(0.06)) {
+          this.applyBeastSymbiosis(W, n);
+          continue;
+        }
+        // 7. Emergent Stasis Hibernation (Stage 5+, near end of life, driven)
+        if (stage >= 5 && lifeRatio >= 0.86 && ((p.ambition || 50) >= 62 || (p.caution || 50) >= 68) && !(lg && lg.stasis) && rng.chance(0.05)) {
+          this.enterStasis(W, n, "อายุขัยจวนเจียนดับสูญแต่ปณิธานยังไม่สิ้นสุด");
+        }
+      }
+
+      // 7b. Tick down awakened ancients' remaining years
+      if (W.world && Array.isArray(W.world.awakenedAncients) && W.world.awakenedAncients.length) {
+        for (let ai = W.world.awakenedAncients.length - 1; ai >= 0; ai--) {
+          const anc = W.world.awakenedAncients[ai];
+          if (!anc || !Number.isFinite(anc.remainingYears)) continue;
+          anc.remainingYears = +(anc.remainingYears - (1 / 360)).toFixed(4);
+          if (anc.remainingYears <= 0) {
+            W.world.awakenedAncients.splice(ai, 1);
+            if (g.EXPED && g.EXPED.recordChronicle) {
+              g.EXPED.recordChronicle(W, {
+                category: "WITNESS_EPOCH",
+                icon: "🕯️",
+                titleTh: "บรรพชนตื่นผนึก「" + (anc.nameTh || anc.id) + "」ดับสูญคืนสู่ธุลี",
+                storyTh: "หลังฝืนตื่นจากผนึกโบราณจนสิ้นอายุขัยเฮือกสุดท้าย บรรพชนโบราณ「" + (anc.nameTh || anc.id) + "」ได้จากไปอย่างสงบ ทิ้งไว้เพียงตำนานเล่าขานในยุทธภพ"
+              });
+            }
+          }
+        }
+      }
+
+      // 8. Rare organic awakening of a Dormant Ancient if Bloodless War localPressure is extreme (0-10 scale)
+      const bwPressure = (W.world && W.world.livingInstitutions && W.world.livingInstitutions.bloodlessWar && (W.world.livingInstitutions.bloodlessWar.localPressure ?? W.world.livingInstitutions.bloodlessWar.pressure)) || 0;
+      if (bwPressure >= 7) {
+        this.maybeAwakenDormantAncient(W, "แรงกดดันศึกลูกคลื่นไร้โลหิตที่ปะทุถึงขีดสุด", { chance: 0.012 });
+      }
+    },
+    // World-Symmetric Longevity for ALL external sects (identical rules, zero player-sect bias, never forced)
+    evaluateExternalMember(W, m, sectObj, rollFn) {
+      if (!W || !m || !sectObj) return null;
+      const roll = typeof rollFn === "function" ? rollFn : () => 0.99;
+      m.longevity = m.longevity || { stasis: false, stasisTicks: 0, leylineAnchored: false, beastSymbiosis: false, pillsTaken: 0 };
+      const lg = m.longevity;
+      const sName = sectObj.nameTh || sectObj.name || "สำนักต่างถิ่น";
+      const mName = m.nameTh || m.name || "ผู้อาวุโส";
+
+      // If currently in stasis: slow aging & check natural wake on crisis or elapsed cycle
+      if (lg.stasis) {
+        lg.stasisTicks = (lg.stasisTicks || 0) + 1;
+        if (sectObj.inCrisis || (lg.stasisTicks >= 4 && roll("wake") < 0.28)) {
+          lg.stasis = false;
+          const why = sectObj.inCrisis ? "สำนักเผชิญวิกฤตจึงฝืนคลายผนึกออกมาค้ำจุน" : "ครบวาระจำศีลผนึกเวลา";
+          if (g.EXPED && g.EXPED.recordChronicle) {
+            g.EXPED.recordChronicle(W, {
+              category: "WITNESS_EPOCH",
+              titleTh: mName + " แห่ง" + sName + " ตื่นจากการจำศีล",
+              storyTh: mName + " แห่ง" + sName + " คลายผนึกจำศีลกลับคืนสู่ยุทธภพ (" + why + ")",
+              involvedSects: [sName],
+              quiet: true
+            });
+          }
+        }
+        return "STASIS";
+      }
+
+      const maxLife = Math.max(40, m.lifespanMax || (65 + (m.stage || 1) * 24));
+      const ratio = (m.ageYears || 20) / maxLife;
+      if (ratio < 0.84) return null;
+
+      // Peaceful/content external elders accept natural mortality organically (NOT forced)
+      const amb = m.ambition != null ? m.ambition : 50;
+      const integ = m.integrity != null ? m.integrity : 50;
+      if (amb < 62 && integ >= 52 && !sectObj.inCrisis) return null;
+
+      const stage = m.stage || 1;
+
+      // 1. Diminishing-Returns Longevity Alchemy (requires wealthy external sect treasury)
+      if ((sectObj.treasury || 0) >= 65 && lg.pillsTaken < 4 && roll("pill") < 0.14) {
+        const mult = this.ELIXIR_DIMINISH[Math.min(lg.pillsTaken, this.ELIXIR_DIMINISH.length - 1)];
+        const addY = mult > 0 ? Math.max(1, Math.round(20 * mult)) : 0;
+        lg.pillsTaken += 1;
+        if (addY > 0) {
+          sectObj.treasury = Math.max(10, (sectObj.treasury || 65) - 10);
+          m.lifespanMax = maxLife + addY;
+          if (g.EXPED && g.EXPED.recordChronicle) {
+            g.EXPED.recordChronicle(W, {
+              category: "WITNESS_EPOCH",
+              titleTh: sName + " กลั่นโอสถอายุวัฒนะต่อชะตาให้ " + mName,
+              storyTh: mName + " แห่ง" + sName + " กลืนกินโอสถอายุวัฒนะ ยืดอายุขัย +" + addY + " ปี (ดื้อยาครั้งที่ " + lg.pillsTaken + "/4)",
+              involvedSects: [sName],
+              quiet: true
+            });
+          }
+          return "ALCHEMY";
+        }
+      }
+
+      // 2. Leyline Anchor (Stage 6+, high integrity/devotion)
+      if (stage >= 6 && integ >= 62 && !lg.leylineAnchored && roll("leyline") < 0.10) {
+        const bonus = 35 + Math.min(20, (stage - 5) * 7);
+        lg.leylineAnchored = true;
+        m.lifespanMax = maxLife + bonus;
+        if (g.EXPED && g.EXPED.recordChronicle) {
+          g.EXPED.recordChronicle(W, {
+            category: "WITNESS_EPOCH",
+            titleTh: mName + " แห่ง" + sName + " ผูกชีพจรแกนวิญญาณสำนัก",
+            storyTh: mName + " แห่ง" + sName + " ฝากชีพจรไว้กับตาน้ำวิญญาณของสำนัก ยืดอายุขัย +" + bonus + " ปี แลกกับการไม่อาจก้าวพ้นเขตสำนักได้อีก",
+            involvedSects: [sName],
+            quiet: true
+          });
+        }
+        return "LEYLINE";
+      }
+
+      // 3. Spirit Beast Symbiosis (Stage 5+)
+      if (stage >= 5 && !lg.beastSymbiosis && roll("beast") < 0.08) {
+        const bonus = 22 + Math.min(14, stage * 2);
+        lg.beastSymbiosis = true;
+        m.lifespanMax = maxLife + bonus;
+        if (g.EXPED && g.EXPED.recordChronicle) {
+          g.EXPED.recordChronicle(W, {
+            category: "WITNESS_EPOCH",
+            titleTh: mName + " แห่ง" + sName + " ทำพันธะอายุขัยกับอสูรพิทักษ์",
+            storyTh: mName + " แห่ง" + sName + " แบ่งปันลมปราณอายุขัยกับอสูรคู่หู ยืดอายุขัย +" + bonus + " ปี",
+            involvedSects: [sName],
+            quiet: true
+          });
+        }
+        return "BEAST";
+      }
+
+      // 4. Stasis Hibernation (Stage 5+, driven)
+      if (stage >= 5 && ratio >= 0.86 && amb >= 62 && !lg.stasis && roll("stasis") < 0.12) {
+        lg.stasis = true;
+        lg.stasisTicks = 0;
+        if (g.EXPED && g.EXPED.recordChronicle) {
+          g.EXPED.recordChronicle(W, {
+            category: "WITNESS_EPOCH",
+            titleTh: mName + " แห่ง" + sName + " เข้าจำศีลผนึกเวลา",
+            storyTh: mName + " แห่ง" + sName + " ปิดผนึกชีพจรจำศีลเพื่อชะลอความชราภาพ รอวาระแห่งยุทธภพในภายภาคหน้า",
+            involvedSects: [sName],
+            quiet: true
+          });
+        }
+        return "STASIS";
+      }
+      return null;
+    },
+    // World-Symmetric Longevity for external political/clan cultivators (pl.persons)
+    evaluateExternalPerson(W, p, rollFn) {
+      if (!W || !p || !p.alive) return null;
+      const roll = typeof rollFn === "function" ? rollFn : () => 0.99;
+      p.longevity = p.longevity || { stasis: false, bonusYears: 0, pillsTaken: 0 };
+      const lg = p.longevity;
+      if (lg.stasis) {
+        if (roll("wake") < 0.08) lg.stasis = false;
+        return "STASIS";
+      }
+      const baseMax = 88 + Math.round((p.cultStage || 2) * 18) + (lg.bonusYears || 0);
+      if ((p.ageYears || 20) < baseMax * 0.86) return null;
+      if ((p.cultStage || 2) < 5) return null;
+      if (lg.pillsTaken < 4 && roll("pill") < 0.06) {
+        const mult = this.ELIXIR_DIMINISH[Math.min(lg.pillsTaken, this.ELIXIR_DIMINISH.length - 1)];
+        const addY = mult > 0 ? Math.max(1, Math.round(18 * mult)) : 0;
+        lg.pillsTaken += 1;
+        if (addY > 0) {
+          lg.bonusYears = (lg.bonusYears || 0) + addY;
+          return "ALCHEMY";
+        }
+      }
+      if (!lg.stasis && roll("stasis") < 0.04) {
+        lg.stasis = true;
+        return "STASIS";
+      }
+      return null;
+    }
+  };
+  /* === JS2_V3120_EMERGENT_LONGEVITY_END === */
 
   g.CULT = CULT;
   if (typeof module === 'object' && module.exports) module.exports = CULT;

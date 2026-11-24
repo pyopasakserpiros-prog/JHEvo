@@ -813,7 +813,7 @@
   SECT.isNpcDetained = (W, n) => Boolean(n && (
     (n.jail && n.jail > ((W && W.t) || 0)) ||
     (n.punished && n.punished > ((W && W.t) || 0)) ||
-    (n.detainedUntilDay && n.detainedUntilDay > ((W && W.day) || 0))
+    (n.detainedUntilDay && n.detainedUntilDay > ((W && W.day) || 0)) || (n.federationDetainedUntilDay && n.federationDetainedUntilDay > ((W && W.day) || 0))
   ));
   SECT.isOfficerAvailable = (W, n) => Boolean(n && !n.dead && !n.exiled && !n.away && !n.sealed && !n.sealedBt && !SECT.isNpcDetained(W, n));
 
@@ -931,7 +931,7 @@
     post = SECT.resolveOfficeId(post) || post;
     if (!SECT.POSTS[post] || !n) return false;
     if (!forceAppoint) {
-      if (n.dead || n.exiled || n.away || n.sealed || n.sealedBt || SECT.isNpcDetained(W, n) || (Array.isArray(W.npcs) && !W.npcs.includes(n))) return false;
+      if (n.dead || n.exiled || n.away || n.sealed || n.sealedBt || (n.ext && n.ext.longevity && n.ext.longevity.stasis) || SECT.isNpcDetained(W, n) || (Array.isArray(W.npcs) && !W.npcs.includes(n))) return false;
     }
     if (!SECT.officeState(W, post).enabled && !(SECT.SPECIALIZED_V219_POSTS && SECT.SPECIALIZED_V219_POSTS.includes(post))) return false;
     const old = SECT.holder(W, post); if (old && old.id === n.id) return true;
@@ -1485,7 +1485,8 @@
     for (let i = 0; i < q.length && handled < SECT.MAX_QUEUE && pop < cap;) {
       const a = q[i];
       handled++;
-      const thr = 48 + (pol.meritocracy - 50) * 0.22 - (pol.openness - 50) * 0.28 - (pop < 12 ? 6 : pop < 24 ? 3 : 0) + (food < 4 ? 14 : 0) + (pol.strictness - 50) * 0.08;
+      const _festOpenB = (g.EXPED && g.EXPED.ANNUAL_FESTIVALS && g.EXPED.ANNUAL_FESTIVALS.getActiveModifiers) ? (g.EXPED.ANNUAL_FESTIVALS.getActiveModifiers(W).recruitOpenness || 0) : 0;
+      const thr = 48 + (pol.meritocracy - 50) * 0.22 - (pol.openness - 50) * 0.28 - (pop < 12 ? 6 : pop < 24 ? 3 : 0) - _festOpenB + (food < 4 ? 14 : 0) + (pol.strictness - 50) * 0.08;
       const score = SECT.appraise(W, who, a);
       const ca = SECT.observableCapability(W, a);
       const ok = W.rng.next() < 1 / (1 + Math.exp(-(score - thr) / 6)) && pop < cap;
@@ -2964,7 +2965,7 @@
 
     // 1. If an appointed successor disciple exists and is valid, they ascend immediately!
     let succ = SECT.holder(W, 'disciples') || (S.successorId ? W.byId[S.successorId] : null);
-    if (succ && !succ.dead && !succ.exiled) {
+    if (succ && !succ.dead && !succ.exiled && !(succ.ext && succ.ext.longevity && succ.ext.longevity.stasis)) {
       if (succ.post) { S.posts[succ.post] = null; succ.post = null; }
       if (S.successorId === succ.id) S.successorId = null;
       if (S.deputyId === succ.id) S.deputyId = null;
@@ -2990,9 +2991,9 @@
 
     // 2. No successor disciple: gather candidates from rank >= 3.
     // If none (e.g. early game or heavy casualties), cascade down to rank >= 1, then rank >= 0!
-    let cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 3 && n.id !== S.masterId);
+    let cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && !(n.ext && n.ext.longevity && n.ext.longevity.stasis) && n.rank >= 3 && n.id !== S.masterId);
     if (!cands.length) {
-      cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && n.rank >= 1 && n.id !== S.masterId);
+      cands = W.npcs.filter(n => !n.dead && !n.away && !n.exiled && !(n.ext && n.ext.longevity && n.ext.longevity.stasis) && n.rank >= 1 && n.id !== S.masterId);
     }
     if (!cands.length) {
       cands = W.npcs.filter(n => !n.dead && !n.exiled && n.id !== S.masterId);
@@ -3955,7 +3956,7 @@
       if (g.ELEM) g.ELEM.syncSpecialAccess(n);
       if (g.MARTIAL && g.MARTIAL.reconcilePassives) g.MARTIAL.reconcilePassives(n);
       HC.bump(n);
-      W.log("learn", "[แก้ไขโดยผู้เล่น] ถ่ายทอดวิชา「" + t.nameTh + "」ให้ " + n.h.name.given + " โดยตรง", [n.id]);
+      W.log("learn", "[แก้ไขโดยผู้เล่น] ถ่ายทอดวิชา「" + t.nameTh + "」ให้ " + n.h.name.given + " โดยตรง", [n.id], { txKind: 'player-spawn' });
       return { ok: true, kind: opts.kind, id: t.id, nameTh: t.nameTh, action };
     }
     return EDITOR.spawnItem(W, opts);
@@ -4846,7 +4847,15 @@
       breakthroughBonus: +(0.04 + Math.min(0.08, Math.max(4, effSt) * 0.01)).toFixed(3),
       comprehensionBonus: +(0.08 + Math.min(0.14, Math.max(4, effSt) * 0.018)).toFixed(3),
       injuryProtection: true,
-      prayersCount: 0
+      prayersCount: 0,
+      epitaphTh: (() => {
+        const lens = (g.SIM && g.SIM.PROSE && g.SIM.PROSE.psychLens) ? g.SIM.PROSE.psychLens(W, n) : { demeanorTh: 'สุขุมเยือกเย็น' };
+        return '「' + lens.demeanorTh + ' — ฝากคมวิชา' + (sig.techNameTh || 'ประจำสำนัก') + 'ไว้ใต้ผืนฟ้าสำนัก」';
+      })(),
+      lifeSummaryTh: (SECT.title ? SECT.title(n) : 'ผู้อาวุโส') + 'แห่งสาย' + (sig.subpathNameTh || 'บำเพ็ญ') + (discipleIds.length ? (' เคยสั่งสอนศิษย์สายตรง ' + discipleIds.length + ' คน') : '') + ' · ' + (why || 'ละสังขารตามอายุขัย'),
+      unresolvedEchoTh: (Array.isArray(n.h && n.h.mind && n.h.mind.grudges) && n.h.mind.grudges.length > 0)
+        ? ('หนี้แค้นต่อ「' + (n.h.mind.grudges[0].targetName || 'อริเก่า') + '」ยังไม่ทันชำระ — ปราณอาฆาตจาง ๆ ยังคงวนเวียนรอบป้ายวิญญาณ')
+        : null
     };
     const history = (W.sect.mentorship && W.sect.mentorship.history) || [];
     const knownMentor = history.find(e => e && e.kind === 'bond' && e.discipleId === n.id && e.mentorId === mentorId);
@@ -5606,8 +5615,15 @@
     ms.transmissions.unshift(rec);
     if (ms.transmissions.length > 30) ms.transmissions.length = 30;
     MENTORSHIP.recordHistory(W, 'transmission', mentor, disciple, {surgePts, inheritedTechId, occasion:opts.dyingWish ? 'dying' : opts.preAscension ? 'ascension' : 'normal'});
+    const techSuffix = inheritedTechId ? (' · สืบทอดวิชา ' + (CULT.tech(inheritedTechId)?.nameTh || inheritedTechId)) : '';
+    if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) {
+      g.SIM.PROSE.recordLifeChapter(W, disciple, (opts.dyingWish ? 'รับถ่ายทอดปราณเฮือกสุดท้ายจากอาจารย์「' : 'รับถ่ายทอดพลังตบะจากอาจารย์「') + HC.fullName(mentor) + '」' + techSuffix, 'mentorship');
+    }
     if (!opts.quiet && W.log) {
-      W.log('breakthrough', '✨ พิธีถ่ายทอดพลังตบะ:「' + HC.fullName(mentor) + '」ถ่ายทอดปราณบริสุทธิ์และเจตจำนงยุทธ์ให้ศิษย์สายตรง「' + HC.fullName(disciple) + '」(+ตบะ ' + surgePts + (inheritedTechId ? ' · สืบทอดวิชา ' + (CULT.tech(inheritedTechId)?.nameTh || inheritedTechId) : '') + ')', [mentor.id, disciple.id]);
+      const msg = opts.dyingWish
+        ? ('✨ วาระสุดท้ายก่อนดับสูญ!「' + HC.fullName(mentor) + '」ฝืนรวบรวมปราณบริสุทธิ์เฮือกสุดท้ายทั้งชีวิต ถ่ายทอดเจตจำนงยุทธ์แก่ศิษย์สายตรง「' + HC.fullName(disciple) + '」(+ตบะ ' + surgePts + techSuffix + ')')
+        : ('✨ พิธีถ่ายทอดพลังตบะ:「' + HC.fullName(mentor) + '」ถ่ายทอดปราณบริสุทธิ์และเจตจำนงยุทธ์ให้ศิษย์สายตรง「' + HC.fullName(disciple) + '」(+ตบะ ' + surgePts + techSuffix + ')');
+      W.log('breakthrough', msg, [mentor.id, disciple.id]);
     }
     return { ok: true, transmission: rec, imprint };
   };
@@ -9713,7 +9729,12 @@
         liInst.sectNameRegistry.totalTollPaid = (liInst.sectNameRegistry.totalTollPaid || 0) + yunheToll;
       }
     }
-    const revenue = Math.max(0, grossRevenue - nameThreatPenalty - yunheToll);
+    const fedSanctionRate = (g.EXPED && g.EXPED.BLACK_LEDGER && g.EXPED.BLACK_LEDGER.getSanctionTariffAdd) ? g.EXPED.BLACK_LEDGER.getSanctionTariffAdd(W, 'HOME_SECT') : 0;
+    const fedSanctionToll = fedSanctionRate > 0 ? Math.round(grossRevenue * fedSanctionRate) : 0;
+    if (fedSanctionToll > 0 && W.world && W.world.blackLedger) {
+      W.world.blackLedger.treasuryStones = (W.world.blackLedger.treasuryStones || 0) + fedSanctionToll;
+    }
+    const revenue = Math.max(0, grossRevenue - nameThreatPenalty - yunheToll - fedSanctionToll);
     pool.stones -= revenue;
 
     if (mEntry) {
@@ -9758,6 +9779,7 @@
       yunheTollRate,
       ferryBypassUsed,
       nameThreatPenalty,
+      fedSanctionToll,
       revenue,
       status: 'COMPLETED',
       summaryTh: HC.fullName(leader) + ' นำศิษย์คุ้มกันคาราวานสินค้า「' + catDef.nameTh + '」สู่「' + (destSect ? destSect.nameTh : 'เมืองการค้า') + '」รับค่าจ้าง +' + revenue + ' ศิลาวิญญาณ!'
@@ -9772,10 +9794,10 @@
       involvedFigures: party.map(p => HC.fullName(p)),
       npcIds: party.map(p => p.id),
       titleTh: 'ขบวนคาราวานการค้าศิษย์: 「' + HC.fullName(leader) + '」คุ้มกัน「' + catDef.nameTh + '」รับค่าจ้าง +' + revenue + ' ศิลา!',
-      storyTh: caravanRec.summaryTh,
+      storyTh: caravanRec.summaryTh + ((yunheToll > 0 || fedSanctionToll > 0) ? (' (' + (yunheToll > 0 ? ((ferryBypassUsed ? 'ใช้เรือข้ามฟากเครือข่ายศิษย์ลงเขาอ้อมด่านสงครามไร้โลหิต เหลือค่าผ่านด่าน 1%' : (yunheTollRate >= 0.08 ? 'เผชิญด่านภาษีสองฝั่งยามสงครามไร้โลหิต 8%' : 'ชำระภาษีคันชั่งสองฝั่ง 2%')) + ' หัก -' + yunheToll + ' ศิลา') : '') + (nameThreatPenalty > 0 ? (' · ถูกกดราคาจากคดีชื่อสำนัก -' + nameThreatPenalty + ' ศิลา') : '') + (fedSanctionToll > 0 ? (' · ภาษีคว่ำบาตรสหพันธ์เจ็ดหอ -' + fedSanctionToll + ' ศิลา') : '') + ')') : ''),
       originCauseTh: (mEntry && mEntry.reasonTh) || 'พ่อค้าต่างแคว้นว่าจ้างศิษย์สำนักคุ้มกันขบวนสินค้า',
       actorChainTh: 'หัวหน้าขบวน: ' + HC.fullName(leader) + ' · องครักษ์คุ้มกัน: ' + guards.map(gNpc => HC.fullName(gNpc)).join(', '),
-      systemImpactTh: 'สถานการณ์สงครามและฤดูกาลหนุนดัชนีตลาด (×' + (mEntry ? mEntry.multiplier.toFixed(2) : '1.00') + ') ➔ เติมคลังศิลาสำนัก (+' + revenue + ') · ผูกไมตรีสำนักคู่ค้า (+5) · กระชับสัมพันธ์ศิษย์คุ้มกัน (+8)',
+      systemImpactTh: 'ดัชนีตลาด ×' + (mEntry ? mEntry.multiplier.toFixed(2) : '1.00') + ' · ยอดดิบ ' + grossRevenue + ' หักด่าน -' + (yunheToll || 0) + (nameThreatPenalty ? (' · โทษคดีชื่อ -' + nameThreatPenalty) : '') + (fedSanctionToll ? (' · ภาษีคว่ำบาตรสหพันธ์ -' + fedSanctionToll) : '') + ' ➔ สุทธิ +' + revenue + ' ศิลา · ไมตรี +5',
       consequenceTh: 'คลังสำนักรับรายได้ +' + revenue + ' ศิลาวิญญาณ · คณะศิษย์คุ้มกันได้รับตบะ +25 และความดีความชอบ +18 คป.',
       quiet: opts.quiet
     }) : null;
@@ -15668,14 +15690,17 @@
       if (ECO && ECO.add && site.legacyRelicId) ECO.add(W, site.legacyRelicId, 1);
       W.fame(25);
       if (g.EXPED && g.EXPED.recordChronicle && !opts.quiet) {
+        const totalTombStones = (site.layerRecords || []).reduce((s, r) => s + (r.rewardStones || 0), 0) || stoneGain;
         g.EXPED.recordChronicle(W, {
-          category: 'SECRET_REALM',
+          category: 'SECRET_REALM_NODE',
+          reportFormat: 'SECRET_REALM_LOGBOOK',
+          storyThreadId: 'thread:tomb:' + site.id,
           icon: '🏛️',
           involvedSects: [W.sect.name],
           involvedFigures: legacyUnlocked.layerHeroesTh,
           titleTh: 'พิชิตสุสานเซียนโบราณครบ 3 ชั้น! คว้า「' + site.legacyNameTh + '」กลับสู่สำนัก!',
           storyTh: 'คณะสำรวจทั้ง 3 สายวิชาชีพ (' + legacyUnlocked.layerHeroesTh.join(' ➔ ') + ') ร่วมแรงปลดผนึกประตูกล แปลศิลาจารึกเซียน และปราบหุ่นกลพิทักษ์สุสานใน「' + site.nameTh + '」สำเร็จ!',
-          consequenceTh: 'ได้รับ ' + site.legacyNameTh + ' · ศิลาวิญญาณรวม +' + stoneGain + ' · ชื่อเสียงสำนัก +25',
+          consequenceTh: 'ได้รับ ' + site.legacyNameTh + ' · ศิลาวิญญาณรวม 3 ชั้น +' + totalTombStones + ' · บารมี +25 · โบนัสถาวรความเข้าใจวิชา +15% และทะลวงด่าน +8%',
           quiet: opts.quiet
         });
       }
@@ -18041,7 +18066,8 @@
       }
       if (stage >= 3 && n.rank >= 3 && e('personality.courage') >= 45) {
         for (const node of Object.values(W.world?.resourceNodes || {})) {
-          if (node.ownerSectId === 'PLAYER' || node.discovered === false || stage < (node.danger || 1) || CULT.power(n) < (node.garrison?.defensePower || 100) * 1.2) continue;
+          const regDiscovered = !node.macroRegion || !W.world?.discoveredRegions || W.world.discoveredRegions[node.macroRegion] !== false;
+          if (node.ownerSectId === 'PLAYER' || node.discovered === false || !regDiscovered || stage < (node.danger || 1) || CULT.power(n) < (node.garrison?.defensePower || 100) * 1.2) continue;
           if ((W.world.expeds || []).some(ex => !ex.done && ex.kind === 'resource_claim' && ex.targetNodeId === node.id)) continue;
           const supplies = Math.max(1, Math.ceil((node.baseDays || 5) * 2));
           if (ECO.count(W,'meal') < supplies) continue;
@@ -18169,13 +18195,13 @@
       options.forEach(o=>{const key=o.id.split(':')[0];groups[key]=(groups[key]||0)+1;});
       const chosen = W.rng.weighted([{id:'wait',score:1.5}].concat(options), o=>o.id==='wait'?o.score:o.score/groups[o.id.split(':')[0]]);
       if (!chosen || chosen.id === 'wait') return {ok:false,reason:'wait'};
-      n.autonomousOpportunities = n.autonomousOpportunities || {};
-      n.autonomousOpportunities[chosen.id] = W.day || 0;
-      n.autonomousOpportunities['@'+chosen.id.split(':')[0]] = W.day || 0;
-      const keys = Object.keys(n.autonomousOpportunities);
-      if (keys.length > 80) keys.sort((a,b)=>n.autonomousOpportunities[b]-n.autonomousOpportunities[a]).slice(80).forEach(id=>delete n.autonomousOpportunities[id]);
       const result = chosen.run();
       if (result?.ok) {
+        n.autonomousOpportunities = n.autonomousOpportunities || {};
+        n.autonomousOpportunities[chosen.id] = W.day || 0;
+        n.autonomousOpportunities['@'+chosen.id.split(':')[0]] = W.day || 0;
+        const keys = Object.keys(n.autonomousOpportunities);
+        if (keys.length > 80) keys.sort((a,b)=>n.autonomousOpportunities[b]-n.autonomousOpportunities[a]).slice(80).forEach(id=>delete n.autonomousOpportunities[id]);
         if (g.COG?.officeDecision) g.COG.officeDecision(W,n,chosen.reasonTh,['พิจารณาทางเลือกจากสภาพจริงและความต้องการของตน']);
         W.log('decision',HC.fullName(n)+' '+chosen.reasonTh,[n.id]);
       }
@@ -18444,11 +18470,55 @@
       if (!reg.imprints.includes(imprintId)) reg.imprints.push(imprintId);
       return { ok: true, imprints: reg.imprints.slice(), regalia: reg };
     },
-    transferToNewMaster(W, newMaster) {
+    transferToNewMaster(W, newMaster, prevMasterIdOpt) {
       if (!W || !W.sect || !newMaster) return null;
       const reg = this.ensure(W);
-      W.sect.masterGeneration = (W.sect.masterGeneration || 7) + 1;
+      if (W.sect._lastRegaliaMasterId === newMaster.id && Array.isArray(W.sect.eraGenerations) && W.sect.eraGenerations.length) {
+        return reg;
+      }
+      if (newMaster.ext && newMaster.ext.longevity && newMaster.ext.longevity.stasis && g.CULT && g.CULT.LONGEVITY && g.CULT.LONGEVITY.wakeFromStasis) {
+        g.CULT.LONGEVITY.wakeFromStasis(W, newMaster, "ตื่นจากจำศีลเพื่อรับตำแหน่งเจ้าสำนัก");
+      }
+      const startOff = (g.SIM && g.SIM.CALENDAR && g.SIM.CALENDAR.START_DAY_OFFSET) || 360;
+      const prevGen = W.sect.masterGeneration || 7;
+      W.sect.eraGenerations = Array.isArray(W.sect.eraGenerations) ? W.sect.eraGenerations : [];
+      const prevId = prevMasterIdOpt || reg.soulboundMasterId || null;
+      if (!W.sect.eraGenerations.length && prevId && prevId !== newMaster.id) {
+        const prevNpc = (W.byId && W.byId[prevId]) || (W.sect.historicalPeople && W.sect.historicalPeople[prevId]) || null;
+        W.sect.eraGenerations.push({
+          gen: prevGen,
+          masterId: prevId,
+          masterNameTh: prevNpc ? ((g.HC && g.HC.fullName && prevNpc.h) ? g.HC.fullName(prevNpc) : (prevNpc.nameTh || prevNpc.name || prevId)) : 'เจ้าสำนักรุ่นก่อน',
+          startDay: startOff,
+          endDay: W.day || startOff,
+          stage: (prevNpc && prevNpc.cult && prevNpc.cult.stage) || 5,
+          prevGen: Math.max(1, prevGen - 1)
+        });
+      } else if (W.sect.eraGenerations.length) {
+        const lastG = W.sect.eraGenerations[W.sect.eraGenerations.length - 1];
+        if (lastG && lastG.endDay == null) lastG.endDay = W.day || startOff;
+      }
+      if (prevId && prevId !== newMaster.id && W.byId && W.byId[prevId]) {
+        const oldM = W.byId[prevId];
+        if (oldM.patriarchRegalia === reg) oldM.patriarchRegalia = null;
+        if (oldM.equip && oldM.equip[reg.slot] === reg) delete oldM.equip[reg.slot];
+      }
+      W.sect.masterGeneration = prevGen + 1;
+      W.sect._lastRegaliaMasterId = newMaster.id;
       newMaster.sectGeneration = W.sect.masterGeneration;
+      W.sect.eraGenerations.push({
+        gen: W.sect.masterGeneration,
+        masterId: newMaster.id,
+        masterNameTh: (g.HC && g.HC.fullName) ? g.HC.fullName(newMaster) : (newMaster.name || newMaster.id),
+        startDay: W.day || startOff,
+        endDay: null,
+        stage: (newMaster.cult && newMaster.cult.stage) || 1,
+        prevGen
+      });
+      if (W.sect.eraGenerations.length > 40) W.sect.eraGenerations.splice(0, W.sect.eraGenerations.length - 40);
+      if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) {
+        g.SIM.PROSE.recordLifeChapter(W, newMaster, "ขึ้นดำรงตำแหน่งเจ้าสำนักรุ่นที่ " + W.sect.masterGeneration + " แห่ง" + (W.sect.name || "สำนัก"), "lineage");
+      }
       reg.soulboundMasterId = newMaster.id;
       newMaster.patriarchRegalia = reg;
       newMaster.equip = newMaster.equip || {};
@@ -18791,8 +18861,8 @@
     };
   }
 
-  // Hook SECT.electSuccessor, SECT.succession & SECT.resolvePlayerSuccessionCrisis for Patriarch Regalia generational succession
-  ['electSuccessor', 'succession', 'resolvePlayerSuccessionCrisis'].forEach(fnName => {
+  // Hook SECT.succession & SECT.resolvePlayerSuccessionCrisis for Patriarch Regalia generational succession
+  ['succession', 'resolvePlayerSuccessionCrisis'].forEach(fnName => {
     if (typeof SECT[fnName] === 'function') {
       const _origFn = SECT[fnName];
       SECT[fnName] = function(W) {
@@ -18800,7 +18870,7 @@
         const res = _origFn.apply(this, arguments);
         const newMasterId = W && W.sect ? W.sect.masterId : null;
         if (newMasterId && newMasterId !== prevMasterId && W.byId && W.byId[newMasterId] && SECT.PATRIARCH_REGALIA) {
-          SECT.PATRIARCH_REGALIA.transferToNewMaster(W, W.byId[newMasterId]);
+          SECT.PATRIARCH_REGALIA.transferToNewMaster(W, W.byId[newMasterId], prevMasterId);
         }
         return res;
       };

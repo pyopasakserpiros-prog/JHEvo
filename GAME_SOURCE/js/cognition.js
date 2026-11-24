@@ -3078,7 +3078,31 @@
       bottleneck: (n && n.cult && CULT.inspectProgressionBottleneck) ? CULT.inspectProgressionBottleneck(W, n) : null,
       situational: COG.evaluateSituationalAwareness(W, n),
       buildImprovisation: COG.evaluateBuildImprovisation ? COG.evaluateBuildImprovisation(W, n) : null,
-      officeDecision: c?.officeDecision ? { ...c.officeDecision } : null
+      officeDecision: c?.officeDecision ? { ...c.officeDecision } : null,
+      innerVoiceTh: (() => {
+        const lens = (g.SIM && g.SIM.PROSE && g.SIM.PROSE.psychLens) ? g.SIM.PROSE.psychLens(W, n) : null;
+        const topReason = (Array.isArray(n.why) && n.why[0] && n.why[0][0]) || (c && c.goal && c.goal.stepTitle) || null;
+        const asp = (c && c.aspiration && c.aspiration.title) || null;
+        const actGrandFest = (g.EXPED && g.EXPED.GRAND_FESTIVALS && g.EXPED.GRAND_FESTIVALS.getActive) ? g.EXPED.GRAND_FESTIVALS.getActive(W) : null;
+        const actFest = actGrandFest || ((g.EXPED && g.EXPED.ANNUAL_FESTIVALS && g.EXPED.ANNUAL_FESTIVALS.getActive) ? g.EXPED.ANNUAL_FESTIVALS.getActive(W) : null);
+        const lg = n && n.ext && n.ext.longevity;
+        if (lg && lg.stasis) return 'ข้าปิดผนึกชีพจรจำศีลเงียบสงบ รอคอยวาระแห่งฟ้าดินหรือยามสำนักต้องการ';
+        const blWarrant = (g.EXPED && g.EXPED.BLACK_LEDGER && g.EXPED.BLACK_LEDGER.getActiveWarrantForNpc) ? g.EXPED.BLACK_LEDGER.getActiveWarrantForNpc(W, n.id) : null;
+        if (!topReason && !asp && !actFest && !blWarrant) return null;
+        const ageY = (g.HC && g.HC.ageYears) ? g.HC.ageYears(n) : 18;
+        const maxL = Math.max(1, n.lifespanMax || ((g.CULT && g.CULT.lifespan) ? g.CULT.lifespan(n) : 80));
+        const lifeSuffix = (lg && lg.leylineAnchored)
+          ? ' (ชีพจรข้าผูกไว้กับสำนักแล้ว จะอยู่ค้ำจุนจนลมหายใจสุดท้าย)'
+          : ((ageY / maxL) >= 0.84
+            ? ((g.CULT && g.CULT.LONGEVITY && g.CULT.LONGEVITY.isPeacefulAccepter(n))
+              ? ' (อายุขัยใกล้ถึงฝั่งแล้ว ข้าขอปล่อยวางตามวิถีฟ้าดิน)'
+              : ' (เวลาของข้าเหลือไม่มากแล้ว ต้องเร่งหาทางต่อชะตาหรือบรรลุขั้นใหม่)')
+            : '');
+        const festPrefix = (!blWarrant && (!lens || !lens.burdenId) && actFest) ? (actFest.icon + ' ช่วง' + actFest.nameTh + 'เวียนมาถึง — ') : '';
+        const prefix = blWarrant ? ('หมายจับป้ายเหล็กดำ ' + blWarrant.caseCodeTh + ' กำลังไล่ล่าข้าอยู่ — ') : (lens && lens.burdenId === 'HEART_DEMON') ? 'จิตมารยังรบกวนไม่หยุด — ' : (lens && lens.burdenId === 'GRUDGE') ? 'หนี้แค้นในใจยังไม่จาง — ' : festPrefix;
+        const actBody = topReason ? ('ยามนี้ข้าเลือก「' + topReason + '」') : (actFest ? 'ข้ากำลังซึมซับบรรยากาศเทศกาลร่วมกับผู้คนในยุทธภพ' : (blWarrant ? 'ข้าต้องระวังตัวไม่ให้ถูกนักล่าค่าหัวพบเจอ' : ''));
+        return prefix + actBody + (asp ? (' เพื่อมุ่งสู่ปณิธาน「' + asp + '」') : '') + lifeSuffix;
+      })()
     };
   };
 

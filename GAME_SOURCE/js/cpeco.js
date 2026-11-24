@@ -83,8 +83,8 @@
   CPE.techReward = (W, id) => { const t = CULT.tech(id); return t ? 28 * Math.pow(t.tier, 2.1) * 0.55 : 0; };
   CPE.donorValue = (W, out) => {
     const a = { total: 0, parts: [] };
-    Object.keys(out.mats || {}).forEach(k => { const before = out.stockBefore && out.stockBefore[k]; const v = CPE.reward(W, k, out.mats[k], before); a.total += v; });
-    Object.keys(out.pills || {}).forEach(k => { const before = out.stockBefore && out.stockBefore[k]; a.total += CPE.reward(W, k, out.pills[k], before); });
+    Object.keys(out.mats || {}).forEach(k => { const q = out.mats[k]; if (!Number.isFinite(q) || q <= 0) return; const before = out.stockBefore && out.stockBefore[k]; const v = CPE.reward(W, k, q, before); if (Number.isFinite(v)) a.total += v; });
+    Object.keys(out.pills || {}).forEach(k => { const q = out.pills[k]; if (!Number.isFinite(q) || q <= 0) return; const before = out.stockBefore && out.stockBefore[k]; const v = CPE.reward(W, k, q, before); if (Number.isFinite(v)) a.total += v; });
     (out.gear || []).forEach(gr => { a.total += CPE.gearPrice(W, gr) * 0.5; });
     (out.techs || []).forEach(id => { if (out.techsAccepted || !W.sect.library.includes(id)) a.total += CPE.techReward(W, id); });
     Object.keys(out.organs || {}).forEach(k => {

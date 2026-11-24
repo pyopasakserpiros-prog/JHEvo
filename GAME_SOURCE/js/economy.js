@@ -154,7 +154,8 @@
     const liMod = (W && g.EXPED && g.EXPED.LIVING_INSTITUTIONS && typeof g.EXPED.LIVING_INSTITUTIONS.getMarketPriceModifier === 'function')
       ? g.EXPED.LIVING_INSTITUTIONS.getMarketPriceModifier(W, id)
       : 1;
-    return ECO.base(id) * baseMult * liMod;
+    const fmP = ECO._festMod(W, null, id);
+    return ECO.base(id) * baseMult * liMod * (fmP ? (fmP.priceMult || 1) : 1);
   };
   const stripWildcardSuffix = s => (typeof s === 'string' && s.includes('@TR:')) ? s.slice(0, s.indexOf('@TR:')) : s;
   ECO.isPill = id => {
@@ -462,7 +463,8 @@
     if (r.outType === 'PILL') return ECO.base('P:' + r.id) * 0.9 * yMult;
     return 20 * Math.pow(1.9, (r.tier || 1) - 1) * yMult;
   };
-  ECO.craftHours = (r, skill) => (3.5 + 2.3 * r.tier) * (1 - clamp(skill, 0, 100) / 100 * 0.32);
+  ECO._festMod = (W, craftKind, itemId) => { const wRef = W || (g.SECT && g.SECT.PEAKS && g.SECT.PEAKS._activeWorld) || g.W || null; return (wRef && g.EXPED && g.EXPED.ANNUAL_FESTIVALS && g.EXPED.ANNUAL_FESTIVALS.getActiveModifiers) ? g.EXPED.ANNUAL_FESTIVALS.getActiveModifiers(wRef, craftKind, itemId) : null; };
+  ECO.craftHours = (r, skill, W) => { const fm = ECO._festMod(W, r && r.craft); const sp = fm ? Math.max(0.5, fm.craftSpeedMult || 1) : 1; return ((3.5 + 2.3 * r.tier) * (1 - clamp(skill, 0, 100) / 100 * 0.32)) / sp; };
   function craftTransactions(W) {
     if (!W.sect.craftTransactions) W.sect.craftTransactions = { seq: 0, open: {} };
     return W.sect.craftTransactions;
@@ -678,7 +680,9 @@
     const skill = npc.h.skills[r.craft] != null ? npc.h.skills[r.craft] : 0;
     const elemBonus = (g.ELEM && r && r.element && r.element !== 'NEUTRAL') ? g.ELEM.resolveCompatibility(npc, r, 'crafting').craftSuccessBonus * 0.35 : 0;
     const peakAlchBonus = (npc && npc.peakId && g.SECT && g.SECT.PEAKS && g.SECT.PEAKS.getUnitPeakBonuses) ? (g.SECT.PEAKS.getUnitPeakBonuses(npc).alchemySuccess || 0) : 0;
-    const toolB = r && r.craft ? ECO.equippedToolBonus(npc, r.craft).successBonus : 0;
+    const _fmSucc = ECO._festMod(null, r && r.craft);
+    const _festSuccB = _fmSucc ? (_fmSucc.craftSuccessBonus || 0) : 0;
+    const toolB = (r && r.craft ? ECO.equippedToolBonus(npc, r.craft).successBonus : 0) + _festSuccB;
     return clamp(0.55 + (skill - r.minMastery) / 110 + HC.eff(npc, 'physiology.dexterity') / 500 + HC.eff(npc, 'intellect.focus') / 600 + HC.special(npc, 'craft.successBonus') + (g.MARTIAL ? (g.MARTIAL.lifeMult(npc, r.craft) - 1) * .35 : 0) + elemBonus + peakAlchBonus + toolB, 0.15, 0.98);
   };
   let gearSeq = 0;
@@ -794,7 +798,9 @@
     const profMods = (npc && g.CULT && g.CULT.PROFESSION_ARTS && g.CULT.PROFESSION_ARTS.getModifiers) ? g.CULT.PROFESSION_ARTS.getModifiers(npc) : null;
     const profQBonus = profMods ? clamp((r.craft === 'ALCHEMY' ? profMods.alchemyYieldBonus : profMods.forgeQualityBonus) || 0, 0, 0.20) : 0;
     const toolQBonus = r && r.craft ? ECO.equippedToolBonus(npc, r.craft).qualityBonus : 0;
-    const q = clamp(0.85 + (skill - r.minMastery) / 160 + peakQBonus + kwPrecBonus + profQBonus + toolQBonus + W.rng.gauss(0, 0.06), 0.7, 1.65 + kwPrecBonus + profQBonus + toolQBonus);
+    const _fmQ = ECO._festMod(W, r && r.craft);
+    const _festQB = _fmQ ? (_fmQ.craftQualityBonus || 0) : 0;
+    const q = clamp(0.85 + (skill - r.minMastery) / 160 + peakQBonus + kwPrecBonus + profQBonus + toolQBonus + _festQB + W.rng.gauss(0, 0.06), 0.7, 1.65 + kwPrecBonus + profQBonus + toolQBonus + _festQB);
     const out = { ok: true, q };
     const isTaintedCraft = !!(paid && (paid.usedSpawned || (Array.isArray(paid.inputs) && paid.inputs.some(i => i && i.spawnedUsed > 0))));
     if (r.outType === 'PILL') {
@@ -879,7 +885,9 @@
     const skill = npc.h.skills[r.craft] || 0, ok = W.rng.next() < ECO.successChance(npc, r);
     (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(npc, r.craft, ECO.craftHours(r, skill), 1.1);
     if (!ok) return { ok: false, reason: 'failed', cost: quote.cost };
-    const q = clamp(0.85 + (skill - r.minMastery) / 160 + W.rng.gauss(0, 0.06), 0.7, 1.5);
+    const _fmPQ = ECO._festMod(W, r && r.craft);
+    const _festPQB = _fmPQ ? (_fmPQ.craftQualityBonus || 0) : 0;
+    const q = clamp(0.85 + (skill - r.minMastery) / 160 + _festPQB + W.rng.gauss(0, 0.06), 0.7, 1.5 + _festPQB);
     if (r.outType === 'EQUIPMENT') {
       const gear = ECO.mintGear(W, r, q, !!quote.usedSpawned);
       ECO.applyArmorArtisan(npc, gear);
@@ -1176,22 +1184,39 @@
       const addY = (e.lifeBonus || 0) + (e.lifespanBonus || 0);
       npc.ext = npc.ext || {};
       const taken = npc.ext.longevityPillsTaken || 0;
-      const effY = Math.max(1, Math.round(addY * Math.pow(0.75, taken) * qScale));
+      const mults = (CULT.LONGEVITY && CULT.LONGEVITY.ELIXIR_DIMINISH) || [1.0, 0.5, 0.25, 0.1, 0];
+      const mult = mults[Math.min(taken, mults.length - 1)];
+      const effY = mult > 0 ? Math.max(1, Math.round(addY * mult * qScale)) : 0;
       npc.ext.longevityPillsTaken = taken + 1;
-      npc.ext.pillLifespanYears = (npc.ext.pillLifespanYears || 0) + effY;
-      c.lifeBonus = (c.lifeBonus || 0) + effY;
-      CULT.refreshLifespan(npc);
-      msgs.push('อายุขัย +' + effY);
+      if (effY > 0) {
+        npc.ext.pillLifespanYears = (npc.ext.pillLifespanYears || 0) + effY;
+        c.lifeBonus = (c.lifeBonus || 0) + effY;
+        CULT.refreshLifespan(npc);
+        msgs.push('อายุขัย +' + effY + ' ปี (ดื้อยาครั้งที่ ' + (taken + 1) + ')');
+        if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) {
+          g.SIM.PROSE.recordLifeChapter(W, npc, 'กลืนกินโอสถอายุวัฒนะ ยืดอายุขัย +' + effY + ' ปี (ร่างกายเริ่มดื้อยาครั้งที่ ' + (taken + 1) + ')', 'milestone');
+        }
+      } else {
+        msgs.push('ร่างกายดื้อโอสถอายุวัฒนะเต็มที่แล้ว (ไม่ได้รับอายุขัยเพิ่ม)');
+      }
     }
     if (e.hpRestore && s) { s.hp = CULT.hpMax(npc); msgs.push('ฟื้นฟูกายาเต็มเปี่ยม'); }
     if (e.cureAllInjuries && Array.isArray(npc.inj) && npc.inj.length) { npc.inj = []; msgs.push('สมานบาดแผลทั้งหมด'); }
     if (e.lifespanAdd && c) {
-      const addT = Math.max(1, Math.round(e.lifespanAdd * qScale));
       npc.ext = npc.ext || {};
-      npc.ext.pillLifespanYears = (npc.ext.pillLifespanYears || 0) + addT;
-      c.lifeBonus = (c.lifeBonus || 0) + addT;
-      CULT.refreshLifespan(npc);
-      msgs.push('อายุขัย +' + addT);
+      const takenT = npc.ext.longevityPillsTaken || 0;
+      const multsT = (CULT.LONGEVITY && CULT.LONGEVITY.ELIXIR_DIMINISH) || [1.0, 0.5, 0.25, 0.1, 0];
+      const multT = multsT[Math.min(takenT, multsT.length - 1)];
+      const addT = multT > 0 ? Math.max(1, Math.round(e.lifespanAdd * multT * qScale)) : 0;
+      npc.ext.longevityPillsTaken = takenT + 1;
+      if (addT > 0) {
+        npc.ext.pillLifespanYears = (npc.ext.pillLifespanYears || 0) + addT;
+        c.lifeBonus = (c.lifeBonus || 0) + addT;
+        CULT.refreshLifespan(npc);
+        msgs.push('อายุขัย +' + addT + ' ปี (ดื้อยาครั้งที่ ' + (takenT + 1) + ')');
+      } else {
+        msgs.push('ร่างกายดื้อโอสถอายุวัฒนะเต็มที่แล้ว (ไม่ได้รับอายุขัยเพิ่ม)');
+      }
     }
     if (e.combatPowerMultAdd) {
       npc.ext = npc.ext || {};
@@ -1321,7 +1346,9 @@
   ECO.harvestGrain = (W, npc, hours) => {
     hours *= g.MARTIAL ? g.MARTIAL.lifeMult(npc, 'herbalism') : 1;
     const b = W.map.byId.farm;
-    const n = Math.round(hours * (1.1 + (npc.h.skills.herbalism || 0) / 70 + HC.eff(npc, 'physiology.strength') / 250) * (0.8 + b.level * 0.25) * (W.season === 3 ? 0.4 : W.season === 1 ? 1.2 : 1) * (0.85 + W.rng.next() * 0.3));
+    const _fmHarv = ECO._festMod(W, 'farm');
+    const _festHarvM = _fmHarv ? (_fmHarv.harvestMult || 1) : 1;
+    const n = Math.round(hours * (1.1 + (npc.h.skills.herbalism || 0) / 70 + HC.eff(npc, 'physiology.strength') / 250) * (0.8 + b.level * 0.25) * (W.season === 3 ? 0.4 : W.season === 1 ? 1.2 : 1) * _festHarvM * (0.85 + W.rng.next() * 0.3));
     ECO.add(W, 'grain', n); return n;
   };
   ECO.mineYield = (W, npc, hours) => {
@@ -2988,12 +3015,16 @@
       case 'EFX_LONGEVITY_NOURISH': {
         npc.ext = npc.ext || {};
         const takenL = npc.ext.longevityPillsTaken || 0;
-        const addYears = Math.max(1, Math.round((params.years || 12) * Math.pow(0.75, takenL)));
+        const multsL = (CULT && CULT.LONGEVITY && CULT.LONGEVITY.ELIXIR_DIMINISH) || [1.0, 0.5, 0.25, 0.1, 0];
+        const multL = multsL[Math.min(takenL, multsL.length - 1)];
+        const addYears = multL > 0 ? Math.max(1, Math.round((params.years || 12) * multL)) : 0;
         npc.ext.longevityPillsTaken = takenL + 1;
-        npc.ext.pillLifespanYears = (npc.ext.pillLifespanYears || 0) + addYears;
-        npc.lifespanBonusYears = (npc.lifespanBonusYears || 0) + addYears;
-        if (npc.cult) npc.cult.lifeBonus = (npc.cult.lifeBonus || 0) + addYears;
-        if (CULT && CULT.refreshLifespan) CULT.refreshLifespan(npc);
+        if (addYears > 0) {
+          npc.ext.pillLifespanYears = (npc.ext.pillLifespanYears || 0) + addYears;
+          npc.lifespanBonusYears = (npc.lifespanBonusYears || 0) + addYears;
+          if (npc.cult) npc.cult.lifeBonus = (npc.cult.lifeBonus || 0) + addYears;
+          if (CULT && CULT.refreshLifespan) CULT.refreshLifespan(npc);
+        }
         if (st) st.hp = hm;
         break;
       }

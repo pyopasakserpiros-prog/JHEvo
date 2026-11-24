@@ -1040,7 +1040,7 @@
     const accepted=handover(W,ex,alive,out), known=W.sect.knownRecipes;
     let reward=0; accepted.recipes=[]; accepted.keptRecipes=[]; accepted.organs={};
     for(const id of new Set(out.recipes||[])) {
-      if(!recipeIds.has(id)) continue;
+      if(!recipeIds.has(id) && !(ECO && ECO.recipeById && ECO.recipeById[id])) continue;
       if(known.includes(id)) continue; // duplicate discovery/handover pays 0 CP
       const holder=C.pickFormulaHolder(W,alive,id);
       if(C.shouldKeepFormula(W,holder,id,ex)) {

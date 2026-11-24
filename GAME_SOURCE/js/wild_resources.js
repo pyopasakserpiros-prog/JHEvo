@@ -61,7 +61,7 @@
     if (category === 'ORE') {
       const allOres = (JD.ITEMS.materials || []).filter(m => (!m.sourcePack || m.sourcePack === 'V230_EXPANSION') && m.category === 'ORE' && m.tier <= 3);
       if (allOres.length) return rng.weighted(allOres, m => 1 / (m.tier * m.tier)).id;
-      return 'MAT_ORE_COPPER_1';
+      return 'MAT_ORE_SPIRIT_IRON_1';
     }
     // OTHER natural gatherable materials (excluding manufactured goods such as formation flags)
     const allOthers = (JD.ITEMS.materials || []).filter(m => (!m.sourcePack || m.sourcePack === 'V230_EXPANSION') && (m.category === 'WOOD' || m.category === 'STONE' || m.category === 'FORMATION_PART' || m.category === 'SPIRIT_ESSENCE' || m.category === 'CATALYST' || m.category === 'ARTIFACT_MAT') && !m.id.includes('FLAG') && m.tier <= 2);
@@ -89,10 +89,13 @@
     const matId = opts.materialId || pickMaterial(W, cat);
     const isBasic = BASIC_HERB_WEIGHTS.some(b => b.id === matId);
 
+    const unsafeFull = state.nodes.filter(n => n.remaining > 0 && !MAP.isInSafeBelt(n.x + .5, n.y + .5)).length >= WILD_RES.MAX_NODES - WILD_RES.SAFE_NODE_RESERVE;
     // Zone selection: basic recovery herbs strongly favor safe_belt (reachable from gate)
     let zoneId = opts.zoneId;
     if (!zoneId) {
-      if (isBasic && rng.chance(0.65)) {
+      if (unsafeFull) {
+        zoneId = 'safe_belt';
+      } else if (isBasic && rng.chance(0.65)) {
         zoneId = 'safe_belt';
       } else {
         const pool = isBasic ? ['safe_belt', 'exterior_south', 'exterior_west', 'exterior_east'] : ['exterior_south', 'exterior_west', 'exterior_east', 'exterior_north'];
@@ -104,7 +107,6 @@
     // Find legal placement: outside wall, passable, reachable, not inside building
     const M = W.map;
     let placedX = null, placedY = null;
-    const unsafeFull = state.nodes.filter(n => n.remaining > 0 && !MAP.isInSafeBelt(n.x + .5, n.y + .5)).length >= WILD_RES.MAX_NODES - WILD_RES.SAFE_NODE_RESERVE;
     const maxAttempts = 24;
     for (let i = 0; i < maxAttempts; i++) {
       const x = rng.int(zone.x0, zone.x1);
@@ -300,8 +302,7 @@
     const candidates = W.wildResources.nodes.filter(node => {
       if (node.remaining <= 0) return false;
       if (node.claimedBy && node.claimedBy !== n.id && now < node.claimUntil) return false;
-      const basic = node.category === 'BASIC_HERB' || BASIC_HERB_WEIGHTS.some(b => b.id === node.materialId);
-      if ((basic || beginner) && !MAP.isInSafeBelt(node.x + .5, node.y + .5)) return false;
+      if (beginner && !MAP.isInSafeBelt(node.x + .5, node.y + .5)) return false;
       return true;
     });
     if (!candidates.length) return null;
@@ -325,12 +326,11 @@
     scored.sort((a, b) => b.s - a.s);
     const npcInsideOrSafe = !MAP.isOutsideWall(W.map, n.x, n.y) || MAP.isInSafeBelt(n.x, n.y);
     for (const { node } of scored) {
-      const basic = BASIC_HERB_WEIGHTS.some(b => b.id === node.materialId);
-      if (basic && MAP.isOutsideWall(W.map, node.x, node.y) && !MAP.isInSafeBelt(node.x, node.y)) continue;
-      if (MAP.isReachableFromGate && MAP.isReachableFromGate(W.map, node.x, node.y) && MAP.isReachableFromGate(W.map, n.x, n.y) && (!basic || npcInsideOrSafe)) return node;
+      if (beginner && MAP.isOutsideWall(W.map, node.x, node.y) && !MAP.isInSafeBelt(node.x + .5, node.y + .5)) continue;
+      if (MAP.isReachableFromGate && MAP.isReachableFromGate(W.map, node.x, node.y) && MAP.isReachableFromGate(W.map, n.x, n.y) && (!beginner || npcInsideOrSafe)) return node;
       const path = MAP.findPath(W.map, n.x, n.y, node.x, node.y);
       if (!path) continue;
-      if (basic && path.some(([x, y]) => MAP.isOutsideWall(W.map, x + .5, y + .5) && !MAP.isInSafeBelt(x + .5, y + .5))) continue;
+      if (beginner && path.some(([x, y]) => MAP.isOutsideWall(W.map, x + .5, y + .5) && !MAP.isInSafeBelt(x + .5, y + .5))) continue;
       return node;
     }
     return null;

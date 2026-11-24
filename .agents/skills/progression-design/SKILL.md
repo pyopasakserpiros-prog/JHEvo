@@ -262,3 +262,8 @@ NPCs find Sovereign inheritances after eligible full clears of the four ancient 
 ### Four-Symbol companion lifecycle
 
 The four Sovereign companions come from one archive each. Three start at egg incubation, the White Tiger starts as a juvenile. Four living stages require actual care days, bond and keeper realm. Regular evolution and breeding cannot bypass the lifecycle. See `PATCH_REPORTS/SOVEREIGN_ORIGINS_JS2_V2_6_0.md`.
+
+## JS2 v3.15.1 Baseline Sync (2026-11-24)
+- Current production release: **`JS2 v3.15.1`** (58 paths / 358 subpaths, 105 Lore Books / 742 events, 40 `<script>` tags, `JianghuSect_single.html` 23,877 KB).
+- Key active systems since `v3.9.6`: Chronicle & Reporting Overhaul (`v3.10.0`), Interactive Biography & Era Timeline (`v3.11.0`), World-Symmetric Emergent Longevity (`v3.12.0–v3.12.1`), Seven-Hall Neutral Federation & Black Ledger (`v3.13.0`), 12 Annual Festivals (`v3.14.0`), Lore Book #105 & 6 Grand Periodic Festivals (`v3.15.0`), and Audit Bugfix Hardening (`v3.15.1`).
+- Always preserve `AGENTS.md` and `human_core.js` SHA-256 locks and run `v3100`–`v3151` suites alongside `core_lock.js` and `standalone.js`.

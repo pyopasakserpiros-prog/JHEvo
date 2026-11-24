@@ -519,6 +519,12 @@
     M.stations.forEach(st => {
       for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) keep.add((st.y + dy) * W + st.x + dx);
     });
+    if (Array.isArray(MAP.MICRO_LOCATIONS)) {
+      MAP.MICRO_LOCATIONS.forEach(ml => {
+        if (!ml || !Number.isFinite(ml.mapX) || !Number.isFinite(ml.mapY)) return;
+        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) keep.add((ml.mapY + dy) * W + ml.mapX + dx);
+      });
+    }
     // โคมไฟหัวสะพานทั้ง 3 แห่ง
     [[177, 262], [183, 262], [177, 274], [183, 274], [91, 263], [95, 263], [263, 262], [267, 262]].forEach(([lx, ly]) => {
       if (inb(lx, ly) && M.block[idx(lx, ly)] === 0) {

@@ -686,10 +686,12 @@
           lastFishedTick: -9999
         };
       } else {
-        f.zones[zid].maxStock = zdef.maxStock;
+        const fsSummary = (g.CULT && g.CULT.sectFourSymbolSummary) ? g.CULT.sectFourSymbolSummary(W) : null;
+        const effMax = (fsSummary && fsSummary.hasAzureDragon) ? Math.round(zdef.maxStock * 1.25) : zdef.maxStock;
+        f.zones[zid].maxStock = effMax;
         f.zones[zid].dailyRegen = zdef.dailyRegen;
-        if (!Number.isFinite(f.zones[zid].stock)) f.zones[zid].stock = zdef.maxStock;
-        f.zones[zid].stock = clamp(f.zones[zid].stock, 0, zdef.maxStock);
+        if (!Number.isFinite(f.zones[zid].stock)) f.zones[zid].stock = effMax;
+        f.zones[zid].stock = clamp(f.zones[zid].stock, 0, effMax);
       }
     }
     if (!f.stats || typeof f.stats !== 'object') f.stats = {};
@@ -839,7 +841,7 @@
   FISHING.addFishToBag = (npc, fishId, qty, quality) => {
     if (!npc || !FISHING.isFish(fishId)) return false;
     const n = Number.isInteger(qty) && qty > 0 ? qty : 1;
-    const q = clamp(Number.isFinite(quality) ? quality : 1.0, 0.75, 1.45);
+    const q = clamp(Number.isFinite(quality) ? quality : 1.0, 0.75, 1.55);
     npc.inv = npc.inv || {};
     npc.inv.mats = npc.inv.mats || {};
     npc.inv.matQuality = npc.inv.matQuality || {};
@@ -1444,7 +1446,7 @@
     if (!W || !W.sect || !W.sect.stock) return 0;
     let sum = 0;
     for (const s of SPECIES) {
-      if (s.tier <= 3) sum += ECO.count(W, s.id);
+      if (s.tier <= 2) sum += ECO.count(W, s.id);
     }
     return sum;
   };
@@ -1536,13 +1538,14 @@
         studyMult: dish.buff.studyMult || 1,
         energySaveMult: dish.buff.energySaveMult || 1,
         stressGainMult: dish.buff.stressGainMult || 1,
+        injuryHealBonus: dish.buff.injuryHealBonus || 0,
         descTh: dish.buff.descTh
       };
     }
 
     const f = FISHING.ensure(W);
     f.stats.fishDishesEaten++;
-    FISHING.ensureNpc(npc);
+    FISHING.ensureNpc(npc, W);
     HC.bump(npc);
     return { ok: true, dish, buff: npc.foodBuff };
   };
@@ -1713,7 +1716,7 @@
 
       // หากหิวและยังไม่มีบัฟอาหาร ให้ปรุงกินเอง 1 ตัว
       if (n.h.state.satiety < 68 && !FISHING.activeFoodBuff(W, n) && (isCook || sp.tier <= 2)) {
-        const dishId = sp.tier >= 3 ? 'FOOD_JADE_KOI_SOUP' : 'FOOD_STEAMED_SPIRIT_FISH';
+        const dishId = (sp.recipes || []).find(id => FISHING.DISH_BY_ID && FISHING.DISH_BY_ID[id]) || (sp.tier >= 3 ? 'FOOD_JADE_KOI_SOUP' : 'FOOD_STEAMED_SPIRIT_FISH');
         if (FISHING.cookDish(W, dishId, n, true).ok) {
           FISHING.eatFishDish(W, n, dishId, false);
         }
@@ -1960,9 +1963,12 @@
             const f = FISHING.ensure(W);
             const zid = ctx.zoneId || (ctx.st && ctx.st.zoneId) || 'spirit_pond';
             const z = f.zones[zid];
-            if (z && z.stock > 0 && W.rng.chance(0.48)) {
-              FISHING.resolveSuccessfulCatch(W, n, zid);
-              FISHING.handlePostFishingInventory(W, n);
+            if (z && z.stock > 0) {
+              f.stats.attempts++;
+              if (W.rng.chance(0.48)) {
+                FISHING.resolveSuccessfulCatch(W, n, zid);
+                FISHING.handlePostFishingInventory(W, n);
+              }
             }
           }
         }

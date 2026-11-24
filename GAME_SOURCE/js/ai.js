@@ -1685,7 +1685,7 @@
   };
   A.errand = {
     nameTh: 'ติดต่อหอภารกิจ', icon: '📯', color: '#4aa3d9',
-    can: (n, W) => !n.wantTrip && n.rank >= 1 && !n.away && n.h.state.energy > 40 && n.h.state.satiety > 40 && (W.day - (n.lastTrip || -99)) > 12 && !(n.inj && n.inj.length),
+    can: (n, W) => !n.travel && !n.expId && n.rank >= 1 && !n.away && n.h.state.energy > 40 && n.h.state.satiety > 40 && (W.day - (n.lastTrip || -99)) > 12 && !(n.inj && n.inj.length),
     score(n, W, S) {
       interestTerm(n, 'exploring', S, 1.0); S.add('ชอบความตื่นเต้น', (E(n, 'temperament.sensationSeeking') - 50) / 110);
       valueTerm(n, { freedom: .9, powerStatus: .3, wealthResource: .5 }, S);
@@ -1881,7 +1881,9 @@
   /* การปกป้องงานสำคัญจากการถูกรบกวนโดยคำชวนทั่วไป */
   AI.PROTECTED_ACTS = new Set(['sleep', 'eat', 'heal', 'supportBless', 'breakthrough', 'fight', 'sentence', 'hide', 'pair', 'brew', 'forge', 'cook', 'brewBasic', 'personalBrew', 'paidTraining', 'guidedStudy', 'retrain', 'specialize', 'wildHunt', 'guard']);
   AI.isProtectedAction = (W, n, inviteType) => {
-    if (!n || !n.act || !n.act.id || n.act.id === 'idle') return false;
+    if (!n) return false;
+    if (n.travel || n.expId || n.away) return true;
+    if (!n.act || !n.act.id || n.act.id === 'idle') return false;
     const id = n.act.id;
     if (AI.PROTECTED_ACTS.has(id)) return true;
     if (id === 'duty' && inviteType !== 'official_order') return true;
@@ -2164,9 +2166,15 @@
           o.h.state.heartDemon = clamp((o.h.state.heartDemon || 0) + 15, 0, 100);
           if (CULT && CULT.grantAcquiredTrait) CULT.grantAcquiredTrait(o, 'TR_AC_HEART_DEMON_LOVE');
           if (o.h.body) { o.h.body.hair = 'ขาวหิมะ'; o.h.body.hairHex = '#e9edf5'; }
+          const loveMsg = 'ข่าวการสิ้นชีพของ「' + n.h.name.given + '」ราวกับสายฟ้าฟาดกลางใจ ' + o.h.name.given + ' โศกเศร้าจนเรือนผมแปรเปลี่ยนเป็นสีขาวหิมะในคืนเดียว';
+          if (W.log) W.log('relation', loveMsg, [o.id, n.id]);
+          if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) g.SIM.PROSE.recordLifeChapter(W, o, loveMsg, 'bereavement');
         }
         if (isDiscipleOfDead && CULT && CULT.grantAcquiredTrait) {
           CULT.grantAcquiredTrait(o, 'TR_AC_MASTER_VENGEANCE');
+          const vowMsg = 'ต่อหน้าร่างไร้วิญญาณของอาจารย์「' + n.h.name.given + '」ศิษย์ ' + o.h.name.given + ' คุกเข่าโขกศีรษะสามครั้ง สาบานจะสืบทอดเจตจำนงและทวงคืนความยุติธรรมให้จงได้';
+          if (W.log) W.log('relation', vowMsg, [o.id, n.id]);
+          if (g.SIM && g.SIM.PROSE && g.SIM.PROSE.recordLifeChapter) g.SIM.PROSE.recordLifeChapter(W, o, vowMsg, 'vengeance');
         }
         if (killer && killer.id && killer.id !== o.id && o.h && o.h.mind) {
           o.h.mind.grudges = Array.isArray(o.h.mind.grudges) ? o.h.mind.grudges : [];
@@ -2552,7 +2560,7 @@
     }
     const compScale = 0.6 + E(n, 'personality.composure') / 120;
     s.anger = Math.max(0, (s.anger || 0) - 0.008 * compScale); s.fear = Math.max(0, (s.fear || 0) - 0.012 * compScale);
-    if (n.jail && n.jail > W.t && s.satiety < 40 && ECO.take(W, 'meal', 1)) s.satiety = Math.min(100, s.satiety + 60);
+    if (((n.jail && n.jail > W.t) || (SECT && SECT.isNpcDetained && SECT.isNpcDetained(W, n))) && s.satiety < 40 && (ECO.take(W, 'meal', 1) || (n.federationDetainedUntilDay && n.federationDetainedUntilDay > (W.day || 0)))) s.satiety = Math.min(100, s.satiety + 60);
     // หิวจัด/ขาดการพักผ่อนทำลายสุขภาพ
     if (s.satiety <= 2) { s.hp -= 0.12; s.stress = Math.min(100, s.stress + 0.02); if ((W._isNewCalendarMinute !== false && W.t % 720 === 0) && s.hp < 5) AI.kill(W, n, 'อดอยาก'); }
     if (s.rest <= 1) { s.energy = Math.max(0, s.energy - 0.05); }
@@ -2566,8 +2574,8 @@
 
   AI.interrupt = (W, n) => { // ตรวจเหตุขัดจังหวะ (ทุก 5 นาที)
     const s = n.h.state, id = n.act.id, cool = n.cool;
-    if (((SECT && SECT.isNpcDetained) ? SECT.isNpcDetained(W, n) : (n.jail && n.jail > W.t)) && id !== 'sentence') { AI.interruptFor(W, n); n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [['ถูกคุมขัง', 9]] }; return true; }
     if (id === 'breakthrough' || id === 'fight' || id === 'sentence') return false;
+    if (((SECT && SECT.isNpcDetained) ? SECT.isNpcDetained(W, n) : (n.jail && n.jail > W.t)) && id !== 'sentence') { AI.interruptFor(W, n); n.act = { id: 'idle', stage: 'do', left: 0, total: 0, ctx: {}, why: [['ถูกคุมขัง', 9]] }; return true; }
     const hm = n._nd ? n._nd.hpMax : CULT.hpMax(n);
     const grit = (E(n, 'personality.discipline') + E(n, 'physiology.endurance') + E(n, 'physiology.painTolerance')) / 300;
     const satThresh = Math.round(26 - grit * 8);
@@ -2583,6 +2591,13 @@
   /* ---------- ขั้นประมวลผลต่อนาทีของ NPC ---------- */
   AI.step = (W, n) => {
     if (n.dead || n.away || n.exiled) return;
+    if (n.ext && n.ext.longevity && n.ext.longevity.stasis) {
+      n.px = n.x; n.py = n.y;
+      if (!n.act || n.act.id !== 'idle') {
+        n.act = { id: 'idle', stage: 'do', left: 60, total: 60, ctx: {}, why: [['จำศีลผนึกเวลา', 9]] };
+      }
+      return;
+    }
     n.px = n.x; n.py = n.y;
     AI.needs(W, n);
     if (n.dead) return;

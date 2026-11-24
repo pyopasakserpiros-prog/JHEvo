@@ -1,3 +1,5 @@
+> **Baseline Sync (`JS2 v3.15.1` — 2026-11-24):** โปรเจกต์ปัจจุบันอยู่ที่ `JS2 v3.15.1` (Save Schema `3.9.6-deep-gameplay-integration`, 58 วิถี / 358 สายย่อย, 1,987 วิชา, 1,320 ไอเทม, 105 คัมภีร์ตำนาน / 742 เหตุการณ์, 12 เทศกาลประจำปี + 6 มหาเทศกาลหกคาบเวลา, สหพันธ์เจ็ดหอและสมุดปกดำ, ระบบอายุยืนแบบสมมาตร, และ `JianghuSect_single.html` 23,877 KB / 40 `<script>` tags) — ดูรายละเอียดล่าสุดใน `START_HERE_FOR_AI.md` และ `PATCH_REPORTS/AUDIT_BUGFIX_HARDENING_JS2_V3_15_1.md`
+
 # JianghuSect Evolution (JHEvo) — 13 Master-Level Project Skills (JianghuSect 2 JS2-v3.0.0)
 
 All 13 skills in this directory are bespoke, project-specific engineering blueprints tailored exclusively to **JianghuSect Evolution (สำนักยุทธ์เจียงหู)** (`GAME_SOURCE/`, current runtime patch `SIM.PATCH_VERSION = '3.0.0'`, `SIM.SAVE_SCHEMA_VERSION = '3.0.0-living-continent'`). They document project module APIs and invariants (`HC.FINGERPRINT === '155:2f9c9dd7'`, 40 `<script>` tags, Closed-Loop Economy, and the `<= 3.5 ms/tick` 80-NPC budget). Historical entries below describe their own patches. Read the current patch report for the latest test scope and results.

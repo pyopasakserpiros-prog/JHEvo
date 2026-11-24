@@ -7132,6 +7132,7 @@
       } else {
         const rs = ECO.recipesFor(W, ['FORGING']).filter(r => r.outType === 'EQUIPMENT' && r.tier <= p1 && r.tier >= Math.max(1, p1 - 2));
         if (rs.length) { const r = rng.pick(rs); const gear = ECO.mintGear(W, r, 1.05 + rng.next() * 0.35); gear.nameTh = (gear.nameTh || 'ศาสตรา') + ' (' + (site.short || site.nameTh) + ')'; gear.q = 1.2; out.gear.push(gear); txt = e[2] + '「' + gear.nameTh + '」'; }
+        else if (ECO.rollProceduralGear) { const gear = ECO.rollProceduralGear(W, { maxTier: 4, minTier: 3, source: 'explore:' + (site.id || 'realm') }); out.gear.push(gear); txt = e[2] + '「' + gear.nameTh + '」'; }
       }
     }
     else if (k === 'tech') {
@@ -7209,6 +7210,12 @@
       if (sub === 'sage') { const v = rng.pick(alive); (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(v, AI.pickTeachSkill ? AI.pickTeachSkill(v, v) : 'SCRIPTURE', 5, 2); if (v.cult) CULT.gain(v, CULT.threshold(v) * 0.05); ex.journal.push(v.h.name.given + ' ได้รับคำชี้แนะจาก' + text); }
       else if (sub === 'trade') { const cost = Math.min(Math.round(40 + d * 30), Math.max(0, W.sect.stones + out.stones)); if (cost > 20) { out.stones -= cost; ex.journal.push('แลกของกับ' + text + ' จ่าย ' + cost + ' ศิลา'); lootRoll(W, ex, alive, out, site, d + 0.5); lootRoll(W, ex, alive, out, site, d + 0.5); } else ex.journal.push('พบ' + text + ' แต่ไม่มีเงินแลก'); }
       else { const lose = Math.min(Math.round(20 + d * 20), Math.max(0, W.sect.stones + out.stones)); out.stones -= lose; ex.journal.push(text + ' หลอกเอาศิลาไป ' + lose); }
+    } else if (k === 'boon') {
+      const v = rng.pick(alive);
+      if (v && v.cult) CULT.gain(v, CULT.threshold(v) * 0.12);
+      if (v) HC.experience(v, 'insight', 0.8);
+      ex.journal.push('ได้รับวาสนาดีจาก' + text + (v ? (' (' + v.h.name.given + ')') : ''));
+      if (site.loot && site.loot.length && rng.chance(0.5)) lootRoll(W, ex, alive, out, site, d);
     }
   }
   function summaryOf(out) { return X.summarize(out); }
@@ -7380,9 +7387,14 @@
     }
     const strandedPenalty = (ex.stranded ? 2 + rng.int(0, 4) : 0);
     alive.forEach(m => { m.away = false; m.hidden = false; m.x = ex.px + .5 + rng.gauss(0, 0.6); m.y = ex.py + 1.5; m.travel = null; m.expId = null; m.path = null; m.run = false; m.h.state.satiety = Math.max(30, m.h.state.satiety); if (strandedPenalty > 0 && m.h?.state) m.h.state.energy = Math.max(5, m.h.state.energy - strandedPenalty * 2); HC.experience(m, 'adventure', 0.6); m.merit += 6 + (ex.kind === 'realm' ? 8 : ex.target || 1); AI.mem(W, m, 'กลับจาก' + X.MISSIONS[ex.kind].nameTh, 0.5); });
-    const brief = Object.keys(out.mats).length || out.stones || out.gear.length || out.techs.length || Object.keys(out.pills).length ? ('ได้ ' + summaryOf(out)) : 'ไม่ได้อะไรมากนัก';
-    W.log('explore', ppl + ' ' + headline + ' — ' + brief + (out.notes.length ? ' · ' + out.notes.slice(0, 2).join(' / ') : ''), members.map(m => m.id));
-    if (alive.length && out.rep) W.fame(out.rep);
+    if (!alive.length) {
+      members.forEach(m => { m.away = false; m.hidden = false; m.travel = null; m.expId = null; m.path = null; m.run = false; });
+      W.log('explore', '☠ คณะสำรวจ ' + ppl + ' สูญเสียทั้งหมดใน' + (ex.placeTh || 'แดนสำรวจ'), members.map(m => m.id));
+    } else {
+      const brief = Object.keys(out.mats).length || out.stones || out.gear.length || out.techs.length || Object.keys(out.pills).length ? ('ได้ ' + summaryOf(out)) : 'ไม่ได้อะไรมากนัก';
+      W.log('explore', ppl + ' ' + headline + ' — ' + brief + (out.notes.length ? ' · ' + out.notes.slice(0, 2).join(' / ') : ''), members.map(m => m.id));
+      if (out.rep) W.fame(out.rep);
+    }
   };
 
   /* ======================= อาสา (ต่อจากหอภารกิจ) ======================= */
@@ -7406,21 +7418,23 @@
       const sanctumUrge = 0.28 + Math.max(0, (E(n, 'values.martialPeak') - 45) / 80) + Math.max(0, (E(n, 'interests.exploring') - 45) / 90) + (hasRefinableT4 ? 0.35 : 0) + (resInc ? 0.25 : 0);
       opts.push({ k: 'sanctum', w: sanctumUrge });
     }
+    opts[0].w = Math.max(1.6, 0.45 * Math.max(1, opts.length - 1));
     opts.forEach(o => o.w = Math.max(0.05, o.w));
     const pick = rng.weighted(opts, o => o.w).k; if (pick === 'orig') return false;
-    const approver = SECT.holder(W, 'mission') || W.byId[W.sect.masterId];
+    const approver = SECT.holder(W, 'mission') || (W.byId && W.byId[W.sect.masterId]) || null;
+    if (!approver || approver.dead) return false;
     let p = 0.62 + (W.sect.policy.expansion - 50) / 220 + (W.sect.policy.risk - 50) / 200 - (W.sect.policy.strictness - 50) / 300 + (E(approver, 'personality.curiosity') - 50) / 300;
     if (n.post && SECT.holder(W, n.post) === n && !n.assist) p -= 0.15; if (n.rank <= 1 && W.sect.policy.strictness > 65) p -= 0.15; if (pw < 25) p -= 0.25;
     const away = W.npcs.filter(x => x.expId && !x.dead).length; if (away > W.npcs.length * 0.22) p -= 1.5; if (ECO.count(W, 'meal') < 4) p -= 0.5; if (W.threat.alert > 0) p -= 0.9;
     if (rng.next() > clamp(p, 0.05, 0.95)) { n.lastTrip = W.day - 6; HC.feel(n, { mood: -2 }); return true; }
     const party = [n]; const want = 1 + (E(n, 'personality.caution') > 50 ? 1 : 0) + (pick === 'delve' ? 1 : 0) + (rng.chance(0.4) ? 1 : 0);
-    const cands = W.npcs.filter(x => x !== n && !x.dead && !x.away && !x.exiled && x.rank >= 1 && x.rank <= 4 && !(x.act && ['sleep', 'breakthrough', 'fight', 'sentence'].includes(x.act.id)) && !x.sealed && !(x.jail > W.t) && !(x.inj && x.inj.length) && !(x.post && x.rank >= 4) && !x.expId && x.h.state.energy > 40);
+    const cands = W.npcs.filter(x => x !== n && !x.dead && !x.away && !x.travel && !x.exiled && !(x.ext && x.ext.longevity && (x.ext.longevity.stasis || x.ext.longevity.leylineAnchored)) && !(g.SECT && g.SECT.isNpcDetained && g.SECT.isNpcDetained(W, x)) && x.rank >= 1 && x.rank <= 4 && !(x.act && ['sleep', 'breakthrough', 'fight', 'sentence'].includes(x.act.id)) && !x.sealed && !(x.jail > W.t) && !(x.inj && x.inj.length) && !(x.post && x.rank >= 4) && !x.expId && x.h.state.energy > 40);
     cands.forEach(c => { const r = n.h.mind.relations[c.id]; c._s = AI.compat(n, c) + (r ? r.a / 100 : 0) + PW(c) / 300 + rng.next() * 0.3; }); cands.sort((a, b) => b._s - a._s);
     for (const c of cands) { if (party.length > Math.min(want, 3)) break; const acc = clamp(0.4 + c._s * 0.4 + (E(c, 'personality.courage') - 50) / 200 + (E(c, 'interests.exploring') - 45) / 200, 0.05, 0.9); if (c._s > 0.05 && rng.next() < acc) party.push(c); }
-    if (party.length < 2 && pw < 90) { n.lastTrip = W.day - 8; return true; }
+    if (party.length < 2 && pw < 90) { n.lastTrip = W.day - 8; return false; }
     if (pick === 'sanctum') {
       const cPath = n.cult ? n.cult.path : 'XIAN';
-      const isBeastSanctum = ['BEAST_SOVEREIGN', 'PRIMORDIAL_SHIFTER', 'VENOM_GU', 'WILDERNESS_RANGER', 'DEVOURING_FLESH'].includes(cPath);
+      const isBeastSanctum = ['BEAST_SOVEREIGN', 'PRIMORDIAL_SHIFTER', 'VENOM_GU', 'SPIRIT_HUSBANDRY', 'DEVOURING_FLESH'].includes(cPath);
       const sId = isBeastSanctum && EX.SANCTUMS.SANCTUM_MYRIAD_BEAST_TOTEM
         ? 'SANCTUM_MYRIAD_BEAST_TOTEM'
         : cPath === 'BODY'
@@ -7444,7 +7458,7 @@
       return true;
     }
     if (pick === 'elemental_realm') { EX.departElementalRealm(W, party, { realmId: activeElementRealm.id }); return true; }
-    if (pick === 'rift_shard' && openShards.length) { EX.departRiftShard(W, party, { realmId: openShards[0].id }); return true; }
+    if (pick === 'rift_shard' && openShards.length) { const chosenShard = rng.pick(openShards); EX.departRiftShard(W, party, { realmId: chosenShard.id }); return true; }
     EX.depart(W, party, pick); return true;
   };
 
@@ -7512,9 +7526,9 @@
       descTh: 'มหาวิหารโบราณ 3 ชั้นที่ผนึกวิญญาณราชันอสูรโลหิต พิณเหมันต์ และอสูรกลืนดารา ดรอปวัตถุดิบอสูรและคัมภีร์ยุทธ์ v2.0.22',
       minPower: 135,
       floors: [
-        { floor: 1, nameTh: 'ลานเสาโทเท็มเขี้ยวอสนี', guardianNameTh: 'ขุนพลอสูรเสือดาวปีกอสนี', subPath: 'PACK_COMMAND_HUNT', weaponType: 'WHIP', tier: 4, basePower: 145, catalystId: 'CAT_RESONANCE_JADE_4', stones: 105 },
+        { floor: 1, nameTh: 'ลานเสาโทเท็มเขี้ยวอสนี', guardianNameTh: 'ขุนพลอสูรเสือดาวปีกอสนี', subPath: 'MYRIAD_BEAST_PACK', weaponType: 'WHIP', tier: 4, basePower: 145, catalystId: 'CAT_RESONANCE_JADE_4', stones: 105 },
         { floor: 2, nameTh: 'โถงสังคีตหงส์น้ำแข็งเก้าเหมันต์', guardianNameTh: 'ทูตพิณหงส์ขาวเหมันต์', subPath: 'CELESTIAL_ZITHER_ENVOY', weaponType: 'ZITHER', tier: 5, basePower: 245, catalystId: 'CAT_ASTRAL_ESSENCE_5', stones: 170 },
-        { floor: 3, nameTh: 'บัลลังก์อสูรกลืนดาราและมังกรโลหิต', guardianNameTh: 'ราชันอสูรบรรพกาลกลืนดารา', subPath: 'BEAST_BLOOD_FUSION', weaponType: 'FIST', tier: 6, basePower: 370, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 275 }
+        { floor: 3, nameTh: 'บัลลังก์อสูรกลืนดาราและมังกรโลหิต', guardianNameTh: 'ราชันอสูรบรรพกาลกลืนดารา', subPath: 'PRIMORDIAL_BLOOD_MUTATOR', weaponType: 'FIST', tier: 6, basePower: 370, catalystId: 'CAT_PRIMORDIAL_FLAME_6', stones: 275 }
       ]
     }
   };
@@ -8109,18 +8123,18 @@
       { floor: 41, path: 'FORTUNE_GAMBLER', nameTh: 'ชั้นลูกเต๋าหยกและวงล้อเดิมพันชะตา', guardianNameTh: 'จอมราชันนักเดิมพันฟ้าดิน', basePower: 3140, stones: 960 },
       { floor: 42, path: 'SPIRIT_HUSBANDRY', nameTh: 'ชั้นสวนพฤกษาอมตะและรวงข้าวเสิ่นหนง', guardianNameTh: 'เซียนเกษตรต้นไม้โลก', basePower: 3220, stones: 985 },
       { floor: 43, path: 'ARENA_GLORY', nameTh: 'ชั้นสังเวียนเกียรติยุทธ์เจ้ายุทธจักร', guardianNameTh: 'แชมเปี้ยนร้อยศึกไร้พ่าย', basePower: 3300, stones: 1020 },
-      { floor: 44, path: 'LEG_READ_FORM_BLADE', nameTh: 'ชั้นทดสอบสัจธรรม · กระบี่อ่านช่องฟ้า', guardianNameTh: 'ผู้พิทักษ์มรรคากระบี่อ่านช่องฟ้า', basePower: 11240, stones: 360 },
-      { floor: 45, path: 'LEG_TRIAGE_MERIDIAN', nameTh: 'ชั้นทดสอบสัจธรรม · ชีพจรประคองสหาย', guardianNameTh: 'ผู้พิทักษ์มรรคาชีพจรประคองสหาย', basePower: 11400, stones: 365 },
-      { floor: 46, path: 'LEG_STORM_CALLER_TEMPEST', nameTh: 'ชั้นทดสอบสัจธรรม · จอมพายุบัญชาฟ้า', guardianNameTh: 'ผู้พิทักษ์มรรคาจอมพายุบัญชาฟ้า', basePower: 11560, stones: 370 },
-      { floor: 47, path: 'LEG_JADE_CARAVAN_VOYAGER', nameTh: 'ชั้นทดสอบสัจธรรม · คาราวานหยก', guardianNameTh: 'ผู้พิทักษ์มรรคาคาราวานหยก', basePower: 11720, stones: 375 },
-      { floor: 48, path: 'LEG_OATH_JUDGE_WARDEN', nameTh: 'ชั้นทดสอบสัจธรรม · ผู้คุมสัตย์สาบาน', guardianNameTh: 'ผู้พิทักษ์มรรคาผู้คุมสัตย์สาบาน', basePower: 11880, stones: 380 },
-      { floor: 49, path: 'LEG_ASHEN_KILN_ALCHEMY', nameTh: 'ชั้นทดสอบสัจธรรม · เตาเถ้าคืนชีวิต', guardianNameTh: 'ผู้พิทักษ์มรรคาเตาเถ้าคืนชีวิต', basePower: 12040, stones: 385 },
-      { floor: 50, path: 'TRANS_CONSTELLATION_RELAY', nameTh: 'ชั้นทดสอบสัจธรรม · ประสานปราณหมู่ดาว', guardianNameTh: 'ผู้พิทักษ์มรรคาประสานปราณหมู่ดาว', basePower: 12200, stones: 390 },
-      { floor: 51, path: 'TRANS_FIELD_CLAUSE_SOVEREIGN', nameTh: 'ชั้นทดสอบสัจธรรม · ธรรมนูญฟ้าขีดเขต', guardianNameTh: 'ผู้พิทักษ์มรรคาธรรมนูญฟ้าขีดเขต', basePower: 12360, stones: 395 },
-      { floor: 52, path: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'ชั้นทดสอบสัจธรรม · ปรมาจารย์จังหวะกาล', guardianNameTh: 'ผู้พิทักษ์มรรคาปรมาจารย์จังหวะกาล', basePower: 12520, stones: 400 },
-      { floor: 53, path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'ชั้นทดสอบสัจธรรม · ผู้ถือกุญแจผนึก', guardianNameTh: 'ผู้พิทักษ์มรรคาผู้ถือกุญแจผนึก', basePower: 12680, stones: 405 },
-      { floor: 54, path: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'ชั้นทดสอบสัจธรรม · กระจกสะท้อนหมื่นวิชา', guardianNameTh: 'ผู้พิทักษ์มรรคากระจกสะท้อนหมื่นวิชา', basePower: 12840, stones: 410 },
-      { floor: 55, path: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'ชั้นทดสอบสัจธรรม · ทอชะตาแผ่นดิน', guardianNameTh: 'ผู้พิทักษ์มรรคาทอชะตาแผ่นดิน', basePower: 13000, stones: 415 },
+      { floor: 44, path: 'LEG_READ_FORM_BLADE', nameTh: 'ชั้นทดสอบสัจธรรม · กระบี่อ่านช่องฟ้า', guardianNameTh: 'ผู้พิทักษ์มรรคากระบี่อ่านช่องฟ้า', basePower: 11240, stones: 1135 },
+      { floor: 45, path: 'LEG_TRIAGE_MERIDIAN', nameTh: 'ชั้นทดสอบสัจธรรม · ชีพจรประคองสหาย', guardianNameTh: 'ผู้พิทักษ์มรรคาชีพจรประคองสหาย', basePower: 11400, stones: 1220 },
+      { floor: 46, path: 'LEG_STORM_CALLER_TEMPEST', nameTh: 'ชั้นทดสอบสัจธรรม · จอมพายุบัญชาฟ้า', guardianNameTh: 'ผู้พิทักษ์มรรคาจอมพายุบัญชาฟ้า', basePower: 11560, stones: 1305 },
+      { floor: 47, path: 'LEG_JADE_CARAVAN_VOYAGER', nameTh: 'ชั้นทดสอบสัจธรรม · คาราวานหยก', guardianNameTh: 'ผู้พิทักษ์มรรคาคาราวานหยก', basePower: 11720, stones: 1390 },
+      { floor: 48, path: 'LEG_OATH_JUDGE_WARDEN', nameTh: 'ชั้นทดสอบสัจธรรม · ผู้คุมสัตย์สาบาน', guardianNameTh: 'ผู้พิทักษ์มรรคาผู้คุมสัตย์สาบาน', basePower: 11880, stones: 1475 },
+      { floor: 49, path: 'LEG_ASHEN_KILN_ALCHEMY', nameTh: 'ชั้นทดสอบสัจธรรม · เตาเถ้าคืนชีวิต', guardianNameTh: 'ผู้พิทักษ์มรรคาเตาเถ้าคืนชีวิต', basePower: 12040, stones: 1560 },
+      { floor: 50, path: 'TRANS_CONSTELLATION_RELAY', nameTh: 'ชั้นทดสอบสัจธรรม · ประสานปราณหมู่ดาว', guardianNameTh: 'ผู้พิทักษ์มรรคาประสานปราณหมู่ดาว', basePower: 12200, stones: 1645 },
+      { floor: 51, path: 'TRANS_FIELD_CLAUSE_SOVEREIGN', nameTh: 'ชั้นทดสอบสัจธรรม · ธรรมนูญฟ้าขีดเขต', guardianNameTh: 'ผู้พิทักษ์มรรคาธรรมนูญฟ้าขีดเขต', basePower: 12360, stones: 1730 },
+      { floor: 52, path: 'TRANS_TEMPO_SOVEREIGN', nameTh: 'ชั้นทดสอบสัจธรรม · ปรมาจารย์จังหวะกาล', guardianNameTh: 'ผู้พิทักษ์มรรคาปรมาจารย์จังหวะกาล', basePower: 12520, stones: 1815 },
+      { floor: 53, path: 'TRANS_SEALKEEPER_FORBIDDEN_KEY', nameTh: 'ชั้นทดสอบสัจธรรม · ผู้ถือกุญแจผนึก', guardianNameTh: 'ผู้พิทักษ์มรรคาผู้ถือกุญแจผนึก', basePower: 12680, stones: 1900 },
+      { floor: 54, path: 'TRANS_PRIMAL_VORTEX_MIRROR', nameTh: 'ชั้นทดสอบสัจธรรม · กระจกสะท้อนหมื่นวิชา', guardianNameTh: 'ผู้พิทักษ์มรรคากระจกสะท้อนหมื่นวิชา', basePower: 12840, stones: 1985 },
+      { floor: 55, path: 'TRANS_DYNASTIC_MANDATE_WEAVER', nameTh: 'ชั้นทดสอบสัจธรรม · ทอชะตาแผ่นดิน', guardianNameTh: 'ผู้พิทักษ์มรรคาทอชะตาแผ่นดิน', basePower: 13000, stones: 2070 },
       { floor: 56, path: 'CORPSE_SOVEREIGN', nameTh: 'ชั้นขบวนศพข้ามขุนเขาและกระดิ่งทองแดง', guardianNameTh: 'จอมคุมศพผู้ไม่เคยหลับ', basePower: 13160, stones: 420 },
       { floor: 57, path: 'WRAITH_GRIEVANCE', nameTh: 'ชั้นหอวิญญาณและสมุดบัญชีแค้น', guardianNameTh: 'ผู้ถือบัญชีหนี้เลือดเก้าพันดวง', basePower: 13320, stones: 425 },
       { floor: 58, path: 'DEATHLESS_CADAVER', nameTh: 'ชั้นร่างไร้ชีพผู้เย้ยยมทูต', guardianNameTh: 'อมตะไร้ชีพเฝ้าประตูมรณะ', basePower: 13480, stones: 430 }
@@ -8150,7 +8164,8 @@
   EX.elementalRealmAt = day => EX.ELEMENTAL_REALMS[Math.floor(Math.max(0, Number(day) || 0) / 90) % EX.ELEMENTAL_REALMS.length];
   EX.createTrialExpedition = (W, party, kind, opts) => {
     opts = opts || {};
-    if (!W || !Array.isArray(party) || !party.length || party.some(n => !n || n.dead || n.away || n.travel || n.expId)) return null;
+    if (!W || !Array.isArray(party) || !party.length || party.some(n => !n || n.dead || n.exiled || n.away || n.travel || n.expId || (g.SECT && g.SECT.isNpcDetained && g.SECT.isNpcDetained(W, n)))) return null;
+    if (new Set(party.map(n => n.id)).size !== party.length) return null;
     EX.ensureTrials(W);
     const door = (W.map && W.map.byId && (W.map.byId.gate_zone || W.map.byId.cave)) || { door: { x: 118, y: 130 } };
     const baseDays = opts.days || 1.5;
@@ -8638,6 +8653,7 @@
 
     const isEligibleMember = n => {
       if (!n || n.dead || n.exiled || n.away || n.travel || n.expId) return false;
+      if (n.ext && n.ext.longevity && (n.ext.longevity.stasis || n.ext.longevity.leylineAnchored)) return false;
       if (W.byId && Object.keys(W.byId).length > 0 && W.byId[n.id] !== n) return false;
       if (Array.isArray(W.npcs) && !W.npcs.includes(n)) return false;
       if (g.SECT && g.SECT.isNpcDetained && g.SECT.isNpcDetained(W, n)) return false;
@@ -8685,7 +8701,7 @@
     }
 
     const matsGranted = {};
-    const baseQty = 1 + (choiceSpec.bonusMatQty || 1);
+    const baseQty = 1 + (choiceSpec.bonusMatQty ?? 0);
     (loc.rewardMats || []).forEach(matId => {
       const isOre = String(matId).includes('_ORE_');
       const poolKey = isOre ? 'ores' : 'herbs';
@@ -8711,6 +8727,8 @@
         m.h.state.energy = Math.max(10, (m.h.state.energy || 60) - 16);
       }
       if (m.cult && g.CULT && g.CULT.gain) g.CULT.gain(m, xpGain, W, 'micro_location_explore');
+      if (choiceSpec.bonusSkill) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(m, choiceSpec.bonusSkill, 2.5, 1.2);
+      if (choiceSpec.bonusCraft) (g.MARTIAL && g.MARTIAL.skillPractice ? g.MARTIAL.skillPractice : HC.practice)(m, choiceSpec.bonusCraft, 2.5, 1.2);
       if (choiceSpec.clearHeartDemon && m.h && m.h.state) {
         m.h.state.heartDemon = Math.max(0, (m.h.state.heartDemon || 0) - 25);
       }
@@ -8743,12 +8761,15 @@
       } else if (!Array.isArray(W.chronicle)) {
         W.chronicle = [];
       }
+      const extraFxTh = [choiceSpec.clearHeartDemon ? 'ชำระจิตมาร -25' : '', choiceSpec.clearToxin ? 'ขับพิษสะสม -30' : '', outpostApplied ? 'ได้รับแรงหนุนจากค่ายด่านภูมิภาค' : ''].filter(Boolean).join(' · ');
       const cEntry = {
         category: 'SECRET_REALM_NODE',
+        reportFormat: 'SECRET_REALM_LOGBOOK',
+        macroRegion: loc.macroRegion,
         icon: loc.icon,
         titleTh: 'สำรวจ「' + loc.nameTh + '」สำเร็จ (' + choiceSpec.nameTh + ')',
-        storyTh: members.map(m => (g.HC && g.HC.fullName ? g.HC.fullName(m) : m.id)).join('、') + ' เดินทางไปสำรวจ ' + loc.nameTh + ' และเลือก ' + choiceSpec.nameTh,
-        consequenceTh: 'ได้รับศิลาปราณ +' + stonesEarned + ' และวัตถุดิบพิเศษเข้าคลังสำนัก',
+        storyTh: members.map(m => (g.HC && g.HC.fullName ? g.HC.fullName(m) : m.id)).join('、') + ' เดินทางไปสำรวจ ' + loc.nameTh + ' และเลือก ' + choiceSpec.nameTh + (extraFxTh ? (' — ' + extraFxTh) : ''),
+        consequenceTh: 'ได้รับศิลาปราณ +' + stonesEarned + ' และวัตถุดิบพิเศษเข้าคลังสำนัก' + (extraFxTh ? (' · ' + extraFxTh) : ''),
         npcIds: members.map(m => m.id)
       };
       const chronRec = (g.EXPED && g.EXPED.recordChronicle)
@@ -8840,9 +8861,10 @@
     if (!ws || !ws.eventShards) return [];
     const curDay = Math.floor((W.t || 0) / 1440);
     const out = [];
+    const claimedMap = ws.eventShards.lastClaimedUntilDay || {};
     Object.values(EX.RIFT_SHARD_CONFIGS).forEach(cfg => {
       const untilDay = ws.eventShards[cfg.openField];
-      if (Number.isFinite(untilDay) && untilDay >= curDay) {
+      if (Number.isFinite(untilDay) && untilDay >= curDay && claimedMap[cfg.id] !== untilDay) {
         out.push(cfg);
       }
     });
@@ -8867,6 +8889,7 @@
   };
 
   EX.resolveRiftShard = (W, ex, members) => {
+    if (g.CULT && g.CULT.LONGEVITY && g.CULT.LONGEVITY.maybeAwakenDormantAncient) g.CULT.LONGEVITY.maybeAwakenDormantAncient(W, 'การเปิดผนึกแดนลับเศษเสี้ยวมิติ', { chance: 0.06 });
     const cfg = EX.RIFT_SHARD_CONFIGS[ex.realmId] || EX.RIFT_SHARD_CONFIGS.SKY_FALL_SORTING_YARD;
     const alive = (members || []).filter(m => m && !m.dead);
     const ws = (g.EXPED && g.EXPED.WITNESSES_AND_SHARDS && g.EXPED.WITNESSES_AND_SHARDS.ensure)
@@ -8919,6 +8942,10 @@
     out.won = won;
 
     if (won) {
+      if (ws && ws.eventShards && cfg.openField) {
+        ws.eventShards.lastClaimedUntilDay = ws.eventShards.lastClaimedUntilDay || {};
+        ws.eventShards.lastClaimedUntilDay[cfg.id] = ws.eventShards[cfg.openField];
+      }
       const scaleMult = hasScaleWalker ? 1.06 : 1.0;
       const rawStones = Math.round(cfg.stones * scaleMult);
       if (g.ECO && g.ECO.earnFromPool) {
@@ -8943,7 +8970,6 @@
           bw.ritualLegitimacy = (bw.ritualLegitimacy || 0) + 1;
         }
         const repGain = hasRopeBearer ? 6 : 4;
-        W.sect.rep = (W.sect.rep || 0) + repGain;
         if (typeof W.fame === 'function') W.fame(repGain);
       }
 
@@ -8963,10 +8989,11 @@
         try {
           const gear = g.ECO.rollProceduralGear(W, { minTier: 3, maxTier: 5, source: 'rift_shard:TIANGU_FOLDED_TREASURY' });
           if (gear && W.sect) {
+            if (!gear.uid && g.ECO && g.ECO.nextGearUid) gear.uid = g.ECO.nextGearUid(W, gear.id);
+            gear.listedAtDay = W.day;
+            gear.listedTick = W.t;
             W.sect.gear = W.sect.gear || [];
             W.sect.gear.push(gear);
-            W.sect.armory = W.sect.armory || [];
-            if (W.sect.armory !== W.sect.gear) W.sect.armory.push(gear);
           }
         } catch (_) {}
       }
@@ -9038,15 +9065,21 @@
     ex.done = true;
 
     if (g.EXPED && g.EXPED.recordChronicle) {
+      const modeTh = cfg.trialMode === 'DIPLOMACY' ? 'เจรจาคุณธรรม' : cfg.trialMode === 'SCHOLAR' ? 'ตีความจารึกโบราณ' : 'ฝ่าด่านยุทธ์';
+      const crossNote = (won && cfg.id === 'TWO_BANK_WATER_REALM') ? ' · ลดแรงกดดันสงครามไร้โลหิต -2 และเพิ่มความชอบธรรมพิธีกรรม +1' : '';
+      const echoNote = out.relicEchoFound ? (' · ค้นพบเสียงสะท้อนศาสตรา ' + out.relicEchoFound) : '';
       g.EXPED.recordChronicle(W, {
-        category: 'SECRET_REALM',
+        category: 'SECRET_REALM_NODE',
+        reportFormat: 'SECRET_REALM_LOGBOOK',
+        storyThreadId: 'thread:rift_shard:' + cfg.id,
         icon: '🪞',
         involvedSects: [W.sect && W.sect.name].filter(Boolean),
         involvedFigures: alive.map(m => HC.fullName(m)),
         npcIds: alive.map(m => m.id),
         titleTh: 'สำรวจแดนลับเศษรอยแยก #' + cfg.num + '「' + cfg.nameTh + '」: ' + (won ? 'สำเร็จ (+' + out.stonesEarned + ' ศิลา)' : 'ถอนตัวปลอดภัย'),
-        storyTh: ex.journal[ex.journal.length - 1] || cfg.nameTh,
-        quiet: true
+        storyTh: (ex.journal[ex.journal.length - 1] || cfg.nameTh) + ' (วิถีผ่านด่าน: ' + modeTh + ')',
+        consequenceTh: won ? ('ศิลาวิญญาณ +' + out.stonesEarned + echoNote + crossNote) : 'คณะศิษย์ประเมินความเสี่ยงแล้วถอนตัวกลับอย่างปลอดภัยพร้อมบันทึกสังเกตการณ์',
+        quiet: false
       });
     }
     return out;

@@ -2554,7 +2554,7 @@
       rarity: 'Legendary',
       unique: true,
       regionId: 'SRC110_MW_ENV_11_CELESTIAL_GARDEN_RUINS',
-      visitorRoles: ['healer', 'scholar'],
+      visitorRoles: ['herbalist', 'scholar'],
       rumorTextTh: 'หมอพเนจรกล่าวถึงห้องหยกเย็นในซากอุทยานสวรรค์ที่จารึกเคล็ดปราณหยกใสไร้ราคี ซึ่งเน้นการหมุนเวียนปราณภายในโดยไม่รั่วไหล',
       steps: [
         {
@@ -4869,8 +4869,10 @@
     }
     for (const ex of (W.world && W.world.expeds) || []) {
       if (!ex || ex.done) continue;
-      for (const it of (ex.out && ex.out.gear) || []) {
-        if (it && VC.LEGENDARY_WEAPON_BY_ID[it.id] && !it.playerSpawned) addLoc(it.id, 'expedition_loot:' + ex.id);
+      for (const bag of [ex.out && ex.out.gear, ex.clueOut && ex.clueOut.gear]) {
+        for (const it of bag || []) {
+          if (it && VC.LEGENDARY_WEAPON_BY_ID[it.id] && !it.playerSpawned) addLoc(it.id, 'expedition_loot:' + ex.id);
+        }
       }
     }
     const duplicates = Object.entries(counts).filter(([, c]) => c > 1);
@@ -4901,7 +4903,9 @@
         if (n.inv && Array.isArray(n.inv.gear) && n.inv.gear.some(g2 => g2 && g2.id === tid && !g2.playerSpawned)) return true;
       }
       for (const ex of (W.world.expeds || [])) {
-        if (ex && !ex.done && ex.out && Array.isArray(ex.out.gear) && ex.out.gear.some(g2 => g2 && g2.id === tid)) return true;
+        if (!ex || ex.done) continue;
+        if (ex.out && Array.isArray(ex.out.gear) && ex.out.gear.some(g2 => g2 && g2.id === tid && !g2.playerSpawned)) return true;
+        if (ex.clueOut && Array.isArray(ex.clueOut.gear) && ex.clueOut.gear.some(g2 => g2 && g2.id === tid && !g2.playerSpawned)) return true;
       }
     } else if (template.targetKind === 'TECH_MANUAL') {
       if ((W.sect.library || []).includes(tid)) return true;
@@ -6378,6 +6382,7 @@
           if (COG && COG.remember) COG.remember(W, leader, { kind: 'gave_help', subjectId: inst.sourceVisitorId || 'visitor', severity: 0.5 });
         }
       } else if (node.requiredItemId && !opts.forcePass) {
+        inst.nextRetryDay = Math.max(inst.nextRetryDay || 0, (W.day || 0) + 2);
         inst.lastActionReasonTh = 'ติดขัดที่ขั้นตอน「' + node.titleTh + '」: ขาดพัสดุ/วัตถุดิบ「' + ECO.name(node.requiredItemId) + '」';
         return { ok: false, blocked: true, reason: 'missing-required-item', requiredItemId: node.requiredItemId, hintTh: inst.lastActionReasonTh };
       }
@@ -6388,6 +6393,7 @@
       const authStone = VC.authorizeClueResourceUse(W, leader, inst, { stoneCost: node.stoneCost });
       if (!authStone.ok) {
         if (!opts.forcePass) {
+          inst.nextRetryDay = Math.max(inst.nextRetryDay || 0, (W.day || 0) + 2);
           inst.lastActionReasonTh = 'ติดขัดที่ขั้นตอน「' + node.titleTh + '」: ' + (authStone.reasonTh || ('ศิลาไม่พอจ่ายค่าใช้จ่าย (' + node.stoneCost + ' ก้อน)'));
           return { ok: false, blocked: true, reason: authStone.reason || 'insufficient-stones', hintTh: inst.lastActionReasonTh };
         }
@@ -6966,7 +6972,7 @@
     if (alive && alive.length && W.sect && Array.isArray(W.sect.gear)) {
       for (let i = W.sect.gear.length - 1; i >= 0; i--) {
         const g2 = W.sect.gear[i];
-        if (g2 && g2.intendedRecipientId && VC.LEGENDARY_WEAPON_BY_ID[g2.id]) {
+        if (g2 && g2.intendedRecipientId && VC.LEGENDARY_WEAPON_BY_ID[g2.id] && (!g2.clueInstanceId || (ex && g2.clueInstanceId === ex.clueInstanceId))) {
           const recNpc = alive.find(m => m.id === g2.intendedRecipientId)
             || (ex && ex.clueInstanceId && g2.clueInstanceId === ex.clueInstanceId ? alive[0] : null);
           if (recNpc && !recNpc.dead) {

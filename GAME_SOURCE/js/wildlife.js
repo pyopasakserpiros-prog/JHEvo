@@ -774,7 +774,7 @@
       b.gone = true;
       const z = zoneFor(b.zone);
       const zName = z ? z.nameTh : 'นอกสำนัก';
-      W.log('combat', n.h.name.given + ' สยบและผูกพันธสัญญาวิญญาณกับ ' + b.name + ' ใน' + zName + ' สำเร็จ (ไม่มีการชำแหละซากซ้ำ)', [n.id]);
+      W.log('combat', '🐾 ' + n.h.name.given + ' ยั้งมือในกระบวนท่าสุดท้าย ถ่ายปราณประทับตราวิญญาณสยบ「' + b.name + '」ใน' + zName + ' ไว้เป็นอสูรคู่สัญญาสำเร็จ', [n.id]);
       HC.experience(n, 'duel_win', 0.8);
       n.merit += Math.max(1, Math.round(b.tier * 1.5));
     } else if (b.dead && winner === 'A' && n && !n.dead && !n.away) {

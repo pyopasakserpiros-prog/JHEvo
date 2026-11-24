@@ -1,3 +1,17 @@
+> **Latest Production Status (Updated 2026-11-23 — JS2 v3.15.1):**
+> - **Current Display Version:** `JS2 v3.15.1` (Save Schema Preserved: `SIM.PATCH_VERSION = '3.9.6'`, `SIM.SAVE_SCHEMA_VERSION = '3.9.6-deep-gameplay-integration'`)
+> - **Hard Locks Verified:** `AGENTS.md` (67,202 B, SHA-256 `f8f0e6cb90f0ad4b3524b204f7ede97f351c0dac1540cd96c40723c888af0fb4`), `GAME_SOURCE/js/human_core.js` (68,270 B, SHA-256 `a0d393284fb4b136848e5b80e12f3edd2c4f9437c419c793c2a7e75d881c0542`, `HC.FINGERPRINT === '155:2f9c9dd7'`), Exact **40 `<script>` tags**.
+> - **Recent Patch Chain in `PATCH_REPORTS/`:**
+>   - `TWO_SPECS_BUGFIX_AUDIT_JS2_V3_9_9.md` — Two-Spec Bugfix Audit (Fortune Spots, Secret Realms #13, Clues, UI/VFX & Observer-Autonomy)
+>   - `CHRONICLE_REPORTING_OVERHAUL_JS2_V3_10_0.md` — Option 2 Render/HUD Polish + Living Chronicle, Storytelling Engine & Reporting UI Overhaul
+>   - `BIOGRAPHY_ERA_TIMELINE_JS2_V3_11_0.md` — Interactive NPC Biography, Observer Experiment Aftermath, Sect Era Timeline & Tracked-NPC Filter
+>   - `EMERGENT_LONGEVITY_ERA_SURVIVAL_JS2_V3_12_0.md` — Emergent Lower-World Longevity & Era-Spanning Survival (5 live-wired paths, zero dead code, never forced)
+>   - `WORLD_SYMMETRY_LONGEVITY_JS2_V3_12_1.md` — World-Symmetric Longevity across all external sects & external political/clan cultivators (zero player-sect bias)
+>   - `SEVEN_HALL_BLACK_LEDGER_JS2_V3_13_0.md` — Seven-Hall Neutral Federation (Book 95), Zero Thin-Air Representatives, 3-Faction Politics, Three-Empire Leverage & World-Symmetric Black Ledger Bounty System
+>   - `LIVING_TWELVE_FESTIVALS_JS2_V3_14_0.md` — Part 1: Living 12 Annual Festivals (Book 40) wired symmetrically across player sect, 19 external sects, economy, cultivation, Seven Halls, innerVoiceTh, and 360px HUD/World UI
+>   - `GRAND_PERIODIC_FESTIVALS_B105_JS2_V3_15_0.md`
+- **แพตช์แก้บั๊กและยกระดับความสมมาตร (`JS2 v3.15.1`, 2026-11-24):** `PATCH_REPORTS/AUDIT_BUGFIX_HARDENING_JS2_V3_15_1.md` (อ้างอิงรายงานตรวจบั๊ก 6 ทีม `PATCH_REPORTS/COMPREHENSIVE_SESSION_AUDIT_JS2_V3_9_9_TO_V3_15_0.md` — แก้ครบทุก P0 11 จุด + P1/P2 ข้ามระบบ + `v3151_audit_bugfix_suite.js` 8/8 PASS + `JianghuSect_single.html` 23,877 KB) — Part 2: Lore-First Book #105 (105 books / 742 events) & 6 Grand Periodic Festivals (10y/50y/100y/120y/1,000y/10,000y) converging in Years 2–5
+
 # เอกสารสรุปสถานะโครงการและคู่มือตั้งต้นสำหรับ AI (Project Status & AI Onboarding Reference)
 
 > **JS2 v3.9.8 — ภาพสัตว์อสูรและไอคอนเหนือตำนาน (`main`)** เพิ่มเอฟเฟกต์สัตว์เทพสี่ทิศ คู่หูระดับตำนานขึ้นไป และอสูรอ้างอิง 5 ตัว พร้อมไอคอนวัสดุ 20 แบบและกรอบภาพใหม่ ดู [รายงานแพตช์](PATCH_REPORTS/VFX_JS2_V3_9_8.md)
