@@ -29,12 +29,22 @@ const VALID_ERAS = new Set([
   'ERA_5_PRESENT_CONVERGENCE'
 ]);
 
-const BAD_MONTH_RE = /เดือน(แปดจันทร์เพ็ญ|แปดสารทกลาง|แปดกลางสารท|เจ็ดสารทต้น|เจ็ดต้นสารท|สี่คิมหันต์ต้น|สิบเหมันต์ต้น|สิบต้นเหมันต์|สิบสารทปลาย|สิบสารทลึก|เก้าปลายสารท|เก้าสารทลึก|สิบเอ็ดเหมันต์กลาง|สิบเอ็ดเหมันต์หนาว|ห้าคิมหันต์กลาง|ห้าสุริยันแผด|หกคิมหันต์เดือด|หกคิมหันต์ลึก|หกพิรุณสาด|สามปลายวสันต์)/g;
-const RAW_CODE_PROSE_RE = /\b(ATLAS_DIMENSION_GATE|SPIRIT_FEAST_HEALER|MAT_TR_[A-Z0-9_]+|imperialTension|W\.day)\b|HP\s*\d+%/g;
-const PROSE_KEYS = new Set([
-  'narrativeTh', 'summaryTh', 'storyTh', 'descriptionTh', 'loreTh',
-  'biographyTh', 'noteTh', 'verdictTh', 'hiddenTruthTh', 'orthodoxVerdictTh',
-  'impactTh', 'aftermathTh', 'legacyTh'
+const VALID_MONTHS = [
+  'เดือนอ้ายวสันต์', 'เดือนยี่บุปผา', 'เดือนสามวสันต์ปลาย',
+  'เดือนสี่คิมหันต์แรก', 'เดือนห้าสุริยัน', 'เดือนหกพิรุณร้อน',
+  'เดือนเจ็ดสารทแรก', 'เดือนแปดใบไม้ร่วง', 'เดือนเก้าสารทปลาย',
+  'เดือนสิบเหมันต์แรก', 'เดือนสิบเอ็ดน้ำค้างแข็ง', 'เดือนสิบสองเหมันต์ลึก'
+];
+const MONTH_SEASON_RE = /เดือน(อ้าย|ยี่|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า|สิบเอ็ด|สิบสอง|สิบ)(วสันต์|บุปผา|คิมหันต์|สุริยัน|พิรุณ|สารท|ใบไม้ร่วง|เหมันต์|น้ำค้าง|ลมหนาว|ฝน|กลาง|ต้น|ปลาย|จันทร์เพ็ญ)[ก-๙]*/g;
+const RAW_CODE_PROSE_RE = /\b(LEG_|MAT_|ATLAS_|REL_|EQ_|RES_|KW_|M2_|ECO2_MAT_|CONST_|ITEM190_|FACT_28_|TOWN_YH_|SIM\.|W\.day|CULT\.|EXPED\.)[A-Z0-9_.]*\b|HP\s*\d+%/g;
+const NON_PROSE_TH_KEYS = new Set([
+  'possibleLocationTh', 'pathsTh', 'phase1Th', 'phase2Th', 'phase3Th',
+  'phaseMechanicsTh', 'loreEffectTh', 'gameplayHookTh', 'counterplayTh',
+  'coreCounterplaySummaryTh', 'recommendedCountersTh', 'signatureDropsAndRewardsTh',
+  'specialEasterEggHookTh', 'loreCounterplayHookTh', 'componentsTh',
+  'cultivationPathTh', 'signaturePathsTh', 'signaturePathTh', 'linkedPathTh',
+  'corePathsTh', 'signatureTreasuresTh', 'realmCeilingRuleTh', 'epoch101HookTh',
+  'powerCeilingNoteTh', 'peacefulResolutionHookTh'
 ]);
 
 function canonicalEra(wy) {
@@ -55,9 +65,10 @@ for (const f of files) {
   const fp = path.join(dataDir, f);
   const src = fs.readFileSync(fp, 'utf8');
 
-  // 1. Check bad month strings
-  const badM = src.match(BAD_MONTH_RE);
-  if (badM) {
+  // 1. Check non-standard Thai month-season strings
+  const monthHits = src.match(MONTH_SEASON_RE) || [];
+  const badM = monthHits.filter(m => !VALID_MONTHS.some(vm => m.startsWith(vm)));
+  if (badM.length) {
     errors.push(`${f}: non-standard Thai month(s): ${[...new Set(badM)].join(', ')}`);
   }
 
@@ -101,19 +112,19 @@ for (const f of files) {
         }
       }
     }
-    // Check raw code tokens in prose fields
-    (function walk(node) {
+    // Check raw code tokens in all Thai prose (*Th) fields
+    (function walk(node, prop) {
       if (!node || typeof node !== 'object') return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      for (const [prop, val] of Object.entries(node)) {
-        if (typeof val === 'string' && PROSE_KEYS.has(prop)) {
+      if (Array.isArray(node)) { node.forEach(x => walk(x, prop)); return; }
+      for (const [prop2, val] of Object.entries(node)) {
+        if (typeof val === 'string' && prop2.endsWith('Th') && !NON_PROSE_TH_KEYS.has(prop2)) {
           const hits = val.match(RAW_CODE_PROSE_RE);
-          if (hits) errors.push(`${f} [${prop}]: raw game code leaked in prose: ${[...new Set(hits)].join(', ')}`);
+          if (hits) errors.push(`${f} [${prop2}]: raw game code leaked in prose: ${[...new Set(hits)].join(', ')}`);
         } else if (val && typeof val === 'object') {
-          walk(val);
+          walk(val, prop2);
         }
       }
-    })(book);
+    })(book, 'root');
   }
 }
 

@@ -410,7 +410,7 @@
       tier: 7,
       linkedPath: 'TRANS_CONSTELLATION_RELAY',
       originTh: 'เคล็ดวิชาหลอมรวมสามสำนักผาเหนือในศึกยุคที่ 84 เพื่อสยบภัยพิบัติแกนชีพจรภายใต้เพดานพลังโลกเบื้องล่าง',
-      effectHintTh: 'ผสานผู้ฝึกยุทธ์สามตำแหน่ง: ตรึงชีพจร (EARTH_VEIN_WARDEN) + กางม่านรับแรงกระแทก (TRANS_SUB_TRIBULATION_CANOPY) + ส่งคลื่นเสียงเจาะเกราะผ่านสายใจ (TRANS_SUB_HEARTSTRING_CHORD)',
+      effectHintTh: 'ผสานผู้ฝึกยุทธ์สามตำแหน่ง: ตรึงชีพจร (EARTH_VEIN_WARDEN) + กางม่านรับแรงกระแทก + ส่งคลื่นเสียงเจาะเกราะผ่านสายใจ',
       currentLocationHintTh: 'ซ่อนเป็นรหัสภาพในม้วนภาพสันเขามังกรหักและในความทรงจำของเหยียนซิงเหอ'
     }
   ]);
@@ -433,7 +433,7 @@
       coreWeaknessTh: 'ต้องตรึงหมุดหลัวผาน 3 จุดเพื่อตัดการฟื้นฟูจากพื้นดิน แล้วใช้ทำนองเสียงสะท้อน (SONIC_HARMONY / RESONANT_BELL) สลายเกราะหินให้แตก',
       phase1Th: 'สันเขาตื่นตัว (Awakening Ridge) — เชื่อมติดพื้นดินพร้อมเกราะศิลาหนาแน่น ต้องส่งศิษย์สายธรณี/ค่ายกลตรึงหมุดหลัวผาน 3 จุดรอบสนามรบ',
       phase2Th: 'เกราะศิลาสะท้อนคลื่น (Resonant Stone Carapace) — เกราะแข็งตัวสะท้อนการโจมตีประชิด ต้องใช้พิณเจ็ดสายหรือระฆังสลายมารสร้างคลื่นสั่นพ้องจนเกราะแตกเผยแกนผลึกกลางอก',
-      phase3Th: 'ชีพจรคลั่งพลิกผา (Earth-Vein Upheaval) — ปล่อยคลื่นแผ่นดินไหวและพายุศิลาวงกว้าง ต้องกางม่านรับทัณฑ์ (TRANS_SUB_TRIBULATION_CANOPY) ต้านทานก่อนปิดฉากผนึกแกนกลาง',
+      phase3Th: 'ชีพจรคลั่งพลิกผา (Earth-Vein Upheaval) — ปล่อยคลื่นแผ่นดินไหวและพายุศิลาวงกว้าง ต้องกางม่านรับทัณฑ์ ต้านทานก่อนปิดฉากผนึกแกนกลาง',
       recommendedCounters: [
         'DRAGON_VEIN_GEOMANCY (LUOPAN_GEOMANCER_SAGE / MOUNTAIN_SPINE_ANCHOR)',
         'SONIC_HARMONY (SEVEN_STRINGS_ANNIHILATION / RESONANT_BELL_EXORCIST)',

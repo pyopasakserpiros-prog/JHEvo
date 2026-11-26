@@ -194,7 +194,7 @@
       manifestationSymptomsTh: 'สอดเข้าฝักไม่ได้เพราะกรีดฝักขาด ทุกชัยชนะจะหลั่งน้ำตาไร้เสียง พลังรบพุ่งสูงแต่ชีพจรหลักปริร้าวเรื้อรัง (TR_AC_SEVERED_MERIDIAN)',
       linkedCurseTraits: ['TR_BL_BLOOD_CURSE', 'TR_AC_SEVERED_MERIDIAN'],
       linkedGamePaths: ['TRANS_SEALKEEPER_FORBIDDEN_KEY', 'TRANS_SUB_RELIC_CAGE', 'LORE_ARCHIVIST'],
-      sealingMethodTh: 'แช่บ่อน้ำเกลือสินเธาว์เจือเถ้าไผ่ 7 วัน แล้วใช้กรงผนึกศาสตรา (TRANS_SUB_RELIC_CAGE) ร้อยโซ่ทองเหลืองแปดทิศ',
+      sealingMethodTh: 'แช่บ่อน้ำเกลือสินเธาว์เจือเถ้าไผ่ 7 วัน แล้วใช้กรงผนึกศาสตรา ร้อยโซ่ทองเหลืองแปดทิศ',
       priceToPayTh: 'ทุกชัยชนะดวลเดี่ยวเพิ่มโอกาสติด TR_BL_BLOOD_CURSE และสร้างแผลเรื้อรังในชีพจร',
       lastKnownLocationTh: 'เบาะแสล่าสุดแถบลานประลองใต้ดินชายแดนบูรพา จากข่าวจอมยุทธ์นิรนามผู้ร้องไห้หลังฟันคู่ต่อสู้ล้ม',
       currentStatus: 'MISSING_AT_LARGE',
@@ -406,7 +406,7 @@
     futureBossDesignHooks: Object.freeze({
       suggestedTier: 7,
       bossArchetype: 'CURSE_HEX_PUPPETEER_AND_MIND_DEBUFFER',
-      passiveMechanicTh: 'แรงสะท้อนตู้ผนึกแตก — ศิษย์ที่มี trait คำสาป (isCurse: true) รับความเสียหายทางจิตเพิ่มและต้านสับสนลดลง แต่สาย TRANS_SEALKEEPER_FORBIDDEN_KEY หรือ LORE_ARCHIVIST ช่วยลดผลกระทบครึ่งหนึ่ง',
+      passiveMechanicTh: 'แรงสะท้อนตู้ผนึกแตก — ศิษย์ที่มี trait คำสาป (isCurse: true) รับความเสียหายทางจิตเพิ่มและต้านสับสนลดลง แต่สาย กุญแจผนึกทั้งเก้าแห่งกู้เซวียนกวน (九禁鑰) หรือ LORE_ARCHIVIST ช่วยลดผลกระทบครึ่งหนึ่ง',
       phase1Th: 'เฟส 1: โคมเรียกชื่อ (HP 100%–65%) — สลักตราเรียกชื่อบนศิษย์ 1–2 คน หากโจมตีโดยไม่ล้างดีบัฟจะถูกด้าย SOUL_PUPPETRY ดึงให้สับสน แก้ทางด้วย TRANS_SUB_TABOO_DAMPER',
       phase2Th: 'เฟส 2: เงาสะท้อนหกช่องว่าง (HP < 65%–30%) — ปล่อยคลื่นจำลองวัตถุทั้งหกหมุนเวียน (ไอเย็นหวีลดความเร็ว, ระฆังลงโทษบัฟซ้อน, กระจกบังคับใช้ท่าซ้ำ) ใช้ TRANS_SUB_VENTING_WARD ระบายเกจคำสาป',
       phase3Th: 'เฟส 3: กรงตู้ผนึกกลืนเงา (HP < 30%) — ชักใยเจ็ดเส้นดึงศิษย์ composure ต่ำสุด จุดอ่อนคือโครงไม้ไผ่ในโคมที่สลักชื่อจริงเจ็ดขีด ใช้ TRANS_SUB_KEYBEARER_LOCK หรือธาตุ LIGHT_YANG ทำลายโคม',
